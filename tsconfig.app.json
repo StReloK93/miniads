@@ -1,0 +1,22 @@
+{
+   "extends": "./tsconfig.json",
+   "compilerOptions": {
+      "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+      "types": ["vite/client"],
+
+      /* Alias */
+      "moduleResolution": "bundler",
+      "paths": {
+         "@/*": ["./resources/js/*"],
+         "@pages/*": ["./resources/js/pages/*"]
+      },
+
+      /* Yordamchi */
+      "strict": true,
+      "noImplicitAny": false,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true
+   },
+   "include": ["resources/ts/**/*.ts", "resources/ts/**/*.tsx", "resources/ts/**/*.vue", "resources/ts/**/*.d.ts"]
+}

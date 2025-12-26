@@ -1,5 +1,5 @@
 <template>
-   <section class="bg-surface-100 p-1 rounded-xl">
+   <section class="bg-surface-50 p-1.5 rounded-xl select-none border border-surface-100">
       <div>
          <img :src="image" class="rounded-md w-full object-cover aspect-square" />
       </div>

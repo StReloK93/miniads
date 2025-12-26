@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+@import "swiper/css";
+.headless-drawer .p-drawer-header {
+   padding: 0 !important;
+}

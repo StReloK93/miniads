@@ -7,8 +7,9 @@
       /* Alias */
       "moduleResolution": "bundler",
       "paths": {
-         "@/*": ["./resources/js/*"],
-         "@pages/*": ["./resources/js/pages/*"]
+         "@/*": ["./resources/ts/*"],
+         "@components/*": ["./resources/ts/components/*"],
+         "@pages/*": ["./resources/ts/pages/*"]
       },
 
       /* Yordamchi */

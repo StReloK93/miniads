@@ -10,6 +10,7 @@
         "@eslint/js": "^9.39.2",
         "@primevue/auto-import-resolver": "^4.5.4",
         "@tailwindcss/vite": "^4.0.0",
+        "@types/node": "^25.0.3",
         "@vitejs/plugin-vue": "^6.0.3",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
@@ -27,8 +28,10 @@
     },
     "dependencies": {
         "@primeuix/themes": "^2.0.2",
+        "pinia": "^3.0.4",
         "primeicons": "^7.0.0",
         "primevue": "^4.5.4",
+        "swiper": "^12.0.3",
         "tailwindcss-primeui": "^0.6.1",
         "vue": "^3.5.26",
         "vue-router": "^4.6.4"

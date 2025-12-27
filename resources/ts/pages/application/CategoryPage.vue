@@ -9,6 +9,7 @@
             <div
                v-for="(category, index) in categories"
                :id="`category_${index}`"
+               :key="category.name"
                class="bg-surface-50 border border-surface-100 px-4 mb-2 py-2"
             >
                <h3 class="text-xl font-semibold text-surface-800 mb-1">
@@ -17,6 +18,7 @@
                <aside>
                   <div
                      v-for="value in postCategories"
+                     :key="value"
                      class="border-b border-gray-100 flex justify-between items-center"
                   >
                      <span class="text-surface-700 text-sm">
@@ -32,6 +34,7 @@
                      <template #content="{ closeCallback }">
                         <div
                            v-for="value in postCategories"
+                           :key="value"
                            class="border-b border-gray-100 flex justify-between items-center"
                         >
                            <span class="text-surface-700 text-sm">

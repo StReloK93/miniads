@@ -17,7 +17,7 @@
                <div
                   class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-surface-50 rounded-2xl border border-surface-100 p-2"
                >
-                  <img :src="`${category.icon_path}`" class="md:w-16 w-10" />
+                  <img :src="`${category.image}`" class="md:w-16 w-10" />
                   <div class="text-xs font-semibold text-surface-600">
                      {{ category.name }}
                   </div>
@@ -58,9 +58,15 @@
 
 <script setup lang="ts">
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { products, categories } from "@/test/data";
+import { products } from "@/test/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
+import { ref } from "vue";
+import axios from "axios";
 
+const categories = ref([]);
+axios.get("api/categories").then((response) => {
+   categories.value = response.data;
+});
 // function onSwiper(swiper) {
 //    console.log(swiper);
 // }

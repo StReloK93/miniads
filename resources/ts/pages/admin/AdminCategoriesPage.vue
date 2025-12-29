@@ -1,132 +1,74 @@
 <template>
    <div>
-      <Tree :value="nodes" class="w-full md:w-120 bg-transparent!">
+      <div class="card flex justify-center">
+         <Drawer
+            class="headless-drawer"
+            v-model:visible="visible"
+            header=""
+            :show-close-icon="false"
+         >
+            <BaseForm
+               :submit="submitCategoryForm"
+               :inputConfigs="categoryInputs"
+               class="pt-5"
+            ></BaseForm>
+         </Drawer>
+         <Button icon="pi pi-arrow-right" @click="visible = true" />
+      </div>
+      <Tree :value="convertTreeNode" class="w-full md:w-120 bg-transparent!">
          <template #default="slotProps">
-            {{ slotProps.node.label }}
-            <Button
-               @click="addNewCategory(slotProps.node)"
-               icon="pi pi-plus"
-               severity="secondary"
-               size="small"
-               rounded
-               variant="text"
-               class="ml-12"
-            />
+            <main class="w-90 flex justify-between items-center">
+               <span>
+                  {{ slotProps.node.label }}
+               </span>
+               <Button
+                  @click="addNewCategory(slotProps.node)"
+                  icon="pi pi-plus"
+                  severity="secondary"
+                  size="small"
+                  rounded
+                  variant="text"
+               />
+            </main>
          </template>
       </Tree>
    </div>
 </template>
 
 <script setup lang="ts">
+import BaseForm from "@/components/BaseForm.vue";
+import CategoryRepo from "@/repositories/CategoryRepo";
+import { computed, Ref, ref } from "vue";
+import { TreeNode } from "primevue/treenode";
+import { categoryInputs } from "@/configs/ConfigInputs";
+const { data: categories } = CategoryRepo.index();
+const visible = ref(false);
+const selectedCategory: Ref<TreeNode | null> = ref(null);
+const formatCategories = (categories) => {
+   return categories.map((item) => {
+      const node = {
+         key: String(item.id), // Key doim String bo'lishi kerak
+         label: item.name, // Sizdagi 'name' yoki 'title'
+         data: item, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
+         children: [], // Bolalar uchun bo'sh massiv
+      };
+      if (item.children && item.children.length > 0) {
+         node.children = formatCategories(item.children);
+      }
+      return node;
+   });
+};
+
+const convertTreeNode = computed(() => formatCategories(categories.value || []));
 function addNewCategory(node) {
+   selectedCategory.value = node;
    console.log(node);
 }
-const nodes = [
-   {
-      key: "0",
-      label: "Documents",
-      data: "Documents Folder",
-      icon: "pi pi-fw pi-inbox",
-      children: [
-         {
-            key: "0-0",
-            label: "Work",
-            data: "Work Folder",
-            icon: "pi pi-fw pi-cog",
-            children: [
-               {
-                  key: "0-0-0",
-                  label: "Expenses.doc",
-                  icon: "pi pi-fw pi-file",
-                  data: "Expenses Document",
-               },
-               {
-                  key: "0-0-1",
-                  label: "Resume.doc",
-                  icon: "pi pi-fw pi-file",
-                  data: "Resume Document",
-               },
-            ],
-         },
-         {
-            key: "0-1",
-            label: "Home",
-            data: "Home Folder",
-            icon: "pi pi-fw pi-home",
-            children: [
-               {
-                  key: "0-1-0",
-                  label: "Invoices.txt",
-                  icon: "pi pi-fw pi-file",
-                  data: "Invoices for this month",
-               },
-            ],
-         },
-      ],
-   },
-   {
-      key: "1",
-      label: "Events",
-      data: "Events Folder",
-      icon: "pi pi-fw pi-calendar",
-      children: [
-         { key: "1-0", label: "Meeting", icon: "pi pi-fw pi-calendar-plus", data: "Meeting" },
-         {
-            key: "1-1",
-            label: "Product Launch",
-            icon: "pi pi-fw pi-calendar-plus",
-            data: "Product Launch",
-         },
-         {
-            key: "1-2",
-            label: "Report Review",
-            icon: "pi pi-fw pi-calendar-plus",
-            data: "Report Review",
-         },
-      ],
-   },
-   {
-      key: "2",
-      label: "Movies",
-      data: "Movies Folder",
-      icon: "pi pi-fw pi-star-fill",
-      children: [
-         {
-            key: "2-0",
-            icon: "pi pi-fw pi-star-fill",
-            label: "Al Pacino",
-            data: "Pacino Movies",
-            children: [
-               {
-                  key: "2-0-0",
-                  label: "Scarface",
-                  icon: "pi pi-fw pi-video",
-                  data: "Scarface Movie",
-               },
-               { key: "2-0-1", label: "Serpico", icon: "pi pi-fw pi-video", data: "Serpico Movie" },
-            ],
-         },
-         {
-            key: "2-1",
-            label: "Robert De Niro",
-            icon: "pi pi-fw pi-star-fill",
-            data: "De Niro Movies",
-            children: [
-               {
-                  key: "2-1-0",
-                  label: "Goodfellas",
-                  icon: "pi pi-fw pi-video",
-                  data: "Goodfellas Movie",
-               },
-               {
-                  key: "2-1-1",
-                  label: "Untouchables",
-                  icon: "pi pi-fw pi-video",
-                  data: "Untouchables Movie",
-               },
-            ],
-         },
-      ],
-   },
-];
+
+async function submitCategoryForm(values) {
+   if (selectedCategory.value) {
+      values.parent_id = Number(selectedCategory.value.key);
+   }
+   // await CategoryRepo.store(values);
+}
 </script>

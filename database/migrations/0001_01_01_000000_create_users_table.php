@@ -13,9 +13,7 @@ return new class extends Migration {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('login')->nullable()->unique(); // Admin uchun kerak, TG user uchun shart emas
-            $table->string('password')->nullable(); // Admin uchun kerak, TG user uchun null bo'ladi
-            $table->bigInteger('telegram_id')->nullable()->unique(); // TG user uchun asosiy ID
+            $table->bigInteger('telegram_user_id')->nullable()->unique(); // TG user uchun asosiy ID
             $table->enum('role', ['user', 'admin'])->default('user'); // Rollarni ajratish
             $table->timestamps();
         });

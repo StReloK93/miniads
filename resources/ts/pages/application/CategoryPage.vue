@@ -17,17 +17,17 @@
                </h3>
                <aside>
                   <div
-                     v-for="value in postCategories"
-                     :key="value"
+                     v-for="childCategory in category.children"
+                     :key="childCategory.id"
                      class="border-b border-gray-100 flex justify-between items-center"
                   >
                      <span class="text-surface-700 text-sm">
-                        {{ value }}
+                        {{ childCategory.name }}
                      </span>
                      <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
                   </div>
 
-                  <Inplace :active="activeCategoryId == `category_${index}`" :display-props="{ class: 'p-0! w-full' }">
+                  <!-- <Inplace :active="activeCategoryId == `category_${index}`" :display-props="{ class: 'p-0! w-full' }">
                      <template #display>
                         <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
                      </template>
@@ -44,7 +44,7 @@
                         </div>
                         <div @click="closeCallback" class="py-1.5 text-xs text-primary">Yopish</div>
                      </template>
-                  </Inplace>
+                  </Inplace> -->
                </aside>
             </div>
          </section>
@@ -59,9 +59,13 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const activeCategoryId = ref<string | null>(null);
 import BackPreviusPage from "@/components/features/BackPreviusPage.vue";
-import { categories } from "@/test/data";
+import axios from "axios";
+import { ICategory } from "@/types";
+const categories = ref<ICategory[]>([]);
 
-const postCategories = ["Mobile & Electronics", "House & apartment", "Washing machine"];
+axios.get<ICategory[]>("api/categories").then((response) => {
+   categories.value = response.data;
+});
 
 onMounted(async () => {
    const categoryId = route.query.open as string;

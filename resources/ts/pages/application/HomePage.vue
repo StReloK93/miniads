@@ -57,14 +57,15 @@
 </template>
 
 <script setup lang="ts">
+import { ICategory } from "@/types";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { products } from "@/test/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
-import { ref } from "vue";
+import { Ref, ref } from "vue";
 import axios from "axios";
 
-const categories = ref([]);
-axios.get("api/categories").then((response) => {
+const categories: Ref<ICategory[]> = ref([]);
+axios.get<ICategory[]>("api/categories").then((response) => {
    categories.value = response.data;
 });
 // function onSwiper(swiper) {

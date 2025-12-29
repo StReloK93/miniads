@@ -1,28 +1,9 @@
-interface Category {
-   name: string;
-   icon_path: string;
-}
-
 interface Product {
    title: string;
    subtitle: string;
    price: string;
    image: string;
 }
-
-// 2. Arrayni to'g'ri oching va objectlarni qo'shing
-export const categories: Category[] = [
-   { name: "Transport", icon_path: "./icons/car.svg" },
-   { name: "Ko'chmas mulk", icon_path: "./icons/house.svg" },
-   { name: "Elektronika", icon_path: "./icons/electronics.svg" },
-   { name: "Ish", icon_path: "./icons/music.svg" },
-   { name: "Ko'chmas mulk", icon_path: "./icons/house.svg" },
-   { name: "Transport", icon_path: "./icons/car.svg" },
-   { name: "Ko'chmas mulk", icon_path: "./icons/house.svg" },
-   { name: "Elektronika", icon_path: "./icons/electronics.svg" },
-   { name: "Ish", icon_path: "./icons/music.svg" },
-   { name: "Ko'chmas mulk", icon_path: "./icons/house.svg" },
-];
 
 export const products: Product[] = [
    {

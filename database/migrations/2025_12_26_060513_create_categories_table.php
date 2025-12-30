@@ -13,7 +13,6 @@ return new class extends Migration {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Masalan: "Elektronika" yoki "Telefonlar"
-            $table->string('slug')->unique(); // URL uchun: "elektronika"
             $table->string('image')->nullable(); // Faqat asosiy kategoriyalar uchun
             $table->unsignedBigInteger('parent_id')->nullable(); // Shu joyi muhim!
 

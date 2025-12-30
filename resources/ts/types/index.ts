@@ -11,7 +11,8 @@ export interface ICategory {
 
 export interface InputConfig {
    component: Component;
-   props: () => Promise<IProps> | IProps;
+   props: IProps | null;
+   generateProps?: () => Promise<void>;
    name: string;
    schema: z.ZodTypeAny;
    class?: string[];

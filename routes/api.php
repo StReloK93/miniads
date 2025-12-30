@@ -11,6 +11,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::get('/categories', [App\Http\Controllers\CategoryController::class, 'index']);
+// Route::get('/categories', [App\Http\Controllers\CategoryController::class, 'index']);
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
+
+Route::apiResource('categories', App\Http\Controllers\CategoryController::class);

@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Category;
-use Illuminate\Support\Str;
 class CategorySeeder extends Seeder
 {
     /**
@@ -45,7 +44,6 @@ class CategorySeeder extends Seeder
             // 1. Asosiy kategoriyani yaratamiz
             $parent = Category::create([
                 'name' => $item['name'],
-                'slug' => Str::slug($item['name']),
                 'image' => $item['image'],
                 'parent_id' => null,
             ]);
@@ -54,7 +52,6 @@ class CategorySeeder extends Seeder
             foreach ($item['subs'] as $subName) {
                 Category::create([
                     'name' => $subName,
-                    'slug' => Str::slug($subName),
                     'image' => null, // Podkategoriyalarga rasm shart emas
                     'parent_id' => $parent->id, // Otaning ID-sini bog'laymiz
                 ]);

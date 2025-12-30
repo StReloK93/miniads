@@ -16,11 +16,11 @@
                :is="input.component"
             />
             <Message
-               v-if="$form[input.props.name]?.invalid"
+               v-if="$form[input.name]?.invalid"
                severity="error"
                size="small"
                variant="simple"
-               >{{ $form[input.props.name].error.message }}
+               >{{ $form[input.name].error.message }}
             </Message>
          </main>
       </div>
@@ -56,13 +56,10 @@ const props = defineProps<{
    submit: (values: unknown) => Promise<void>;
 }>();
 
-const updatedConfigs = async function () {
-   // inputConfigs.value = await props.inputConfigs;
-};
-
 const onFormSubmit = async (formEvent: FormSubmitEvent) => {
    if (formEvent.valid) {
       console.log(formEvent);
+
       buttonLoader.value = true;
       await props.submit(formEvent.values).finally(() => {
          buttonLoader.value = false;
@@ -87,7 +84,7 @@ const resolver = zodResolver(
    z.object(
       props.inputConfigs.reduce(
          (acc, curr) => {
-            if (curr.schema) acc[curr.props.name] = curr.schema;
+            if (curr.schema) acc[curr.name] = curr.schema;
             return acc;
          },
          {} as Record<string, z.ZodTypeAny>,

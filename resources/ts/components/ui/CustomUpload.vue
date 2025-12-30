@@ -2,7 +2,7 @@
    <FormField v-slot="$field" class="flex flex-col gap-1">
       <input
          type="file"
-         :id="props.input.props.name"
+         :id="props.input.name"
          v-bind="$field.props"
          @change="(event) => onNativeFileChange(event, $field)"
          class="hidden"
@@ -19,8 +19,8 @@
             @click.stop="clear($field)"
          />
          <label
-            class="bg-surface-50 aspect-square w-full flex justify-center items-center rounded-xl border border-surface-200 p-1.5"
-            :for="props.input.props.name"
+            class="bg-surface-50 aspect-square cursor-pointer w-full flex justify-center items-center rounded-xl border border-surface-200 hover:border-surface-300 hover:bg-surface-100 p-1.5"
+            :for="props.input.name"
          >
             <Transition name="list" mode="out-in">
                <img v-if="src" :src="src" class="rounded-md w-full grayscale" />

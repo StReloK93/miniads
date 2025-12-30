@@ -17,18 +17,22 @@
                size="small"
                rounded
                variant="text"
-               @click="visible = true"
+               :loading="loading"
+               @click="openForm()"
             />
          </div>
       </div>
       <Tree :value="convertTreeNode" class="w-full md:w-120 bg-transparent!">
          <template #default="slotProps">
             <main class="w-90 flex justify-between items-center">
-               <span>
-                  {{ slotProps.node.label }}
-               </span>
+               <div class="flex gap-3 items-center">
+                  <img :src="slotProps.node.image" class="w-6" />
+                  <span>
+                     {{ slotProps.node.label }}
+                  </span>
+               </div>
                <Button
-                  @click="addNewCategory(slotProps.node)"
+                  @click="openForm(slotProps.node.key)"
                   icon="pi pi-plus"
                   severity="secondary"
                   size="small"
@@ -44,27 +48,39 @@
 <script setup lang="ts">
 import BaseForm from "@/components/BaseForm.vue";
 import CategoryRepo from "@/repositories/CategoryRepo";
-import { computed, Ref, ref } from "vue";
-import { TreeNode } from "primevue/treenode";
+import { computed, ref } from "vue";
 import { categoryInputs } from "@/configs/ConfigInputs";
 import { formatCategories } from "@/configs/Formatters";
 const { data: categories } = CategoryRepo.index();
 const visible = ref(false);
-const selectedCategory: Ref<TreeNode | null> = ref(null);
-
+const loading = ref(false);
 const convertTreeNode = computed(() => formatCategories(categories.value || []));
 
-function addNewCategory(node) {
-   selectedCategory.value = node;
-   console.log(node);
-}
+const openForm = async function (category_id: number | null | string | undefined = null) {
+   loading.value = true;
+   console.log(category_id);
+
+   await Promise.all(
+      categoryInputs.map(async (input) => {
+         if (input.generateProps) {
+            await input.generateProps();
+         }
+         input.value = category_id;
+         return input;
+      }),
+   ).finally(() => {
+      loading.value = false;
+   });
+
+   visible.value = true;
+};
 
 async function submitCategoryForm(values) {
-   console.log(values);
+   // console.log(values);
 
-   if (selectedCategory.value) {
-      values.parent_id = Number(selectedCategory.value.key);
-   }
-   // await CategoryRepo.store(values);
+   // if (selectedCategory.value) {
+   //    values.parent_id = Number(selectedCategory.value.key);
+   // }
+   await CategoryRepo.store(null, values);
 }
 </script>

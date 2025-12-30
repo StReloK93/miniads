@@ -8,16 +8,21 @@
       class="flex flex-col gap-4 w-full h-full pt-2"
    >
       <div class="flex flex-col">
-         <template v-for="(input, index) in inputConfigs" :key="index">
-            <component v-bind="input.props" :is="input.component" />
+         <main v-for="(input, index) in inputConfigs" :key="index" :class="[input.class]">
+            <component
+               :input="input"
+               :name="input.name"
+               v-bind="input.props"
+               :is="input.component"
+            />
             <Message
                v-if="$form[input.props.name]?.invalid"
                severity="error"
                size="small"
                variant="simple"
-               >{{ $form[input.props.name].error.message }}</Message
-            >
-         </template>
+               >{{ $form[input.props.name].error.message }}
+            </Message>
+         </main>
       </div>
       <div class="grow" />
       <main class="flex gap-3 pb-4 -mb-4">
@@ -51,8 +56,13 @@ const props = defineProps<{
    submit: (values: unknown) => Promise<void>;
 }>();
 
+const updatedConfigs = async function () {
+   // inputConfigs.value = await props.inputConfigs;
+};
+
 const onFormSubmit = async (formEvent: FormSubmitEvent) => {
    if (formEvent.valid) {
+      console.log(formEvent);
       buttonLoader.value = true;
       await props.submit(formEvent.values).finally(() => {
          buttonLoader.value = false;
@@ -66,17 +76,18 @@ const onFormSubmit = async (formEvent: FormSubmitEvent) => {
 const initialValues = reactive(
    props.inputConfigs.reduce(
       (acc, curr) => {
-         acc[curr.props.name] = curr.props.value;
+         acc[curr.name] = curr.value;
          return acc;
       },
       {} as Record<string, unknown>,
    ),
 );
+
 const resolver = zodResolver(
    z.object(
       props.inputConfigs.reduce(
          (acc, curr) => {
-            acc[curr.props.name] = curr.schema;
+            if (curr.schema) acc[curr.props.name] = curr.schema;
             return acc;
          },
          {} as Record<string, z.ZodTypeAny>,

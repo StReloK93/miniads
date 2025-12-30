@@ -11,9 +11,14 @@ export interface ICategory {
 
 export interface InputConfig {
    component: Component;
-   props: {
-      name: string;
-      [key: string]: unknown;
-   };
+   props: () => Promise<IProps> | IProps;
+   name: string;
    schema: z.ZodTypeAny;
+   class?: string[];
+   value?: string | number | boolean | null | undefined;
+   selectOption?: IProps;
+}
+
+export interface IProps {
+   [key: string]: unknown;
 }

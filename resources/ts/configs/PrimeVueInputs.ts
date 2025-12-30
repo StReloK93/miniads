@@ -15,6 +15,7 @@ import {
    Textarea,
    ToggleButton,
 } from "primevue";
+import CustomUpload from "@/components/ui/CustomUpload.vue";
 
 export const PrimeVueInputs = {
    InputText,
@@ -32,4 +33,5 @@ export const PrimeVueInputs = {
    Rating,
    Textarea,
    ToggleButton,
+   CustomUpload,
 };

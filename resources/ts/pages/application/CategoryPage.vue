@@ -7,7 +7,7 @@
       <main class="grow relative">
          <section class="absolute inset-0 overflow-y-auto pt-2">
             <div
-               v-for="(category, index) in categories"
+               v-for="(category, index) in categoryParents"
                :id="`category_${index}`"
                :key="category.name"
                class="bg-surface-50 border border-surface-100 px-4 mb-2 py-2"
@@ -24,7 +24,12 @@
                      <span class="text-surface-700 text-sm">
                         {{ childCategory.name }}
                      </span>
-                     <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
+                     <Button
+                        icon="pi pi-angle-right"
+                        severity="secondary"
+                        variant="text"
+                        rounded
+                     ></Button>
                   </div>
 
                   <!-- <Inplace :active="activeCategoryId == `category_${index}`" :display-props="{ class: 'p-0! w-full' }">
@@ -55,18 +60,12 @@
 <script setup lang="ts">
 import { onMounted, nextTick, ref } from "vue";
 import { useRoute } from "vue-router";
-
+import CategoryRepo from "@/repositories/CategoryRepo";
 const route = useRoute();
 const activeCategoryId = ref<string | null>(null);
 import BackPreviusPage from "@/components/features/BackPreviusPage.vue";
-import axios from "axios";
-import { ICategory } from "@/types";
-const categories = ref<ICategory[]>([]);
 
-axios.get<ICategory[]>("api/categories").then((response) => {
-   categories.value = response.data;
-});
-
+const { data: categoryParents } = CategoryRepo.parents();
 onMounted(async () => {
    const categoryId = route.query.open as string;
 

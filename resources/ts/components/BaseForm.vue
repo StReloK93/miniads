@@ -9,7 +9,18 @@
    >
       <div class="flex flex-col">
          <main v-for="(input, index) in inputConfigs" :key="index" :class="[input.class]">
+            <FloatLabel v-if="input.placeholder" variant="on">
+               <component
+                  :input="input"
+                  :name="input.name"
+                  :id="input.name"
+                  v-bind="input.props"
+                  :is="input.component"
+               />
+               <label :for="input.name">{{ input.placeholder }}</label>
+            </FloatLabel>
             <component
+               v-else
                :input="input"
                :name="input.name"
                v-bind="input.props"

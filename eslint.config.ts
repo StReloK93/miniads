@@ -14,4 +14,11 @@ export default defineConfig([
    tseslint.configs.recommended,
    pluginVue.configs["flat/essential"],
    { files: ["**/*.vue"], languageOptions: { parserOptions: { parser: tseslint.parser } } },
+   {
+      // Qoidalarni shu yerda sozlaymiz
+      rules: {
+         "@typescript-eslint/no-explicit-any": "off", // 'any' ishlatishga ruxsat berish
+         "vue/no-unused-vars": "warn", // Ixtiyoriy: boshqa qoidalar ham qo'shish mumkin
+      },
+   },
 ]);

@@ -14,6 +14,7 @@ export interface InputConfig {
    props: IProps | null;
    generateProps?: () => Promise<void>;
    name: string;
+   placeholder?: string;
    schema: z.ZodTypeAny;
    class?: string[];
    value?: string | number | boolean | null | undefined;

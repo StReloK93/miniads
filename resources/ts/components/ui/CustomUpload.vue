@@ -1,13 +1,13 @@
 <template>
    <FormField v-slot="$field" class="flex flex-col gap-1">
-      <input
-         type="file"
-         :id="props.input.name"
-         v-bind="$field.props"
-         @change="(event) => onNativeFileChange(event, $field)"
-         class="hidden"
-      />
       <main class="relative">
+         <input
+            type="file"
+            :id="props.input.name"
+            v-bind="$field.props"
+            @change="(event) => onNativeFileChange(event, $field)"
+            class="hidden"
+         />
          <Button
             v-if="src"
             icon="pi pi-times"
@@ -15,7 +15,7 @@
             rounded
             variant="text"
             class="absolute! top-1 right-1 z-50"
-            severity="danger"
+            severity="contrast"
             @click.stop="clear($field)"
          />
          <label
@@ -35,7 +35,7 @@
 import { ref } from "vue";
 const props = defineProps<{ input }>();
 
-const src = ref<string | null>(null);
+const src = ref<string | null>(props.input.value);
 function onNativeFileChange(event: Event, $field: any) {
    const target = event.target as HTMLInputElement;
    if (target && target.files && target.files.length > 0) {

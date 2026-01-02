@@ -15,4 +15,5 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
 
+Route::get('/categories/parents', [App\Http\Controllers\CategoryController::class, 'parents']);
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class);

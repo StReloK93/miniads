@@ -12,7 +12,7 @@
          />
       </section>
       <swiper :slides-per-view="3.3" :space-between="10">
-         <swiper-slide v-for="(category, index) in categories" :key="category.name">
+         <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
             <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
                <div
                   class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-surface-50 rounded-2xl border border-surface-100 p-2"
@@ -57,17 +57,12 @@
 </template>
 
 <script setup lang="ts">
-import { ICategory } from "@/types";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { products } from "@/test/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
-import { Ref, ref } from "vue";
-import axios from "axios";
+import CategoryRepo from "@/repositories/CategoryRepo";
 
-const categories: Ref<ICategory[]> = ref([]);
-axios.get<ICategory[]>("api/categories").then((response) => {
-   categories.value = response.data;
-});
+const { data: parentCategories } = CategoryRepo.parents();
 // function onSwiper(swiper) {
 //    console.log(swiper);
 // }

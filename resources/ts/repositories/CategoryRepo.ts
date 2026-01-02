@@ -1,25 +1,38 @@
 import { useFetch, api } from "@/modules/useFetch";
 import { ICategory } from "@/types";
+import { ref } from "vue";
 const baseURL = "categories";
 
 function index() {
    return useFetch<ICategory[]>({ url: `${baseURL}` });
 }
 
-function store(parent_id: number | null, formData: { name: string; file?: File }) {
-   api.post(
-      `${baseURL}`,
-      { parent_id, ...formData },
-      {
-         headers: { "Content-Type": "multipart/form-data" },
-      },
-   );
-   // return useFetch<ICategory[]>({
-   //    url: `${baseURL}`,
-   //    method: "post",
-   //    formData: { parent_id, ...formData },
-   //    headers: { "Content-Type": "multipart/form-data" },
-   // });
+async function store(parent_id: number | null, formData: { name: string; file?: File }) {
+   const loading = ref(true);
+   await api
+      .post(
+         `${baseURL}`,
+         { parent_id, ...formData },
+         {
+            headers: { "Content-Type": "multipart/form-data" },
+         },
+      )
+      .finally(() => {
+         loading.value = false;
+      });
+   return { loading };
 }
 
-export default { index, store };
+function parents() {
+   return useFetch<ICategory[]>({ url: `${baseURL}/parents` });
+}
+
+function update(id: string, formData: { name: string; file?: File }) {
+   return useFetch<ICategory>({ url: `${baseURL}/${id}`, method: "put", formData: formData });
+}
+
+function show(id: string, onLoad?: (result: { data: ICategory; error: object | null }) => void) {
+   return useFetch<ICategory>({ url: `${baseURL}/${id}`, onLoad });
+}
+
+export default { index, store, parents, update, show };

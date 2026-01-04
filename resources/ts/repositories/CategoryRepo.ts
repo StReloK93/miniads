@@ -28,7 +28,14 @@ function parents() {
 }
 
 function update(id: string, formData: { name: string; file?: File }) {
-   return useFetch<ICategory>({ url: `${baseURL}/${id}`, method: "put", formData: formData });
+   return useFetch<ICategory>({
+      url: `${baseURL}/${id}`,
+      method: "put",
+      formData: formData,
+      options: {
+         headers: { "Content-Type": "multipart/form-data" },
+      },
+   });
 }
 
 function show(id: string, onLoad?: (result: { data: ICategory; error: object | null }) => void) {

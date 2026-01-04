@@ -7,6 +7,7 @@
             v-bind="$field.props"
             @change="(event) => onNativeFileChange(event, $field)"
             class="hidden"
+            @vue:mounted="updateImageFromPath($field)"
          />
          <Button
             v-if="src"
@@ -35,7 +36,24 @@
 import { ref } from "vue";
 const props = defineProps<{ input }>();
 
-const src = ref<string | null>(props.input.value);
+async function getFileFromPath(path) {
+   const response = await fetch(path);
+   const blob = await response.blob();
+
+   // Pathdan fayl nomini ajratib olish (house.svg)
+   const fileName = path.split("/").pop();
+
+   return new File([blob], fileName, { type: blob.type });
+}
+const src = ref<string | null>(null);
+
+async function updateImageFromPath($field: any) {
+   if (props.input.value) {
+      const file = await getFileFromPath(props.input.value);
+      src.value = props.input.value;
+      $field.onInput({ value: file });
+   }
+}
 function onNativeFileChange(event: Event, $field: any) {
    const target = event.target as HTMLInputElement;
    if (target && target.files && target.files.length > 0) {

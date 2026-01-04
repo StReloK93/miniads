@@ -13,20 +13,21 @@ type FetchOptions<T = unknown> = {
    formData?: object;
    method?: HttpMethod;
    onLoad?: (result: { data: T; error: object | null }) => void;
+   options?: object;
 };
 
-function useFetch<T>({ url, formData = {}, method = "get", onLoad }: FetchOptions<T>) {
+function useFetch<T>({ url, formData = {}, method = "get", onLoad, options }: FetchOptions<T>) {
    const data = ref<T | null>(null);
    const error = ref<object | null>(null);
    const isLoading = ref(true);
    const isFirstLoading = ref(true);
 
-   const fetchData = async (options?: object) => {
+   const fetchData = async (formData?: object, options?: object) => {
       isLoading.value = true;
       error.value = null;
 
       try {
-         const response: AxiosResponse<T> = await api[method](url, options); // No need to lowercase, method is already typed
+         const response: AxiosResponse<T> = await api[method](url, formData, options); // No need to lowercase, method is already typed
          data.value = response.data;
       } catch (err) {
          error.value = err as object | null;
@@ -37,7 +38,7 @@ function useFetch<T>({ url, formData = {}, method = "get", onLoad }: FetchOption
       }
    };
 
-   fetchData(formData);
+   fetchData(formData, options);
    return { data, error, isLoading, fetchData, isFirstLoading };
 }
 

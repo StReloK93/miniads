@@ -25,6 +25,7 @@ declare module 'vue' {
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Skeleton: typeof import('primevue/skeleton')['default']
     Tree: typeof import('primevue/tree')['default']
   }
 }

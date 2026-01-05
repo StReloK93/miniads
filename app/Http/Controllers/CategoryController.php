@@ -34,7 +34,7 @@ class CategoryController extends Controller
 		if ($request->hasFile('image')) {
 			$file = $request->file('image');
 			// Fayl nomini xavfsiz qilish (Original nomda keraksiz belgilar bo'lishi mumkin)
-			$fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+			$fileName = time() . '_' . $request->name . '.' . $file->getClientOriginalExtension();
 
 			// public/icons papkasiga yuklash
 			$file->move(public_path('icons'), $fileName);
@@ -53,7 +53,7 @@ class CategoryController extends Controller
 		$category = Category::findOrFail($id);
 
 		$request->validate([
-			'parent_id' => 'nullable|exists:categories,id',
+			'name' => 'string',
 			'image' => 'sometimes|mimes:svg', // image ekanligini ham tekshirish yaxshi
 		]);
 
@@ -71,12 +71,13 @@ class CategoryController extends Controller
 
 			// 2. Yangi faylni yuklash
 			$file = $request->file('image');
-			$fileName = time() . '_' . $file->getClientOriginalName();
+			$fileName = time() . '_' . $category->name . '.' . $file->getClientOriginalExtension();
 			$file->move(public_path('icons'), $fileName);
 
 			// Yangi pathni ma'lumotlar massiviga qo'shamiz
 			$data['image'] = '/icons/' . $fileName;
 		}
+
 
 		$category->update($data);
 

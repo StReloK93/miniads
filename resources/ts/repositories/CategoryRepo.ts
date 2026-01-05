@@ -27,15 +27,16 @@ function parents() {
    return useFetch<ICategory[]>({ url: `${baseURL}/parents` });
 }
 
-function update(id: string, formData: { name: string; file?: File }) {
-   return useFetch<ICategory>({
-      url: `${baseURL}/${id}`,
-      method: "put",
-      formData: formData,
-      options: {
+async function update(id: string, formData: { name: string; file?: File }) {
+   const loading = ref(true);
+   await api
+      .post(`${baseURL}/${id}`, formData, {
          headers: { "Content-Type": "multipart/form-data" },
-      },
-   });
+      })
+      .finally(() => {
+         loading.value = false;
+      });
+   return { loading };
 }
 
 function show(id: string, onLoad?: (result: { data: ICategory; error: object | null }) => void) {

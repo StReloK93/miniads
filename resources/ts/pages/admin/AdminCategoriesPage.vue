@@ -24,18 +24,30 @@
             />
          </div>
       </div>
-      <Tree :value="convertTreeNode" class="w-full md:w-120 bg-transparent!">
+      <Tree
+         :value="convertTreeNode"
+         draggableNodes
+         droppableNodes
+         @node-drop="onNodeDrop"
+         class="w-full md:w-120 bg-transparent!"
+      >
          <template #default="slotProps">
-            <main class="w-90 flex justify-between items-center">
+            <main class="w-90 flex justify-between items-center select-none">
                <div class="flex gap-3 items-center py-2">
-                  <img v-if="slotProps.node.image" :src="slotProps.node.image" class="w-6" />
-                  <span>
+                  <img
+                     v-if="slotProps.node.image"
+                     :src="slotProps.node.image"
+                     draggable="false"
+                     class="w-6 pointer-events-none"
+                  />
+                  <span class="font-medium">
                      {{ slotProps.node.label }}
                   </span>
                </div>
-               <main class="flex items-center">
+
+               <div class="flex items-center gap-1">
                   <Button
-                     @click="openCreateForm(slotProps.node.key)"
+                     @click.stop="openCreateForm(slotProps.node.key)"
                      :loading="createLoadingId === slotProps.node.key"
                      icon="pi pi-plus"
                      severity="secondary"
@@ -44,7 +56,7 @@
                      variant="text"
                   />
                   <Button
-                     @click="openEditForm(slotProps.node)"
+                     @click.stop="openEditForm(slotProps.node)"
                      icon="pi pi-pencil"
                      severity="secondary"
                      size="small"
@@ -59,9 +71,16 @@
                      rounded
                      variant="text"
                   />
-               </main>
+               </div>
             </main>
          </template>
+      </Tree>
+      <Tree
+         v-model:value="databases"
+         draggableNodes
+         droppableNodes
+         class="w-full md:w-120 bg-transparent!"
+      >
       </Tree>
    </div>
 </template>
@@ -143,4 +162,151 @@ async function updateCategory(id: string, values) {
    await CategoryRepo.update(id, values);
    fetchCategories();
 }
+
+// Drag and Drop hodisasi sodir bo'lganda
+const onNodeDrop = (event) => {
+   // PrimeVue avtomatik ravishda categories.value ni yangilaydi
+   // event.value - bu yangilangan to'liq daraxt strukturasi
+   categories.value = event.value;
+
+   console.log("Yangi struktura:", categories.value);
+
+   // Bu yerda backend-ga (Laravel) yangi strukturani yuborish kerak
+   saveStructureToBackend(categories.value);
+};
+
+const saveStructureToBackend = async (data) => {
+   try {
+      // Laravel-ga hamma strukturani yoki faqat o'zgarganini yuboring
+      // await axios.post('/api/categories/reorder', { tree: data });
+      console.log("Backend-ga saqlandi");
+   } catch (error) {
+      console.error("Xatolik:", error);
+   }
+};
+
+const databases = ref([
+   {
+      key: "0",
+      label: ".github",
+      data: ".github folder",
+      icon: "pi pi-fw pi-folder",
+      children: [
+         {
+            key: "0-0",
+            label: "workflows",
+            data: "workflows folder",
+            icon: "pi pi-fw pi-folder",
+            children: [
+               {
+                  key: "0-0-0",
+                  label: "node.js.yml",
+                  data: "node.js.yml file",
+                  icon: "pi pi-fw pi-file",
+               },
+            ],
+         },
+      ],
+   },
+   {
+      key: "1",
+      label: ".vscode",
+      data: ".vscode folder",
+      icon: "pi pi-fw pi-folder",
+      children: [
+         {
+            key: "1-0",
+            label: "extensions.json",
+            data: "extensions.json file",
+            icon: "pi pi-fw pi-file",
+         },
+      ],
+   },
+   {
+      key: "2",
+      label: "public",
+      data: "public folder",
+      icon: "pi pi-fw pi-folder",
+      children: [
+         {
+            key: "2-0",
+            label: "vite.svg",
+            data: "vite.svg file",
+            icon: "pi pi-fw pi-file",
+         },
+      ],
+   },
+   {
+      key: "3",
+      label: "src",
+      data: "src folder",
+      icon: "pi pi-fw pi-folder",
+      children: [
+         {
+            key: "3-0",
+            label: "assets",
+            data: "assets folder",
+            icon: "pi pi-fw pi-folder",
+            children: [
+               {
+                  key: "3-0-0",
+                  label: "vue.svg",
+                  data: "vue.svg file",
+                  icon: "pi pi-fw pi-file",
+               },
+            ],
+         },
+         {
+            key: "3-1",
+            label: "components",
+            data: "components folder",
+            icon: "pi pi-fw pi-folder",
+            children: [
+               {
+                  key: "3-1-0",
+                  label: "HelloWorld.vue",
+                  data: "HelloWorld.vue file",
+                  icon: "pi pi-fw pi-file",
+               },
+            ],
+         },
+         {
+            key: "3-2",
+            label: "App.vue",
+            data: "App.vue file",
+            icon: "pi pi-fw pi-file",
+         },
+         {
+            key: "3-3",
+            label: "main.js",
+            data: "main.js file",
+            icon: "pi pi-fw pi-file",
+         },
+         {
+            key: "3-4",
+            label: "style.css",
+            data: "style.css file",
+            icon: "pi pi-fw pi-file",
+         },
+      ],
+   },
+   {
+      key: "4",
+      label: "index.html",
+      data: "index.html file",
+      icon: "pi pi-fw pi-file",
+   },
+   {
+      key: "5",
+      label: "package.json",
+      data: "package.json file",
+      icon: "pi pi-fw pi-file",
+   },
+   {
+      key: "6",
+      label: "vite.config.js",
+      data: "vite.config.js file",
+      icon: "pi pi-fw pi-file",
+   },
+]);
 </script>

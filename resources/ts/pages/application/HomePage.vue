@@ -12,18 +12,25 @@
          />
       </section>
       <swiper :slides-per-view="3.3" :space-between="10">
-         <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
-            <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
-               <div
-                  class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-surface-50 rounded-2xl border border-surface-100 p-2"
-               >
-                  <img :src="`${category.image}`" class="md:w-16 w-10" />
-                  <div class="text-xs font-semibold text-surface-600">
-                     {{ category.name }}
+         <template v-if="!isLoading">
+            <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
+               <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
+                  <div
+                     class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-surface-50 rounded-2xl border border-surface-100 p-1"
+                  >
+                     <img :src="`${category.image}`" class="md:w-16 w-10" />
+                     <div class="text-[11px] font-semibold text-surface-600 text-center">
+                        {{ category.name }}
+                     </div>
                   </div>
-               </div>
-            </RouterLink>
-         </swiper-slide>
+               </RouterLink>
+            </swiper-slide>
+         </template>
+         <template v-else>
+            <swiper-slide v-for="n in 6" :key="n">
+               <Skeleton class="mb-2 aspect-square" height="92px"></Skeleton>
+            </swiper-slide>
+         </template>
       </swiper>
       <section class="flex justify-between items-center my-1.5">
          <span class="font-semibold text-surface-700">Top e'lonlar</span>
@@ -62,7 +69,7 @@ import { products } from "@/test/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
 import CategoryRepo from "@/repositories/CategoryRepo";
 
-const { data: parentCategories } = CategoryRepo.parents();
+const { data: parentCategories, isLoading } = CategoryRepo.parents();
 // function onSwiper(swiper) {
 //    console.log(swiper);
 // }

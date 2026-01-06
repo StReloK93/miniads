@@ -1,6 +1,6 @@
 <template>
    <section class="pt-4 flex flex-col h-dvh">
-      <main>
+      <main class="pt-safe-top">
          <BackPreviusPage title="Bo'limlar" class="px-4" />
          <Divider class="mb-0!" />
       </main>
@@ -11,18 +11,18 @@
                   v-for="(category, index) in categoryParents"
                   :id="`category_${index}`"
                   :key="category.name"
-                  class="bg-surface-50 border border-surface-100 px-4 mb-2 py-2"
+                  class="bg-surface-50 border border-surface-100 dark:bg-surface-900 dark:border-surface-800 px-4 mb-2 py-2"
                >
-                  <h3 class="text-xl font-semibold text-surface-800 mb-1">
+                  <h3 class="text-xl font-semibold text-surface-800 dark:text-surface-200 mb-1">
                      {{ category.name }}
                   </h3>
                   <aside>
                      <div
                         v-for="childCategory in category.children"
                         :key="childCategory.id"
-                        class="border-b border-gray-100 flex justify-between items-center"
+                        class="border-b border-gray-100 dark:border-transparent flex justify-between items-center"
                      >
-                        <span class="text-surface-700 text-sm">
+                        <span class="text-surface-700 dark:text-surface-300 text-sm">
                            {{ childCategory.name }}
                         </span>
                         <Button
@@ -55,7 +55,7 @@
                </div>
             </template>
             <template v-else>
-               <Skeleton v-for="value in 5" height="150px" class="mb-2"></Skeleton>
+               <Skeleton v-for="value in 5" :key="value" height="150px" class="mb-2"></Skeleton>
             </template>
          </section>
       </main>
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, nextTick, ref, watch } from "vue"; // watch ni import qiling
+import { nextTick, ref, watch } from "vue"; // watch ni import qiling
 import { useRoute } from "vue-router";
 import CategoryRepo from "@/repositories/CategoryRepo";
 import BackPreviusPage from "@/components/features/BackPreviusPage.vue";

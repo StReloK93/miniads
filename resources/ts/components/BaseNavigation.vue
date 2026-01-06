@@ -4,7 +4,13 @@
          <BaseSelectLocation />
          <div class="flex gap-3">
             <OverlayBadge severity="info">
-               <Button icon="pi pi-bell" severity="secondary" size="small" rounded aria-label="Star" />
+               <Button
+                  icon="pi pi-bell"
+                  severity="secondary"
+                  size="small"
+                  rounded
+                  aria-label="Star"
+               />
             </OverlayBadge>
          </div>
       </nav>
@@ -15,7 +21,7 @@
                placeholder="Qidiruv"
                name="search"
                size="small"
-               class="bg-surface-50! border-surface-100!"
+               class="bg-surface-50! border-surface-100! dark:bg-surface-900! dark:border-surface-800!"
             />
             <InputIcon class="pi pi-search" />
          </IconField>

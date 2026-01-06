@@ -6,28 +6,22 @@
 .headless-drawer .p-drawer-header {
    padding: 0 !important;
 }
-@theme {
-   --spacing-safe-top: env(--safe-area-top);
-}
 :root {
-   /* Telegram taqdim etadigan standart safe-area o'zgaruvchisi 
-     Agar u bo'lmasa, brauzerning env() xossasidan foydalanadi */
-   --tg-safe-area-top: env(--safe-area-top, 0px);
+   /* Standart qiymat. JS ishga tushgach, bu qiymat AuthStore'dagi raqam bilan almashadi */
+   --safe-area-top: env(safe-area-inset-top, 0px);
 }
 
+@theme {
+   --spacing-safe-top: var(--safe-area-top);
+}
 /* PrimeVue Drawer (Sider) uchun global padding */
 .p-drawer-header {
-   padding-top: var(--tg-safe-area-top) !important;
+   padding-top: var(--safe-area-top) !important;
 }
 
 /* PrimeVue Dialog (Modal) uchun global padding */
 .p-dialog-header {
-   padding-top: var(--tg-safe-area-top) !important;
-}
-
-/* Agar sizda tepada o'zingiz yasagan Header bo'lsa */
-.my-custom-header {
-   padding-top: var(--tg-content---safe-area-top, 0px) !important;
+   padding-top: var(--safe-area-top) !important;
 }
 
 .list-enter-active,

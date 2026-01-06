@@ -5,7 +5,6 @@ import { api } from "@/modules/useFetch";
 export const useAuthStore = defineStore("Auth", () => {
    const user: Ref = ref(null);
    const token: Ref = ref(null);
-   const safe_area = ref();
    async function signInTelegram(initDataRaw) {
       await api
          .post(
@@ -41,7 +40,6 @@ export const useAuthStore = defineStore("Auth", () => {
    return {
       user,
       token,
-      safe_area,
       getUser,
       signInTelegram,
    };

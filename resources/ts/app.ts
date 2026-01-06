@@ -9,7 +9,6 @@ import { MyTheme } from "./configs/PrimeVueTheme";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./store/useAuthStore";
 initTheme();
-// 2. Kengaytirilgan komponentni 'Button' nomi bilan ro'yxatdan o'tkazamiz
 const app = createApp(App);
 app.use(PrimeVue, MyTheme);
 app.use(createPinia());
@@ -17,13 +16,10 @@ app.use(router);
 
 if (isTMA()) {
    postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
-
    const AuthStore = useAuthStore();
 
    on("content_safe_area_changed", async (payload) => {
-      AuthStore.safe_area = payload;
-      document.documentElement.style.setProperty("--safe-area-top", `${payload.top}px`);
-      console.log(AuthStore.safe_area);
+      document.documentElement.style.setProperty("--safe-area-top", `${payload.top + 20}px`);
    });
 
    postEvent("web_app_request_content_safe_area");

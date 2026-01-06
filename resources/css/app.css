@@ -1,8 +1,33 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
 @import "swiper/css";
+
+@custom-variant dark (&:where(.p-dark, .p-dark *));
 .headless-drawer .p-drawer-header {
    padding: 0 !important;
+}
+@theme {
+   --spacing-safe-top: env(--safe-area-top);
+}
+:root {
+   /* Telegram taqdim etadigan standart safe-area o'zgaruvchisi 
+     Agar u bo'lmasa, brauzerning env() xossasidan foydalanadi */
+   --tg-safe-area-top: env(--safe-area-top, 0px);
+}
+
+/* PrimeVue Drawer (Sider) uchun global padding */
+.p-drawer-header {
+   padding-top: var(--tg-safe-area-top) !important;
+}
+
+/* PrimeVue Dialog (Modal) uchun global padding */
+.p-dialog-header {
+   padding-top: var(--tg-safe-area-top) !important;
+}
+
+/* Agar sizda tepada o'zingiz yasagan Header bo'lsa */
+.my-custom-header {
+   padding-top: var(--tg-content---safe-area-top, 0px) !important;
 }
 
 .list-enter-active,

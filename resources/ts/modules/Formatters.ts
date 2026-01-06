@@ -1,9 +1,10 @@
-export const formatCategories = (categories) => {
+import { TreeNode } from "primevue/treenode";
+
+export function formatCategories(categories): TreeNode[] {
    return categories.map((item) => {
-      const node = {
+      const node: TreeNode = {
          key: item.id, // Key doim String bo'lishi kerak
          label: item.name, // Sizdagi 'name' yoki 'title'
-         data: item, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
          parent_id: item.parent_id, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
          image: item.image, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
          children: [], // Bolalar uchun bo'sh massiv
@@ -13,4 +14,4 @@ export const formatCategories = (categories) => {
       }
       return node;
    });
-};
+}

@@ -6,24 +6,6 @@ import z from "zod";
 const globalProps = { size: "small", fluid: true };
 export const categoryInputs: InputConfig[] = [
    {
-      component: PrimeVueInputs["Select"],
-      name: "parent_id",
-      props: null,
-      placeholder: "Kategoriya turi",
-      generateProps: async function () {
-         const { data: categories } = await api.get("/categories");
-         this.props = {
-            disabled: true,
-            options: categories,
-            optionLabel: "name",
-            optionValue: "id",
-            ...globalProps,
-         };
-      },
-      schema: z.number().nullable().optional(),
-      class: ["mb-4"],
-   },
-   {
       component: PrimeVueInputs["InputText"],
       name: "name",
       placeholder: "Nomi",

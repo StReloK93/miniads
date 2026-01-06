@@ -9,8 +9,6 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
    const AuthStore = useAuthStore();
-   console.log(AuthStore.user);
-
    next();
 });
 

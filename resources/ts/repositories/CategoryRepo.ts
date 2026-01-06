@@ -1,6 +1,8 @@
+import { formatCategories } from "@/modules/Formatters";
 import { useFetch, api } from "@/modules/useFetch";
 import { ICategory } from "@/types";
-import { ref } from "vue";
+import { TreeNode } from "primevue/treenode";
+import { ref, watch } from "vue";
 const baseURL = "categories";
 
 function index() {
@@ -24,7 +26,17 @@ async function store(parent_id: number | null, formData: { name: string; file?: 
 }
 
 function parents() {
-   return useFetch<ICategory[]>({ url: `${baseURL}/parents` });
+   const { data, isFirstLoading, error, isLoading, fetchData } = useFetch<ICategory[]>({
+      url: `${baseURL}/parents`,
+   });
+
+   const convertTreeNode = ref<TreeNode[]>([]);
+   watch(
+      () => data.value,
+      () => (convertTreeNode.value = formatCategories(data.value || [])),
+   );
+
+   return { data, isFirstLoading, error, isLoading, fetchData, convertTreeNode };
 }
 
 async function update(id: string, formData: { name: string; file?: File }) {

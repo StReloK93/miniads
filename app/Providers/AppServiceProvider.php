@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (str_contains(request()->getHost(), 'loca.lt')) {
+        if (config('app.env') !== 'local' || env('FORCE_HTTPS', false)) {
             URL::forceScheme('https');
         }
     }

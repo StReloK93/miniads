@@ -19,10 +19,6 @@ export default defineConfig({
       tailwindcss(),
    ],
    server: {
-      watch: {
-         ignored: ["**/storage/framework/views/**"],
-      },
-      // host: "0.0.0.0", // Hamma IP-lardan ulanishga ruxsat
       cors: true, // CORS muammosini hal qiladi
    },
 

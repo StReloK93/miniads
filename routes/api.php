@@ -14,6 +14,8 @@ Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->mid
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents', 'parents');
+    Route::post('/categories/change_parent/{id}', 'changeParent');
+
     Route::delete('categories/{id}/force', 'forceDelete');
     Route::post('categories/{id}', 'update');
 });

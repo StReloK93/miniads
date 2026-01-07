@@ -18,7 +18,13 @@ export const categoryInputs: InputConfig[] = [
       component: PrimeVueInputs["CustomUpload"],
       name: "image",
       props: globalProps,
-      schema: z.instanceof(File, { message: "Majburiy maydon!" }),
+      schema: z
+         .union([
+            z.instanceof(File, { message: "Fayl bo'lishi shart" }),
+            z.string().min(1, { message: "Yozuv bo'sh bo'lmasligi kerak" }),
+         ])
+         .optional()
+         .nullable(),
       class: ["mb-4"],
    },
 ];

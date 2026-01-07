@@ -1,8 +1,29 @@
 <template>
    <div class="flex gap-2">
-      <Button label="System" :outlined="mode !== 'system'" size="small" @click="changeTheme('system')" />
-      <Button label="Light" :outlined="mode !== 'light'" size="small" @click="changeTheme('light')" />
-      <Button label="Dark" :outlined="mode !== 'dark'" size="small" @click="changeTheme('dark')" />
+      <Button
+         icon="pi pi-mobile"
+         :severity="mode == 'system' ? 'info' : 'secondary'"
+         size="small"
+         rounded
+         variant="text"
+         @click="changeTheme('system')"
+      />
+      <Button
+         size="small"
+         icon="pi pi-sun"
+         :severity="mode == 'light' ? 'warn' : 'secondary'"
+         variant="text"
+         rounded
+         @click="changeTheme('light')"
+      />
+      <Button
+         icon="pi pi-moon"
+         size="small"
+         :severity="mode == 'dark' ? 'primary' : 'secondary'"
+         variant="text"
+         rounded
+         @click="changeTheme('dark')"
+      />
    </div>
 </template>
 

@@ -1,11 +1,11 @@
 <template>
-   <main class="w-90 flex justify-between items-center select-none">
+   <main class="flex justify-between items-center select-none">
       <div class="flex gap-3 items-center py-2">
          <img
             v-if="props.node.image"
             :src="props.node.image"
             draggable="false"
-            class="w-6 pointer-events-none"
+            class="w-6 pointer-events-none dark:invert"
          />
          <span class="font-medium">
             {{ props.node.label }}

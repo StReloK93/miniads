@@ -51,8 +51,16 @@ async function update(id: string, formData: { name: string; file?: File }) {
    return { loading };
 }
 
+async function changeParent(id: number, parent_id: number | string | null) {
+   const loading = ref(true);
+   await api.post(`${baseURL}/change_parent/${id}`, { parent_id }).finally(() => {
+      loading.value = false;
+   });
+   return { loading };
+}
+
 function show(id: string, onLoad?: (result: { data: ICategory; error: object | null }) => void) {
    return useFetch<ICategory>({ url: `${baseURL}/${id}`, onLoad });
 }
 
-export default { index, store, parents, update, show };
+export default { index, store, parents, update, show, changeParent };

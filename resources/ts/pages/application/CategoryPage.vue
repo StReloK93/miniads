@@ -1,5 +1,5 @@
 <template>
-   <section class="pt-4 flex flex-col h-dvh">
+   <section class="pt-4 flex flex-col h-dvh bg-primary">
       <main class="pt-safe-top">
          <BackPreviusPage title="Bo'limlar" class="px-4" />
          <Divider class="mb-0!" />
@@ -11,18 +11,18 @@
                   v-for="(category, index) in categoryParents"
                   :id="`category_${index}`"
                   :key="category.name"
-                  class="bg-surface-50 border border-surface-100 dark:bg-surface-900 dark:border-surface-800 px-4 mb-2 py-2"
+                  class="bg-secondary border border-secondary px-4 mb-2 py-2"
                >
-                  <h3 class="text-xl font-semibold text-surface-800 dark:text-surface-200 mb-1">
+                  <h3 class="text-xl font-semibold text-tertiary mb-1">
                      {{ category.name }}
                   </h3>
                   <aside>
                      <div
                         v-for="childCategory in category.children"
                         :key="childCategory.id"
-                        class="border-b border-gray-100 dark:border-transparent flex justify-between items-center"
+                        class="flex justify-between items-center"
                      >
-                        <span class="text-surface-700 dark:text-surface-300 text-sm">
+                        <span class="text-secondary text-sm">
                            {{ childCategory.name }}
                         </span>
                         <Button
@@ -35,7 +35,7 @@
 
                      <!-- <Inplace :active="activeCategoryId == `category_${index}`" :display-props="{ class: 'p-0! w-full' }">
                         <template #display>
-                           <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
+                           <div class="py-1.5 text-xs text-tertiary w-full">Barchasi</div>
                         </template>
                         <template #content="{ closeCallback }">
                            <div
@@ -48,7 +48,7 @@
                               </span>
                               <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
                            </div>
-                           <div @click="closeCallback" class="py-1.5 text-xs text-primary">Yopish</div>
+                           <div @click="closeCallback" class="py-1.5 text-xs text-tertiary">Yopish</div>
                         </template>
                      </Inplace> -->
                   </aside>

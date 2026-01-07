@@ -7,6 +7,17 @@ import { PrimeVueResolver } from "@primevue/auto-import-resolver";
 import { resolve } from "path"; // Path modulini chaqiramiz
 
 export default defineConfig({
+   build: {
+      minify: false, // Kodni qisqartirmaydi (Eng ko'p vaqtni shu tejaydi)
+      cssMinify: false, // CSS-ni qisqartirmaydi
+      sourcemap: false, // .map fayllarini yaratmaydi
+      target: "esnext", // Eski brauzerlar uchun kodni o'zgartirib o'tirmaydi
+      modulePreload: false, // Preload skriptlarini o'chiradi
+      reportCompressedSize: false, // Build oxirida hajmni hisoblamaydi (tezroq tugaydi)
+      rollupOptions: {
+         // Keraksiz yuklamalarni cheklash
+      },
+   },
    plugins: [
       vue(),
       Components({

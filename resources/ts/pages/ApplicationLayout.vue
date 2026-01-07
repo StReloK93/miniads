@@ -1,7 +1,7 @@
 <template>
-   <main class="container mx-auto flex flex-col h-dvh bg-white dark:bg-surface-950 pt-safe-top">
+   <main class="container mx-auto flex flex-col h-dvh bg-primary pt-safe-top">
       <BaseNavigation />
-      <section class="grow relative border-y border-surface-100 dark:border-surface-800">
+      <section class="grow relative border-y border-secondary">
          <RouterView class="absolute inset-0 overflow-y-auto overflow-x-hidden p-4" />
       </section>
       <BaseBottomNavigator />

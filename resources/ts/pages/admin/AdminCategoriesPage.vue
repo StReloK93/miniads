@@ -17,11 +17,11 @@
                <BaseForm
                   @close="pageData.drawerToggle = false"
                   :submit="submit"
-                  :inputConfigs="inputs"
+                  :inputConfigs="inputConfigs"
                />
             </main>
          </Drawer>
-         <div class="flex justify-between items-center w-full">
+         <div class="flex justify-between items-center w-full px-3 py-2">
             <h3>Kategoriyalar</h3>
             <Button
                icon="pi pi-plus"
@@ -37,7 +37,7 @@
          draggableNodes
          droppableNodes
          @node-drop="onNodeDrop"
-         class="w-full md:w-120 bg-transparent!"
+         class="w-full bg-transparent!"
       >
          <template #default="slotProps">
             <TreeNodeItem
@@ -72,25 +72,21 @@ const pageData = reactive<{
    title: "",
 });
 
-const inputs = shallowRef(categoryInputs);
+const inputConfigs = shallowRef(categoryInputs);
 
 const text = {
    add: "Yangi kategoriya qo'shish",
    edit: "Kategoriyani tahrirlash",
 };
 
-const openCreateForm = async function (parent_id: null | string = null) {
-   submit = async (values) => await createCategory(values);
+const openCreateForm = async function (parent_id: null | number = null) {
+   submit = async (values) => await createCategory(parent_id, values);
    pageData.title = text.add;
 
-   if (parent_id != null) {
-      inputs.value = categoryInputs.filter((input) => input.name !== "image");
-   }
-
    await Promise.all(
-      inputs.value.map(async (input) => {
+      inputConfigs.value.map(async (input) => {
          if (input.generateProps) await input.generateProps();
-         input.value = parent_id;
+         input.value = undefined;
          return input;
       }),
    ).finally(() => {
@@ -99,16 +95,13 @@ const openCreateForm = async function (parent_id: null | string = null) {
 };
 
 async function openEditForm(node: any) {
-   if (node.parent_id != null) {
-      inputs.value = categoryInputs.filter((input) => input.name !== "image");
-   }
    pageData.updateLoading = node.key;
    pageData.title = text.edit;
 
    submit = async (values) => await updateCategory(node.key, values);
 
    CategoryRepo.show(node.key, ({ data }) => {
-      inputs.value.map(async (input) => {
+      inputConfigs.value.map(async (input) => {
          if (input.generateProps) await input.generateProps();
          input.value = data[input.name];
          return input;
@@ -119,8 +112,8 @@ async function openEditForm(node: any) {
    });
 }
 
-async function createCategory(values) {
-   await CategoryRepo.store(null, values);
+async function createCategory(parent_id: number | null, values) {
+   await CategoryRepo.store(parent_id, values);
    fetchCategories();
 }
 
@@ -139,7 +132,7 @@ const onNodeDrop = (event) => {
       currentNode: event.dragNode,
       parentNode: newParent,
    };
-
    console.log(changes);
+   CategoryRepo.changeParent(dragNodeKey, newParent ? newParent.key : null);
 };
 </script>

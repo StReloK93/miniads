@@ -7,8 +7,8 @@
             v-bind="$field.props"
             @change="(event) => onNativeFileChange(event, $field)"
             class="hidden"
-            @vue:mounted="updateImageFromPath($field)"
          />
+         <!-- @vue:mounted="updateImageFromPath($field)" -->
          <Button
             v-if="src"
             icon="pi pi-times"
@@ -45,7 +45,7 @@ async function getFileFromPath(path) {
 
    return new File([blob], fileName, { type: blob.type });
 }
-const src = ref<string | null>(null);
+const src = ref<string | null>(props.input.value);
 
 async function updateImageFromPath($field: any) {
    if (props.input.value) {

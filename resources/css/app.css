@@ -7,21 +7,12 @@
    padding: 0 !important;
 }
 :root {
-   /* Standart qiymat. JS ishga tushgach, bu qiymat AuthStore'dagi raqam bilan almashadi */
    --safe-area-top: env(safe-area-inset-top, 0px);
 }
 
 @theme {
    --spacing-safe-top: var(--safe-area-top);
-}
-/* PrimeVue Drawer (Sider) uchun global padding */
-.p-drawer-header {
-   padding-top: var(--safe-area-top) !important;
-}
-
-/* PrimeVue Dialog (Modal) uchun global padding */
-.p-dialog-header {
-   padding-top: var(--safe-area-top) !important;
+   --spacing-safe-bottom: 45px;
 }
 
 .list-enter-active,
@@ -30,4 +21,32 @@
 }
 .list-enter-from {
    opacity: 0;
+}
+
+.p-tree {
+   padding: 0 !important;
+}
+
+.p-tree-node-label {
+   @apply w-full;
+}
+
+.bg-primary {
+   @apply bg-white dark:bg-black;
+}
+
+.bg-secondary {
+   @apply bg-surface-50 dark:bg-surface-900;
+}
+
+.border-secondary {
+   @apply border-surface-200 dark:border-surface-800;
+}
+
+.text-secondary {
+   @apply text-surface-600 dark:text-surface-400;
+}
+
+.text-tertiary {
+   @apply text-surface-800 dark:text-surface-200;
 }

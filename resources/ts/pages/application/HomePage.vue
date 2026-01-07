@@ -1,7 +1,7 @@
 <template>
    <div>
       <section class="flex justify-between items-center mb-1.5">
-         <span class="font-semibold text-surface-700 dark:text-surface-200">Bo'limlar</span>
+         <span class="font-semibold text-tertiary">Bo'limlar</span>
          <Button
             as="router-link"
             :to="{ name: 'categories' }"
@@ -16,12 +16,10 @@
             <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
                <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
                   <div
-                     class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-surface-50 dark:bg-surface-900 rounded-2xl border border-surface-100 dark:border-surface-800 p-1"
+                     class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-secondary rounded-2xl border border-secondary p-1"
                   >
                      <img :src="`${category.image}`" class="md:w-16 w-10 dark:invert" />
-                     <div
-                        class="text-[11px] font-semibold text-surface-600 dark:text-surface-300 text-center"
-                     >
+                     <div class="text-[11px] font-semibold text-tertiary text-center">
                         {{ category.name }}
                      </div>
                   </div>
@@ -35,7 +33,7 @@
          </template>
       </swiper>
       <section class="flex justify-between items-center my-1.5">
-         <span class="font-semibold text-surface-700 dark:text-surface-200">Top e'lonlar</span>
+         <span class="font-semibold text-tertiary">Top e'lonlar</span>
          <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
       </section>
       <swiper :slides-per-view="2.2" :space-between="10">
@@ -49,7 +47,7 @@
          </swiper-slide>
       </swiper>
       <section class="flex justify-between items-center my-1.5">
-         <span class="font-semibold text-surface-700 dark:text-surface-200">Yangiliklar</span>
+         <span class="font-semibold text-tertiary">Yangiliklar</span>
          <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
       </section>
       <swiper :slides-per-view="3.2" :space-between="10">

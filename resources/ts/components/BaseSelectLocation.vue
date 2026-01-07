@@ -13,12 +13,12 @@
       </div>
       <Drawer
          v-model:visible="openUserSettings"
-         style="height: auto; max-height: 60%"
+         style="height: auto; max-height: 70%"
          class="headless-drawer"
          position="bottom"
          :show-close-icon="false"
       >
-         <div class="pt-4">
+         <div class="pt-4 pb-safe-bottom">
             <ThemeSwitcher />
          </div>
       </Drawer>

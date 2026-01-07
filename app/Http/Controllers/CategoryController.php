@@ -28,7 +28,7 @@ class CategoryController extends Controller
 		$validated = $request->validate([
 			'parent_id' => 'nullable|exists:categories,id',
 			'name' => 'required|string',
-			'image' => 'required_without:parent_id|mimes:svg|max:2048',
+			'image' => 'sometimes|mimes:svg',
 		]);
 
 		if ($request->hasFile('image')) {
@@ -51,7 +51,9 @@ class CategoryController extends Controller
 	public function update(Request $request, $id)
 	{
 		$category = Category::findOrFail($id);
-
+		if ($request->has('image') && !$request->hasFile('image')) {
+			$request->request->remove('image');
+		}
 		$request->validate([
 			'name' => 'string',
 			'image' => 'sometimes|mimes:svg', // image ekanligini ham tekshirish yaxshi
@@ -82,6 +84,16 @@ class CategoryController extends Controller
 		$category->update($data);
 
 		return response()->json($category, 200);
+	}
+
+	public function changeParent($id, Request $request)
+	{
+		$category = Category::findOrFail($id);
+		$category->parent_id = $request->parent_id;
+		$category->save();
+
+		return response()->json($category, 200);
+
 	}
 
 	public function destroy($id)

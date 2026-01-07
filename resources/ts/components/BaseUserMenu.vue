@@ -1,7 +1,13 @@
 <template>
    <Button @click="openUserSettings = true" icon="pi pi-bars" rounded variant="text" />
-   <Drawer v-model:visible="openUserSettings" class="headless-drawer" position="right" :show-close-icon="false">
-      <div class="pt-4">
+   <Drawer
+      v-model:visible="openUserSettings"
+      position="bottom"
+      style="height: auto; max-height: 70%"
+      class="headless-drawer"
+      :show-close-icon="false"
+   >
+      <div class="pt-4 pb-safe-bottom">
          <ThemeSwitcher />
       </div>
    </Drawer>

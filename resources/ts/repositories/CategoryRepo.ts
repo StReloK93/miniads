@@ -9,7 +9,7 @@ function index() {
    return useFetch<ICategory[]>({ url: `${baseURL}` });
 }
 
-async function store(parent_id: number | null, formData: { name: string; file?: File }) {
+async function store(parent_id: number | string | null, formData: { name: string; file?: File }) {
    const loading = ref(true);
    await api
       .post(

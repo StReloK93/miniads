@@ -20,12 +20,12 @@
             @click.stop="clear($field)"
          />
          <label
-            class="bg-surface-50 aspect-square cursor-pointer w-full flex justify-center items-center rounded-xl border border-surface-200 hover:border-surface-300 hover:bg-surface-100 p-1.5"
+            class="bg-secondary aspect-square cursor-pointer w-full flex justify-center items-center rounded-xl border border-secondary hover:border-surface-300 hover:bg-surface-100 p-1.5"
             :for="props.input.name"
          >
             <Transition name="list" mode="out-in">
                <img v-if="src" :src="src" class="rounded-md w-full grayscale" />
-               <img v-else :src="'/images/image.svg'" class="w-32 grayscale opacity-80" />
+               <img v-else :src="'/images/image.svg'" class="w-32 grayscale" />
             </Transition>
          </label>
       </main>

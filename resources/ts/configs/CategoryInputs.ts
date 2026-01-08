@@ -15,7 +15,7 @@ export const categoryInputs: InputConfig[] = [
    },
 
    {
-      component: PrimeVueInputs["CustomUpload"],
+      component: PrimeVueInputs["ImageUpload"],
       name: "image",
       props: globalProps,
       schema: z

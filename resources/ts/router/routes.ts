@@ -19,17 +19,22 @@ export const routes: RouteRecordRaw[] = [
    {
       path: "/admin",
       component: Admin,
-      redirect: { name: "admin-home" },
+      redirect: { name: "admin-categories" },
       children: [
-         {
-            path: "",
-            component: () => import("@pages/admin/AdminHomePage.vue"),
-            name: "admin-home",
-         },
+         // {
+         //    path: "",
+         //    component: () => import("@pages/admin/AdminHomePage.vue"),
+         //    name: "admin-home",
+         // },
          {
             path: "categories",
             component: () => import("@pages/admin/AdminCategoriesPage.vue"),
             name: "admin-categories",
+         },
+         {
+            path: "parameter",
+            component: () => import("@pages/admin/AdminParametersPage.vue"),
+            name: "admin-parameters",
          },
       ],
    },

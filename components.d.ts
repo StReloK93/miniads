@@ -11,15 +11,20 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AutoComplete: typeof import('primevue/autocomplete')['default']
     Button: typeof import('primevue/button')['default']
+    Chip: typeof import('primevue/chip')['default']
+    Chips: typeof import('primevue/chips')['default']
     Divider: typeof import('primevue/divider')['default']
     Drawer: typeof import('primevue/drawer')['default']
     FloatLabel: typeof import('primevue/floatlabel')['default']
     Form: typeof import('@primevue/forms/form')['default']
     FormField: typeof import('@primevue/forms/formfield')['default']
     IconField: typeof import('primevue/iconfield')['default']
+    InputChips: typeof import('primevue/inputchips')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    Menu: typeof import('primevue/menu')['default']
     Message: typeof import('primevue/message')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

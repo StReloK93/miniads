@@ -19,6 +19,7 @@ export interface InputConfig {
    class?: string[];
    value?: string | number | boolean | null | undefined;
    selectOption?: IProps;
+   condition?: ($form: any) => boolean;
 }
 
 export interface IProps {

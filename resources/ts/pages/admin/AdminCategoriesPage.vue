@@ -3,6 +3,7 @@
       <div class="flex justify-center">
          <Drawer
             class="headless-drawer"
+            @hide="closeDrawer"
             v-model:visible="pageData.drawerToggle"
             :show-close-icon="false"
          >
@@ -18,14 +19,29 @@
                   @close="pageData.drawerToggle = false"
                   :submit="submit"
                   :inputConfigs="inputConfigs"
-               />
+               >
+                  <div
+                     v-if="pageData.selectedParent"
+                     class="flex gap-3 items-center p-1.5 bg-surface-100 rounded border border-surface-300"
+                  >
+                     <img
+                        v-if="pageData.selectedParent.image"
+                        :src="pageData.selectedParent.image"
+                        draggable="false"
+                        class="w-6 pointer-events-none dark:invert"
+                     />
+                     <span class="font-medium">
+                        {{ pageData.selectedParent.label }}
+                     </span>
+                  </div>
+               </BaseForm>
             </main>
          </Drawer>
          <div class="flex justify-between items-center w-full px-3 py-2">
             <h3>Kategoriyalar</h3>
             <Button
                icon="pi pi-plus"
-               severity="secondary"
+               variant="text"
                size="small"
                rounded
                @click="openCreateForm()"
@@ -41,6 +57,8 @@
       >
          <template #default="slotProps">
             <TreeNodeItem
+               :selectedForUpdate="pageData.selectedForUpdate"
+               :selectedParent="pageData.selectedParent"
                :key="slotProps.node.key"
                :node="slotProps.node"
                :update-loading="pageData.updateLoading"
@@ -57,8 +75,9 @@ import TreeNodeItem from "@/components/ui/TreeNodeItem.vue";
 import BaseForm from "@/components/BaseForm.vue";
 import CategoryRepo from "@/repositories/CategoryRepo";
 import { reactive, shallowRef } from "vue";
-import { categoryInputs } from "@/configs/ConfigInputs";
+import { categoryInputs } from "@/configs/CategoryInputs";
 import { findParentId } from "@/modules/Helpers";
+import { TreeNode } from "primevue/treenode";
 const { fetchData: fetchCategories, convertTreeNode } = CategoryRepo.parents();
 var submit: (values: unknown) => Promise<void>;
 
@@ -66,10 +85,14 @@ const pageData = reactive<{
    drawerToggle: boolean;
    updateLoading: string | null;
    title: string;
+   selectedForUpdate: string | null;
+   selectedParent: TreeNode | null;
 }>({
    drawerToggle: false,
    updateLoading: null,
    title: "",
+   selectedForUpdate: null,
+   selectedParent: null,
 });
 
 const inputConfigs = shallowRef(categoryInputs);
@@ -79,9 +102,15 @@ const text = {
    edit: "Kategoriyani tahrirlash",
 };
 
-const openCreateForm = async function (parent_id: null | number = null) {
-   submit = async (values) => await createCategory(parent_id, values);
+function closeDrawer() {
+   pageData.selectedForUpdate = null;
+   pageData.selectedParent = null;
+}
+
+const openCreateForm = async function (node: TreeNode | null = null) {
+   submit = async (values) => await createCategory(node?.key || null, values);
    pageData.title = text.add;
+   pageData.selectedParent = node;
 
    await Promise.all(
       inputConfigs.value.map(async (input) => {
@@ -95,6 +124,7 @@ const openCreateForm = async function (parent_id: null | number = null) {
 };
 
 async function openEditForm(node: any) {
+   pageData.selectedForUpdate = node.key;
    pageData.updateLoading = node.key;
    pageData.title = text.edit;
 
@@ -112,7 +142,7 @@ async function openEditForm(node: any) {
    });
 }
 
-async function createCategory(parent_id: number | null, values) {
+async function createCategory(parent_id: number | string | null, values) {
    await CategoryRepo.store(parent_id, values);
    fetchCategories();
 }
@@ -126,13 +156,7 @@ async function updateCategory(id: string, values) {
 const onNodeDrop = (event) => {
    var newTree = event.value;
    var dragNodeKey = event.dragNode.key;
-
    var newParent = findParentId(newTree, dragNodeKey);
-   const changes = {
-      currentNode: event.dragNode,
-      parentNode: newParent,
-   };
-   console.log(changes);
    CategoryRepo.changeParent(dragNodeKey, newParent ? newParent.key : null);
 };
 </script>

@@ -6,6 +6,7 @@
          </div>
          <RouterLink :to="{ name: 'home' }"> Home page </RouterLink>
          <RouterLink :to="{ name: 'admin-categories' }"> Kategoriyalar </RouterLink>
+         <RouterLink :to="{ name: 'admin-parameters' }"> Parameterlar </RouterLink>
       </nav>
       <main class="p-4 grow bg-secondary">
          <RouterView />

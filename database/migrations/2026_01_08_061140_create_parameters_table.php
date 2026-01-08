@@ -12,11 +12,9 @@ return new class extends Migration {
     {
         Schema::create('parameters', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Masalan: "Xonalar soni"
             $table->string('placeholder'); // Masalan: "Xonalar soni"
             $table->string('type');  // number, text, select
             $table->string('unit')->nullable(); // masalan: "kv/m"
-            $table->timestamps();
         });
     }
 

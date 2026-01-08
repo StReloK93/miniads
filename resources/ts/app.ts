@@ -8,12 +8,13 @@ import router from "./router";
 import { MyTheme } from "./configs/PrimeVueTheme";
 import { createPinia } from "pinia";
 import { useAuthStore } from "./store/useAuthStore";
+import ConfirmationService from "primevue/confirmationservice";
 initTheme();
 const app = createApp(App);
 app.use(PrimeVue, MyTheme);
 app.use(createPinia());
 app.use(router);
-
+app.use(ConfirmationService);
 if (isTMA()) {
    postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
    const AuthStore = useAuthStore();

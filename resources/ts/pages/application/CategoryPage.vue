@@ -1,5 +1,5 @@
 <template>
-   <section class="pt-4 flex flex-col h-dvh bg-primary">
+   <section class="pt-4 flex flex-col h-dvh bg-tertiary">
       <main class="pt-safe-top">
          <BackPreviusPage title="Bo'limlar" class="px-4" />
          <Divider class="mb-0!" />

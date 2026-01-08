@@ -53,7 +53,7 @@
          draggableNodes
          droppableNodes
          @node-drop="onNodeDrop"
-         class="w-full bg-transparent!"
+         class="w-full bg-tertiary p-4! rounded-xl border border-secondary"
       >
          <template #default="slotProps">
             <TreeNodeItem

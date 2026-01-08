@@ -1,5 +1,5 @@
 <template>
-   <div class="flex h-dvh bg-background">
+   <div class="flex h-dvh bg-tertiary">
       <nav class="w-64 border-r border-secondary p-4 flex flex-col gap-2">
          <div class="w-full flex justify-end mb-2">
             <ThemeSwitcher />
@@ -8,9 +8,7 @@
          <RouterLink :to="{ name: 'admin-categories' }"> Kategoriyalar </RouterLink>
          <RouterLink :to="{ name: 'admin-parameters' }"> Parameterlar </RouterLink>
       </nav>
-      <main class="p-4 grow bg-secondary">
-         <RouterView />
-      </main>
+      <RouterView class="p-10 grow bg-secondary overflow-y-auto" />
    </div>
 </template>
 

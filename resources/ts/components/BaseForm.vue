@@ -74,26 +74,11 @@ const buttonLoader = ref(false);
 const props = defineProps<{
    inputConfigs: InputConfig[];
    submit: (values: unknown) => Promise<void>;
+   superRefine?: (values: unknown, ctx: z.RefinementCtx) => void;
 }>();
 
 const onFormSubmit = async (formEvent: FormSubmitEvent) => {
-   console.log(formEvent, instance.value);
-
    if (formEvent.valid) {
-      // Bizning maxsus shart:
-      const type = formEvent.states.type?.value;
-      const options = formEvent.states.options;
-      const isSelect = ["Select", "SelectButton"].includes(type);
-
-      if (isSelect && (!options || options.length === 0)) {
-         // 1. Formadagi 'options' maydoniga xatolik yozamiz
-         instance.value.setFieldError("options", {
-            message: "Select turi uchun variantlar kiritish majburiy!",
-         });
-
-         // 2. Submitni to'xtatamiz
-         return;
-      }
       buttonLoader.value = true;
       await props.submit(formEvent.values).finally(() => {
          buttonLoader.value = false;
@@ -114,15 +99,17 @@ const initialValues = reactive(
 );
 
 const resolver = zodResolver(
-   z.object(
-      props.inputConfigs.reduce(
-         (acc, curr) => {
-            if (curr.schema) acc[curr.name] = curr.schema;
-            return acc;
-         },
-         {} as Record<string, z.ZodTypeAny>,
-      ),
-   ),
+   z
+      .object(
+         props.inputConfigs.reduce(
+            (acc, curr) => {
+               if (curr.schema) acc[curr.name] = curr.schema;
+               return acc;
+            },
+            {} as Record<string, z.ZodTypeAny>,
+         ),
+      )
+      .superRefine((props.superRefine || function () {}) as any),
 );
 
 defineExpose({ instance });

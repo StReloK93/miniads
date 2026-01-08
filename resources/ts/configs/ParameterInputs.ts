@@ -1,10 +1,9 @@
 import { PrimeVueInputs } from "@/configs/PrimeVueInputs";
-import { api } from "@/modules/useFetch";
 import { InputConfig } from "@/types";
 import z from "zod";
 
 const globalProps = { size: "small", fluid: true };
-export const categoryInputs: InputConfig[] = [
+export const parameterInputs: InputConfig[] = [
    {
       component: PrimeVueInputs["InputText"],
       name: "placeholder",
@@ -38,3 +37,23 @@ export const categoryInputs: InputConfig[] = [
       class: ["mb-4"],
    },
 ];
+
+export const parameterColumns = [
+   { field: "id", header: "ID" },
+   { field: "placeholder", header: "Nomi" },
+   { field: "type", header: "Input turi" },
+   { field: "unit", header: "O'lchov birligi" },
+];
+
+export const superRefine = (data, ctx) => {
+   // Agar turi Select yoki SelectButton bo'lsa va options bo'sh bo'lsa
+   const isSelect = ["Select", "SelectButton"].includes(data.type?.value || data.type);
+   const options = data.options as any[];
+   if (isSelect && (!options || options.length === 0)) {
+      ctx.addIssue({
+         code: z.ZodIssueCode.custom,
+         message: "Select turi uchun variantlar majburiy!",
+         path: ["options"], // Xatolik 'options' inputida chiqadi
+      });
+   }
+};

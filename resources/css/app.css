@@ -31,8 +31,8 @@
    @apply w-full;
 }
 
-.bg-primary {
-   @apply bg-white dark:bg-black;
+.bg-tertiary {
+   @apply bg-white! dark:bg-black!;
 }
 
 .bg-secondary {
@@ -49,4 +49,14 @@
 
 .text-tertiary {
    @apply text-surface-800 dark:text-surface-200;
+}
+
+.p-datatable-table th,
+.p-datatable-table thead,
+.p-datatable-table tr,
+.p-datatable-table td {
+   background: transparent !important;
+}
+.no-last-border .p-datatable-tbody > tr:last-child > td {
+   border-bottom: none !important;
 }

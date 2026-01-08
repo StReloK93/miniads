@@ -10,12 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('product_parameter_values', function (Blueprint $table) {
+        Schema::create('parameter_options', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('parameter_id')->constrained();
-            $table->text('value');
-            $table->timestamps();
+            $table->foreignId('parameter_id')->constrained('parameters')->onDelete('cascade');
+            $table->string('value'); // masalan: "3", "4", "
         });
     }
 
@@ -24,6 +22,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_parameter_values');
+        Schema::dropIfExists('parameter_options');
     }
 };

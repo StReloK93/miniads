@@ -1,6 +1,6 @@
 <template>
    <div>
-      <div class="flex justify-center">
+      <div class="flex justify-center flex-col">
          <Drawer
             class="headless-drawer"
             @hide="closeDrawer"
@@ -18,6 +18,7 @@
                <BaseForm
                   @close="pageData.drawerToggle = false"
                   :submit="submit"
+                  :superRefine
                   :inputConfigs="inputConfigs"
                />
             </main>
@@ -32,14 +33,23 @@
                @click="openCreateForm()"
             />
          </div>
+         <main class="p-6 rounded-xl bg-tertiary border-secondary border">
+            <BaseTable
+               :parameters="parameters || []"
+               :columns="parameterColumns"
+               @edit="openEditForm"
+            />
+         </main>
       </div>
    </div>
 </template>
 
 <script setup lang="ts">
+import BaseTable from "@/components/BaseTable.vue";
 import BaseForm from "@/components/BaseForm.vue";
-import { reactive, ref, shallowRef } from "vue";
-import { categoryInputs } from "@/configs/ParameterInputs";
+import ParameterRepo from "@/repositories/ParameterRepo";
+import { reactive, shallowRef } from "vue";
+import { parameterInputs, superRefine, parameterColumns } from "@/configs/ParameterInputs";
 import { TreeNode } from "primevue/treenode";
 var submit: (values: unknown) => Promise<void>;
 
@@ -57,7 +67,9 @@ const pageData = reactive<{
    selectedParent: null,
 });
 
-const inputConfigs = shallowRef(categoryInputs);
+const { data: parameters } = ParameterRepo.index();
+
+const inputConfigs = shallowRef(parameterInputs);
 
 async function openCreateForm() {
    submit = async (values) => await createParameter(values);
@@ -74,6 +86,23 @@ async function openCreateForm() {
    });
 }
 
+async function openEditForm(id: string | number) {
+   submit = async (values) => await updateParameter(id, values);
+   pageData.title = text.edit;
+
+   ParameterRepo.show(id, async ({ data: parameter }) => {
+      await Promise.all(
+         inputConfigs.value.map(async (input) => {
+            if (input.generateProps) await input.generateProps();
+            input.value = parameter ? parameter[input.name] : undefined;
+            return input;
+         }),
+      ).finally(() => {
+         pageData.drawerToggle = true;
+      });
+   });
+}
+
 const text = {
    add: "Yangi parameter qo'shish",
    edit: "Kategoriyani tahrirlash",
@@ -84,7 +113,11 @@ function closeDrawer() {
    pageData.selectedParent = null;
 }
 
-async function createParameter(values) {
-   console.log(values);
+function createParameter(values) {
+   ParameterRepo.store(values);
+}
+
+function updateParameter(id: string | number, values) {
+   ParameterRepo.update(id, values);
 }
 </script>

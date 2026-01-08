@@ -25,3 +25,16 @@ export interface InputConfig {
 export interface IProps {
    [key: string]: unknown;
 }
+
+export interface IParameterOption {
+   id: number;
+   value: string;
+}
+
+export interface IParameter {
+   id: number;
+   placeholder: string;
+   type: string;
+   unit: string | null;
+   options: IParameterOption[];
+}

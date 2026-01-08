@@ -4,7 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AdParameterValue extends Model
+class ParameterOption extends Model
 {
     //
+
+
+    public $timestamps = false;
 }

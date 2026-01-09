@@ -43,6 +43,11 @@ export const parameterColumns = [
    { field: "placeholder", header: "Nomi" },
    { field: "type", header: "Input turi" },
    { field: "unit", header: "O'lchov birligi" },
+   {
+      field: "options",
+      header: "Variantlar",
+      formatter: (items: any[]): any[] => items,
+   },
 ];
 
 export const superRefine = (data, ctx) => {

@@ -28,22 +28,16 @@ class ParameterController extends Controller
     public function store(Request $request)
     {
 
+        $validated = $request->validate([
+            'placeholder' => 'required|string',
+            'type' => 'required|string',
+            'unit' => 'nullable|string',
+            'options' => 'nullable|array', // Options massiv bo'lishi shart
+        ]);
+
+        $parameter = Parameter::create($validated);
 
 
-        $parameter = Parameter::create($request->all());
-
-        if (request()->has('options')) {
-            $options = request()->input('options');
-            $insertedOptions = [];
-            foreach ($options as $option) {
-                $insertedOptions[] = [
-                    'value' => $option,
-                    'parameter_id' => $parameter->id,
-                ];
-            }
-
-            ParameterOption::insert($insertedOptions);
-        }
         return response()->json($parameter->fresh(), 201);
     }
 

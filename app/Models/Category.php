@@ -25,4 +25,9 @@ class Category extends Model
         // Bu asosiy kategoriyani olish uchun
         return $this->belongsTo(Category::class, 'parent_id');
     }
+
+    public function parameters()
+    {
+        return $this->hasMany(CategoryParameter::class);
+    }
 }

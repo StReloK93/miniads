@@ -19,6 +19,14 @@
 
       <div class="flex items-center gap-1">
          <Button
+            @click.stop="$emit('paramaters', props.node)"
+            icon="pi pi-sitemap"
+            severity="warn"
+            size="small"
+            rounded
+            variant="text"
+         />
+         <Button
             @click.stop="$emit('create', props.node)"
             icon="pi pi-plus"
             size="small"
@@ -45,7 +53,7 @@
 import { TreeNode } from "primevue/treenode";
 import { ref } from "vue";
 
-const emit = defineEmits(["create", "edit"]);
+const emit = defineEmits(["create", "edit", "paramaters"]);
 const props = defineProps<{
    node: TreeNode;
    updateLoading: number | string | null;

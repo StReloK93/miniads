@@ -1,6 +1,9 @@
 <template>
    <div>
       <div class="flex justify-center">
+         <Dialog v-model:visible="isVisible" modal class="w-1/2">
+            <CategoryParameterDialog :category_id="pageData.selectedCategory!" />
+         </Dialog>
          <Drawer
             class="headless-drawer"
             @hide="closeDrawer"
@@ -63,6 +66,7 @@
                :node="slotProps.node"
                :update-loading="pageData.updateLoading"
                @create="openCreateForm"
+               @paramaters="openParameterModal"
                @edit="openEditForm"
             />
          </template>
@@ -74,12 +78,13 @@
 import TreeNodeItem from "@/components/ui/TreeNodeItem.vue";
 import BaseForm from "@/components/BaseForm.vue";
 import CategoryRepo from "@/repositories/CategoryRepo";
-import { reactive, shallowRef } from "vue";
+import { computed, reactive, shallowRef } from "vue";
 import { categoryInputs } from "@/configs/CategoryInputs";
 import { findParentId } from "@/modules/Helpers";
 import { TreeNode } from "primevue/treenode";
+import CategoryParameterDialog from "@/components/CategoryParameterDialog.vue";
 const { fetchData: fetchCategories, convertTreeNode } = CategoryRepo.parents();
-var submit: (values: unknown) => Promise<void>;
+var submit: (values: any) => Promise<void>;
 
 const pageData = reactive<{
    drawerToggle: boolean;
@@ -87,12 +92,22 @@ const pageData = reactive<{
    title: string;
    selectedForUpdate: string | null;
    selectedParent: TreeNode | null;
+   selectedCategory: string | number | null;
 }>({
    drawerToggle: false,
    updateLoading: null,
    title: "",
    selectedForUpdate: null,
    selectedParent: null,
+   selectedCategory: null,
+});
+
+// Dialog ko'rinishini boshqaruvchi computed
+const isVisible = computed({
+   get: () => !!pageData.selectedCategory, // Agar null bo'lmasa true qaytaradi
+   set: (value) => {
+      if (!value) pageData.selectedCategory = null; // Modal yopilganda datani null qiladi
+   },
 });
 
 const inputConfigs = shallowRef(categoryInputs);
@@ -107,8 +122,15 @@ function closeDrawer() {
    pageData.selectedParent = null;
 }
 
+const openParameterModal = async function (node: TreeNode) {
+   pageData.selectedCategory = node.key;
+};
+
 const openCreateForm = async function (node: TreeNode | null = null) {
-   submit = async (values) => await createCategory(node?.key || null, values);
+   submit = async (values) => {
+      await CategoryRepo.store(node?.key || null, values);
+      fetchCategories();
+   };
    pageData.title = text.add;
    pageData.selectedParent = node;
 
@@ -123,12 +145,15 @@ const openCreateForm = async function (node: TreeNode | null = null) {
    });
 };
 
-async function openEditForm(node: any) {
+async function openEditForm(node: TreeNode) {
    pageData.selectedForUpdate = node.key;
    pageData.updateLoading = node.key;
    pageData.title = text.edit;
 
-   submit = async (values) => await updateCategory(node.key, values);
+   submit = async (values) => {
+      await CategoryRepo.update(node.key, values);
+      fetchCategories();
+   };
 
    CategoryRepo.show(node.key, ({ data }) => {
       inputConfigs.value.map(async (input) => {
@@ -140,16 +165,6 @@ async function openEditForm(node: any) {
       pageData.updateLoading = null;
       pageData.drawerToggle = true;
    });
-}
-
-async function createCategory(parent_id: number | string | null, values) {
-   await CategoryRepo.store(parent_id, values);
-   fetchCategories();
-}
-
-async function updateCategory(id: string, values) {
-   await CategoryRepo.update(id, values);
-   fetchCategories();
 }
 
 // Drag and Drop hodisasi sodir bo'lganda

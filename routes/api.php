@@ -21,3 +21,4 @@ Route::controller(App\Http\Controllers\CategoryController::class)->group(functio
 });
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->except('update');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
+Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);

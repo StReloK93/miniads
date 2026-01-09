@@ -48,10 +48,12 @@
 import BaseTable from "@/components/BaseTable.vue";
 import BaseForm from "@/components/BaseForm.vue";
 import ParameterRepo from "@/repositories/ParameterRepo";
-import { reactive, shallowRef } from "vue";
+import { onMounted, reactive, shallowRef } from "vue";
+import { useFetchDecorator } from "@/modules/useFetch";
 import { parameterInputs, superRefine, parameterColumns } from "@/configs/ParameterInputs";
 import { TreeNode } from "primevue/treenode";
-var submit: (values: unknown) => Promise<void>;
+import { IParameter } from "@/types";
+var submit: (values: any) => Promise<void>;
 
 const pageData = reactive<{
    drawerToggle: boolean;
@@ -67,12 +69,15 @@ const pageData = reactive<{
    selectedParent: null,
 });
 
-const { data: parameters } = ParameterRepo.index();
+const { data: parameters, execute: executeParameters } = useFetchDecorator(ParameterRepo.index);
 
 const inputConfigs = shallowRef(parameterInputs);
 
 async function openCreateForm() {
-   submit = async (values) => await createParameter(values);
+   submit = async (values: IParameter) => {
+      await ParameterRepo.store(values);
+      executeParameters();
+   };
    pageData.title = text.add;
 
    await Promise.all(
@@ -87,7 +92,10 @@ async function openCreateForm() {
 }
 
 async function openEditForm(id: string | number) {
-   submit = async (values) => await updateParameter(id, values);
+   submit = async (values) => {
+      await ParameterRepo.update(id, values);
+      executeParameters();
+   };
    pageData.title = text.edit;
 
    ParameterRepo.show(id, async ({ data: parameter }) => {
@@ -105,7 +113,7 @@ async function openEditForm(id: string | number) {
 
 const text = {
    add: "Yangi parameter qo'shish",
-   edit: "Kategoriyani tahrirlash",
+   edit: "Parameterni tahrirlash",
 };
 
 function closeDrawer() {
@@ -113,11 +121,7 @@ function closeDrawer() {
    pageData.selectedParent = null;
 }
 
-function createParameter(values) {
-   ParameterRepo.store(values);
-}
-
-function updateParameter(id: string | number, values) {
-   ParameterRepo.update(id, values);
-}
+onMounted(() => {
+   executeParameters();
+});
 </script>

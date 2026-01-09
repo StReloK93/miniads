@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->foreignId('parameter_id')->constrained();
             $table->boolean('is_required')->default(false);
             $table->integer('sort_order')->default(0);
+
+            $table->unique(['category_id', 'parameter_id']);
         });
     }
 

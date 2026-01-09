@@ -8,11 +8,9 @@ class Parameter extends Model
 {
     public $timestamps = false;
 
-    protected $with = ['options'];
-    protected $fillable = ['placeholder', 'type', 'unit'];
+    protected $fillable = ['placeholder', 'type', 'unit', 'options'];
 
-    public function options()
-    {
-        return $this->hasMany(ParameterOption::class);
-    }
+    protected $casts = [
+        'options' => 'array',
+    ];
 }

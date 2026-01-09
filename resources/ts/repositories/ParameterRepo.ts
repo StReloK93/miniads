@@ -1,13 +1,13 @@
-import { useFetch } from "@/modules/useFetch";
+import { useFetch, api } from "@/modules/useFetch";
 import { IParameter } from "@/types";
 const baseURL = "parameters";
 
-function index() {
-   return useFetch<IParameter[]>({ url: `${baseURL}` });
+async function index() {
+   return await api.get<IParameter[]>(`${baseURL}`);
 }
 
-function store(formData: IParameter) {
-   return useFetch<IParameter[]>({ url: `${baseURL}`, method: "post", formData });
+async function store(formData: IParameter) {
+   return await api.post<IParameter>(`${baseURL}`, formData);
 }
 
 function show(
@@ -17,8 +17,8 @@ function show(
    return useFetch<IParameter>({ url: `${baseURL}/${id}`, onLoad });
 }
 
-function update(id: string | number, formData: IParameter) {
-   return useFetch<IParameter>({ url: `${baseURL}/${id}`, method: "put", formData });
+async function update(id: string | number, formData: IParameter) {
+   return await api.put<IParameter>(`${baseURL}/${id}`, formData);
 }
 
 export default { index, store, show, update };

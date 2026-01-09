@@ -1,14 +1,14 @@
 import { api } from "@/modules/useFetch";
-import { IParameter } from "@/types";
+import { ICategoryParameter } from "@/types";
 const baseURL = "categories";
 
 export default {
    index(categoryId: number | string) {
-      return api.get<IParameter[]>(`${baseURL}/${categoryId}/parameters`);
+      return api.get<ICategoryParameter[]>(`${baseURL}/${categoryId}/parameters`);
    },
 
    store(categoryId: number | string, data: any) {
-      return api.post<IParameter>(`${baseURL}/${categoryId}/parameters`, data);
+      return api.post<ICategoryParameter>(`${baseURL}/${categoryId}/parameters`, data);
    },
 
    update(categoryId: number, parameterId: number, data: any) {

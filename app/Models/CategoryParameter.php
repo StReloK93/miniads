@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
-class CategoryParameter extends Model
+use Illuminate\Database\Eloquent\Relations\Pivot;
+class CategoryParameter extends Pivot
 {
 
     public $timestamps = false;
@@ -13,5 +13,9 @@ class CategoryParameter extends Model
         'parameter_id',
         'is_required',
         'sort_index'
+    ];
+
+    protected $casts = [
+        'is_required' => 'boolean',
     ];
 }

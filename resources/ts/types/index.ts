@@ -9,6 +9,14 @@ export interface ICategory {
    children: ICategory[];
 }
 
+export interface ICategoryParameter {
+   id: number;
+   parameter_id: number;
+   category_id: number;
+   is_required: boolean;
+   sort_order: number;
+}
+
 export interface InputConfig {
    component: Component;
    props: IProps | null;

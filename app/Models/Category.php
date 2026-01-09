@@ -28,6 +28,9 @@ class Category extends Model
 
     public function parameters()
     {
-        return $this->hasMany(CategoryParameter::class);
+        // hasMany o'rniga belongsToMany ishlatamiz
+        return $this->belongsToMany(Parameter::class, 'category_parameters')
+            ->using(CategoryParameter::class)
+            ->withPivot('is_required', 'sort_order');
     }
 }

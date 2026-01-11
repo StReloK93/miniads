@@ -60,7 +60,15 @@
             </main>
          </main>
          <main class="flex justify-end mt-5">
-            <Button type="submit" size="small" severity="contrast" class="w-26">Saqlash</Button>
+            <Button
+               type="submit"
+               size="small"
+               severity="contrast"
+               class="w-26"
+               :loading="isLoading"
+               label="Saqlash"
+               icon="pi pi-circle"
+            />
          </main>
       </Form>
    </section>
@@ -72,7 +80,9 @@ import ParameterRepo from "@/repositories/ParameterRepo";
 import { IParameter } from "@/types";
 import { ref, onMounted } from "vue";
 
-function submit() {
+const isLoading = ref(false);
+async function submit() {
+   isLoading.value = true;
    const submitData = formData.value
       .filter((value) => value.select)
       .map((value) => ({
@@ -81,7 +91,9 @@ function submit() {
          sort_order: value.sort_order,
       }));
 
-   CategoryParameterRepo.store(props.category_id, submitData);
+   await CategoryParameterRepo.store(props.category_id, submitData).then(() => {
+      isLoading.value = false;
+   });
 }
 
 const props = defineProps<{
@@ -120,20 +132,13 @@ onMounted(async () => {
 
    const { data } = await CategoryParameterRepo.index(props.category_id);
    data.forEach((categoryParameter) => {
-      console.log(categoryParameter);
-      const parame = categoryParameter.pivot as {
-         is_required: boolean;
-         sort_order: number;
-         parameter_id: number;
-      };
+      const pivot = categoryParameter.pivot;
 
-      const target = formData.value.findIndex((item) => item.parameter_id === parame.parameter_id);
+      const target = formData.value.findIndex((item) => item.parameter_id === pivot.parameter_id);
       if (target !== -1) {
-         console.log("sss");
-
          formData.value[target].select = true;
-         formData.value[target].is_required = parame.is_required;
-         formData.value[target].sort_order = parame.sort_order;
+         formData.value[target].is_required = pivot.is_required;
+         formData.value[target].sort_order = pivot.sort_order;
       }
    });
 });

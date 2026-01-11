@@ -43,6 +43,7 @@ export interface IParameter {
    id: number;
    placeholder: string;
    type: string;
+   pivot: ICategoryParameter;
    unit: string | null;
    options: IParameterOption[];
 }

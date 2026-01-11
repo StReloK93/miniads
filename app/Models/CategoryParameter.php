@@ -12,7 +12,7 @@ class CategoryParameter extends Pivot
         'category_id',
         'parameter_id',
         'is_required',
-        'sort_index'
+        'sort_order'
     ];
 
     protected $casts = [

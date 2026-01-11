@@ -15,6 +15,8 @@ return new class extends Migration {
             $table->string('name'); // Masalan: "Elektronika" yoki "Telefonlar"
             $table->string('image')->nullable(); // Faqat asosiy kategoriyalar uchun
             $table->unsignedBigInteger('parent_id')->nullable(); // Shu joyi muhim!
+            $table->boolean('is_page')->default(false); // Faqat asosiy kategoriyalar uchun
+
             $table->softDeletes();
             // O'z-o'ziga bog'lanish (Self-referencing)
             $table->foreign('parent_id')->references('id')->on('categories')->onDelete('cascade');

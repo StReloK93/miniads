@@ -52,6 +52,7 @@ class CategorySeeder extends Seeder
 			foreach ($item['subs'] as $subName) {
 				Category::create([
 					'name' => $subName,
+					'is_page' => true, // Podkategoriyalar "Sahifa" turida bo'ladi
 					'image' => null, // Podkategoriyalarga rasm shart emas
 					'parent_id' => $parent->id, // Otaning ID-sini bog'laymiz
 				]);

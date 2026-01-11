@@ -33,7 +33,9 @@ function parents() {
    const convertTreeNode = ref<TreeNode[]>([]);
    watch(
       () => data.value,
-      () => (convertTreeNode.value = formatCategories(data.value || [])),
+      () => {
+         convertTreeNode.value = formatCategories(data.value || []);
+      },
    );
 
    return { data, isFirstLoading, error, isLoading, fetchData, convertTreeNode };

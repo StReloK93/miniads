@@ -1,8 +1,22 @@
 <template>
    <div>
       <div class="flex justify-center">
-         <Dialog v-model:visible="isVisible" modal class="w-1/2">
-            <CategoryParameterDialog :category_id="pageData.selectedCategory!" />
+         <Dialog
+            v-model:visible="isVisible"
+            modal
+            class="w-3/4 headless-dialog"
+            header=""
+            :closable="false"
+         >
+            <template #header>
+               <h3 class="text-center font-semibold text-lg my-3 w-full">
+                  {{ pageData.selectedCategory?.label }} - parametrlari
+               </h3>
+            </template>
+            <CategoryParameterDialog
+               :category="pageData.selectedCategory!"
+               @close="isVisible = false"
+            />
          </Dialog>
          <Drawer
             class="headless-drawer"
@@ -92,7 +106,7 @@ const pageData = reactive<{
    title: string;
    selectedForUpdate: string | null;
    selectedParent: TreeNode | null;
-   selectedCategory: string | number | null;
+   selectedCategory: TreeNode | null;
 }>({
    drawerToggle: false,
    updateLoading: null,
@@ -123,7 +137,7 @@ function closeDrawer() {
 }
 
 const openParameterModal = async function (node: TreeNode) {
-   pageData.selectedCategory = node.key;
+   pageData.selectedCategory = node;
 };
 
 const openCreateForm = async function (node: TreeNode | null = null) {

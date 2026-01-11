@@ -11,13 +11,17 @@ class Category extends Model
         'name',
         'image',
         'parent_id',
+        'is_page',
     ];
 
+    protected $casts = [
+        'is_page' => 'boolean',
+    ];
     protected $with = ['children'];
     public function children()
     {
         // Bu podkategoriyalarni olish uchun
-        return $this->hasMany(Category::class, 'parent_id')->select('id', 'name', 'image', 'parent_id');
+        return $this->hasMany(Category::class, 'parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page');
     }
 
     public function parent()

@@ -1,5 +1,4 @@
 import { PrimeVueInputs } from "@/configs/PrimeVueInputs";
-import { api } from "@/modules/useFetch";
 import { InputConfig } from "@/types";
 import z from "zod";
 
@@ -13,7 +12,19 @@ export const categoryInputs: InputConfig[] = [
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
-
+   {
+      component: PrimeVueInputs["ToggleButton"],
+      name: "is_page",
+      props: {
+         ...globalProps,
+         onLabel: "Sahifa",
+         offLabel: "Sahifa emas",
+         onIcon: "pi pi-circle",
+         offIcon: "pi pi-circle-fill",
+      },
+      schema: z.boolean().optional(),
+      class: ["mb-4"],
+   },
    {
       component: PrimeVueInputs["ImageUpload"],
       name: "image",

@@ -9,6 +9,12 @@ class CategoryParameterController extends Controller
     // Create or Update
     public function store(Request $request, Category $category)
     {
+        // 1. TEKSHIRUV: Agar kategoriya "Sahifa" bo'lmasa, parametrlarni saqlashni taqiqlaymiz
+        if (!$category->is_page) {
+            return response()->json([
+                'message' => "Parametrlarni faqat 'Sahifa' (Page) turidagi kategoriyalarga biriktirish mumkin. '{$category->name}' esa papka hisoblanadi."
+            ], 422);
+        }
         $syncData = [];
 
         foreach ($request->all() as $item) {

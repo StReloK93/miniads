@@ -19,18 +19,29 @@ class CategoryController extends Controller
 	}
 	public function parents()
 	{
-		return Category::whereNull('parent_id')->select('id', 'name', 'image', 'parent_id')->get();
+		return Category::whereNull('parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page')->get();
 	}
 
 
 	public function store(Request $request)
 	{
 		$validated = $request->validate([
-			'parent_id' => 'nullable|exists:categories,id',
+			'parent_id' => [
+				'nullable',
+				'exists:categories,id',
+				function ($attribute, $value, $fail) {
+					// Tanlangan ota-ona (parent) kategoriya is_page: true bo'lmasligi kerak
+					$parent = Category::find($value);
+					if ($parent && $parent->is_page) {
+						$fail("Tanlangan kategoriya 'Sahifa' turida. Unga ichki kategoriya qo'shib bo'lmaydi.");
+					}
+				},
+			],
 			'name' => 'required|string',
 			'image' => 'sometimes|mimes:svg',
 		]);
 
+		$validated['is_page'] = $request->boolean('is_page');
 		if ($request->hasFile('image')) {
 			$file = $request->file('image');
 			// Fayl nomini xavfsiz qilish (Original nomda keraksiz belgilar bo'lishi mumkin)
@@ -60,6 +71,7 @@ class CategoryController extends Controller
 		]);
 
 		$data = $request->all(); // Barcha ma'lumotlarni o'zgaruvchiga olamiz
+		$data['is_page'] = $request->boolean('is_page');
 
 		if ($request->hasFile('image')) {
 			// 1. Eski faylni o'chirish logikasi
@@ -88,12 +100,35 @@ class CategoryController extends Controller
 
 	public function changeParent($id, Request $request)
 	{
+		// 1. O'zgartirilayotgan kategoriyani topamiz
 		$category = Category::findOrFail($id);
-		$category->parent_id = $request->parent_id;
+		$newParentId = $request->parent_id;
+
+		// 2. Agar yangi parent tanlangan bo'lsa (null bo'lmasa)
+		if ($newParentId) {
+			// O'zini o'ziga parent qilib qo'yishni oldini olamiz
+			if ($id == $newParentId) {
+				return response()->json(['message' => 'Kategoriyani o‘zini o‘ziga ota qilib bo‘lmaydi.'], 422);
+			}
+
+			$parent = Category::findOrFail($newParentId);
+
+			// 3. TANQIDIY TEKSHIRUV: Yangi parent "is_page" bo'lmasligi kerak
+			if ($parent->is_page) {
+				return response()->json([
+					'message' => "Siz tanlagan '{$parent->name}' kategoriyasi sahifa (leaf node) hisoblanadi. Uning ichiga boshqa kategoriya qo‘shib bo‘lmaydi."
+				], 422);
+			}
+		}
+
+		// 4. Hammasi joyida bo'lsa, saqlaymiz
+		$category->parent_id = $newParentId;
 		$category->save();
 
-		return response()->json($category, 200);
-
+		return response()->json([
+			'message' => 'Kategoriya joylashuvi muvaffaqiyatli o‘zgartirildi',
+			'category' => $category
+		], 200);
 	}
 
 	public function destroy($id)

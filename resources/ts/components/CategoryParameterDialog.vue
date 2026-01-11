@@ -1,10 +1,10 @@
 <template>
-   <section>
-      <Form @submit="submit">
+   <Form @submit="submit">
+      <template v-if="isLoadingData == false">
          <main
             v-for="(value, index) in formData"
             :key="index"
-            class="flex items-center gap-2 mb-1 select-none bg-tertiary p-1 rounded-md border border-secondary"
+            class="flex items-center gap-2 mb-1 select-none bg-tertiary p-0.5 rounded-md border border-secondary"
          >
             <main class="w-2/5 flex items-center gap-5">
                <ToggleButton
@@ -59,28 +59,39 @@
                </div>
             </main>
          </main>
-         <main class="flex justify-end mt-5">
-            <Button
-               type="submit"
-               size="small"
-               severity="contrast"
-               class="w-26"
-               :loading="isLoading"
-               label="Saqlash"
-               icon="pi pi-circle"
-            />
-         </main>
-      </Form>
-   </section>
+      </template>
+      <Skeleton v-else class="w-full" width="100%" height="300px" border-radius="8px" />
+      <main class="flex justify-end mt-5">
+         <Button
+            type="button"
+            size="small"
+            severity="secondary"
+            class="mr-3"
+            label="Bekor qilish"
+            @click="$emit('close')"
+         />
+         <Button
+            type="submit"
+            size="small"
+            severity="contrast"
+            class="w-26"
+            :loading="isLoading"
+            label="Saqlash"
+            icon="pi pi-circle"
+         />
+      </main>
+   </Form>
 </template>
 
 <script setup lang="ts">
 import CategoryParameterRepo from "@/repositories/CategoryParameterRepo";
 import ParameterRepo from "@/repositories/ParameterRepo";
 import { IParameter } from "@/types";
+import { TreeNode } from "primevue/treenode";
 import { ref, onMounted } from "vue";
 
 const isLoading = ref(false);
+const isLoadingData = ref(false);
 async function submit() {
    isLoading.value = true;
    const submitData = formData.value
@@ -91,13 +102,13 @@ async function submit() {
          sort_order: value.sort_order,
       }));
 
-   await CategoryParameterRepo.store(props.category_id, submitData).then(() => {
+   await CategoryParameterRepo.store(props.category.key, submitData).then(() => {
       isLoading.value = false;
    });
 }
 
 const props = defineProps<{
-   category_id: string | number;
+   category: TreeNode;
 }>();
 
 const formData = ref<
@@ -128,9 +139,10 @@ async function getData() {
 }
 
 onMounted(async () => {
+   isLoadingData.value = true;
    await getData();
 
-   const { data } = await CategoryParameterRepo.index(props.category_id);
+   const { data } = await CategoryParameterRepo.index(props.category.key);
    data.forEach((categoryParameter) => {
       const pivot = categoryParameter.pivot;
 
@@ -141,5 +153,6 @@ onMounted(async () => {
          formData.value[target].sort_order = pivot.sort_order;
       }
    });
+   isLoadingData.value = false;
 });
 </script>

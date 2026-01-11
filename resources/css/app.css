@@ -3,7 +3,8 @@
 @import "swiper/css";
 
 @custom-variant dark (&:where(.p-dark, .p-dark *));
-.headless-drawer .p-drawer-header {
+.headless-drawer .p-drawer-header,
+.headless-dialog .p-dialog-header {
    padding: 0 !important;
 }
 :root {

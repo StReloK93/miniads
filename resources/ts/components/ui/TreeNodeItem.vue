@@ -7,7 +7,8 @@
             props.selectedParent?.key == props.node.key,
       }"
    >
-      <div class="flex gap-3 items-center py-2">
+      <div class="flex gap-3 items-center py-0.5">
+         <i :class="props.node.droppable == false ? 'pi pi-link text-primary' : 'pi pi-folder'" />
          <img
             v-if="props.node.image"
             :src="props.node.image"
@@ -19,6 +20,7 @@
 
       <div class="flex items-center gap-1">
          <Button
+            v-if="props.node.is_page"
             @click.stop="$emit('paramaters', props.node)"
             icon="pi pi-sitemap"
             severity="warn"
@@ -27,6 +29,7 @@
             variant="text"
          />
          <Button
+            v-if="!props.node.is_page"
             @click.stop="$emit('create', props.node)"
             icon="pi pi-plus"
             size="small"

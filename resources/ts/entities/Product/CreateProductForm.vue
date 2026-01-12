@@ -1,15 +1,16 @@
 <template>
    <section>
       <div class="pt-4">
-         <main v-for="category in categories">
+         <main v-for="category in categories" :key="category.id">
             <nav class="py-1 text-secondary">
                {{ category.name }}
             </nav>
             <ul>
                <li
                   v-for="child in category.children"
-                  @click="pageData.selectedCategory = child.id"
-                  class="pl-4 py-1 text-primary-500"
+                  :key="child.id"
+                  @click="selectCategory(child.id)"
+                  class="pl-4 py-1 text-primary-500 cursor-pointer hover:underline"
                >
                   {{ child.name }}
                </li>
@@ -23,7 +24,9 @@
          class="headless-drawer"
          :show-close-icon="false"
       >
-         {{ pageData.selectedCategory }}
+         <main>
+            {{ pageData.selectedCategory }}
+         </main>
       </Drawer>
    </section>
 </template>
@@ -35,10 +38,16 @@ import CategoryRepo from "../Category/CategoryRepo";
 const { data: categories } = CategoryRepo.parents();
 
 const pageData = reactive<{
-   selectedCategory: string | null;
+   selectedCategory: any | null;
 }>({
    selectedCategory: null,
 });
+
+function selectCategory(id: string) {
+   CategoryRepo.show(id).then((response) => {
+      pageData.selectedCategory = response.data;
+   });
+}
 
 onMounted(() => {});
 const isVisible = computed({

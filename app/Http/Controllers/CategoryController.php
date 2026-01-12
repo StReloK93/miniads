@@ -15,7 +15,7 @@ class CategoryController extends Controller
 
 	public function show($id)
 	{
-		return Category::without('children')->select('id', 'name', 'image', 'parent_id')->findOrFail($id);
+		return Category::without('children')->with('parameters')->select('id', 'name', 'image', 'parent_id')->findOrFail($id);
 	}
 	public function parents()
 	{

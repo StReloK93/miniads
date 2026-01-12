@@ -27,6 +27,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import ThemeSwitcher from "./features/ThemeSwitcher.vue";
+import ThemeSwitcher from "./ThemeSwitcher.vue";
 const openUserSettings = ref(false);
 </script>

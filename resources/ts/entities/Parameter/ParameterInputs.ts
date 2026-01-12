@@ -1,4 +1,4 @@
-import { PrimeVueInputs } from "@/configs/PrimeVueInputs";
+import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
 import { InputConfig } from "@/types";
 import z from "zod";
 
@@ -17,7 +17,7 @@ export const parameterInputs: InputConfig[] = [
       name: "unit",
       placeholder: "O'lchov birligi",
       props: globalProps,
-      schema: z.string({ message: "Majburiy maydon!" }).optional(),
+      schema: z.string({ message: "Majburiy maydon!" }).optional().nullable(),
       class: ["mb-4"],
    },
    {

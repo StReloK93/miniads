@@ -47,10 +47,14 @@
 <script setup lang="ts">
 import BaseTable from "@/components/BaseTable.vue";
 import BaseForm from "@/components/BaseForm.vue";
-import ParameterRepo from "@/repositories/ParameterRepo";
+import ParameterRepo from "@/entities/Parameter/ParameterRepo";
 import { onMounted, reactive, shallowRef } from "vue";
 import { useFetchDecorator } from "@/modules/useFetch";
-import { parameterInputs, superRefine, parameterColumns } from "@/configs/ParameterInputs";
+import {
+   parameterInputs,
+   superRefine,
+   parameterColumns,
+} from "@/entities/Parameter/ParameterInputs";
 import { TreeNode } from "primevue/treenode";
 import { IParameter } from "@/types";
 var submit: (values: any) => Promise<void>;
@@ -98,16 +102,16 @@ async function openEditForm(id: string | number) {
    };
    pageData.title = text.edit;
 
-   ParameterRepo.show(id, async ({ data: parameter }) => {
-      await Promise.all(
-         inputConfigs.value.map(async (input) => {
-            if (input.generateProps) await input.generateProps();
-            input.value = parameter ? parameter[input.name] : undefined;
-            return input;
-         }),
-      ).finally(() => {
-         pageData.drawerToggle = true;
-      });
+   const { data: parameter } = await ParameterRepo.show(id);
+
+   await Promise.all(
+      inputConfigs.value.map(async (input) => {
+         if (input.generateProps) await input.generateProps();
+         input.value = parameter ? parameter[input.name] : undefined;
+         return input;
+      }),
+   ).finally(() => {
+      pageData.drawerToggle = true;
    });
 }
 

@@ -2,7 +2,7 @@
    <main
       class="flex justify-between items-center select-none pl-3 pr-1 rounded-sm"
       :class="{
-         'bg-sky-100':
+         'bg-sky-100 dark:bg-sky-500':
             props.selectedForUpdate == props.node.key ||
             props.selectedParent?.key == props.node.key,
       }"

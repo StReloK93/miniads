@@ -26,6 +26,7 @@ declare module 'vue' {
     Form: typeof import('@primevue/forms/form')['default']
     FormField: typeof import('@primevue/forms/formfield')['default']
     IconField: typeof import('primevue/iconfield')['default']
+    Inplace: typeof import('primevue/inplace')['default']
     InputChips: typeof import('primevue/inputchips')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']

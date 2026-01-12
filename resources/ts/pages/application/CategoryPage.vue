@@ -18,7 +18,7 @@
                   </h3>
                   <aside>
                      <div
-                        v-for="childCategory in category.children"
+                        v-for="childCategory in segmentItems(category.children, 2).first"
                         :key="childCategory.id"
                         class="flex justify-between items-center"
                      >
@@ -33,24 +33,38 @@
                         ></Button>
                      </div>
 
-                     <!-- <Inplace :active="activeCategoryId == `category_${index}`" :display-props="{ class: 'p-0! w-full' }">
+                     <Inplace
+                        v-if="category.children.length > 2"
+                        :active="activeCategoryId == `category_${index}`"
+                        :display-props="{ class: 'p-0! w-full' }"
+                     >
                         <template #display>
-                           <div class="py-1.5 text-xs text-tertiary w-full">Barchasi</div>
+                           <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
                         </template>
                         <template #content="{ closeCallback }">
                            <div
-                              v-for="value in postCategories"
+                              v-for="value in segmentItems(category.children, 2).remaining"
                               :key="value"
-                              class="border-b border-gray-100 flex justify-between items-center"
+                              class="flex justify-between items-center"
                            >
                               <span class="text-surface-700 text-sm">
-                                 {{ value }}
+                                 {{ value.name }}
                               </span>
-                              <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
+                              <Button
+                                 icon="pi pi-angle-right"
+                                 severity="secondary"
+                                 variant="text"
+                                 rounded
+                              ></Button>
                            </div>
-                           <div @click="closeCallback" class="py-1.5 text-xs text-tertiary">Yopish</div>
+                           <div
+                              @click="closeCallback"
+                              class="py-1.5 text-xs text-primary cursor-pointer"
+                           >
+                              Yopish
+                           </div>
                         </template>
-                     </Inplace> -->
+                     </Inplace>
                   </aside>
                </div>
             </template>
@@ -63,29 +77,37 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue"; // watch ni import qiling
+import { nextTick, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import CategoryRepo from "@/repositories/CategoryRepo";
-import BackPreviusPage from "@/components/features/BackPreviusPage.vue";
+import CategoryRepo from "@/entities/Category/CategoryRepo";
+import BackPreviusPage from "@/components/BackPreviusPage.vue";
 
 const route = useRoute();
 const activeCategoryId = ref<string | null>(null);
 
-// Ma'lumotlarni yuklash (bu asinxron jarayon)
 const { data: categoryParents, isLoading } = CategoryRepo.parents();
+
+function segmentItems(array: any[], count: number) {
+   if (array.length > 2) {
+      const first = array.slice(0, count);
+      const remaining = array.length > 2 ? array.slice(2) : [];
+
+      return {
+         first,
+         remaining,
+      };
+   }
+   return { first: array, remaining: [] };
+}
 
 // Scroll qilish logikasini alohida funksiya qilib olamiz
 const scrollToCategory = async () => {
    const categoryId = route.query.open as string;
 
    if (categoryId && categoryParents.value?.length) {
-      // 1. DOM yangilanishini kutish (ma'lumot keldi, endi chizib olishi kerak)
       await nextTick();
-
-      // 2. Elementni topish
       const element = document.getElementById(categoryId);
 
-      // 3. Agar element topilsa, scroll qilish
       if (element) {
          activeCategoryId.value = categoryId; // Kerak bo'lsa style uchun
          element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -93,15 +115,13 @@ const scrollToCategory = async () => {
    }
 };
 
-// 'watch' orqali ma'lumot kelishini kuzatamiz
 watch(
-   () => categoryParents.value, // nimani kuzatamiz?
+   () => categoryParents.value,
    (newVal) => {
-      // Agar ma'lumot kelgan bo'lsa va bo'sh bo'lmasa
       if (newVal && newVal.length > 0) {
          scrollToCategory();
       }
    },
-   { immediate: true }, // Agar ma'lumot keshda bo'lsa, darhol ishlashi uchun
+   { immediate: true },
 );
 </script>

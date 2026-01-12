@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
 import router from "@/router";
 import { api } from "@/modules/useFetch";
-export const useAuthStore = defineStore("Auth", () => {
+export const useAuth = defineStore("useAuth", () => {
    const user: Ref = ref(null);
    const token: Ref = ref(null);
    async function signInTelegram(initDataRaw) {

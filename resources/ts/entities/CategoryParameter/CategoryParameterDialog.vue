@@ -84,8 +84,8 @@
 </template>
 
 <script setup lang="ts">
-import CategoryParameterRepo from "@/repositories/CategoryParameterRepo";
-import ParameterRepo from "@/repositories/ParameterRepo";
+import CategoryParameterRepo from "@/entities/CategoryParameter/CategoryParameterRepo";
+import ParameterRepo from "@/entities/Parameter/ParameterRepo";
 import { IParameter } from "@/types";
 import { TreeNode } from "primevue/treenode";
 import { ref, onMounted } from "vue";
@@ -140,9 +140,14 @@ async function getData() {
 
 onMounted(async () => {
    isLoadingData.value = true;
+   console.log("start");
+
    await getData();
+   console.log("next 1");
 
    const { data } = await CategoryParameterRepo.index(props.category.key);
+   console.log("next 2");
+
    data.forEach((categoryParameter) => {
       const pivot = categoryParameter.pivot;
 

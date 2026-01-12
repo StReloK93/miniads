@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { applyTheme, type ThemeMode } from "./theme";
+import { applyTheme, type ThemeMode } from "../modules/theme";
 
 const mode = ref<ThemeMode>((localStorage.getItem("theme-mode") as ThemeMode) || "system");
 

@@ -65,10 +65,9 @@
 
 <script setup lang="ts">
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { products } from "@/test/data";
+import { products } from "@/modules/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
-import CategoryRepo from "@/repositories/CategoryRepo";
-
+import CategoryRepo from "@/entities/Category/CategoryRepo";
 const { data: parentCategories, isLoading } = CategoryRepo.parents();
 // function onSwiper(swiper) {
 //    console.log(swiper);

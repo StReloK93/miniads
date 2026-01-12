@@ -1,4 +1,4 @@
-import { PrimeVueInputs } from "@/configs/PrimeVueInputs";
+import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
 import { InputConfig } from "@/types";
 import z from "zod";
 

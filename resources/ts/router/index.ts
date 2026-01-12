@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { routes } from "./routes";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuth } from "@/store/useAuth";
 
 const router = createRouter({
    history: createWebHistory(),
@@ -8,7 +8,7 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-   const AuthStore = useAuthStore();
+   const AuthStore = useAuth();
    next();
 });
 

@@ -25,9 +25,7 @@
             :show-close-icon="false"
          >
             <template #header>
-               <h3
-                  class="px-5 py-1.5 text-center font-semibold w-full border-b border-surface-200 mb-2"
-               >
+               <h3 class="px-5 py-1.5 text-center font-semibold w-full border-b border-input mb-2">
                   {{ pageData.title }}
                </h3>
             </template>
@@ -39,7 +37,7 @@
                >
                   <div
                      v-if="pageData.selectedParent"
-                     class="flex gap-3 items-center p-1.5 bg-surface-100 rounded border border-surface-300"
+                     class="flex gap-3 items-center p-1.5 bg-secondary rounded border border-input"
                   >
                      <img
                         v-if="pageData.selectedParent.image"
@@ -91,12 +89,12 @@
 <script setup lang="ts">
 import TreeNodeItem from "@/components/ui/TreeNodeItem.vue";
 import BaseForm from "@/components/BaseForm.vue";
-import CategoryRepo from "@/repositories/CategoryRepo";
+import CategoryRepo from "@/entities/Category/CategoryRepo";
 import { computed, reactive, shallowRef } from "vue";
-import { categoryInputs } from "@/configs/CategoryInputs";
+import { categoryInputs } from "@/entities/Category/CategoryInputs";
 import { findParentId } from "@/modules/Helpers";
 import { TreeNode } from "primevue/treenode";
-import CategoryParameterDialog from "@/components/CategoryParameterDialog.vue";
+import CategoryParameterDialog from "@/entities/CategoryParameter/CategoryParameterDialog.vue";
 const { fetchData: fetchCategories, convertTreeNode } = CategoryRepo.parents();
 var submit: (values: any) => Promise<void>;
 
@@ -169,16 +167,15 @@ async function openEditForm(node: TreeNode) {
       fetchCategories();
    };
 
-   CategoryRepo.show(node.key, ({ data }) => {
-      inputConfigs.value.map(async (input) => {
-         if (input.generateProps) await input.generateProps();
-         input.value = data[input.name];
-         return input;
-      });
-
-      pageData.updateLoading = null;
-      pageData.drawerToggle = true;
+   const { data: category } = await CategoryRepo.show(node.key);
+   inputConfigs.value.map(async (input) => {
+      if (input.generateProps) await input.generateProps();
+      input.value = category[input.name];
+      return input;
    });
+
+   pageData.updateLoading = null;
+   pageData.drawerToggle = true;
 }
 
 // Drag and Drop hodisasi sodir bo'lganda

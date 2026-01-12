@@ -37,31 +37,3 @@ export const products: Product[] = [
       image: "https://primefaces.org/cdn/primevue/images/product/green-earbuds.jpg",
    },
 ];
-
-export const responsiveOptions = [
-   {
-      breakpoint: "2560px",
-      numVisible: 8,
-      numScroll: 4,
-   },
-   {
-      breakpoint: "1400px",
-      numVisible: 5,
-      numScroll: 1,
-   },
-   {
-      breakpoint: "1199px",
-      numVisible: 5,
-      numScroll: 1,
-   },
-   {
-      breakpoint: "767px",
-      numVisible: 3.5,
-      numScroll: 1,
-   },
-   {
-      breakpoint: "575px",
-      numVisible: 2.2,
-      numScroll: 1,
-   },
-];

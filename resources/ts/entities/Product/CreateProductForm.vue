@@ -24,29 +24,57 @@
          class="headless-drawer"
          :show-close-icon="false"
       >
-         <main>
-            {{ pageData.selectedCategory }}
-         </main>
+         <BaseForm :submit="submitForm" :input-configs="fullInputs" />
       </Drawer>
    </section>
 </template>
 
 <script setup lang="ts">
+import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
+import { productInputs, globalProps, schemaProps } from "./ProductInputs";
+import { ICategory, InputConfig } from "@/types";
 import { computed, onMounted, reactive } from "vue";
 import CategoryRepo from "../Category/CategoryRepo";
-
+import BaseForm from "@/components/BaseForm.vue";
+// import ProductRepo from "./ProductRepo";
+import { Component } from "vue";
 const { data: categories } = CategoryRepo.parents();
 
 const pageData = reactive<{
-   selectedCategory: any | null;
+   selectedCategory: ICategory | null;
 }>({
    selectedCategory: null,
 });
+var fullInputs: InputConfig[] = [];
+async function selectCategory(id: string) {
+   const { data: category } = await CategoryRepo.show(id);
 
-function selectCategory(id: string) {
-   CategoryRepo.show(id).then((response) => {
-      pageData.selectedCategory = response.data;
+   const parameters = category.parameters;
+
+   const parameterInputs = parameters.map((parameter) => {
+      return {
+         component: PrimeVueInputs[parameter.type] as Component,
+         name: `parameters_${parameter.id}`,
+         placeholder: parameter.placeholder,
+         class: ["mb-4"],
+         props: {
+            ...globalProps,
+            options: parameter.options || [],
+         },
+         schema: parameter.pivot.is_required ? schemaProps.required : schemaProps.optional,
+      };
    });
+
+   fullInputs = [...productInputs, ...parameterInputs];
+   console.log(fullInputs);
+
+   pageData.selectedCategory = category;
+}
+
+async function submitForm(values: any) {
+   console.log("Form submitted with values:", values);
+   // await ProductRepo.store(values);
+   // Formani yuborish logikasi shu yerda bo'ladi
 }
 
 onMounted(() => {});

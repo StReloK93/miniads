@@ -6,6 +6,8 @@ export interface ICategory {
    slug: string;
    id: string;
    image: string;
+   parent_id: number | null;
+   parameters: IParameter[];
    children: ICategory[];
 }
 
@@ -37,6 +39,24 @@ export interface IProps {
 export interface IParameterOption {
    id: number;
    value: string;
+}
+
+export interface IParameter {
+   id: number;
+   placeholder: string;
+   type: string;
+   pivot: ICategoryParameter;
+   unit: string | null;
+   options: IParameterOption[];
+}
+
+export interface IProduct {
+   id: number;
+   title: string;
+   description: string;
+   phone: string | null;
+   category_id: number;
+   user_id: number;
 }
 
 export interface IParameter {

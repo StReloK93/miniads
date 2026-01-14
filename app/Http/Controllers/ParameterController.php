@@ -31,6 +31,7 @@ class ParameterController extends Controller
         $validated = $request->validate([
             'placeholder' => 'required|string',
             'type' => 'required|string',
+            'component' => 'required|string',
             'unit' => 'nullable|string',
             'options' => 'nullable|array', // Options massiv bo'lishi shart
         ]);

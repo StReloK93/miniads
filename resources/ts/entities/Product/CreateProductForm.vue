@@ -24,19 +24,29 @@
          class="headless-drawer"
          :show-close-icon="false"
       >
-         <BaseForm :submit="submitForm" :input-configs="fullInputs" />
+         <main class="h-full -mx-5">
+            <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs">
+               <template #header>
+                  <nav
+                     class="py-3 px-5 text-xl font-semibold bg-secondary border-b border-secondary"
+                  >
+                     {{ pageData.selectedCategory?.name }}
+                  </nav>
+               </template>
+            </BaseForm>
+         </main>
       </Drawer>
    </section>
 </template>
 
 <script setup lang="ts">
 import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
-import { productInputs, globalProps, schemaProps } from "./ProductInputs";
+import { productInputs, globalProps, schemaProps, ZodTypeMapping } from "./ProductInputs";
 import { ICategory, InputConfig } from "@/types";
 import { computed, onMounted, reactive } from "vue";
 import CategoryRepo from "../Category/CategoryRepo";
 import BaseForm from "@/components/BaseForm.vue";
-// import ProductRepo from "./ProductRepo";
+import ProductRepo from "./ProductRepo";
 import { Component } from "vue";
 const { data: categories } = CategoryRepo.parents();
 
@@ -51,29 +61,45 @@ async function selectCategory(id: string) {
 
    const parameters = category.parameters;
 
-   const parameterInputs = parameters.map((parameter) => {
+   const parameterInputs = parameters.map((parameter, index) => {
+      const latest = parameters.length - 1 === index;
       return {
-         component: PrimeVueInputs[parameter.type] as Component,
-         name: `parameters_${parameter.id}`,
+         component: PrimeVueInputs[parameter.component] as Component,
+         name: `parameter_${parameter.id}`,
          placeholder: parameter.placeholder,
-         class: ["mb-4"],
+         class: latest ? [] : ["mb-4"],
          props: {
             ...globalProps,
             options: parameter.options || [],
          },
-         schema: parameter.pivot.is_required ? schemaProps.required : schemaProps.optional,
+         schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required, parameter.placeholder),
       };
    });
 
    fullInputs = [...productInputs, ...parameterInputs];
-   console.log(fullInputs);
-
    pageData.selectedCategory = category;
 }
 
 async function submitForm(values: any) {
-   console.log("Form submitted with values:", values);
-   // await ProductRepo.store(values);
+   const payload: any = {
+      title: values.title,
+      description: values.description,
+      category_id: pageData.selectedCategory?.id,
+      parameters: [],
+   };
+
+   Object.keys(values).forEach((key) => {
+      if (key.startsWith("parameter_")) {
+         const paramId = key.replace("parameter_", "");
+         console.log(paramId);
+         payload.parameters.push({
+            id: paramId,
+            value: values[key],
+         });
+      }
+   });
+
+   await ProductRepo.store(payload);
    // Formani yuborish logikasi shu yerda bo'ladi
 }
 

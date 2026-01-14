@@ -22,9 +22,17 @@ export const parameterInputs: InputConfig[] = [
    },
    {
       component: PrimeVueInputs["Select"],
-      name: "type",
+      name: "component",
       placeholder: "Input turi",
       props: { ...globalProps, options: Object.keys(PrimeVueInputs) },
+      schema: z.string({ message: "Majburiy maydon!" }),
+      class: ["mb-4"],
+   },
+   {
+      component: PrimeVueInputs["Select"],
+      name: "type",
+      placeholder: "Malumot turi",
+      props: { ...globalProps, options: ["string", "number", "boolean", "array"] },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },

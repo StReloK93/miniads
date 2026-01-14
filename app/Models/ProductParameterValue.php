@@ -7,4 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class ProductParameterValue extends Model
 {
     //
+
+    public $timestamps = false;
+
+    protected $fillable = ['value', 'product_id', 'parameter_id'];
 }

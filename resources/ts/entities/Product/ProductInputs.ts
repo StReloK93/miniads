@@ -39,3 +39,30 @@ export const productInputs: InputConfig[] = [
       class: ["mb-4"],
    },
 ];
+
+export const ZodTypeMapping: Record<string, (required: boolean, label: string) => any> = {
+   // STRING uchun validatsiya
+   string: (required, label) => {
+      let s = z.string("Majburiy maydon!").trim();
+      return required
+         ? s.min(1, `${label} to'ldirilishi shart`)
+         : s.optional().nullable().or(z.literal(""));
+   },
+
+   // NUMBER uchun validatsiya
+   number: (required, label) => {
+      // z.coerce ishlatamiz, chunki inputdan yoki bazadan string ko'rinishida kelishi mumkin
+      let n = z.coerce.number("Majburiy maydon!").min(1, `Majburiy maydon!`);
+
+      return required ? n : n.optional().nullable();
+   },
+
+   // BOOLEAN uchun validatsiya
+   boolean: (required, label) => {
+      // 0, 1, "true", "false" qiymatlarini haqiqiy booleanga o'giradi
+      let b = z.coerce.boolean();
+      return required
+         ? b.refine((val) => val === true, { message: `${label} tanlanishi shart` })
+         : b.default(false);
+   },
+};

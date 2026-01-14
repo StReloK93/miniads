@@ -5,47 +5,48 @@
       :initial-values
       :resolver
       @submit="onFormSubmit"
-      class="flex flex-col gap-4 w-full h-full pt-2"
+      class="flex flex-col w-full h-full"
    >
-      <slot></slot>
+      <slot name="header"></slot>
 
-      <div class="flex flex-col">
-         <template v-for="(input, index) in inputConfigs" :key="index">
-            <main :class="input.class">
-               <FloatLabel v-if="input.placeholder" variant="on">
+      <div class="flex flex-col grow relative">
+         <main class="absolute inset-0 overflow-y-auto py-4 px-5">
+            <slot name="inputs"></slot>
+            <template v-for="(input, index) in inputConfigs" :key="index">
+               <main :class="input.class">
+                  <FloatLabel v-if="input.placeholder" variant="on">
+                     <component
+                        :input="input"
+                        :is="input.component"
+                        :name="input.name"
+                        :id="input.name"
+                        v-bind="input.props"
+                     />
+                     <label :for="input.name">{{ input.placeholder }}</label>
+                  </FloatLabel>
+
                   <component
-                     :input="input"
+                     v-else
                      :is="input.component"
+                     :input="input"
                      :name="input.name"
-                     :id="input.name"
                      v-bind="input.props"
                   />
-                  <label :for="input.name">{{ input.placeholder }}</label>
-               </FloatLabel>
 
-               <component
-                  v-else
-                  :is="input.component"
-                  :input="input"
-                  :name="input.name"
-                  v-bind="input.props"
-               />
-
-               <Message
-                  v-if="$form[input.name]?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-               >
-                  {{ $form[input.name].error.message }}
-               </Message>
-            </main>
-         </template>
+                  <Message
+                     v-if="$form[input.name]?.invalid"
+                     severity="error"
+                     size="small"
+                     variant="simple"
+                  >
+                     {{ $form[input.name].error.message }}
+                  </Message>
+               </main>
+            </template>
+         </main>
       </div>
 
-      <div class="grow" />
-
-      <footer class="flex gap-3 pb-4 -mb-4">
+      <footer class="flex gap-3 py-4 -mb-4 border-t border-secondary px-5">
          <Button
             type="button"
             size="small"

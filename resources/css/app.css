@@ -34,11 +34,11 @@
 }
 
 .bg-tertiary {
-   @apply bg-white! dark:bg-black!;
+   @apply bg-white! dark:bg-surface-900!;
 }
 
 .bg-secondary {
-   @apply bg-surface-50 dark:bg-surface-900;
+   @apply bg-surface-50 dark:bg-black;
 }
 
 .border-secondary {

@@ -44,6 +44,7 @@ export interface IParameterOption {
 export interface IParameter {
    id: number;
    placeholder: string;
+   component: string;
    type: string;
    pivot: ICategoryParameter;
    unit: string | null;

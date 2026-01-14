@@ -9,7 +9,9 @@
             :closable="false"
          >
             <template #header>
-               <h3 class="text-center font-semibold text-lg my-3 w-full">
+               <h3
+                  class="text-center font-semibold text-lg py-3 w-full bg-secondary rounded-t-2xl border-b border-input"
+               >
                   {{ pageData.selectedCategory?.label }} - parametrlari
                </h3>
             </template>
@@ -24,31 +26,36 @@
             v-model:visible="pageData.drawerToggle"
             :show-close-icon="false"
          >
-            <template #header>
-               <h3 class="px-5 py-1.5 text-center font-semibold w-full border-b border-input mb-2">
-                  {{ pageData.title }}
-               </h3>
-            </template>
-            <main class="h-full">
+            <template #header> </template>
+            <main class="h-full -mx-5">
                <BaseForm
                   @close="pageData.drawerToggle = false"
                   :submit="submit"
                   :inputConfigs="inputConfigs"
                >
-                  <div
-                     v-if="pageData.selectedParent"
-                     class="flex gap-3 items-center p-1.5 bg-secondary rounded border border-input"
-                  >
-                     <img
-                        v-if="pageData.selectedParent.image"
-                        :src="pageData.selectedParent.image"
-                        draggable="false"
-                        class="w-6 pointer-events-none dark:invert"
-                     />
-                     <span class="font-medium">
-                        {{ pageData.selectedParent.label }}
-                     </span>
-                  </div>
+                  <template #header>
+                     <h3
+                        class="px-5 py-2.5 text-center font-semibold w-full bg-secondary border-b border-input"
+                     >
+                        {{ pageData.title }}
+                     </h3>
+                  </template>
+                  <template #inputs>
+                     <div
+                        v-if="pageData.selectedParent"
+                        class="flex gap-3 items-center p-1.5 mb-4 bg-secondary rounded border border-input"
+                     >
+                        <img
+                           v-if="pageData.selectedParent.image"
+                           :src="pageData.selectedParent.image"
+                           draggable="false"
+                           class="w-6 pointer-events-none dark:invert"
+                        />
+                        <span class="font-medium">
+                           {{ pageData.selectedParent.label }}
+                        </span>
+                     </div>
+                  </template>
                </BaseForm>
             </main>
          </Drawer>

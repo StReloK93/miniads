@@ -21,31 +21,36 @@ class DatabaseSeeder extends Seeder
         $parameters = [
             [
                 'placeholder' => 'Xonalar soni',
-                'type' => 'InputNumber',
+                'component' => 'InputNumber',
+                'type' => 'number',
                 'unit' => null,
                 'options' => null
             ],
             [
                 'placeholder' => 'Maydoni',
-                'type' => 'InputNumber',
+                'component' => 'InputNumber',
+                'type' => 'number',
                 'unit' => 'm²',
                 'options' => null
             ],
             [
                 'placeholder' => 'Qavat',
-                'type' => 'InputNumber',
+                'component' => 'InputNumber',
+                'type' => 'number',
                 'unit' => null,
                 'options' => null
             ],
             [
                 'placeholder' => 'Tamir turi',
-                'type' => 'Select',
+                'component' => 'Select',
+                'type' => 'string',
                 'unit' => null,
                 'options' => ['Yomon', "O'rtacha", 'Yaxshi', "Zo'r"]
             ],
             [
                 'placeholder' => 'Rangi',
-                'type' => 'Select',
+                'component' => 'Select',
+                'type' => 'string',
                 'unit' => null,
                 'options' => ['Oq', "Qora", 'Sariq', "Yashil"]
             ],

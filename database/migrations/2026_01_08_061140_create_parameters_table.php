@@ -13,7 +13,8 @@ return new class extends Migration {
         Schema::create('parameters', function (Blueprint $table) {
             $table->id();
             $table->string('placeholder'); // Masalan: "Xonalar soni"
-            $table->string('type');  // number, text, select
+            $table->enum('type', ['string', 'number', 'boolean'])->default('string');
+            $table->string('component');  // number, text, select
             $table->string('unit')->nullable(); // masalan: "kv/m"
             $table->json('options')->nullable();
         });

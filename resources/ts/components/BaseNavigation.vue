@@ -5,6 +5,7 @@
          <div class="flex gap-3">
             <OverlayBadge severity="info">
                <Button
+                  @click="$router.push({ name: 'admin-categories' })"
                   icon="pi pi-bell"
                   severity="secondary"
                   size="small"

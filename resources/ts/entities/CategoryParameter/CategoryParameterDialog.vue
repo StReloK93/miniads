@@ -1,6 +1,6 @@
 <template>
-   <Form @submit="submit">
-      <template v-if="isLoadingData == false">
+   <Form @submit="submit" class="mt-4">
+      <template v-if="isLoadingData == false" class="">
          <main
             v-for="(value, index) in formData"
             :key="index"

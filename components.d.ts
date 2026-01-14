@@ -11,11 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AutoComplete: typeof import('primevue/autocomplete')['default']
     Button: typeof import('primevue/button')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
     Chip: typeof import('primevue/chip')['default']
-    Chips: typeof import('primevue/chips')['default']
     Column: typeof import('primevue/column')['default']
     ConfirmPopup: typeof import('primevue/confirmpopup')['default']
     DataTable: typeof import('primevue/datatable')['default']
@@ -27,7 +25,6 @@ declare module 'vue' {
     FormField: typeof import('@primevue/forms/formfield')['default']
     IconField: typeof import('primevue/iconfield')['default']
     Inplace: typeof import('primevue/inplace')['default']
-    InputChips: typeof import('primevue/inputchips')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
@@ -36,7 +33,6 @@ declare module 'vue' {
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SelectButton: typeof import('primevue/selectbutton')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
     ToggleButton: typeof import('primevue/togglebutton')['default']
     Tree: typeof import('primevue/tree')['default']

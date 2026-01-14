@@ -17,7 +17,7 @@ export const useAuth = defineStore("useAuth", () => {
          .then(async (result) => {
             localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
             await getUser();
-            router.push({ name: "main" });
+            router.push({ name: "home" });
          });
    }
 

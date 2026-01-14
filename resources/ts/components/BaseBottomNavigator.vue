@@ -1,5 +1,5 @@
 <template>
-   <nav class="flex justify-between px-3 pt-2 pb-safe-bottom mb-2">
+   <nav class="flex justify-between px-3 pt-2 pb-safe-bottom">
       <Button icon="pi pi-home" rounded variant="text" />
       <Button icon="pi pi-clipboard" rounded variant="text" />
 

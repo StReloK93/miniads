@@ -9,7 +9,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
    const AuthStore = useAuth();
-   next();
+
+   if (to.meta.guestOnly && AuthStore.user) {
+      return next({ name: "home" });
+   }
+   return next();
 });
 
 export default router;

@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
-import { productInputs, globalProps, schemaProps, ZodTypeMapping } from "./ProductInputs";
+import { productInputs, globalProps, ZodTypeMapping } from "./ProductInputs";
 import { ICategory, InputConfig } from "@/types";
 import { computed, onMounted, reactive } from "vue";
 import CategoryRepo from "../Category/CategoryRepo";

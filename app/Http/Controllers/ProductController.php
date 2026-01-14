@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\ProductParameterValue;
+use Auth;
 class ProductController extends Controller
 {
     public function index()
@@ -14,25 +15,26 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-
+        Auth::loginUsingId(1);
         $product = Product::create([
             'title' => $request->title,
             'description' => $request->description,
             'category_id' => $request->category_id,
             'user_id' => auth()->id(), // yoki $request->user_id
+            'district' => 2, // yoki $request->user_id
         ]);
 
         // 2. Dinamik parametrlarni saqlash
         if ($request->has('parameters')) {
-            $params = $request->extra_parameters; // [ "1" => 3, "2" => 55 ]
+            $params = $request->parameters; // [ "1" => 3, "2" => 55 ]
 
-            foreach ($params as $paramId => $value) {
+            foreach ($params as $param) {
                 // Faqat qiymat kiritilgan bo'lsa saqlaymiz
-                if ($value !== null) {
+                if ($param['value'] !== null) {
                     ProductParameterValue::create([
-                        'pruduct_id' => $product->id,
-                        'parameter_id' => $paramId,
-                        'value' => $value,
+                        'product_id' => $product->id,
+                        'parameter_id' => $param['id'],
+                        'value' => $param['value'],
                     ]);
                 }
             }

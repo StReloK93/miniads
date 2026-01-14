@@ -3,10 +3,7 @@ import { InputConfig } from "@/types";
 import z from "zod";
 
 export const globalProps = { size: "small", fluid: true };
-export const schemaProps = {
-   optional: z.any(),
-   required: z.any(),
-};
+
 export const productInputs: InputConfig[] = [
    {
       component: PrimeVueInputs["InputText"],
@@ -41,26 +38,19 @@ export const productInputs: InputConfig[] = [
 ];
 
 export const ZodTypeMapping: Record<string, (required: boolean, label: string) => any> = {
-   // STRING uchun validatsiya
    string: (required, label) => {
-      let s = z.string("Majburiy maydon!").trim();
+      const s = z.string("Majburiy maydon!").trim();
       return required
          ? s.min(1, `${label} to'ldirilishi shart`)
          : s.optional().nullable().or(z.literal(""));
    },
-
-   // NUMBER uchun validatsiya
    number: (required, label) => {
-      // z.coerce ishlatamiz, chunki inputdan yoki bazadan string ko'rinishida kelishi mumkin
-      let n = z.coerce.number("Majburiy maydon!").min(1, `Majburiy maydon!`);
+      const n = z.coerce.number("Majburiy maydon!").min(1, `${label} Majburiy maydon!`);
 
       return required ? n : n.optional().nullable();
    },
-
-   // BOOLEAN uchun validatsiya
    boolean: (required, label) => {
-      // 0, 1, "true", "false" qiymatlarini haqiqiy booleanga o'giradi
-      let b = z.coerce.boolean();
+      const b = z.coerce.boolean();
       return required
          ? b.refine((val) => val === true, { message: `${label} tanlanishi shart` })
          : b.default(false);

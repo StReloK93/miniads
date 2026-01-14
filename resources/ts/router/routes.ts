@@ -15,7 +15,7 @@ export const routes: RouteRecordRaw[] = [
       component: () => import("@pages/application/CategoryPage.vue"),
       name: "categories",
    },
-   { path: "/login", component: Login },
+   { path: "/login", component: Login, meta: { guestOnly: true }, name: "login" },
    {
       path: "/admin",
       component: Admin,

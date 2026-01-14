@@ -11,6 +11,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
+Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetAuth']);
+
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents', 'parents');
@@ -23,3 +25,5 @@ Route::apiResource('categories', App\Http\Controllers\CategoryController::class)
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
 Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);
 Route::apiResource('products', App\Http\Controllers\ProductController::class);
+
+

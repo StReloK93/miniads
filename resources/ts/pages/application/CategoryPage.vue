@@ -25,11 +25,12 @@
                            {{ childCategory.name }}
                         </span>
                         <Button
+                           @click="openCategoryPage(childCategory)"
                            icon="pi pi-angle-right"
                            severity="secondary"
                            variant="text"
                            rounded
-                        ></Button>
+                        />
                      </div>
 
                      <Inplace
@@ -77,11 +78,12 @@
 
 <script setup lang="ts">
 import { nextTick, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
 
 const route = useRoute();
+const router = useRouter();
 const activeCategoryId = ref<string | null>(null);
 
 const { data: categoryParents, isLoading } = CategoryRepo.parents();
@@ -99,6 +101,9 @@ function segmentItems(array: any[], count: number) {
    return { first: array, remaining: [] };
 }
 
+function openCategoryPage(category: any) {
+   router.push({ name: "category-id", params: { id: category.id } });
+}
 // Scroll qilish logikasini alohida funksiya qilib olamiz
 const scrollToCategory = async () => {
    const categoryId = route.query.open as string;

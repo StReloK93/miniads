@@ -37,6 +37,9 @@ export default {
 
       return { data, isFirstLoading, error, isLoading, fetchData, convertTreeNode };
    },
+   products(categoryId: string) {
+      return api.get<ICategory>(`${baseURL}/${categoryId}/products`);
+   },
    update(id: string, formData: { name: string; file?: File }) {
       return api.post(`${baseURL}/${id}`, formData, headerMultipart);
    },

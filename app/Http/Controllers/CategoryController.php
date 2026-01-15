@@ -15,7 +15,10 @@ class CategoryController extends Controller
 
 	public function show($id)
 	{
-		return Category::without('children')->with('parameters')->select('id', 'name', 'image', 'parent_id')->findOrFail($id);
+		return Category::without('children')
+			->with(['parameters'])
+			->select('id', 'name', 'image', 'parent_id')
+			->findOrFail($id);
 	}
 	public function parents()
 	{
@@ -129,6 +132,12 @@ class CategoryController extends Controller
 			'message' => 'Kategoriya joylashuvi muvaffaqiyatli o‘zgartirildi',
 			'category' => $category
 		], 200);
+	}
+
+	public function products($categoryId)
+	{
+		$Category = Category::with('products')->findOrFail($categoryId);
+		return $Category;
 	}
 
 	public function destroy($id)

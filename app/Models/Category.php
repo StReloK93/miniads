@@ -37,4 +37,10 @@ class Category extends Model
             ->using(CategoryParameter::class)
             ->withPivot('is_required', 'sort_order');
     }
+
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

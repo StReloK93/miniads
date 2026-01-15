@@ -3,12 +3,16 @@ import Login from "@pages/application/LoginPage.vue";
 import { RouteRecordRaw } from "vue-router";
 import Application from "@/pages/AppLayout.vue";
 import Admin from "@/pages/AdminLayout.vue";
+import CategoryIdPage from "@/pages/application/CategoryIdPage.vue";
 export const routes: RouteRecordRaw[] = [
    {
       path: "/",
       component: Application,
       redirect: { name: "home" },
-      children: [{ path: "", component: Home, name: "home" }],
+      children: [
+         { path: "", component: Home, name: "home" },
+         { path: "/category/:id", component: CategoryIdPage, name: "category-id", props: true },
+      ],
    },
    {
       path: "/categories",

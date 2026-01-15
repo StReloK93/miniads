@@ -22,7 +22,7 @@ const emit = defineEmits(["close"]);
 const props = withDefaults(
    defineProps<{
       title?: string;
-      model: boolean;
+      model?: boolean;
    }>(),
    {
       model: false,

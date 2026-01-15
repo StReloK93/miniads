@@ -20,6 +20,7 @@ Route::controller(App\Http\Controllers\CategoryController::class)->group(functio
 
     Route::delete('categories/{id}/force', 'forceDelete');
     Route::post('categories/{id}', 'update');
+    Route::get('categories/{id}/products', 'products');
 });
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->except('update');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);

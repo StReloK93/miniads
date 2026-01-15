@@ -13,7 +13,7 @@
          class="headless-drawer"
          :show-close-icon="false"
       >
-         <CreateProductForm class="pb-safe-bottom" />
+         <CreateProductForm class="pb-safe-bottom" @close="visible = false" />
       </Drawer>
    </nav>
 </template>

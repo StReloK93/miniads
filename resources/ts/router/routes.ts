@@ -1,7 +1,7 @@
 import Home from "@pages/application/HomePage.vue";
 import Login from "@pages/application/LoginPage.vue";
 import { RouteRecordRaw } from "vue-router";
-import Application from "@/pages/ApplicationLayout.vue";
+import Application from "@/pages/AppLayout.vue";
 import Admin from "@/pages/AdminLayout.vue";
 export const routes: RouteRecordRaw[] = [
    {

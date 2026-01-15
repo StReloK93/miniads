@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class CategoryParameter extends Pivot
 {
 
+    protected $table = "category_parameters";
     public $timestamps = false;
     protected $fillable = [
         'category_id',

@@ -16,4 +16,17 @@ class Product extends Model
         'views_count',
         'expires_at'
     ];
+
+
+    protected $with = ['parameter_values'];
+
+    protected $hidden = [
+        'expires_at',
+    ];
+
+
+    public function parameter_values()
+    {
+        return $this->hasMany(ProductParameterValue::class, 'product_id');
+    }
 }

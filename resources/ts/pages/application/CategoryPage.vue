@@ -1,8 +1,7 @@
 <template>
-   <section class="pt-4 flex flex-col h-dvh bg-tertiary">
-      <main class="pt-safe-top">
+   <section class="pt-safe-top flex flex-col h-dvh bg-tertiary">
+      <main class="py-4 border border-secondary">
          <BackPreviusPage title="Bo'limlar" class="px-4" />
-         <Divider class="mb-0!" />
       </main>
       <main class="grow relative">
          <section class="absolute inset-0 overflow-y-auto pt-2">

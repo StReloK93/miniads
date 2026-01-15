@@ -15,12 +15,11 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        Auth::loginUsingId(1);
         $product = Product::create([
             'title' => $request->title,
             'description' => $request->description,
             'category_id' => $request->category_id,
-            'user_id' => auth()->id(), // yoki $request->user_id
+            'user_id' => 1, // yoki $request->user_id
             'district' => 2, // yoki $request->user_id
         ]);
 

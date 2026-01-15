@@ -68,7 +68,7 @@
             severity="secondary"
             class="mr-3"
             label="Bekor qilish"
-            @click="$emit('close')"
+            @click="emit('close')"
          />
          <Button
             type="submit"
@@ -90,6 +90,8 @@ import { IParameter } from "@/types";
 import { TreeNode } from "primevue/treenode";
 import { ref, onMounted } from "vue";
 
+const emit = defineEmits(["close"]);
+
 const isLoading = ref(false);
 const isLoadingData = ref(false);
 async function submit() {
@@ -104,6 +106,7 @@ async function submit() {
 
    await CategoryParameterRepo.store(props.category.key, submitData).then(() => {
       isLoading.value = false;
+      emit("close");
    });
 }
 

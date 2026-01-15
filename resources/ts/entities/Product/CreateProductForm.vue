@@ -1,5 +1,8 @@
 <template>
-   <section>
+   <section class="pt-safe-top">
+      <main class="-mx-5 px-5 py-4 border-b border-secondary">
+         <BackPreviusPage :model="true" title="Bosh sahifaga qaytish" @close="$emit('close')" />
+      </main>
       <div class="pt-4">
          <main v-for="category in categories" :key="category.id">
             <nav class="py-1 text-secondary">
@@ -48,6 +51,7 @@ import CategoryRepo from "../Category/CategoryRepo";
 import BaseForm from "@/components/BaseForm.vue";
 import ProductRepo from "./ProductRepo";
 import { Component } from "vue";
+import BackPreviusPage from "@/components/BackPreviusPage.vue";
 const { data: categories } = CategoryRepo.parents();
 
 const pageData = reactive<{

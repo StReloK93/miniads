@@ -36,7 +36,7 @@
          <span class="font-semibold text-tertiary">Top e'lonlar</span>
          <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
       </section>
-      <swiper :slides-per-view="2.2" :space-between="10">
+      <!-- <swiper :slides-per-view="2.2" :space-between="10">
          <swiper-slide v-for="product in products" :key="product.title">
             <BaseProductCard
                :image="product.image"
@@ -45,27 +45,12 @@
                :price="product.price"
             />
          </swiper-slide>
-      </swiper>
-      <section class="flex justify-between items-center my-1.5">
-         <span class="font-semibold text-tertiary">Yangiliklar</span>
-         <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
-      </section>
-      <swiper :slides-per-view="3.2" :space-between="10">
-         <swiper-slide v-for="product in products" :key="product.title">
-            <BaseProductCard
-               :image="product.image"
-               :title="product.title"
-               :subtitle="product.subtitle"
-               :price="product.price"
-            />
-         </swiper-slide>
-      </swiper>
+      </swiper> -->
    </div>
 </template>
 
 <script setup lang="ts">
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { products } from "@/modules/data";
 import BaseProductCard from "@components/BaseProductCard.vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 const { data: parentCategories, isLoading } = CategoryRepo.parents();

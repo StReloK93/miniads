@@ -1,5 +1,8 @@
 <template>
-   <div ref="telegramWrapper"></div>
+   <main class="h-dvh flex items-center justify-center flex-col">
+      <h3 class="text-tertiary font-semibold text-xl py-4">Dasturga kiring</h3>
+      <div ref="telegramWrapper"></div>
+   </main>
 </template>
 
 <script setup>
@@ -15,31 +18,24 @@ onMounted(() => {
    // Telegram taqdim etgan scriptni yaratamiz
    const script = document.createElement("script");
    script.async = true;
-   script.src = "https://telegram.org/js/telegram-widget.js?24";
+   script.src = `https://telegram.org/js/telegram-widget.js?66v=${new Date().getTime()}`;
 
-   // Widget sozlamalari
-   script.setAttribute("data-telegram-login", "NavoElonBot"); // Bot username-ni yozing
+   script.setAttribute("data-telegram-login", "NavoElonBot");
    script.setAttribute("data-size", "large");
-   script.setAttribute("data-radius", "10");
-   script.setAttribute("data-onauth", "onTelegramAuth(user)"); // Callback funksiya nomi
+   script.setAttribute("data-radius", "2");
+   script.setAttribute("data-onauth", "onTelegramAuth(user)");
    script.setAttribute("data-request-access", "write");
 
-   // DOM-ga qo'shamiz
    telegramWrapper.value.appendChild(script);
 
-   // Global funksiya yaratamiz (Telegram widget chaqirishi uchun)
    window.onTelegramAuth = (user) => {
       onTelegramAuth(user);
-      // Bu yerda foydalanuvchi ma'lumotlarini Vuex/Pinia-ga saqlashingiz mumkin
    };
 });
 
-// Telegram Login Widget callback funksiyasi ichida
 async function onTelegramAuth(user) {
-   // user obyekti ichida id, first_name, last_name, username, photo_url, auth_date, hash bor
-
    await api
-      .post("telegram/widget-sign-in", user) // Header emas, body sifatida yuboramiz
+      .post("telegram/widget-sign-in", user)
       .then(async (result) => {
          localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
          await getUser();

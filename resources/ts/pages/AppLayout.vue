@@ -2,7 +2,7 @@
    <main class="container mx-auto flex flex-col h-dvh bg-tertiary pt-safe-top pb-2">
       <BaseNavigation />
       <section class="grow relative border-y border-secondary">
-         <RouterView class="absolute inset-0 overflow-y-auto overflow-x-hidden p-4" />
+         <RouterView class="absolute inset-0 overflow-y-auto overflow-x-hidden px-4 py-3" />
       </section>
       <BaseBottomNavigator />
    </main>

@@ -8,13 +8,11 @@
             :show-close-icon="false"
          >
             <template #header>
-               <h3
-                  class="px-5 py-1.5 text-center font-semibold w-full border border-secondary mb-2"
-               >
+               <h3 class="px-5 py-1.5 text-center font-semibold w-full border border-secondary mb-2">
                   {{ pageData.title }}
                </h3>
             </template>
-            <main class="h-full">
+            <main class="h-full -mx-5">
                <BaseForm
                   @close="pageData.drawerToggle = false"
                   :submit="submit"
@@ -25,20 +23,10 @@
          </Drawer>
          <div class="flex justify-between items-center w-full px-3 py-2">
             <h3>Kategoriyalar</h3>
-            <Button
-               icon="pi pi-plus"
-               variant="text"
-               size="small"
-               rounded
-               @click="openCreateForm()"
-            />
+            <Button icon="pi pi-plus" variant="text" size="small" rounded @click="openCreateForm()" />
          </div>
          <main class="p-6 rounded-xl bg-tertiary border-secondary border">
-            <BaseTable
-               :parameters="parameters || []"
-               :columns="parameterColumns"
-               @edit="openEditForm"
-            />
+            <BaseTable :parameters="parameters || []" :columns="parameterColumns" @edit="openEditForm" />
          </main>
       </div>
    </div>
@@ -50,11 +38,7 @@ import BaseForm from "@/components/BaseForm.vue";
 import ParameterRepo from "@/entities/Parameter/ParameterRepo";
 import { onMounted, reactive, shallowRef } from "vue";
 import { useFetchDecorator } from "@/modules/useFetch";
-import {
-   parameterInputs,
-   superRefine,
-   parameterColumns,
-} from "@/entities/Parameter/ParameterInputs";
+import { parameterInputs, superRefine, parameterColumns } from "@/entities/Parameter/ParameterInputs";
 import { TreeNode } from "primevue/treenode";
 import { IParameter } from "@/types";
 var submit: (values: any) => Promise<void>;
@@ -73,7 +57,7 @@ const pageData = reactive<{
    selectedParent: null,
 });
 
-const { data: parameters, execute: executeParameters } = useFetchDecorator(ParameterRepo.index);
+const { data: parameters, execute: executeParameters } = useFetchDecorator<IParameter[]>(ParameterRepo.index);
 
 const inputConfigs = shallowRef(parameterInputs);
 

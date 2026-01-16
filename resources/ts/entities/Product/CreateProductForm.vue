@@ -1,6 +1,6 @@
 <template>
    <section class="pt-safe-top">
-      <main class="-mx-5 px-5 py-4 border-b border-secondary">
+      <main class="-mx-5 px-5 py-2 border-b border-secondary">
          <BackPreviusPage :model="true" title="Bosh sahifaga qaytish" @close="$emit('close')" />
       </main>
       <div class="pt-4">
@@ -30,9 +30,7 @@
          <main class="h-full -mx-5">
             <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs">
                <template #header>
-                  <nav
-                     class="py-3 px-5 text-xl font-semibold bg-secondary border-b border-secondary"
-                  >
+                  <nav class="py-3 px-5 text-xl font-semibold bg-secondary border-b border-secondary">
                      {{ pageData.selectedCategory?.name }}
                   </nav>
                </template>

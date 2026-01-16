@@ -13,6 +13,7 @@ class Product extends Model
         'user_id',
         'district',
         'phone',
+        'price',
         'views_count',
         'expires_at'
     ];

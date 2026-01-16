@@ -1,5 +1,5 @@
 <template>
-   <section class="px-4 py-4">
+   <section class="px-4 py-3">
       <nav class="flex justify-between mb-4">
          <BaseSelectLocation />
          <div class="flex gap-3">

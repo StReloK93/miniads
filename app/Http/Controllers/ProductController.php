@@ -41,4 +41,13 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'E\'lon muvaffaqiyatli joylandi!'], 201);
     }
+
+
+    public function show($id)
+    {
+        $product = Product::findOrFail($id);
+        return response()->json($product);
+    }
+
+
 }

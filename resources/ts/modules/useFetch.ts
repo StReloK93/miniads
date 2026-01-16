@@ -44,8 +44,8 @@ function useFetch<T>({ url, formData = {}, method = "get", onLoad, options }: Fe
 
 export { useFetch, api };
 
-export function useFetchDecorator(fetchFn) {
-   const data = ref(null);
+export function useFetchDecorator<T>(fetchFn) {
+   const data = ref<T | null>(null);
    const isLoading = ref(false);
    const isFirstLoading = ref(true); // Dastlab true bo'ladi
    const error = ref<any>(null);

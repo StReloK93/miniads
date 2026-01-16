@@ -1,6 +1,6 @@
 <template>
    <section class="pt-safe-top flex flex-col h-dvh bg-tertiary">
-      <main class="py-4 border border-secondary">
+      <main class="py-2 border-b border-secondary">
          <BackPreviusPage title="Bo'limlar" class="px-4" />
       </main>
       <main class="grow relative">
@@ -10,7 +10,7 @@
                   v-for="(category, index) in categoryParents"
                   :id="`category_${index}`"
                   :key="category.name"
-                  class="bg-secondary border border-secondary px-4 mb-2 py-2"
+                  class="bg-secondary border border-secondary px-4 mb-2 py-2 shadow-xs"
                >
                   <h3 class="text-xl font-semibold text-tertiary mb-1">
                      {{ category.name }}
@@ -50,19 +50,9 @@
                               <span class="text-surface-700 text-sm">
                                  {{ value.name }}
                               </span>
-                              <Button
-                                 icon="pi pi-angle-right"
-                                 severity="secondary"
-                                 variant="text"
-                                 rounded
-                              ></Button>
+                              <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
                            </div>
-                           <div
-                              @click="closeCallback"
-                              class="py-1.5 text-xs text-primary cursor-pointer"
-                           >
-                              Yopish
-                           </div>
+                           <div @click="closeCallback" class="py-1.5 text-xs text-primary cursor-pointer">Yopish</div>
                         </template>
                      </Inplace>
                   </aside>

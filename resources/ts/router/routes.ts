@@ -4,6 +4,7 @@ import { RouteRecordRaw } from "vue-router";
 import Application from "@/pages/AppLayout.vue";
 import Admin from "@/pages/AdminLayout.vue";
 import CategoryIdPage from "@/pages/application/CategoryIdPage.vue";
+import ProductPage from "@/pages/application/ProductPage.vue";
 export const routes: RouteRecordRaw[] = [
    {
       path: "/",
@@ -19,6 +20,7 @@ export const routes: RouteRecordRaw[] = [
       component: () => import("@pages/application/CategoryPage.vue"),
       name: "categories",
    },
+   { path: "/product/:id", component: ProductPage, name: "product-id", props: true },
    { path: "/login", component: Login, meta: { guestOnly: true }, name: "login" },
    {
       path: "/admin",

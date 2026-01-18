@@ -4,30 +4,32 @@
          <input
             type="file"
             :id="props.input.name"
-            v-bind="$field.props"
+            v-bind="props.input.props"
             @change="(event) => onNativeFileChange(event, $field)"
             class="hidden"
+            @vue:mounted="inputMouted($field)"
          />
-         <!-- @vue:mounted="updateImageFromPath($field)" -->
-         <Button
-            v-if="src"
-            icon="pi pi-times"
-            size="small"
-            rounded
-            variant="text"
-            class="absolute! top-1 right-1 z-50"
-            severity="contrast"
-            @click.stop="clear($field)"
-         />
-         <label
-            class="bg-secondary aspect-square cursor-pointer w-full flex justify-center items-center rounded-xl border border-secondary hover:border-surface-300 hover:bg-surface-100 p-1.5"
-            :for="props.input.name"
-         >
-            <Transition name="list" mode="out-in">
-               <img v-if="src" :src="src" class="rounded-md w-full grayscale" />
-               <img v-else :src="'/images/image.svg'" class="w-32 grayscale" />
-            </Transition>
-         </label>
+         <div class="grid gap-3 mt-3 grid-cols-3">
+            <main v-for="(image, index) in images_source" :key="index" class="relative">
+               <Button
+                  icon="pi pi-times"
+                  size="small"
+                  rounded
+                  variant="text"
+                  class="absolute! top-1 right-1 z-50"
+                  severity="contrast"
+                  @click.stop="deleteImage({ url: image.url, index }, $field)"
+               />
+
+               <img :src="image.url" class="rounded-md aspect-square grayscale object-cover w-full" />
+            </main>
+            <label
+               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-xl border border-secondary hover:border-surface-300 hover:bg-surface-100 p-1.5"
+               :for="props.input.name"
+            >
+               <img :src="'/images/image.svg'" class="w-10 grayscale" />
+            </label>
+         </div>
       </main>
    </FormField>
 </template>
@@ -36,41 +38,38 @@
 import { ref } from "vue";
 const props = defineProps<{ input }>();
 
-async function getFileFromPath(path) {
-   const response = await fetch(path);
-   const blob = await response.blob();
+const imageUrl = ["http://127.0.0.1:8000/icons/house.svg", "http://127.0.0.1:8000/icons/car.svg"];
 
-   // Pathdan fayl nomini ajratib olish (house.svg)
-   const fileName = path.split("/").pop();
-
-   return new File([blob], fileName, { type: blob.type });
+async function inputMouted($field: any) {
+   await $field.onInput({ value: imageUrl });
 }
-const src = ref<string | null>(props.input.value);
 
-async function updateImageFromPath($field: any) {
-   if (props.input.value) {
-      const file = await getFileFromPath(props.input.value);
-      src.value = props.input.value;
-      $field.onInput({ value: file });
-   }
-}
+const images_source = ref<{ url: string; file: File | string }[]>(imageUrl.map((url) => ({ url, file: url })));
 function onNativeFileChange(event: Event, $field: any) {
    const target = event.target as HTMLInputElement;
-   if (target && target.files && target.files.length > 0) {
-      const file = target.files[0]; // Haqiqiy File obyektini olamiz
-      if (file) {
-         $field.onInput({ value: file });
-         const reader = new FileReader();
-         reader.onload = (e) => {
-            src.value = e.target?.result as string;
-         };
-         reader.readAsDataURL(file);
-      }
-   }
+   if (!target?.files || target.files.length === 0) return;
+
+   const files = Array.from(target.files);
+
+   images_source.value.push(
+      ...files.map((file) => {
+         return { url: URL.createObjectURL(file), file };
+      }),
+   );
+   $field.onInput({ value: images_source.value.map((image) => image.file) });
 }
 
-function clear($field: any) {
-   src.value = null;
-   $field.onInput({ value: null });
+function deleteImage(image: { index: number; url: string }, $field: any) {
+   const files = $field.value as (File | string)[];
+   if (!files || files.length === 0) return;
+
+   const newFiles = files.filter((_, i) => i !== image.index);
+
+   $field.onInput({ value: newFiles });
+
+   if (images_source.value[image.index].file instanceof File) {
+      URL.revokeObjectURL(image.url);
+   }
+   images_source.value = images_source.value.filter((item, index) => index !== image.index);
 }
 </script>

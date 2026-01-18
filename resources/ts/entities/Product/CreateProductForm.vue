@@ -28,13 +28,7 @@
          :show-close-icon="false"
       >
          <main class="h-full -mx-5">
-            <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs">
-               <template #header>
-                  <nav class="py-3 px-5 text-xl font-semibold bg-secondary border-b border-secondary">
-                     {{ pageData.selectedCategory?.name }}
-                  </nav>
-               </template>
-            </BaseForm>
+            <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs" />
          </main>
       </Drawer>
    </section>

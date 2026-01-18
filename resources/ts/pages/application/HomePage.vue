@@ -36,6 +36,7 @@
          <span class="font-semibold text-tertiary">Top e'lonlar</span>
          <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
       </section>
+      <BaseForm :submit="submit" :input-configs="inputs" class="h-initial!"> </BaseForm>
       <!-- <swiper :slides-per-view="2.2" :space-between="10">
          <swiper-slide v-for="product in products" :key="product.title">
             <BaseProductCard
@@ -50,14 +51,26 @@
 </template>
 
 <script setup lang="ts">
+import ImageUpload from "@/components/ui/ImageUpload.vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import BaseProductCard from "@components/BaseProductCard.vue";
+// import BaseProductCard from "@components/BaseProductCard.vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
+import BaseForm from "@/components/BaseForm.vue";
+import { z } from "zod";
 const { data: parentCategories, isLoading } = CategoryRepo.parents();
-// function onSwiper(swiper) {
-//    console.log(swiper);
-// }
-// function onSlideChange() {
-//    console.log("slide change");
-// }
+
+const inputs = [
+   {
+      component: ImageUpload,
+      name: "images",
+      props: {
+         multiple: true,
+      },
+      schema: z.any(),
+      class: ["mb-4"],
+   },
+];
+async function submit(values) {
+   console.log(values);
+}
 </script>

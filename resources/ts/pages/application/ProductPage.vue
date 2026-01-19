@@ -1,5 +1,5 @@
 <template>
-   <section class="container mx-auto bg-tertiary">
+   <section class="container mx-auto bg-tertiary h-dvh">
       <main class="relative">
          <div class="absolute top-0 z-10 pt-safe-top! px-2 w-full">
             <BackPreviusPage title="Elon">
@@ -19,16 +19,17 @@
             </span>
             <span class="font-semibold text-sky-500"> 100 so'm </span>
          </div>
-         <div class="flex gap-3 flex-wrap py-3">
+         <div class="flex gap-3 flex-wrap py-3" v-if="product?.parameter_values.length">
             <Tag
                v-for="value in product?.parameter_values"
+               :key="value.id"
                severity="secondary"
                class="rounded! font-normal! text-secondary!"
             >
                {{ value.parameter.placeholder }} - {{ value.value }}
             </Tag>
          </div>
-         <hr class="border-px border-secondary -mx-5" />
+         <hr class="border-px border-secondary -mx-5 mt-2" />
          <h3 class="mt-2 font-semibold">Izoh</h3>
          <div class="py-2 text-secondary">
             {{ product?.description }}

@@ -1,24 +1,35 @@
 <template>
-   <section class="pt-safe-top">
-      <main class="-mx-5 px-5 py-2 border-b border-secondary">
-         <BackPreviusPage :model="true" title="Bosh sahifaga qaytish" @close="$emit('close')" />
+   <section class="pt-safe-top -mx-5">
+      <main class="px-5 py-2 border-b border-secondary">
+         <BackPreviusPage :model="true" title="Elon joylash" @close="$emit('close')" />
       </main>
-      <div class="pt-4">
-         <main v-for="category in categories" :key="category.id">
-            <nav class="py-1 text-secondary">
-               {{ category.name }}
-            </nav>
-            <ul>
-               <li
-                  v-for="child in category.children"
-                  :key="child.id"
-                  @click="selectCategory(child.id)"
-                  class="pl-4 py-1 text-primary-500 cursor-pointer hover:underline"
-               >
-                  {{ child.name }}
-               </li>
-            </ul>
-         </main>
+      <div>
+         <h3 class="py-3 px-5 text-tertiary font-semibold mb-3 text-center flex justify-center items-center gap-2">
+            Kategoriyani tanlang
+         </h3>
+         <template v-if="isFirstLoading">
+            <Skeleton height="40px" class="mb-2" v-for="n in 6" :key="n"></Skeleton>
+         </template>
+         <Accordion value="0" v-else>
+            <AccordionPanel v-for="category in categories" :key="category.id" :value="category.id">
+               <AccordionHeader class="py-3!">
+                  <div class="flex items-center gap-4">
+                     <img :src="category.image" class="w-6 dark:invert" />
+                     {{ category.name }}
+                  </div>
+               </AccordionHeader>
+               <AccordionContent>
+                  <nav
+                     v-for="child in category.children"
+                     :key="child.id"
+                     @click="selectCategory(child.id)"
+                     class="first:mt-2 py-1 text-tertiary font-semibold cursor-pointer flex items-center justify-between border-b border-secondary last:border-0"
+                  >
+                     {{ child.name }} <i class="pi pi-angle-right text-xs!"></i>
+                  </nav>
+               </AccordionContent>
+            </AccordionPanel>
+         </Accordion>
       </div>
       <Drawer
          v-model:visible="isVisible"
@@ -44,7 +55,7 @@ import BaseForm from "@/components/BaseForm.vue";
 import ProductRepo from "./ProductRepo";
 import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
-const { data: categories } = CategoryRepo.parents();
+const { data: categories, isFirstLoading } = CategoryRepo.parents();
 
 const pageData = reactive<{
    selectedCategory: ICategory | null;

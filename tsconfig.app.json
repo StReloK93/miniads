@@ -19,8 +19,9 @@
       "noImplicitAny": false,
       "skipLibCheck": true,
       "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
       "forceConsistentCasingInFileNames": true,
-      "isolatedModules": true,      /* Vite uchun tavsiya etiladi */
+      "isolatedModules": true /* Vite uchun tavsiya etiladi */,
       "useDefineForClassFields": true
    },
    "include": ["resources/ts/**/*.ts", "resources/ts/**/*.tsx", "resources/ts/**/*.vue", "resources/ts/**/*.d.ts"]

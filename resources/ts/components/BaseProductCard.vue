@@ -2,10 +2,7 @@
    <RouterLink :to="{ name: 'product-id', params: { id: product.id } }" class>
       <section class="bg-secondary p-1.5 rounded-xl select-none border border-secondary shadow-xs">
          <div>
-            <img
-               :src="`https://picsum.photos/1200?random=${Math.random()}`"
-               class="rounded-lg w-full object-cover aspect-video"
-            />
+            <img :src="`/storage/${product.images[0].src}`" class="rounded-lg w-full object-cover aspect-video" />
          </div>
          <h3 class="my-2 font-semibold line-clamp-1">{{ product.title }}</h3>
          <div class="flex flex-wrap gap-2 text-xs">

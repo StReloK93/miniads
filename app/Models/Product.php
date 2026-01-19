@@ -19,7 +19,7 @@ class Product extends Model
     ];
 
 
-    protected $with = ['parameter_values'];
+    protected $with = ['parameter_values', 'images'];
 
     protected $hidden = [
         'expires_at',
@@ -29,5 +29,11 @@ class Product extends Model
     public function parameter_values()
     {
         return $this->hasMany(ProductParameterValue::class, 'product_id');
+    }
+
+
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'product_id');
     }
 }

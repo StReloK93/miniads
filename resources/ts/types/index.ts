@@ -29,7 +29,7 @@ export interface InputConfig {
    placeholder?: string;
    schema: z.ZodTypeAny;
    class?: string[];
-   value?: string | number | boolean | null | undefined;
+   value?: any;
    selectOption?: IProps;
    condition?: ($form: any) => boolean;
 }
@@ -61,7 +61,7 @@ export interface IProduct {
    phone: string | null;
    category_id: number;
    parameter_values: IParameterValue[];
-   image: string;
+   images: { id: number; product_id: number; src: string }[];
 }
 
 export interface IParameterValue {

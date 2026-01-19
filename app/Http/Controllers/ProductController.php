@@ -15,6 +15,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+
         $product = Product::create([
             'title' => $request->title,
             'description' => $request->description,
@@ -38,6 +39,24 @@ class ProductController extends Controller
                 }
             }
         }
+
+
+        // 3. Rasmlarni saqlash (File Upload)
+        if ($request->has('images')) {
+            foreach ($request->file('images') as $image) {
+                // Rasmni 'public/products' papkasiga saqlaymiz
+                // store() funksiyasi avtomatik ravishda noyob nom beradi
+                $path = $image['file']->store('products', 'public');
+
+                // ProductImage modeliga saqlash
+                \App\Models\ProductImage::create([
+                    'product_id' => $product->id,
+                    'src' => $path // Bu bazada 'products/filename.jpg' ko'rinishida saqlanadi
+                ]);
+            }
+        }
+
+
 
         return response()->json(['message' => 'E\'lon muvaffaqiyatli joylandi!'], 201);
     }

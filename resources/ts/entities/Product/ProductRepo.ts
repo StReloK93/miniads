@@ -7,7 +7,11 @@ export default {
       return api.get<IProduct[]>(`${baseURL}`);
    },
    store(formData: IProduct) {
-      return api.post<IProduct>(`${baseURL}`, formData);
+      return api.post<IProduct>(`${baseURL}`, formData, {
+         headers: {
+            "Content-Type": "multipart/form-data",
+         },
+      });
    },
    show(id: string | number) {
       return api.get<IProduct[]>(`${baseURL}/${id}`);

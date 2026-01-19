@@ -1,5 +1,6 @@
 import { PrimeVueInputs } from "@/modules/PrimeVueInputs";
 import { InputConfig } from "@/types";
+
 import z from "zod";
 
 export const globalProps = { size: "small", fluid: true };
@@ -7,9 +8,11 @@ export const globalProps = { size: "small", fluid: true };
 export const productInputs: InputConfig[] = [
    {
       component: PrimeVueInputs["ImageUpload"],
-      name: "image",
-      props: globalProps,
-      schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
+      name: "images",
+      props: {
+         multiple: true,
+      },
+      schema: z.array(z.any()),
       class: ["mb-4"],
    },
    {
@@ -29,10 +32,10 @@ export const productInputs: InputConfig[] = [
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["Textarea"],
+      component: PrimeVueInputs["InputMask"],
       name: "phone",
       placeholder: "Telefon raqam",
-      props: globalProps,
+      props: { ...globalProps, mask: "99-999-99-99" },
       schema: z.string().optional().nullable(),
       class: ["mb-4"],
    },

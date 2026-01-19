@@ -17,7 +17,6 @@ import {
    ToggleButton,
 } from "primevue";
 import ImageUpload from "@/components/ui/ImageUpload.vue";
-
 export const PrimeVueInputs = {
    InputText,
    InputNumber,

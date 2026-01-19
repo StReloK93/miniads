@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->string('phone')->nullable(); // Telefon raqam
             // Holati
             $table->integer('views_count')->default(0); // Ko'rishlar soni
-            $table->integer('price')->nullable(); // Ko'rishlar soni
+            $table->integer('price')->nullable(); // Narxi
 
             $table->timestamp('expires_at')->nullable(); // E'lonning amal qilish muddati
             $table->timestamps();

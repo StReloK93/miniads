@@ -82,12 +82,12 @@ async function submitForm(values: any) {
       description: values.description,
       category_id: pageData.selectedCategory?.id,
       parameters: [],
+      images: values.images,
    };
 
    Object.keys(values).forEach((key) => {
       if (key.startsWith("parameter_")) {
          const paramId = key.replace("parameter_", "");
-         console.log(paramId);
          payload.parameters.push({
             id: paramId,
             value: values[key],
@@ -96,7 +96,6 @@ async function submitForm(values: any) {
    });
 
    await ProductRepo.store(payload);
-   // Formani yuborish logikasi shu yerda bo'ladi
 }
 
 onMounted(() => {});

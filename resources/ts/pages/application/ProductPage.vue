@@ -11,12 +11,12 @@
          <div class="p-4">
             <Skeleton height="1.3rem" width="80%" class="mb-3" />
             <div class="flex gap-2 mb-2">
-               <Skeleton v-for="n in 3" width="4rem" height="1.5rem" />
+               <Skeleton v-for="n in 3" :key="n" width="4rem" height="1.5rem" />
             </div>
             <Skeleton height="1rem" width="40%" class="ml-auto mb-2" />
             <hr class="border-secondary -mx-5" />
             <Skeleton height="0.8rem" width="30%" class="mt-4 mb-2" />
-            <Skeleton v-for="n in 6" height="0.8rem" class="mt-2" />
+            <Skeleton v-for="n in 6" :key="n" height="0.8rem" class="mt-2" />
          </div>
       </div>
 

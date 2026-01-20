@@ -1,7 +1,17 @@
 <template>
-   <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
-      <BaseProductCard v-for="product in data?.products || []" :key="product.id" :product />
-   </div>
+   <section>
+      <h3 class="flex items-center gap-1 px-1 mb-2 text-secondary text-sm">
+         <!-- <img :src="category?.parent.image" class="w-5 opacity-70" /> -->
+         <RouterLink :to="{ name: 'categories' }"> Bo'limlar </RouterLink>
+         <i class="pi pi-angle-right text-xs!"></i>
+         {{ category?.parent.name }}
+         <i class="pi pi-angle-right text-xs!"></i>
+         {{ category?.name }}
+      </h3>
+      <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
+         <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
+      </div>
+   </section>
 </template>
 
 <script setup lang="ts">
@@ -14,7 +24,7 @@ import { ICategory } from "@/types";
 
 const route = useRoute();
 
-const { data, execute } = useFetchDecorator<ICategory>(CategoryRepo.products);
+const { data: category, execute } = useFetchDecorator<ICategory>(CategoryRepo.products);
 
 onMounted(() => {
    execute(route.params.id);

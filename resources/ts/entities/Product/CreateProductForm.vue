@@ -63,11 +63,7 @@ import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import { useFetchDecorator } from "@/modules/useFetch";
 import { preloadImages } from "@/modules/Helpers";
-const {
-   data: categories,
-   isFirstLoading,
-   execute: fetchCategories,
-} = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
+const { data: categories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
 
 const pageData = reactive<{
    selectedCategory: ICategory | null;

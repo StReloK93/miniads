@@ -8,18 +8,13 @@
       <Button @click="visible = true" icon="pi pi-plus" rounded />
       <Button icon="pi pi-heart" rounded severity="danger" variant="text" />
       <BaseUserMenu />
-      <Drawer
-         v-model:visible="visible"
-         position="bottom"
-         style="height: 100%"
-         class="headless-drawer"
-         :show-close-icon="false"
-      >
-         <CreateProductForm class="pb-safe-bottom" @close="visible = false" />
-      </Drawer>
+      <BottomDrawer v-model="visible" fullScreen>
+         <CreateProductForm @close="visible = false" />
+      </BottomDrawer>
    </nav>
 </template>
 <script lang="ts" setup>
+import BottomDrawer from "./ui/BottomDrawer.vue";
 import BaseUserMenu from "@components/BaseUserMenu.vue";
 import CreateProductForm from "@/entities/Product/CreateProductForm.vue";
 import { ref } from "vue";

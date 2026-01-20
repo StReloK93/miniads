@@ -1,13 +1,7 @@
 <template>
    <div>
       <div class="flex justify-center">
-         <Dialog
-            v-model:visible="isVisible"
-            modal
-            class="w-3/4 headless-dialog"
-            header=""
-            :closable="false"
-         >
+         <Dialog v-model:visible="isVisible" modal class="w-3/4 headless-dialog" header="" :closable="false">
             <template #header>
                <h3
                   class="text-center font-semibold text-lg py-3 w-full bg-secondary rounded-t-2xl border-b border-input"
@@ -15,10 +9,7 @@
                   {{ pageData.selectedCategory?.label }} - parametrlari
                </h3>
             </template>
-            <CategoryParameterDialog
-               :category="pageData.selectedCategory!"
-               @close="isVisible = false"
-            />
+            <CategoryParameterDialog :category="pageData.selectedCategory!" @close="isVisible = false" />
          </Dialog>
          <Drawer
             class="headless-drawer"
@@ -27,15 +18,9 @@
             :show-close-icon="false"
          >
             <main class="h-full -mx-5">
-               <BaseForm
-                  @close="pageData.drawerToggle = false"
-                  :submit="submit"
-                  :inputConfigs="inputConfigs"
-               >
+               <BaseForm @close="pageData.drawerToggle = false" :submit="submit" :inputConfigs="inputConfigs">
                   <template #header>
-                     <h3
-                        class="py-2.5 text-center font-semibold w-full bg-secondary border-b border-input"
-                     >
+                     <h3 class="py-2.5 text-center font-semibold w-full bg-secondary border-b border-input">
                         {{ pageData.title }}
                      </h3>
                   </template>
@@ -60,13 +45,7 @@
          </Drawer>
          <div class="flex justify-between items-center w-full px-3 py-2">
             <h3>Kategoriyalar</h3>
-            <Button
-               icon="pi pi-plus"
-               variant="text"
-               size="small"
-               rounded
-               @click="openCreateForm()"
-            />
+            <Button icon="pi pi-plus" variant="text" size="small" rounded @click="openCreateForm()" />
          </div>
       </div>
       <Tree
@@ -96,14 +75,24 @@
 import TreeNodeItem from "@/components/ui/TreeNodeItem.vue";
 import BaseForm from "@/components/BaseForm.vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
-import { computed, reactive, shallowRef } from "vue";
+import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
 import { categoryInputs } from "@/entities/Category/CategoryInputs";
 import { findParentId } from "@/modules/Helpers";
 import { TreeNode } from "primevue/treenode";
 import CategoryParameterDialog from "@/entities/CategoryParameter/CategoryParameterDialog.vue";
-const { fetchData: fetchCategories, convertTreeNode } = CategoryRepo.parents();
+import { formatCategories } from "@/modules/Formatters";
+import { useFetchDecorator } from "@/modules/useFetch";
+
+const { data: parentCategories, execute: fetchCategories } = useFetchDecorator(CategoryRepo.parents);
 var submit: (values: any) => Promise<void>;
 
+const convertTreeNode = ref<TreeNode[]>([]);
+watch(
+   () => parentCategories.value,
+   () => {
+      convertTreeNode.value = formatCategories(parentCategories.value || []);
+   },
+);
 const pageData = reactive<{
    drawerToggle: boolean;
    updateLoading: string | null;
@@ -191,4 +180,8 @@ const onNodeDrop = (event) => {
    var newParent = findParentId(newTree, dragNodeKey);
    CategoryRepo.changeParent(dragNodeKey, newParent ? newParent.key : null);
 };
+
+onMounted(() => {
+   fetchCategories();
+});
 </script>

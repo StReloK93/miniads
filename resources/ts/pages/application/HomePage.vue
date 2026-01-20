@@ -12,7 +12,7 @@
          />
       </section>
       <swiper :slides-per-view="3.3" :space-between="10">
-         <template v-if="!isLoading">
+         <template v-if="isImagesReady">
             <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
                <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
                   <div
@@ -28,14 +28,14 @@
          </template>
          <template v-else>
             <swiper-slide v-for="n in 6" :key="n">
-               <Skeleton class="mb-2 aspect-square" height="92px"></Skeleton>
+               <Skeleton class="mb-2 aspect-square" size="100%"></Skeleton>
             </swiper-slide>
          </template>
       </swiper>
-      <section class="flex justify-between items-center my-1.5">
+      <!-- <section class="flex justify-between items-center my-1.5">
          <span class="font-semibold text-tertiary">Top e'lonlar</span>
          <Button icon="pi pi-angle-right" size="small" rounded severity="secondary" />
-      </section>
+      </section> -->
    </div>
 </template>
 
@@ -43,5 +43,22 @@
 import { Swiper, SwiperSlide } from "swiper/vue";
 // import BaseProductCard from "@components/BaseProductCard.vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
-const { data: parentCategories, isLoading } = CategoryRepo.parents();
+import { onMounted, ref } from "vue";
+import { preloadImages } from "@/modules/Helpers";
+import { useFetchDecorator } from "@/modules/useFetch";
+import { ICategory } from "@/types";
+const {
+   data: parentCategories,
+   isLoading,
+   execute: fetchCategories,
+} = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
+const isImagesReady = ref(false);
+onMounted(async () => {
+   await fetchCategories();
+   if (parentCategories.value) {
+      const imageUrls: string[] = parentCategories.value.map((category) => category.image);
+      await preloadImages(imageUrls);
+      isImagesReady.value = true;
+   }
+});
 </script>

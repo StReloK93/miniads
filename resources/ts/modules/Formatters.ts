@@ -1,6 +1,8 @@
 import { TreeNode } from "primevue/treenode";
 
 export function formatCategories(categories): TreeNode[] {
+   if (!categories || categories.length === 0) return [];
+
    return categories.map((item) => {
       const node: TreeNode = {
          key: item.id, // Key doim String bo'lishi kerak

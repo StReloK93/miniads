@@ -10,19 +10,19 @@ class CategoryController extends Controller
 	//
 	public function index()
 	{
-		return Category::without('children')->select('id', 'name')->get();
+		return Category::select('id', 'name')->get();
 	}
 
 	public function show($id)
 	{
-		return Category::without('children')
-			->with(['parameters'])
+		return Category::with(['parameters'])
+			->with('parent')
 			->select('id', 'name', 'image', 'parent_id')
 			->findOrFail($id);
 	}
 	public function parents()
 	{
-		return Category::whereNull('parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page')->get();
+		return Category::with('children')->whereNull('parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page')->get();
 	}
 
 
@@ -136,7 +136,7 @@ class CategoryController extends Controller
 
 	public function products($categoryId)
 	{
-		$Category = Category::with('products')->findOrFail($categoryId);
+		$Category = Category::with('products', 'parent')->findOrFail($categoryId);
 		return $Category;
 	}
 

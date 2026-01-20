@@ -1,6 +1,6 @@
 <template>
    <section class="px-4 py-3">
-      <nav class="flex justify-between mb-4">
+      <!-- <nav class="flex justify-between mb-4">
          <BaseSelectLocation />
          <div class="flex gap-3">
             <OverlayBadge severity="info">
@@ -14,7 +14,7 @@
                />
             </OverlayBadge>
          </div>
-      </nav>
+      </nav> -->
       <article>
          <IconField>
             <InputText

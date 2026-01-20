@@ -17,7 +17,6 @@ class Category extends Model
     protected $casts = [
         'is_page' => 'boolean',
     ];
-    protected $with = ['children'];
     public function children()
     {
         // Bu podkategoriyalarni olish uchun

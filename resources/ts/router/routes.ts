@@ -1,8 +1,8 @@
 import Home from "@pages/application/HomePage.vue";
 import Login from "@pages/application/LoginPage.vue";
 import { RouteRecordRaw } from "vue-router";
-import Application from "@/pages/AppLayout.vue";
-import Admin from "@/pages/AdminLayout.vue";
+import Application from "@/pages/layouts/AppLayout.vue";
+import Admin from "@/pages/layouts/AdminLayout.vue";
 import CategoryIdPage from "@/pages/application/CategoryIdPage.vue";
 import ProductPage from "@/pages/application/ProductPage.vue";
 export const routes: RouteRecordRaw[] = [
@@ -13,13 +13,14 @@ export const routes: RouteRecordRaw[] = [
       children: [
          { path: "", component: Home, name: "home" },
          { path: "/category/:id", component: CategoryIdPage, name: "category-id", props: true },
+         {
+            path: "/categories",
+            component: () => import("@pages/application/CategoryPage.vue"),
+            name: "categories",
+         },
       ],
    },
-   {
-      path: "/categories",
-      component: () => import("@pages/application/CategoryPage.vue"),
-      name: "categories",
-   },
+
    { path: "/product/:id", component: ProductPage, name: "product-id", props: true },
    { path: "/login", component: Login, meta: { guestOnly: true }, name: "login" },
    {

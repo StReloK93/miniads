@@ -13,7 +13,7 @@ export const productInputs: InputConfig[] = [
          multiple: true,
       },
       schema: z.array(z.any()),
-      class: ["mb-4"],
+      class: ["mb-3"],
    },
    {
       component: PrimeVueInputs["InputText"],
@@ -21,7 +21,7 @@ export const productInputs: InputConfig[] = [
       placeholder: "Sarlavha",
       props: globalProps,
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
-      class: ["mb-4"],
+      class: ["mb-3"],
    },
    {
       component: PrimeVueInputs["Textarea"],
@@ -29,7 +29,7 @@ export const productInputs: InputConfig[] = [
       placeholder: "Izoh",
       props: globalProps,
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
-      class: ["mb-4"],
+      class: ["mb-1.5"],
    },
    {
       component: PrimeVueInputs["InputMask"],
@@ -37,7 +37,7 @@ export const productInputs: InputConfig[] = [
       placeholder: "Telefon raqam",
       props: { ...globalProps, mask: "99-999-99-99" },
       schema: z.string().optional().nullable(),
-      class: ["mb-4"],
+      class: ["mb-3"],
    },
 ];
 

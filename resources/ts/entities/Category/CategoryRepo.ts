@@ -1,8 +1,6 @@
-import { formatCategories } from "@/modules/Formatters";
-import { useFetch, api } from "@/modules/useFetch";
+import { api } from "@/modules/useFetch";
 import { ICategory } from "@/types";
-import { TreeNode } from "primevue/treenode";
-import { ref, watch } from "vue";
+import { ref } from "vue";
 const baseURL = "categories";
 
 const headerMultipart = {
@@ -23,19 +21,7 @@ export default {
       return { loading };
    },
    parents() {
-      const { data, isFirstLoading, error, isLoading, fetchData } = useFetch<ICategory[]>({
-         url: `${baseURL}/parents`,
-      });
-
-      const convertTreeNode = ref<TreeNode[]>([]);
-      watch(
-         () => data.value,
-         () => {
-            convertTreeNode.value = formatCategories(data.value || []);
-         },
-      );
-
-      return { data, isFirstLoading, error, isLoading, fetchData, convertTreeNode };
+      return api.get<ICategory[]>(`${baseURL}/parents`);
    },
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);

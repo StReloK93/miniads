@@ -1,82 +1,82 @@
 <template>
-   <section class="pt-safe-top flex flex-col h-dvh bg-tertiary">
-      <main class="py-2 border-b border-secondary">
-         <BackPreviusPage title="Bo'limlar" class="px-4" />
-      </main>
-      <main class="grow relative">
-         <section class="absolute inset-0 overflow-y-auto pt-2">
-            <template v-if="!isLoading">
-               <div
-                  v-for="(category, index) in categoryParents"
-                  :id="`category_${index}`"
-                  :key="category.name"
-                  class="bg-secondary border border-secondary px-4 mb-2 py-2 shadow-xs"
-               >
-                  <h3 class="text-xl font-semibold text-tertiary mb-1">
-                     {{ category.name }}
-                  </h3>
-                  <aside>
-                     <div
-                        v-for="childCategory in segmentItems(category.children, 2).first"
-                        :key="childCategory.id"
-                        class="flex justify-between items-center"
-                     >
-                        <span class="text-secondary text-sm">
-                           {{ childCategory.name }}
-                        </span>
-                        <Button
-                           @click="openCategoryPage(childCategory)"
-                           icon="pi pi-angle-right"
-                           severity="secondary"
-                           variant="text"
-                           rounded
-                        />
-                     </div>
+   <main class="h-full relative">
+      <section class="absolute inset-0 overflow-y-auto pt-2">
+         <template v-if="!isLoading">
+            <div
+               v-for="(category, index) in categoryParents"
+               :id="`category_${index}`"
+               :key="category.name"
+               class="border border-secondary px-4 mb-2 py-2 shadow-xs"
+            >
+               <h3 class="text-xl font-semibold text-tertiary mb-1">
+                  {{ category.name }}
+               </h3>
+               <aside>
+                  <div
+                     v-for="childCategory in segmentItems(category.children, 2).first"
+                     :key="childCategory.id"
+                     class="flex justify-between items-center"
+                  >
+                     <span class="text-secondary text-sm">
+                        {{ childCategory.name }}
+                     </span>
+                     <Button
+                        @click="openCategoryPage(childCategory)"
+                        icon="pi pi-angle-right"
+                        severity="secondary"
+                        variant="text"
+                        rounded
+                     />
+                  </div>
 
-                     <Inplace
-                        v-if="category.children.length > 2"
-                        :active="activeCategoryId == `category_${index}`"
-                        :display-props="{ class: 'p-0! w-full' }"
-                     >
-                        <template #display>
-                           <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
-                        </template>
-                        <template #content="{ closeCallback }">
-                           <div
-                              v-for="value in segmentItems(category.children, 2).remaining"
-                              :key="value"
-                              class="flex justify-between items-center"
-                           >
-                              <span class="text-surface-700 text-sm">
-                                 {{ value.name }}
-                              </span>
-                              <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
-                           </div>
-                           <div @click="closeCallback" class="py-1.5 text-xs text-primary cursor-pointer">Yopish</div>
-                        </template>
-                     </Inplace>
-                  </aside>
-               </div>
-            </template>
-            <template v-else>
-               <Skeleton v-for="value in 5" :key="value" height="150px" class="mb-2"></Skeleton>
-            </template>
-         </section>
-      </main>
-   </section>
+                  <Inplace
+                     v-if="category.children.length > 2"
+                     :active="activeCategoryId == `category_${index}`"
+                     :display-props="{ class: 'p-0! w-full' }"
+                  >
+                     <template #display>
+                        <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
+                     </template>
+                     <template #content="{ closeCallback }">
+                        <div
+                           v-for="value in segmentItems(category.children, 2).remaining"
+                           :key="value"
+                           class="flex justify-between items-center"
+                        >
+                           <span class="text-surface-700 text-sm">
+                              {{ value.name }}
+                           </span>
+                           <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
+                        </div>
+                        <div @click="closeCallback" class="py-1.5 text-xs text-primary cursor-pointer">Yopish</div>
+                     </template>
+                  </Inplace>
+               </aside>
+            </div>
+         </template>
+         <template v-else>
+            <Skeleton v-for="value in 5" :key="value" height="130px" class="mb-2 rounded-none!"></Skeleton>
+         </template>
+      </section>
+   </main>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
-
+import { useFetchDecorator } from "@/modules/useFetch";
+import { ICategory } from "@/types";
 const route = useRoute();
 const router = useRouter();
 const activeCategoryId = ref<string | null>(null);
 
-const { data: categoryParents, isLoading } = CategoryRepo.parents();
+const {
+   data: categoryParents,
+   isLoading,
+   execute: fetchCategories,
+} = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
 
 function segmentItems(array: any[], count: number) {
    if (array.length > 2) {
@@ -118,4 +118,8 @@ watch(
    },
    { immediate: true },
 );
+
+onMounted(async () => {
+   await fetchCategories();
+});
 </script>

@@ -18,7 +18,7 @@ class ParameterSeeder extends Seeder
                 'placeholder' => 'Xonalar soni',
                 'component' => 'InputNumber',
                 'type' => 'number',
-                'unit' => null,
+                'unit' => 'xona',
                 'options' => null
             ],
             [
@@ -32,7 +32,7 @@ class ParameterSeeder extends Seeder
                 'placeholder' => 'Qavat',
                 'component' => 'InputNumber',
                 'type' => 'number',
-                'unit' => null,
+                'unit' => 'qavat',
                 'options' => null
             ],
             [

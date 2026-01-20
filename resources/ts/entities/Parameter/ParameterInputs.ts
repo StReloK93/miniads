@@ -41,7 +41,7 @@ export const parameterInputs: InputConfig[] = [
       name: "options",
       placeholder: "Variantlar",
       props: { ...globalProps, multiple: true, typeahead: false },
-      schema: z.array(z.string()).optional(),
+      schema: z.array(z.string()).optional().nullable(),
       class: ["mb-4"],
    },
 ];

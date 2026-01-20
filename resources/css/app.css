@@ -1,3 +1,12 @@
+:root {
+   --safe-area-top: env(safe-area-inset-top, 0px);
+   --safe-area-bottom: env(safe-area-inset-bottom, 0);
+   --swiper-pagination-bullet-size: 6px;
+   --swiper-pagination-bullet-inactive-opacity: 0.9;
+   --swiper-pagination-bullet-inactive-color: white;
+}
+@import "primeicons/primeicons.css";
+
 @import "tailwindcss";
 @import "tailwindcss-primeui";
 @import "swiper/css";
@@ -8,11 +17,13 @@
 .headless-dialog .p-dialog-header {
    padding: 0 !important;
 }
-:root {
-   --safe-area-top: env(safe-area-inset-top, 0px);
-   --safe-area-bottom: env(safe-area-inset-bottom, 0);
-}
 
+@layer base {
+   :root {
+      /* --p-button-secondary-background: rgba(255, 255, 255, 0.7) !important; */
+      /* --p-button-secondary-border-color: rgba(255, 255, 255, 0.7) !important; */
+   }
+}
 @theme {
    --spacing-safe-top: var(--safe-area-top);
    --spacing-safe-bottom: var(--safe-area-bottom);
@@ -67,3 +78,10 @@
 .no-last-border .p-datatable-tbody > tr:last-child > td {
    border-bottom: none !important;
 }
+/* 
+.swiper-pagination-bullet {
+   width: 6px;
+   height: 6px;
+   background: white;
+   opacity: 1;
+} */

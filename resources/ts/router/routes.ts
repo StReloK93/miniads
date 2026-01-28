@@ -4,6 +4,7 @@ import { RouteRecordRaw } from "vue-router";
 import Application from "@/pages/layouts/AppLayout.vue";
 import Admin from "@/pages/layouts/AdminLayout.vue";
 import CategoryIdPage from "@/pages/application/CategoryIdPage.vue";
+import FavoritePage from "@/pages/application/FavoritePage.vue";
 import ProductPage from "@/pages/application/ProductPage.vue";
 export const routes: RouteRecordRaw[] = [
    {
@@ -12,6 +13,7 @@ export const routes: RouteRecordRaw[] = [
       redirect: { name: "home" },
       children: [
          { path: "", component: Home, name: "home" },
+         { path: "/favorites", component: FavoritePage, name: "favorites" },
          { path: "/category/:id", component: CategoryIdPage, name: "category-id", props: true },
          {
             path: "/categories",

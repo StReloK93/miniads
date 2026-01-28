@@ -1,12 +1,9 @@
 <template>
    <section>
       <main class="px-5 py-2 border-b border-secondary">
-         <BackPreviusPage :model="true" title="Elon joylash" @close="$emit('close')" />
+         <BackPreviusPage :model="true" title="Yangi e'lon" @close="$emit('close')" />
       </main>
       <div>
-         <h3 class="py-3 px-5 text-tertiary font-semibold mb-3 text-center flex justify-center items-center gap-2">
-            Kategoriyani tanlang
-         </h3>
          <template v-if="pageData.isImagesReady === false">
             <Skeleton height="40px" class="mb-2" v-for="n in 6" :key="n"></Skeleton>
          </template>
@@ -25,7 +22,7 @@
                      @click="selectCategory(child.id)"
                      class="first:mt-2 py-1 text-tertiary font-semibold cursor-pointer flex items-center justify-between border-b border-secondary last:border-0"
                   >
-                     {{ child.name }} <i class="pi pi-angle-right text-xs!"></i>
+                     {{ child.name }} <i class="pi pi-plus-circle"></i>
                   </nav>
                </AccordionContent>
             </AccordionPanel>

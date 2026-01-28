@@ -1,10 +1,9 @@
 <template>
    <section>
       <h3 class="flex items-center gap-1 px-1 mb-2 text-secondary text-sm">
-         <!-- <img :src="category?.parent.image" class="w-5 opacity-70" /> -->
-         <RouterLink :to="{ name: 'categories' }"> Bo'limlar </RouterLink>
-         <i class="pi pi-angle-right text-xs!"></i>
-         {{ category?.parent.name }}
+         <RouterLink :to="{ name: 'categories', query: { open: `${category?.parent.id}` } }" class="underline"
+            >{{ category?.parent.name }}
+         </RouterLink>
          <i class="pi pi-angle-right text-xs!"></i>
          {{ category?.name }}
       </h3>

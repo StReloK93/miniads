@@ -1,7 +1,7 @@
 <template>
    <div>
-      <section class="flex justify-between items-center mb-1.5">
-         <span class="font-semibold text-tertiary">Bo'limlar</span>
+      <!-- <section class="flex justify-between items-center mb-1.5">
+         <span class="font-semibold text-tertiary">Kategoriyalar</span>
          <Button
             as="router-link"
             :to="{ name: 'categories' }"
@@ -10,11 +10,11 @@
             rounded
             severity="secondary"
          />
-      </section>
+      </section> -->
       <swiper :slides-per-view="3.3" :space-between="10">
          <template v-if="isImagesReady">
-            <swiper-slide v-for="(category, index) in parentCategories" :key="category.name">
-               <RouterLink :to="{ name: 'categories', query: { open: `category_${index}` } }">
+            <swiper-slide v-for="category in parentCategories" :key="category.name">
+               <RouterLink :to="{ name: 'categories', query: { open: `${category.id}` } }">
                   <div
                      class="select-none aspect-square gap-2 flex flex-col items-center justify-center bg-secondary rounded-2xl border border-secondary p-1"
                   >
@@ -47,11 +47,7 @@ import { onMounted, ref } from "vue";
 import { preloadImages } from "@/modules/Helpers";
 import { useFetchDecorator } from "@/modules/useFetch";
 import { ICategory } from "@/types";
-const {
-   data: parentCategories,
-   isLoading,
-   execute: fetchCategories,
-} = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
+const { data: parentCategories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
 const isImagesReady = ref(false);
 onMounted(async () => {
    await fetchCategories();

@@ -2,57 +2,27 @@
    <main class="h-full relative">
       <section class="absolute inset-0 overflow-y-auto pt-2">
          <template v-if="!isLoading">
-            <div
-               v-for="(category, index) in categoryParents"
-               :id="`category_${index}`"
-               :key="category.name"
-               class="border border-secondary px-4 mb-2 py-2 shadow-xs"
-            >
-               <h3 class="text-xl font-semibold text-tertiary mb-1">
-                  {{ category.name }}
-               </h3>
-               <aside>
-                  <div
-                     v-for="childCategory in segmentItems(category.children, 2).first"
-                     :key="childCategory.id"
-                     class="flex justify-between items-center"
-                  >
-                     <span class="text-secondary text-sm">
-                        {{ childCategory.name }}
-                     </span>
-                     <Button
-                        @click="openCategoryPage(childCategory)"
-                        icon="pi pi-angle-right"
-                        severity="secondary"
-                        variant="text"
-                        rounded
-                     />
-                  </div>
+            <Accordion v-model:value="accordion">
+               <AccordionPanel v-for="category in categories" :key="category.id" :value="category.id">
+                  <AccordionHeader class="py-3!">
+                     <div class="flex items-center gap-4">
+                        <img :src="category.image" class="w-6 dark:invert" />
+                        {{ category.name }}
+                     </div>
+                  </AccordionHeader>
 
-                  <Inplace
-                     v-if="category.children.length > 2"
-                     :active="activeCategoryId == `category_${index}`"
-                     :display-props="{ class: 'p-0! w-full' }"
-                  >
-                     <template #display>
-                        <div class="py-1.5 text-xs text-primary w-full">Barchasi</div>
-                     </template>
-                     <template #content="{ closeCallback }">
-                        <div
-                           v-for="value in segmentItems(category.children, 2).remaining"
-                           :key="value"
-                           class="flex justify-between items-center"
-                        >
-                           <span class="text-surface-700 text-sm">
-                              {{ value.name }}
-                           </span>
-                           <Button icon="pi pi-angle-right" severity="secondary" variant="text" rounded></Button>
-                        </div>
-                        <div @click="closeCallback" class="py-1.5 text-xs text-primary cursor-pointer">Yopish</div>
-                     </template>
-                  </Inplace>
-               </aside>
-            </div>
+                  <AccordionContent>
+                     <RouterLink
+                        v-for="child in category.children"
+                        :to="{ name: 'category-id', params: { id: child.id } }"
+                        :key="child.id"
+                        class="first:mt-2 py-1 text-tertiary font-semibold cursor-pointer flex items-center justify-between border-b border-secondary last:border-0"
+                     >
+                        {{ child.name }} <i class="pi pi-angle-right text-xs!"></i>
+                     </RouterLink>
+                  </AccordionContent>
+               </AccordionPanel>
+            </Accordion>
          </template>
          <template v-else>
             <Skeleton v-for="value in 5" :key="value" height="130px" class="mb-2 rounded-none!"></Skeleton>
@@ -63,54 +33,26 @@
 
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
-import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import { useFetchDecorator } from "@/modules/useFetch";
 import { ICategory } from "@/types";
 const route = useRoute();
-const router = useRouter();
-const activeCategoryId = ref<string | null>(null);
+const { data: categories, isLoading, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
 
-const {
-   data: categoryParents,
-   isLoading,
-   execute: fetchCategories,
-} = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
-
-function segmentItems(array: any[], count: number) {
-   if (array.length > 2) {
-      const first = array.slice(0, count);
-      const remaining = array.length > 2 ? array.slice(2) : [];
-
-      return {
-         first,
-         remaining,
-      };
-   }
-   return { first: array, remaining: [] };
-}
-
-function openCategoryPage(category: any) {
-   router.push({ name: "category-id", params: { id: category.id } });
-}
-// Scroll qilish logikasini alohida funksiya qilib olamiz
+const accordion = ref<null | number>(null);
 const scrollToCategory = async () => {
    const categoryId = route.query.open as string;
+   console.log(categoryId);
 
-   if (categoryId && categoryParents.value?.length) {
+   if (categoryId && categories.value?.length) {
       await nextTick();
-      const element = document.getElementById(categoryId);
-
-      if (element) {
-         activeCategoryId.value = categoryId; // Kerak bo'lsa style uchun
-         element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      accordion.value = +categoryId;
    }
 };
 
 watch(
-   () => categoryParents.value,
+   () => categories.value,
    (newVal) => {
       if (newVal && newVal.length > 0) {
          scrollToCategory();

@@ -14,6 +14,8 @@ declare module 'vue' {
     AccordionGroup: typeof import('./resources/shared/ui/AccordionGroup.vue')['default']
     AccordionItem: typeof import('./resources/shared/ui/AccordionItem.vue')['default']
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
+    BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
+    InputImage: typeof import('./resources/shared/ui/InputImage.vue')['default']
     InputText: typeof import('./resources/shared/ui/InputText.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

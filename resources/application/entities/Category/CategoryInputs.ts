@@ -1,11 +1,11 @@
-import { PrimeVueInputs } from "@/modules/Inputs";
-import { InputConfig } from "@/types";
+import { Inputs } from "@/modules/Inputs";
+import { InputConfig } from "@shared/types";
 import z from "zod";
 
 const globalProps = { size: "small", fluid: true };
 export const categoryInputs: InputConfig[] = [
    {
-      component: PrimeVueInputs["InputText"],
+      component: Inputs["InputText"],
       name: "name",
       placeholder: "Nomi",
       props: globalProps,
@@ -13,7 +13,7 @@ export const categoryInputs: InputConfig[] = [
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["ToggleButton"],
+      component: Inputs["ToggleButton"],
       name: "is_page",
       props: {
          ...globalProps,
@@ -26,7 +26,7 @@ export const categoryInputs: InputConfig[] = [
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["ImageUpload"],
+      component: Inputs["ImageUpload"],
       name: "image",
       props: globalProps,
       schema: z

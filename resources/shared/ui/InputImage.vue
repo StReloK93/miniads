@@ -1,26 +1,29 @@
 <template>
-   <FormField v-slot="$field" class="flex flex-col gap-1">
+   <Field :name="props.name" v-slot="{ field, handleChange }" class="flex flex-col gap-1">
       <main class="relative">
          <input
             type="file"
-            :id="props.input.name"
-            v-bind="props.input.props"
-            @change="(event) => onNativeFileChange(event, $field)"
+            :id="props.name"
+            v-bind="$attrs"
+            @input="handleChange"
+            @change="(event) => onNativeFileChange(event, field)"
             class="hidden"
-            @vue:mounted="inputMouted($field)"
+            @vue:mounted="inputMouted(field)"
          />
          <div class="grid gap-3 grid-cols-3">
             <main v-for="(image, index) in images_source" :key="index" class="relative">
-               <Button
-                  icon="pi pi-times"
-                  size="small"
-                  rounded
-                  variant="text"
+               <BaseButton
+                  @click.stop="deleteImage({ url: image.url, index }, field)"
                   class="absolute! top-1 right-1 z-50"
-                  severity="contrast"
-                  @click.stop="deleteImage({ url: image.url, index }, $field)"
-               />
-
+                  rounded
+                  severity="secondary"
+                  icon-only
+                  size="sm"
+               >
+                  <template #icon>
+                     <XMarkIcon class="size-5" />
+                  </template>
+               </BaseButton>
                <img
                   :src="image.url"
                   class="rounded-md aspect-square grayscale object-cover w-full border border-secondary"
@@ -28,18 +31,20 @@
             </main>
             <label
                class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-secondary hover:border-surface-300 hover:bg-surface-100 p-1.5"
-               :for="props.input.name"
+               :for="props.name"
             >
                <img :src="'/images/image.svg'" class="w-10 grayscale" />
             </label>
          </div>
       </main>
-   </FormField>
+   </Field>
 </template>
 
 <script setup lang="ts">
+import { Field } from "vee-validate";
+import { XMarkIcon } from "@heroicons/vue/24/outline";
 import { ref } from "vue";
-const props = defineProps<{ input }>();
+const props = defineProps<{ name: string }>();
 
 interface IImage {
    id?: number | null;
@@ -49,7 +54,7 @@ interface IImage {
 
 const images_source = ref<IImage[]>([]);
 async function inputMouted($field: any) {
-   await $field.onInput({ value: $field.value });
+   await $field.onInput($field.value || []);
    if ($field.value) {
       images_source.value = $field.value?.map((image) => ({ ...image, file: image.url }));
    }
@@ -66,7 +71,8 @@ function onNativeFileChange(event: Event, $field: any) {
          return { id: null, url: URL.createObjectURL(file), file };
       }),
    );
-   $field.onInput({ value: images_source.value });
+
+   $field.onInput(images_source.value);
 }
 
 function deleteImage(image: { index: number; url: string }, $field: any) {
@@ -75,7 +81,7 @@ function deleteImage(image: { index: number; url: string }, $field: any) {
 
    const newFiles = files.filter((_, i) => i !== image.index);
 
-   $field.onInput({ value: newFiles });
+   $field.onInput(newFiles);
 
    if (images_source.value[image.index].file instanceof File) {
       URL.revokeObjectURL(image.url);

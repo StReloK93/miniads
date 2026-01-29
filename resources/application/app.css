@@ -2,7 +2,7 @@
 @import "swiper/css";
 @import "swiper/css/pagination";
 
-@custom-variant dark (&:where(.p-dark, .p-dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 @theme {
    --spacing-safe-top: var(--safe-area-top);
    --spacing-safe-bottom: var(--safe-area-bottom);

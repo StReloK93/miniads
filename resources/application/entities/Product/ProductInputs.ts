@@ -1,44 +1,41 @@
-import { PrimeVueInputs } from "@/modules/Inputs";
+import { Inputs } from "@/modules/Inputs";
 import { InputConfig } from "@shared/types";
-
 import z from "zod";
 
-export const globalProps = { size: "small", fluid: true };
+export const globalProps = { size: "sm" };
 
 export const productInputs: InputConfig[] = [
+   {
+      component: Inputs["InputImage"],
+      name: "images",
+      props: {
+         multiple: true,
+      },
+      schema: z.array(z.any()).min(1, "Kamida 1 ta rasm yuklash kerak!"),
+      class: ["mb-3"],
+   },
+   {
+      component: Inputs["InputText"],
+      name: "title",
+      props: { placeholder: "Sarlavha" },
+      schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
+      class: ["mb-3"],
+   },
    // {
-   //    component: PrimeVueInputs["ImageUpload"],
-   //    name: "images",
-   //    props: {
-   //       multiple: true,
-   //    },
-   //    schema: z.array(z.any()),
-   //    class: ["mb-3"],
-   // },
-   // {
-   //    component: PrimeVueInputs["InputText"],
-   //    name: "title",
-   //    placeholder: "Sarlavha",
-   //    props: globalProps,
-   //    schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
-   //    class: ["mb-3"],
-   // },
-   // {
-   //    component: PrimeVueInputs["Textarea"],
+   //    component: Inputs["Textarea"],
    //    name: "description",
    //    placeholder: "Izoh",
    //    props: globalProps,
    //    schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
    //    class: ["mb-1.5"],
    // },
-   // {
-   //    component: PrimeVueInputs["InputMask"],
-   //    name: "phone",
-   //    placeholder: "Telefon raqam",
-   //    props: { ...globalProps, mask: "99-999-99-99" },
-   //    schema: z.string().optional().nullable(),
-   //    class: ["mb-3"],
-   // },
+   {
+      component: Inputs["InputText"],
+      name: "phone",
+      props: { placeholder: "Telefon raqam" },
+      schema: z.string().optional().nullable(),
+      class: ["mb-3"],
+   },
 ];
 
 export const ZodTypeMapping: Record<string, (required: boolean, label: string) => any> = {

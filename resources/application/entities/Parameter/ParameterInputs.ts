@@ -1,46 +1,45 @@
-import { PrimeVueInputs } from "@/modules/Inputs";
-import { InputConfig } from "@/types";
+import { Inputs } from "@/modules/Inputs";
+import { InputConfig } from "@shared/types";
 import z from "zod";
 
-const globalProps = { size: "small", fluid: true };
 export const parameterInputs: InputConfig[] = [
    {
-      component: PrimeVueInputs["InputText"],
+      component: Inputs["InputText"],
       name: "placeholder",
       placeholder: "Nomi",
-      props: globalProps,
+      props: { placeholder: "Nomi" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["InputText"],
+      component: Inputs["InputText"],
       name: "unit",
       placeholder: "O'lchov birligi",
-      props: globalProps,
+      props: { placeholder: "O'lchov birligi" },
       schema: z.string({ message: "Majburiy maydon!" }).optional().nullable(),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["Select"],
+      component: Inputs["Select"],
       name: "component",
       placeholder: "Input turi",
-      props: { ...globalProps, options: Object.keys(PrimeVueInputs) },
+      props: { options: Object.keys(Inputs) },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["Select"],
+      component: Inputs["Select"],
       name: "type",
       placeholder: "Malumot turi",
-      props: { ...globalProps, options: ["string", "number", "boolean", "array"] },
+      props: { options: ["string", "number", "boolean", "array"] },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["AutoComplete"],
+      component: Inputs["AutoComplete"],
       name: "options",
       placeholder: "Variantlar",
-      props: { ...globalProps, multiple: true, typeahead: false },
+      props: { multiple: true, typeahead: false },
       schema: z.array(z.string()).optional().nullable(),
       class: ["mb-4"],
    },

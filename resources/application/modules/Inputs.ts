@@ -1,6 +1,7 @@
-import ImageUpload from "@/components/ui/ImageUpload.vue";
-export const PrimeVueInputs = {
-   // InputText,
+import InputImage from "@shared/ui/InputImage.vue";
+import InputText from "@shared/ui/InputText.vue";
+export const Inputs = {
+   InputText,
    // InputNumber,
    // Select,
    // SelectButton,
@@ -16,5 +17,5 @@ export const PrimeVueInputs = {
    // Textarea,
    // ToggleButton,
    // InputChips,
-   ImageUpload,
+   InputImage,
 };

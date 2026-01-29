@@ -1,26 +1,26 @@
 <template>
-   <div class="input-wrapper" :data-invalid="invalid || undefined">
+   <Field :name="props.name" v-slot="{ field, handleChange }">
       <input
+         type="text"
          class="input-text"
+         @input="handleChange"
          :class="[size && `input-${size}`]"
-         :value="modelValue"
-         :type="type"
+         v-bind="{ ...field, ...$attrs }"
          :placeholder="placeholder"
          :disabled="disabled"
-         @input="$emit('update:modelValue', $event.target?.value)"
       />
-   </div>
+   </Field>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-   modelValue?: string | number;
+import { Field } from "vee-validate";
+
+const props = defineProps<{
+   name: string;
    placeholder?: string;
    type?: string;
    disabled?: boolean;
    invalid?: boolean;
    size?: "sm" | "md" | "lg";
 }>();
-
-defineEmits(["update:modelValue"]);
 </script>

@@ -2,6 +2,7 @@
    <div class="flex gap-2">
       <BaseButton
          v-for="button in buttons"
+         :key="button.mode"
          :class="{ 'text-(--color-primary)!': mode === button.mode }"
          severity="secondary"
          @click="changeTheme(button.mode as ThemeMode)"

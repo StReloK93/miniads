@@ -1,19 +1,18 @@
 <template>
-   <Form @submit="onSubmit" class="flex flex-col w-full h-full">
+   <Form
+      @submit="onSubmit"
+      :validation-schema="validationSchema"
+      :initialValues="initialValues"
+      class="flex flex-col w-full h-full"
+   >
       <slot name="header" />
 
       <div class="flex flex-col grow relative">
-         <main class="absolute inset-0 overflow-y-auto py-3 px-5">
+         <main class="absolute inset-0 overflow-y-auto py-3">
             <slot name="inputs" />
-            <Field name="field" v-slot="{ field }">
-               <!-- <component :is="input.component" v-bind="{ ...field }" /> -->
-               <InputText v-bind="field" v-model="field.value" />
-            </Field>
             <template v-for="input in inputConfigs" :key="input.name">
                <div :class="input.class">
-                  <Field :name="input.name" v-slot="{ field }">
-                     <component :is="input.component" v-bind="{ ...field, ...input.props }" />
-                  </Field>
+                  <component :is="input.component" :name="input.name" v-bind="input.props" />
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
                      <p class="text-sm text-red-500 mt-1">
@@ -33,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { Form, Field, ErrorMessage, useForm } from "vee-validate";
+import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 import type { InputConfig } from "@shared/types";
@@ -47,15 +46,8 @@ const props = defineProps<{
 }>();
 
 const buttonLoader = ref(false);
-
-/* -----------------------------
-   Initial values
---------------------------------*/
 const initialValues = computed(() => Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value])));
 
-/* -----------------------------
-   Zod schema (dynamic)
---------------------------------*/
 const schema = computed(() => {
    const shape: Record<string, z.ZodTypeAny> = {};
 
@@ -68,14 +60,10 @@ const schema = computed(() => {
    return z.object(shape).superRefine(props.superRefine ?? (() => {}));
 });
 
-const { handleSubmit } = useForm({
-   initialValues: initialValues.value,
-   validationSchema: toTypedSchema(schema.value),
-});
+const validationSchema = toTypedSchema(schema.value);
 
-const onSubmit: any = handleSubmit(async (values) => {
+const onSubmit: any = async (values) => {
    buttonLoader.value = true;
-   console.log(values);
 
    await props.submit(values).finally(() => {
       setTimeout(() => {
@@ -83,5 +71,5 @@ const onSubmit: any = handleSubmit(async (values) => {
       }, 500);
    });
    emit("close");
-});
+};
 </script>

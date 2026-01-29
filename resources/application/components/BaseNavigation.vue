@@ -14,18 +14,9 @@
             </OverlayBadge>
          </div>
       </nav> -->
-      <!-- <article>
-         <IconField>
-            <InputText
-               fluid
-               placeholder="Qidiruv"
-               name="search"
-               size="small"
-               class="bg-surface-50! border-surface-100! dark:bg-surface-900! dark:border-surface-800!"
-            />
-            <InputIcon class="pi pi-search" />
-         </IconField>
-      </article> -->
+      <article>
+         <InputText placeholder="Qidiruv" name="search" />
+      </article>
    </section>
 </template>
 

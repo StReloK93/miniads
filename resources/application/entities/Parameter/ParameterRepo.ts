@@ -1,5 +1,5 @@
 import { api } from "@/modules/useFetch";
-import { IParameter } from "@/types";
+import { IParameter } from "@shared/types";
 const baseURL = "parameters";
 
 export default {

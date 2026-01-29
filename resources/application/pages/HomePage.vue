@@ -1,5 +1,5 @@
 <template>
-   <div>
+   <section>
       <swiper :slides-per-view="3.3" :space-between="10">
          <template v-if="isImagesReady">
             <swiper-slide v-for="category in parentCategories" :key="category.name">
@@ -16,17 +16,12 @@
             </swiper-slide>
          </template>
       </swiper>
-      <main class="h-80">
-         <BaseForm :submit="onload" :input-configs="productInputs" />
-      </main>
-   </div>
+      <ThemeSwitcher />
+   </section>
 </template>
 
 <script setup lang="ts">
-import { productInputs } from "@/entities/Product/ProductInputs";
-import BaseForm from "@components/BaseForm.vue";
-async function onload() {}
-
+import ThemeSwitcher from "@shared/components/ThemeSwitcher.vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 import { onMounted, ref } from "vue";

@@ -39,9 +39,8 @@
 </template>
 <script lang="ts" setup>
 import { HeartIcon, HomeIcon, PlusCircleIcon, UserIcon } from "@heroicons/vue/24/outline";
-import BottomDrawer from "./ui/BottomDrawer.vue";
-import { ref } from "vue";
-const visible = ref(false);
-const openUserSettings = ref(false);
-import ThemeSwitcher from "../../shared/components/ThemeSwitcher.vue";
+// import BottomDrawer from "./ui/BottomDrawer.vue";
+// import { ref } from "vue";
+// const visible = ref(false);
+// const openUserSettings = ref(false);
 </script>

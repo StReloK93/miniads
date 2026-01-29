@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "swiper/css";
+@import "swiper/css/pagination";
+
+@custom-variant dark (&:where(.p-dark, .p-dark *));
+@theme {
+   --spacing-safe-top: var(--safe-area-top);
+   --spacing-safe-bottom: var(--safe-area-bottom);
+}
+
+:root {
+   --safe-area-top: env(safe-area-inset-top, 0px);
+   --safe-area-bottom: env(safe-area-inset-bottom, 0);
+   --swiper-pagination-bullet-size: 6px;
+   --swiper-pagination-bullet-inactive-opacity: 0.9;
+   --swiper-pagination-bullet-inactive-color: white;
+}

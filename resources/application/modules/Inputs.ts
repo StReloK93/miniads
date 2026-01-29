@@ -1,0 +1,20 @@
+import ImageUpload from "@/components/ui/ImageUpload.vue";
+export const PrimeVueInputs = {
+   // InputText,
+   // InputNumber,
+   // Select,
+   // SelectButton,
+   // AutoComplete,
+   // CascadeSelect,
+   // Checkbox,
+   // DatePicker,
+   // FloatLabel,
+   // IconField,
+   // InputMask,
+   // MultiSelect,
+   // Rating,
+   // Textarea,
+   // ToggleButton,
+   // InputChips,
+   ImageUpload,
+};

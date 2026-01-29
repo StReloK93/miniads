@@ -1,9 +1,17 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\Category;
-Route::get('/{any}', function () {
 
-    $categories = Category::whereNull('parent_id')->select('image')->get();
-    return view('app', compact('categories'));
+Route::get('/admin', function () {
+    return view('admin');
+});
+
+Route::prefix('admin')->group(function () {
+    Route::get('/{any}', function () {
+        return view('admin');
+    })->where('any', '.*');
+});
+
+Route::get('/{any}', function () {
+    return view('app');
 })->where('any', '.*');

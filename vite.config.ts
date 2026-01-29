@@ -2,9 +2,10 @@ import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import Components from "unplugin-vue-components/vite";
-import { PrimeVueResolver } from "@primevue/auto-import-resolver";
 import { resolve } from "path"; // Path modulini chaqiramiz
+import Components from "unplugin-vue-components/vite";
+import Icons from "unplugin-icons/vite";
+import IconsResolver from "unplugin-icons/resolver";
 
 export default defineConfig({
    build: {
@@ -20,14 +21,36 @@ export default defineConfig({
    },
    plugins: [
       vue(),
-      Components({
-         resolvers: [PrimeVueResolver()],
-      }),
       laravel({
-         input: ["resources/css/app.css", "resources/ts/app.ts"],
+         input: [
+            "resources/application/app.css",
+            "resources/application/app.ts",
+            "resources/admin/adminApp.css",
+            "resources/admin/adminApp.ts",
+         ],
          refresh: true,
       }),
       tailwindcss(),
+
+      Components({
+         // 🔹 UI componentlar (BaseButton, Accordion, etc.)
+         dirs: ["resources/shared/ui"],
+         extensions: ["vue"],
+         deep: true,
+         dts: "components.d.ts",
+
+         // 🔹 iconlarni component sifatida auto-import qilish
+         resolvers: [
+            IconsResolver({
+               prefix: "", // <SunIcon /> bo‘lsin
+               extension: "vue",
+            }),
+         ],
+      }),
+      Icons({
+         compiler: "vue3",
+         autoInstall: true,
+      }),
    ],
    server: {
       cors: true, // CORS muammosini hal qiladi
@@ -36,9 +59,12 @@ export default defineConfig({
    resolve: {
       alias: {
          // '@' belgisini resources/ts papkasiga yo'naltiramiz
-         "@": resolve(__dirname, "resources/ts"),
-         "@pages": resolve(__dirname, "resources/ts/pages"),
-         "@components": resolve(__dirname, "resources/ts/components"),
+         "@": resolve(__dirname, "resources/application"),
+         "@pages": resolve(__dirname, "resources/application/pages"),
+         "@components": resolve(__dirname, "resources/application/components"),
+
+         "@admin": resolve(__dirname, "resources/admin"),
+         "@shared": resolve(__dirname, "resources/shared"),
       },
    },
 });

@@ -9,9 +9,11 @@
       /* Alias */
       "moduleResolution": "bundler",
       "paths": {
-         "@/*": ["./resources/ts/*"],
-         "@components/*": ["./resources/ts/components/*"],
-         "@pages/*": ["./resources/ts/pages/*"]
+         "@/*": ["./resources/application/*"],
+         "@components/*": ["./resources/application/components/*"],
+         "@pages/*": ["./resources/application/pages/*"],
+         "@admin/*": ["./resources/admin/*"],
+         "@shared/*": ["./resources/shared/*"]
       },
 
       /* Yordamchi */
@@ -24,5 +26,19 @@
       "isolatedModules": true /* Vite uchun tavsiya etiladi */,
       "useDefineForClassFields": true
    },
-   "include": ["resources/ts/**/*.ts", "resources/ts/**/*.tsx", "resources/ts/**/*.vue", "resources/ts/**/*.d.ts"]
+   "include": [
+      "resources/application/**/*.ts",
+      "resources/application/**/*.tsx",
+      "resources/application/**/*.vue",
+      "resources/application/**/*.d.ts",
+      "resources/admin/**/*.ts",
+      "resources/admin/**/*.tsx",
+      "resources/admin/**/*.vue",
+      "resources/admin/**/*.d.ts",
+      "resources/shared/**/*.ts",
+      "resources/shared/**/*.tsx",
+      "resources/shared/**/*.vue",
+      "resources/shared/**/*.d.ts",
+      "components.d.ts"
+   ]
 }

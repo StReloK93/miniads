@@ -1,0 +1,29 @@
+.ui-accordion {
+   /* default (md) */
+   --acc-px: var(--space-md);
+   --acc-py: var(--space-md);
+   --acc-content-p: var(--space-md);
+
+   button {
+      padding-inline: var(--acc-px);
+      padding-block: var(--acc-py);
+   }
+
+   .ui-accordion__content {
+      padding: var(--acc-content-p);
+      padding-top: 0;
+   }
+}
+
+/* ===== SIZE VARIANTS ===== */
+.ui-accordion[data-size="sm"] {
+   --acc-px: var(--space-sm);
+   --acc-py: var(--space-sm);
+   --acc-content-p: var(--space-sm);
+}
+
+.ui-accordion[data-size="lg"] {
+   --acc-px: var(--space-lg);
+   --acc-py: var(--space-lg);
+   --acc-content-p: var(--space-lg);
+}

@@ -2,19 +2,17 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { isTMA, retrieveRawInitData, postEvent, on } from "@tma.js/bridge";
 
-import App from "./App.vue";
-import router from "./router";
-import { useAuth } from "./store/useAuth";
-import { initTheme } from "../shared/components/theme";
-import "../shared/css/ui.scss";
+import App from "@/App.vue";
+import router from "@/router";
+import { useAuth } from "@/store/useAuth";
+import { initTheme } from "@shared/components/theme";
+import "@shared/css/ui.scss";
 initTheme();
 const app = createApp(App);
-
-app.use(createPinia()); // Pinia birinchi bo'lishi shart (Store ishlatish uchun)
+app.use(createPinia());
 
 const authStore = useAuth();
 
-// 2. Telegram Mini App UI sozlamalari
 const setupTMAUI = () => {
    postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
    postEvent("web_app_expand");

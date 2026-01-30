@@ -9,7 +9,7 @@
          icon-only
       >
          <template #icon>
-            <component :is="button.icon" class="h-5 w-5" />
+            <component :is="button.icon" class="size-5" />
          </template>
       </BaseButton>
    </div>

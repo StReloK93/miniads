@@ -1,9 +1,13 @@
-import InputImage from "@shared/ui/InputImage.vue";
-import InputText from "@shared/ui/InputText.vue";
+import FieldImage from "@shared/ui/FieldImage.vue";
+import FieldText from "@shared/ui/FieldText.vue";
+import FieldNumber from "@shared/ui/FieldNumber.vue";
+import FieldTextarea from "@shared/ui/FieldTextarea.vue";
+import FieldSelect from "@shared/ui/FieldSelect.vue";
+
 export const Inputs = {
-   InputText,
-   // InputNumber,
-   // Select,
+   FieldText,
+   FieldNumber,
+   FieldSelect,
    // SelectButton,
    // AutoComplete,
    // CascadeSelect,
@@ -14,8 +18,8 @@ export const Inputs = {
    // InputMask,
    // MultiSelect,
    // Rating,
-   // Textarea,
+   FieldTextarea,
    // ToggleButton,
    // InputChips,
-   InputImage,
+   FieldImage,
 };

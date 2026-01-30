@@ -6,7 +6,7 @@ export const globalProps = { size: "sm" };
 
 export const productInputs: InputConfig[] = [
    {
-      component: Inputs["InputImage"],
+      component: Inputs["FieldImage"],
       name: "images",
       props: {
          multiple: true,
@@ -15,22 +15,21 @@ export const productInputs: InputConfig[] = [
       class: ["mb-3"],
    },
    {
-      component: Inputs["InputText"],
+      component: Inputs["FieldText"],
       name: "title",
       props: { placeholder: "Sarlavha" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
    },
-   // {
-   //    component: Inputs["Textarea"],
-   //    name: "description",
-   //    placeholder: "Izoh",
-   //    props: globalProps,
-   //    schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
-   //    class: ["mb-1.5"],
-   // },
    {
-      component: Inputs["InputText"],
+      component: Inputs["FieldTextarea"],
+      name: "description",
+      props: { placeholder: "Izoh", maxHeight: 120 },
+      schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
+      class: ["mb-1.5"],
+   },
+   {
+      component: Inputs["FieldText"],
       name: "phone",
       props: { placeholder: "Telefon raqam" },
       schema: z.string().optional().nullable(),

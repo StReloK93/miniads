@@ -16,12 +16,10 @@
             </swiper-slide>
          </template>
       </swiper>
-      <ThemeSwitcher />
    </section>
 </template>
 
 <script setup lang="ts">
-import ThemeSwitcher from "@shared/components/ThemeSwitcher.vue";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 import { onMounted, ref } from "vue";
@@ -29,6 +27,7 @@ import { preloadImages } from "@/modules/Helpers";
 import { useFetchDecorator } from "@/modules/useFetch";
 import { ICategory } from "@shared/types";
 const { data: parentCategories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
+
 const isImagesReady = ref(false);
 onMounted(async () => {
    await fetchCategories();

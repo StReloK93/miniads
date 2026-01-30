@@ -13,7 +13,7 @@
                      v-for="child in category.children"
                      :to="{ name: 'category-id', params: { id: child.id } }"
                      :key="child.id"
-                     class="py-(--space-md) cursor-pointer flex items-center justify-between border-b border-slate-100 last:border-0"
+                     class="py-(--space-md) cursor-pointer flex items-center justify-between border-b border-(--color-border) last:border-0"
                   >
                      {{ child.name }} <ChevronRightIcon class="h-3 w-3" />
                   </RouterLink>

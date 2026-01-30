@@ -15,7 +15,6 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-
         $product = Product::create([
             'title' => $request->title,
             'description' => $request->description,
@@ -23,6 +22,7 @@ class ProductController extends Controller
             'user_id' => 1, // yoki $request->user_id
             'district' => 2, // yoki $request->user_id
         ]);
+
 
         // 2. Dinamik parametrlarni saqlash
         if ($request->has('parameters')) {

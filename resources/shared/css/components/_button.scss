@@ -68,6 +68,25 @@
    --btn-text: #fff;
 }
 
+.ui-button[data-variant="text"] {
+   --btn-bg: transparent;
+   --btn-bg-hover: var(--color-border);
+}
+
+.ui-button[data-variant="text"][data-severity="primary"] {
+   --btn-text: var(--color-primary);
+   --btn-bg-hover: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.ui-button[data-variant="text"][data-severity="danger"] {
+   --btn-text: var(--color-danger);
+   --btn-bg-hover: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+.ui-button[data-variant="text"][data-severity="success"] {
+   --btn-text: #16a34a;
+   --btn-bg-hover: color-mix(in srgb, #16a34a 12%, transparent);
+}
 /* ================= ICON / SPINNER ================= */
 .ui-button__icon,
 .ui-button__spinner {

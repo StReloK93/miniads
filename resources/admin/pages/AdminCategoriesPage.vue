@@ -186,9 +186,66 @@ onMounted(() => {
 </script> -->
 
 <template>
-   <div>Category</div>
+   <section>
+      <BaseButton severity="secondary" class="mb-4" @click="newTreeItem">Yangi</BaseButton>
+      <TreeView v-model="tree" @change="console.log" />
+   </section>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { TreeNode } from "@shared/types";
+import { ref } from "vue";
+
+function newTreeItem() {
+   tree.value.push({
+      id: Math.random().toString(),
+      title: "sadsad",
+      droppable: true,
+      draggable: true,
+   });
+}
+const tree = ref<TreeNode[]>([
+   {
+      id: "1",
+      title: "Root",
+      droppable: true,
+      draggable: true,
+      children: [
+         {
+            id: "2",
+            title: "Child A",
+            draggable: true,
+            droppable: true,
+         },
+         {
+            id: "3",
+            title: "Child B (drop blocked)",
+            draggable: true,
+            droppable: true,
+         },
+      ],
+   },
+   {
+      id: "4",
+      title: "Rosot",
+      droppable: true,
+      draggable: true,
+      children: [
+         {
+            id: "5",
+            title: "ChildasA",
+            draggable: true,
+            droppable: false,
+         },
+         {
+            id: "6",
+            title: "Child 2B (drop blocked)",
+            draggable: true,
+            droppable: true,
+         },
+      ],
+   },
+]);
+</script>
 
 <style scoped></style>

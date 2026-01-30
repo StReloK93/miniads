@@ -2,6 +2,9 @@ import { createApp } from "vue";
 import { createPinia } from "pinia";
 import App from "@admin/AdminApp.vue";
 import router from "@admin/router";
+import "@shared/css/ui.scss";
+import { initTheme } from "@shared/components/theme";
+initTheme();
 // import { useAuth } from "./store/useAuth";
 // import { initTheme } from "./modules/theme";
 

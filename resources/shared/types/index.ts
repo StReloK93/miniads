@@ -81,3 +81,12 @@ export interface IParameter {
    unit: string | null;
    options: IParameterOption[];
 }
+
+export interface TreeNode {
+   id: string;
+   title: string;
+   children?: TreeNode[];
+
+   draggable?: boolean; // o‘zi ko‘chiriladimi
+   droppable?: boolean; // ichiga tashlash mumkinmi
+}

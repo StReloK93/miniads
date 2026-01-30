@@ -1,5 +1,3 @@
-import { TreeNode } from "primevue/treenode";
-
 export function findParentId(tree: TreeNode[], dragNodeKey: string): TreeNode | null {
    for (let index = 0; index < tree.length; index++) {
       if (tree[index].key === dragNodeKey) return null;

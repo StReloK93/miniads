@@ -3,9 +3,10 @@
       :type="type"
       :disabled="disabled || loading"
       :class="{ 'rounded-full!': props.rounded }"
-      class="ui-button inline-flex items-center justify-center gap-2 transition active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed"
+      class="ui-button inline-flex items-center justify-center gap-2 transition active:scale-[0.95] active:opacity-75 disabled:opacity-60 disabled:cursor-not-allowed"
       :data-size="size"
       :data-severity="severity"
+      :data-variant="variant"
       :data-icon-only="iconOnly || undefined"
    >
       <!-- LOADING -->
@@ -26,12 +27,14 @@ import { ArrowPathIcon } from "@heroicons/vue/24/outline";
 
 type Size = "sm" | "md" | "lg";
 type Severity = "primary" | "secondary" | "success" | "danger";
+type Variant = "default" | "text";
 
 const props = withDefaults(
    defineProps<{
       rounded?: boolean;
       size?: Size;
       severity?: Severity;
+      variant?: Variant;
       loading?: boolean;
       disabled?: boolean;
       iconOnly?: boolean;
@@ -41,6 +44,7 @@ const props = withDefaults(
       rounded: false,
       size: "md",
       severity: "primary",
+      variant: "default",
       loading: false,
       disabled: false,
       iconOnly: false,

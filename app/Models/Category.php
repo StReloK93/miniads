@@ -20,7 +20,7 @@ class Category extends Model
     public function children()
     {
         // Bu podkategoriyalarni olish uchun
-        return $this->hasMany(Category::class, 'parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page');
+        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'image', 'parent_id', 'is_page');
     }
 
     public function parent()

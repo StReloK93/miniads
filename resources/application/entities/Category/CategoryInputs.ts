@@ -2,40 +2,32 @@ import { Inputs } from "@/modules/Inputs";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
-const globalProps = { size: "small", fluid: true };
 export const categoryInputs: InputConfig[] = [
    {
-      component: Inputs["InputText"],
+      component: Inputs["FieldText"],
       name: "name",
-      placeholder: "Nomi",
-      props: globalProps,
+      props: { placeholder: "Nomi" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
+   // {
+   //    component: Inputs["ToggleButton"],
+   //    name: "is_page",
+   //    props: {
+   //       ...globalProps,
+   //       onLabel: "Sahifa",
+   //       offLabel: "Sahifa emas",
+   //       onIcon: "pi pi-circle",
+   //       offIcon: "pi pi-circle-fill",
+   //    },
+   //    schema: z.boolean().optional(),
+   //    class: ["mb-4"],
+   // },
    {
-      component: Inputs["ToggleButton"],
-      name: "is_page",
-      props: {
-         ...globalProps,
-         onLabel: "Sahifa",
-         offLabel: "Sahifa emas",
-         onIcon: "pi pi-circle",
-         offIcon: "pi pi-circle-fill",
-      },
-      schema: z.boolean().optional(),
-      class: ["mb-4"],
-   },
-   {
-      component: Inputs["ImageUpload"],
+      component: Inputs["FieldImage"],
       name: "image",
-      props: globalProps,
-      schema: z
-         .union([
-            z.instanceof(File, { message: "Fayl bo'lishi shart" }),
-            z.string().min(1, { message: "Yozuv bo'sh bo'lmasligi kerak" }),
-         ])
-         .optional()
-         .nullable(),
+      props: {},
+      schema: z.union([z.instanceof(File), z.string().min(1), z.null()]).optional(),
       class: ["mb-4"],
    },
 ];

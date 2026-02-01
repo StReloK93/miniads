@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TreeNode from "@shared/ui/TreeNode.vue";
-import type { TreeNode as Node } from "@shared/types";
+import type { ITreeNode as Node } from "@shared/types";
 import { ref, toRaw } from "vue";
 
 const props = defineProps<{
@@ -13,10 +13,10 @@ function onDragLeave() {
 }
 const emit = defineEmits<{
    (e: "update:modelValue", value: Node[]): void;
-   (e: "change", value: { draggedId: string; targetId: string | null }): void;
+   (e: "change", value: { draggedId: number; targetId: number | null }): void;
 }>();
 
-function removeNode(nodes: Node[], id: string): Node | null {
+function removeNode(nodes: Node[], id: number): Node | null {
    for (let i = 0; i < nodes.length; i++) {
       if (nodes[i].id === id) {
          return nodes.splice(i, 1)[0];
@@ -29,7 +29,7 @@ function removeNode(nodes: Node[], id: string): Node | null {
    return null;
 }
 
-function insertNode(nodes: Node[], targetId: string, node: Node): boolean {
+function insertNode(nodes: Node[], targetId: number, node: Node): boolean {
    for (const n of nodes) {
       if (n.id === targetId) {
          n.children ||= [];
@@ -43,9 +43,8 @@ function insertNode(nodes: Node[], targetId: string, node: Node): boolean {
    return false;
 }
 
-function onMove(payload: { draggedId: string; targetId: string | null }) {
+function onMove(payload: { draggedId: number; targetId: number | null }) {
    if (payload.draggedId === payload.targetId) return;
-
    const raw = toRaw(props.modelValue);
 
    // ❌ o‘z farzandiga tashlashni block qilamiz
@@ -70,8 +69,9 @@ function onMove(payload: { draggedId: string; targetId: string | null }) {
 
 function onRootDrop(e: DragEvent) {
    e.preventDefault();
-   const draggedId = e.dataTransfer?.getData("text/plain");
-   if (!draggedId) return;
+   const draggedId = Number(e.dataTransfer?.getData("text/plain"));
+
+   if (isNaN(draggedId)) return;
    hoverRoot.value = false;
 
    onMove({ draggedId, targetId: null });
@@ -83,7 +83,7 @@ function onRootDragOver(e: DragEvent) {
    hoverRoot.value = true;
 }
 
-function isDescendant(nodes: Node[], draggedId: string, targetId: string): boolean {
+function isDescendant(nodes: Node[], draggedId: number, targetId: number): boolean {
    for (const node of nodes) {
       if (node.id === draggedId) {
          return contains(node.children ?? [], targetId);
@@ -96,7 +96,7 @@ function isDescendant(nodes: Node[], draggedId: string, targetId: string): boole
    return false;
 }
 
-function contains(nodes: Node[], searchId: string): boolean {
+function contains(nodes: Node[], searchId: number): boolean {
    for (const node of nodes) {
       if (node.id === searchId) return true;
       if (node.children && contains(node.children, searchId)) return true;

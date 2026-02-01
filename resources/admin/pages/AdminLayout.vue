@@ -1,6 +1,6 @@
 <template>
    <div class="flex h-dvh bg-tertiary">
-      <nav class="w-64 border-r border-(--color-border) p-4 flex flex-col gap-2">
+      <nav class="w-64 border-r border-(--color-border) p-4 flex flex-col gap-2 bg-(--color-surface-muted)">
          <div class="w-full flex justify-between mb-2 items-center">
             <a href="/">
                <BaseButton icon-only rounded severity="secondary">
@@ -15,7 +15,7 @@
          <RouterLink :to="{ name: 'admin-categories' }"> Kategoriyalar </RouterLink>
          <RouterLink :to="{ name: 'admin-parameters' }"> Parameterlar </RouterLink>
       </nav>
-      <RouterView class="p-10 grow bg-secondary overflow-y-auto" />
+      <RouterView class="p-10 grow bg-(--color-surface) overflow-y-auto" />
    </div>
 </template>
 

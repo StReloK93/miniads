@@ -1,79 +1,66 @@
-<!-- <template>
-   <div>
-      <div class="flex justify-center">
-         <Dialog v-model:visible="isVisible" modal class="w-3/4 headless-dialog" header="" :closable="false">
-            <template #header>
-               <h3
-                  class="text-center font-semibold text-lg py-3 w-full bg-secondary rounded-t-2xl border-b border-input"
-               >
-                  {{ pageData.selectedCategory?.label }} - parametrlari
-               </h3>
-            </template>
-            <CategoryParameterDialog :category="pageData.selectedCategory!" @close="isVisible = false" />
-         </Dialog>
-         <Drawer
-            class="headless-drawer"
-            @hide="closeDrawer"
-            v-model:visible="pageData.drawerToggle"
-            :show-close-icon="false"
-         >
-            <main class="h-full -mx-5">
-               <BaseForm @close="pageData.drawerToggle = false" :submit="submit" :inputConfigs="inputConfigs">
-                  <template #header>
-                     <h3 class="py-2.5 text-center font-semibold w-full bg-secondary border-b border-input">
-                        {{ pageData.title }}
-                     </h3>
-                  </template>
-                  <template #inputs>
-                     <div
-                        v-if="pageData.selectedParent"
-                        class="flex gap-3 items-center p-1.5 mb-4 bg-secondary rounded border border-input"
-                     >
-                        <img
-                           v-if="pageData.selectedParent.image"
-                           :src="pageData.selectedParent.image"
-                           draggable="false"
-                           class="w-6 pointer-events-none dark:invert"
-                        />
-                        <span class="font-medium">
-                           {{ pageData.selectedParent.label }}
-                        </span>
-                     </div>
-                  </template>
-               </BaseForm>
-            </main>
-         </Drawer>
-         <div class="flex justify-between items-center w-full px-3 py-2">
-            <h3>Kategoriyalar</h3>
-            <Button icon="pi pi-plus" variant="text" size="small" rounded @click="openCreateForm()" />
-         </div>
-      </div>
-      <Tree
-         v-model:value="convertTreeNode"
-         draggableNodes
-         droppableNodes
-         @node-drop="onNodeDrop"
-         class="w-full bg-tertiary p-4! rounded-xl border border-secondary"
-      >
-         <template #default="slotProps">
-            <TreeNodeItem
-               :selectedForUpdate="pageData.selectedForUpdate"
-               :selectedParent="pageData.selectedParent"
-               :key="slotProps.node.key"
-               :node="slotProps.node"
-               :update-loading="pageData.updateLoading"
-               @create="openCreateForm"
-               @paramaters="openParameterModal"
-               @edit="openEditForm"
-            />
-         </template>
-      </Tree>
-   </div>
+<template>
+   <section>
+      <BaseButton severity="secondary" class="mb-4">Yangi</BaseButton>
+      <TreeView v-model="tree" @change="changeTree" />
+      <BaseDialog v-model="open"> </BaseDialog>
+
+      <BaseDialog v-model="open">
+         <template #title> Kategoriya qo‘shish </template>
+
+         <main class="h-140 w-120"></main>
+      </BaseDialog>
+      <BaseForm :submit="submitForm" @close="open = false" :input-configs="categoryInputs" />
+      <BaseButton @click="open = true" class="mt-4">Test Dialog</BaseButton>
+   </section>
 </template>
 
 <script setup lang="ts">
-import TreeNodeItem from "@/components/ui/TreeNodeItem.vue";
-import BaseForm from "@/components/BaseForm.vue";
+import BaseForm from "@shared/ui/BaseForm.vue";
+
+import CategoryRepo from "@/entities/Category/CategoryRepo";
+import { useFetchDecorator } from "@/modules/useFetch";
+import { ITreeNode } from "@shared/types";
+import { ref, onMounted, watch } from "vue";
+import { formatCategories } from "@/modules/Formatters";
+import { categoryInputs } from "@/entities/Category/CategoryInputs";
+const { data: parentCategories, execute: fetchCategories } = useFetchDecorator(CategoryRepo.parents);
+
+function changeTree(value: { draggedId: number; targetId: number | null }) {
+   CategoryRepo.changeParent(value.draggedId, value.targetId);
+}
+
+const open = ref(false);
+
+async function submitForm(values: any) {
+   console.log(values, "submit qilindi");
+
+   // formni submit qilish
+}
+// function newTreeItem() {
+//    tree.value.push({
+//       id: Math.random().toString(),
+//       title: "sadsad",
+//       droppable: true,
+//       draggable: true,
+//    });
+// }
+
+const tree = ref<ITreeNode[]>([]);
+watch(
+   () => parentCategories.value,
+   () => {
+      tree.value = formatCategories(parentCategories.value || []);
+   },
+);
+
+onMounted(() => {
+   fetchCategories();
+});
+</script>
+
+<!--
+
+<script setup lang="ts">
 import CategoryRepo from "@/entities/Category/CategoryRepo";
 import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
 import { categoryInputs } from "@/entities/Category/CategoryInputs";
@@ -171,81 +158,4 @@ async function openEditForm(node: TreeNode) {
    pageData.updateLoading = null;
    pageData.drawerToggle = true;
 }
-
-// Drag and Drop hodisasi sodir bo'lganda
-const onNodeDrop = (event) => {
-   var newTree = event.value;
-   var dragNodeKey = event.dragNode.key;
-   var newParent = findParentId(newTree, dragNodeKey);
-   CategoryRepo.changeParent(dragNodeKey, newParent ? newParent.key : null);
-};
-
-onMounted(() => {
-   fetchCategories();
-});
 </script> -->
-
-<template>
-   <section>
-      <BaseButton severity="secondary" class="mb-4" @click="newTreeItem">Yangi</BaseButton>
-      <TreeView v-model="tree" @change="console.log" />
-   </section>
-</template>
-
-<script setup lang="ts">
-import { TreeNode } from "@shared/types";
-import { ref } from "vue";
-
-function newTreeItem() {
-   tree.value.push({
-      id: Math.random().toString(),
-      title: "sadsad",
-      droppable: true,
-      draggable: true,
-   });
-}
-const tree = ref<TreeNode[]>([
-   {
-      id: "1",
-      title: "Root",
-      droppable: true,
-      draggable: true,
-      children: [
-         {
-            id: "2",
-            title: "Child A",
-            draggable: true,
-            droppable: true,
-         },
-         {
-            id: "3",
-            title: "Child B (drop blocked)",
-            draggable: true,
-            droppable: true,
-         },
-      ],
-   },
-   {
-      id: "4",
-      title: "Rosot",
-      droppable: true,
-      draggable: true,
-      children: [
-         {
-            id: "5",
-            title: "ChildasA",
-            draggable: true,
-            droppable: false,
-         },
-         {
-            id: "6",
-            title: "Child 2B (drop blocked)",
-            draggable: true,
-            droppable: true,
-         },
-      ],
-   },
-]);
-</script>
-
-<style scoped></style>

@@ -1,5 +1,5 @@
 <template>
-   <section>
+   <section class="pt-safe-top">
       <main class="p-(--space-md) border-b border-(--color-border)">
          <BackPreviusPage title="Yangi e'lon" />
       </main>

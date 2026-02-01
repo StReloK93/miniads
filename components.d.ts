@@ -14,6 +14,7 @@ declare module 'vue' {
     AccordionGroup: typeof import('./resources/shared/ui/AccordionGroup.vue')['default']
     AccordionItem: typeof import('./resources/shared/ui/AccordionItem.vue')['default']
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
+    BaseDialog: typeof import('./resources/shared/ui/BaseDialog.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldNumber: typeof import('./resources/shared/ui/FieldNumber.vue')['default']

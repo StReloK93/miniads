@@ -114,9 +114,28 @@ onMounted(() => {
 </script> -->
 
 <template>
-   <div>Parameter</div>
+   <Menu as="div">
+      <MenuButton as="span">
+         <BaseButton>Options</BaseButton>
+      </MenuButton>
+      <MenuItems as="div">
+         <!-- Use the `active` state to conditionally style the active item. -->
+         <MenuItem v-for="link in links" :key="link.href" as="div" v-slot="{ active }">
+            <a :href="link.href" :class="{ 'bg-blue-500 text-white': active, 'bg-white text-black': !active }">
+               {{ link.label }}
+            </a>
+         </MenuItem>
+      </MenuItems>
+   </Menu>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 
-<style scoped></style>
+const links = [
+   { href: "/account-settings", label: "Account settings" },
+   { href: "/support", label: "Support" },
+   { href: "/license", label: "License" },
+   { href: "/sign-out", label: "Sign out" },
+];
+</script>

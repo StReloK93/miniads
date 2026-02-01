@@ -1,4 +1,4 @@
-@use "./base/tokens";
+@use "./tokens";
 
 @use "./components/button";
 @use "./components/accordion";
@@ -6,3 +6,5 @@
 @use "./components/textarea";
 @use "./components/select";
 @use "./components/tree";
+@use "./components/dialog";
+

@@ -2,8 +2,9 @@
    <Field :name="props.name" v-slot="{ field, handleChange }" class="flex flex-col gap-1">
       <main class="relative">
          <input
+            ref="inputFile"
             type="file"
-            :id="props.name"
+            :id="props.name + 'id'"
             v-bind="$attrs"
             @input="handleChange"
             @change="(event) => onNativeFileChange(event, field)"
@@ -26,12 +27,13 @@
                </BaseButton>
                <img
                   :src="image.url"
-                  class="rounded-md aspect-square grayscale object-cover w-full border border-secondary"
+                  class="rounded-md aspect-square grayscale object-cover w-full border border-(--color-border)"
                />
             </main>
             <label
-               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-secondary hover:border-surface-300 hover:bg-surface-100 p-1.5"
-               :for="props.name"
+               v-if="attrs.multiple || images_source.length === 0"
+               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-(--color-border) hover:border-surface-300 hover:bg-surface-100 p-1.5"
+               :for="props.name + 'id'"
             >
                <img :src="'/images/image.svg'" class="w-10 grayscale" />
             </label>
@@ -44,6 +46,10 @@
 import { Field } from "vee-validate";
 import { XMarkIcon } from "@heroicons/vue/24/outline";
 import { ref } from "vue";
+import { useAttrs } from "vue";
+
+const inputFile = ref<HTMLInputElement | null>(null);
+const attrs = useAttrs();
 const props = defineProps<{ name: string }>();
 
 interface IImage {
@@ -54,9 +60,19 @@ interface IImage {
 
 const images_source = ref<IImage[]>([]);
 async function inputMouted($field: any) {
-   await $field.onInput($field.value || []);
+   var nullable;
+   if (attrs.multiple) nullable = [];
+   else nullable = null;
+   await $field.onInput($field.value || nullable);
+
    if ($field.value) {
-      images_source.value = $field.value?.map((image) => ({ ...image, file: image.url }));
+      const isArray = Array.isArray($field.value);
+
+      if (isArray) {
+         images_source.value = $field.value?.map((image) => ({ ...image, file: image.url }));
+      } else {
+         images_source.value = [{ ...$field.value, file: $field.value.url }];
+      }
    }
 }
 
@@ -66,26 +82,43 @@ function onNativeFileChange(event: Event, $field: any) {
 
    const files = Array.from(target.files);
 
-   images_source.value.push(
-      ...files.map((file) => {
-         return { id: null, url: URL.createObjectURL(file), file };
-      }),
-   );
-
-   $field.onInput(images_source.value);
+   if (attrs.multiple) {
+      images_source.value.push(
+         ...files.map((file) => {
+            return { id: null, url: URL.createObjectURL(file), file };
+         }),
+      );
+      $field.onInput(images_source.value);
+   } else {
+      if (inputFile.value) inputFile.value.value = "";
+      images_source.value = [
+         {
+            id: null,
+            url: URL.createObjectURL(files[0]),
+            file: files[0],
+         },
+      ];
+      $field.onInput(files[0]);
+   }
 }
 
 function deleteImage(image: { index: number; url: string }, $field: any) {
    const files = $field.value as (File | string)[];
    if (!files || files.length === 0) return;
 
-   const newFiles = files.filter((_, i) => i !== image.index);
-
-   $field.onInput(newFiles);
-
-   if (images_source.value[image.index].file instanceof File) {
-      URL.revokeObjectURL(image.url);
+   if (attrs.multiple) {
+      const newFiles = files.filter((_, i) => i !== image.index);
+      $field.onInput(newFiles);
+      if (images_source.value[image.index].file instanceof File) {
+         URL.revokeObjectURL(image.url);
+      }
+      images_source.value = images_source.value.filter((item, index) => index !== image.index);
+   } else {
+      $field.onInput(null);
+      if (images_source.value[0].file instanceof File) {
+         URL.revokeObjectURL(image.url);
+      }
+      images_source.value = [];
    }
-   images_source.value = images_source.value.filter((item, index) => index !== image.index);
 }
 </script>

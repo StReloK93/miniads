@@ -8,18 +8,19 @@
             @dragleave="onDragLeave"
             @drop="onDrop"
          >
-            <!-- toggle -->
             <DisclosureButton
                :class="{
                   'drop-zone--active': node.droppable && isDragOver,
                   'drop-zone--passive': !node.droppable && isDragOver,
                }"
-               class="tree-node__row text-sm font-medium w-full flex items-center gap-(--space-md)"
+               class="tree-node__row text-sm font-medium w-full flex border border-(--color-border) items-center gap-(--space-md)"
             >
+               <FolderIcon class="size-4" v-if="node.is_page == false" />
+               <DocumentIcon class="size-4" v-else />
                <ChevronDownIcon v-if="open && node.children?.length" class="size-4" />
                <ChevronRightIcon v-else-if="!open && node.children?.length" class="size-4" />
                <div v-else class="size-2 rounded-full bg-(--color-surface) border border-(--color-primary)" />
-               <span>{{ node.title }}</span>
+               <span class="flex items-center gap-2"> {{ node.title }}</span>
             </DisclosureButton>
          </div>
 
@@ -32,17 +33,17 @@
    </div>
 </template>
 <script setup lang="ts">
-import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/vue/24/outline";
+import { ChevronDownIcon, ChevronRightIcon, DocumentIcon, FolderIcon } from "@heroicons/vue/24/outline";
 import { ref } from "vue";
 import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/vue";
-import type { TreeNode } from "@shared/types";
+import type { ITreeNode } from "@shared/types";
 
 const props = defineProps<{
-   node: TreeNode;
+   node: ITreeNode;
 }>();
 
 const emit = defineEmits<{
-   (e: "move", payload: { draggedId: string; targetId: string }): void;
+   (e: "move", payload: { draggedId: number; targetId: number }): void;
 }>();
 
 const isDragOver = ref(false);
@@ -52,7 +53,7 @@ function onDragStart(e: DragEvent) {
       e.preventDefault();
       return;
    }
-   e.dataTransfer?.setData("text/plain", props.node.id);
+   e.dataTransfer?.setData("text/plain", String(props.node.id));
 }
 
 function onDragOver(e: DragEvent) {
@@ -69,10 +70,11 @@ function onDragLeave() {
 function onDrop(e: DragEvent) {
    e.preventDefault();
    e.stopPropagation();
-   if (!props.node.droppable) return (isDragOver.value = false);
+   if (props.node.droppable == false) return (isDragOver.value = false);
 
-   const draggedId = e.dataTransfer?.getData("text/plain");
-   if (!draggedId) return;
+   const draggedId = Number(e.dataTransfer?.getData("text/plain"));
+
+   if (isNaN(draggedId)) return;
 
    emit("move", {
       draggedId,

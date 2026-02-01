@@ -5,6 +5,8 @@
    padding: var(--space-md);
    border-radius: var(--radius-md);
    border: 1px solid var(--color-border);
+   background: var(--color-surface-muted);
+
 }
 
 .tree-node:first-child {
@@ -18,7 +20,7 @@
 }
 
 .tree-node__row {
-   background: var(--color-surface-muted);
+   background: var(--color-surface);
    display: flex;
    align-items: center;
    gap: var(--space-md);

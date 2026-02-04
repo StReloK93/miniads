@@ -3,7 +3,7 @@ import FieldText from "@shared/ui/FieldText.vue";
 import FieldNumber from "@shared/ui/FieldNumber.vue";
 import FieldTextarea from "@shared/ui/FieldTextarea.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
-
+import FieldToggleButton from "@shared/ui/FieldToggleButton.vue";
 export const Inputs = {
    FieldText,
    FieldNumber,
@@ -19,7 +19,7 @@ export const Inputs = {
    // MultiSelect,
    // Rating,
    FieldTextarea,
-   // ToggleButton,
+   FieldToggleButton,
    // InputChips,
    FieldImage,
 };

@@ -1,45 +1,46 @@
-import { Inputs } from "@/modules/Inputs";
+import { PrimeVueInputs } from "@admin/modules/PrimeVueInputs";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
+const globalProps = { size: "small", fluid: true };
 export const parameterInputs: InputConfig[] = [
    {
-      component: Inputs["InputText"],
+      component: PrimeVueInputs["InputText"],
       name: "placeholder",
       placeholder: "Nomi",
-      props: { placeholder: "Nomi" },
+      props: globalProps,
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
    {
-      component: Inputs["InputText"],
+      component: PrimeVueInputs["InputText"],
       name: "unit",
       placeholder: "O'lchov birligi",
-      props: { placeholder: "O'lchov birligi" },
+      props: globalProps,
       schema: z.string({ message: "Majburiy maydon!" }).optional().nullable(),
       class: ["mb-4"],
    },
    {
-      component: Inputs["Select"],
+      component: PrimeVueInputs["Select"],
       name: "component",
       placeholder: "Input turi",
-      props: { options: Object.keys(Inputs) },
+      props: { ...globalProps, options: Object.keys(PrimeVueInputs) },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: Inputs["Select"],
+      component: PrimeVueInputs["Select"],
       name: "type",
       placeholder: "Malumot turi",
-      props: { options: ["string", "number", "boolean", "array"] },
+      props: { ...globalProps, options: ["string", "number", "boolean", "array"] },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: Inputs["AutoComplete"],
+      component: PrimeVueInputs["AutoComplete"],
       name: "options",
       placeholder: "Variantlar",
-      props: { multiple: true, typeahead: false },
+      props: { ...globalProps, multiple: true, typeahead: false },
       schema: z.array(z.string()).optional().nullable(),
       class: ["mb-4"],
    },

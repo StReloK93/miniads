@@ -1,20 +1,18 @@
-import Home from "@pages/HomePage.vue";
-import Login from "@pages/LoginPage.vue";
 import { RouteRecordRaw } from "vue-router";
-import Application from "@pages/AppLayout.vue";
-import CategoryIdPage from "@pages/CategoryIdPage.vue";
-import FavoritePage from "@pages/FavoritePage.vue";
-import ProductPage from "@pages/ProductPage.vue";
-import CreateProductPage from "@/pages/CreateProductPage.vue";
 export const routes: RouteRecordRaw[] = [
    {
       path: "/",
-      component: Application,
+      component: () => import("@/pages/AppLayout.vue"),
       redirect: { name: "home" },
       children: [
-         { path: "", component: Home, name: "home" },
-         { path: "/favorites", component: FavoritePage, name: "favorites" },
-         { path: "/category/:id", component: CategoryIdPage, name: "category-id", props: true },
+         { path: "", component: () => import("@/pages/HomePage.vue"), name: "home" },
+         { path: "/favorites", component: () => import("@/pages/FavoritePage.vue"), name: "favorites" },
+         {
+            path: "/category/:id",
+            component: () => import("@/pages/CategoryIdPage.vue"),
+            name: "category-id",
+            props: true,
+         },
          {
             path: "/categories",
             component: () => import("@/pages/CategoryPage.vue"),
@@ -23,7 +21,7 @@ export const routes: RouteRecordRaw[] = [
       ],
    },
 
-   { path: "/product/:id", component: ProductPage, name: "product-id", props: true },
-   { path: "/login", component: Login, meta: { guestOnly: true }, name: "login" },
-   { path: "/create-product", component: CreateProductPage, name: "create-product" },
+   { path: "/product/:id", component: () => import("@/pages/ProductPage.vue"), name: "product-id", props: true },
+   { path: "/login", component: () => import("@/pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
+   { path: "/create-product", component: () => import("@/pages/CreateProductPage.vue"), name: "create-product" },
 ];

@@ -17,7 +17,7 @@ class CategoryController extends Controller
 	{
 		return Category::with(['parameters'])
 			->with('parent')
-			->select('id', 'name', 'image', 'parent_id')
+			->select('id', 'name', 'image', 'parent_id', 'is_page')
 			->findOrFail($id);
 	}
 	public function parents()

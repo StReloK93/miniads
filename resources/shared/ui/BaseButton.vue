@@ -26,7 +26,7 @@
 import { ArrowPathIcon } from "@heroicons/vue/24/outline";
 
 type Size = "sm" | "md" | "lg";
-type Severity = "primary" | "secondary" | "success" | "danger";
+type Severity = "primary" | "secondary" | "success" | "danger" | "light";
 type Variant = "default" | "text";
 
 const props = withDefaults(

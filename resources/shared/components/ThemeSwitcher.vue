@@ -3,7 +3,7 @@
       <BaseButton
          v-for="button in buttons"
          :key="button.mode"
-         :class="{ 'text-(--color-primary)!': mode === button.mode }"
+         :class="{ 'text-primary!': mode === button.mode }"
          severity="secondary"
          @click="changeTheme(button.mode as ThemeMode)"
          icon-only
@@ -17,7 +17,6 @@
 
 <script setup lang="ts">
 import { SunIcon, MoonIcon, DevicePhoneMobileIcon } from "@heroicons/vue/24/outline";
-import BaseButton from "@shared/ui/BaseButton.vue";
 import { ref } from "vue";
 import { applyTheme, type ThemeMode } from "@shared/components/theme";
 

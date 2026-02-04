@@ -29,6 +29,9 @@
 </template>
 
 <script setup lang="ts">
+import { DataTable, Column, Chip, Button } from "primevue";
+import { useConfirm } from "primevue/useconfirm";
+const confirm = useConfirm();
 const emit = defineEmits<{
    (e: "edit", id: string | number): void;
    (e: "delete", id: string | number): void;
@@ -39,6 +42,24 @@ const props = defineProps<{
 }>();
 
 const confirmDelete = (event, id: number) => {
-   emit("delete", id);
+   console.log(event);
+
+   confirm.require({
+      target: event.currentTarget,
+      message: "Aniq o'chirmoqchimisiz - Malumot qayta tiklanmaydi?",
+      icon: "pi pi-exclamation-triangle",
+      rejectProps: {
+         label: "Bekor qilish",
+         severity: "secondary",
+         outlined: true,
+      },
+      acceptProps: {
+         label: "O'chirish",
+         severity: "danger",
+      },
+      accept: () => {
+         emit("delete", id);
+      },
+   });
 };
 </script>

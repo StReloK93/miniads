@@ -1,5 +1,5 @@
-import { api } from "@/modules/useFetch";
-import { ICategoryParameter, IParameter } from "@/types";
+import { api } from "@shared/api/useFetch";
+import { ICategoryParameter, IParameter } from "@shared/types";
 const baseURL = "categories";
 
 export default {

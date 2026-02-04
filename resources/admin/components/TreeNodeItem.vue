@@ -52,6 +52,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button, Menu } from "primevue";
+import { TreeNode } from "primevue/treenode";
 import { ref } from "vue";
 
 const emit = defineEmits(["create", "edit", "paramaters"]);

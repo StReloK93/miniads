@@ -68,6 +68,12 @@
    --btn-text: #fff;
 }
 
+.ui-button[data-severity="light"] {
+   --btn-bg: #fff;
+   --btn-bg-hover: var(--color-surface-muted);
+   --btn-text: #333;
+}
+
 .ui-button[data-variant="text"] {
    --btn-bg: transparent;
    --btn-bg-hover: var(--color-border);

@@ -7,9 +7,9 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { api } from "@/modules/useFetch";
+import { api } from "@shared/api/useFetch";
 import { useRouter } from "vue-router";
-import { useAuth } from "@/store/useAuth";
+import { useAuth } from "@shared/store/useAuth";
 const router = useRouter();
 const { getUser } = useAuth();
 const telegramWrapper = ref(null);

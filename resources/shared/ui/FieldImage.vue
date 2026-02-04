@@ -11,7 +11,7 @@
             class="hidden"
             @vue:mounted="inputMouted(field)"
          />
-         <div class="grid gap-3 grid-cols-3">
+         <div :class="{ 'grid gap-4 grid-cols-3': attrs.multiple }">
             <main v-for="(image, index) in images_source" :key="index" class="relative">
                <BaseButton
                   @click.stop="deleteImage({ url: image.url, index }, field)"
@@ -25,14 +25,16 @@
                      <XMarkIcon class="size-5" />
                   </template>
                </BaseButton>
-               <img
-                  :src="image.url"
-                  class="rounded-md aspect-square grayscale object-cover w-full border border-(--color-border)"
-               />
+               <div class="w-full aspect-square">
+                  <img
+                     :src="image.url"
+                     class="rounded-md aspect-square grayscale object-cover w-full border border-slate-200 dark:border-slate-700"
+                  />
+               </div>
             </main>
             <label
                v-if="attrs.multiple || images_source.length === 0"
-               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-(--color-border) hover:border-surface-300 hover:bg-surface-100 p-1.5"
+               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-slate-200 dark:border-slate-700"
                :for="props.name + 'id'"
             >
                <img :src="'/images/image.svg'" class="w-10 grayscale" />
@@ -71,7 +73,7 @@ async function inputMouted($field: any) {
       if (isArray) {
          images_source.value = $field.value?.map((image) => ({ ...image, file: image.url }));
       } else {
-         images_source.value = [{ ...$field.value, file: $field.value.url }];
+         images_source.value = [{ url: $field.value, file: $field.value.url }];
       }
    }
 }

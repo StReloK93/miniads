@@ -3,29 +3,29 @@
       @submit="onSubmit"
       :validation-schema="validationSchema"
       :initialValues="initialValues"
-      class="flex flex-col w-full h-full"
+      class="grid-rows-[auto_1fr_auto] h-full grid"
    >
-      <slot name="header" />
+      <main>
+         <slot name="header" />
+      </main>
 
-      <div class="flex flex-col grow relative">
-         <main class="absolute inset-0 overflow-y-auto py-3">
-            <slot name="inputs" />
-            <template v-for="input in inputConfigs" :key="input.name">
-               <div :class="input.class">
-                  <component :is="input.component" :name="input.name" v-bind="input.props" />
+      <div class="overflow-y-auto p-4">
+         <slot name="inputs" />
+         <template v-for="input in inputConfigs" :key="input.name">
+            <div :class="input.class">
+               <component :is="input.component" :name="input.name" v-bind="input.props" />
 
-                  <ErrorMessage :name="input.name" v-slot="{ message }">
-                     <p class="text-sm text-red-500 mt-1">
-                        {{ message }}
-                     </p>
-                  </ErrorMessage>
-               </div>
-            </template>
-         </main>
+               <ErrorMessage :name="input.name" v-slot="{ message }">
+                  <p class="text-sm text-red-500 mt-1">
+                     {{ message }}
+                  </p>
+               </ErrorMessage>
+            </div>
+         </template>
       </div>
-      <footer class="flex gap-3 py-4 border-t border-(--color-border)">
-         <BaseButton severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </BaseButton>
-         <BaseButton type="submit" class="w-full" :loading="buttonLoader"> Saqlash </BaseButton>
+      <footer class="flex gap-3 p-4 border-t border-slate-200">
+         <Button severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </Button>
+         <Button type="submit" class="w-full" :loading="buttonLoader"> Saqlash </Button>
       </footer>
    </Form>
 </template>

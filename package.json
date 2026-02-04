@@ -8,6 +8,7 @@
    },
    "devDependencies": {
       "@eslint/js": "^9.39.2",
+      "@primevue/auto-import-resolver": "^4.5.4",
       "@tailwindcss/vite": "^4.0.0",
       "@types/node": "^25.0.3",
       "@vitejs/plugin-vue": "^6.0.3",
@@ -20,6 +21,7 @@
       "globals": "^16.5.0",
       "laravel-vite-plugin": "^2.0.0",
       "prettier": "^3.7.4",
+      "rollup-plugin-visualizer": "^6.0.5",
       "sass": "^1.97.3",
       "sass-embedded": "^1.97.3",
       "tailwindcss": "^4.0.0",
@@ -31,14 +33,18 @@
    "dependencies": {
       "@headlessui/vue": "^1.7.23",
       "@heroicons/vue": "^2.2.0",
+      "@primeuix/themes": "^2.0.3",
       "@primevue/forms": "^4.5.4",
       "@tma.js/bridge": "^2.2.2",
       "@vee-validate/zod": "^4.15.1",
       "pinia": "^3.0.4",
+      "primeicons": "^7.0.0",
+      "primevue": "^4.5.4",
       "swiper": "^12.0.3",
+      "tailwindcss-primeui": "^0.6.1",
       "vee-validate": "^4.15.1",
       "vue": "^3.5.26",
       "vue-router": "^4.6.4",
-      "zod": "^4.3.6"
+      "zod": "^3.25.76"
    }
 }

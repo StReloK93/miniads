@@ -1,4 +1,4 @@
-import { api } from "@/modules/useFetch";
+import { api } from "@shared/api/useFetch";
 import { ICategory } from "@shared/types";
 import { ref } from "vue";
 const baseURL = "categories";
@@ -29,7 +29,7 @@ export default {
    update(id: string, formData: { name: string; file?: File }) {
       return api.post(`${baseURL}/${id}`, formData, headerMultipart);
    },
-   show(id: number) {
+   show(id: number | string) {
       return api.get<ICategory>(`${baseURL}/${id}`);
    },
    changeParent(id: number, parent_id: number | string | null) {

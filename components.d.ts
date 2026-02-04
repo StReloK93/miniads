@@ -14,16 +14,14 @@ declare module 'vue' {
     AccordionGroup: typeof import('./resources/shared/ui/AccordionGroup.vue')['default']
     AccordionItem: typeof import('./resources/shared/ui/AccordionItem.vue')['default']
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
-    BaseDialog: typeof import('./resources/shared/ui/BaseDialog.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldNumber: typeof import('./resources/shared/ui/FieldNumber.vue')['default']
     FieldSelect: typeof import('./resources/shared/ui/FieldSelect.vue')['default']
     FieldText: typeof import('./resources/shared/ui/FieldText.vue')['default']
     FieldTextarea: typeof import('./resources/shared/ui/FieldTextarea.vue')['default']
+    FieldToggleButton: typeof import('./resources/shared/ui/FieldToggleButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TreeNode: typeof import('./resources/shared/ui/TreeNode.vue')['default']
-    TreeView: typeof import('./resources/shared/ui/TreeView.vue')['default']
   }
 }

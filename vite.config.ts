@@ -4,22 +4,34 @@ import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "path"; // Path modulini chaqiramiz
 import Components from "unplugin-vue-components/vite";
+// import { visualizer } from "rollup-plugin-visualizer";
 import Icons from "unplugin-icons/vite";
-import IconsResolver from "unplugin-icons/resolver";
 
 export default defineConfig({
-   build: {
-      minify: false, // Kodni qisqartirmaydi (Eng ko'p vaqtni shu tejaydi)
-      cssMinify: false, // CSS-ni qisqartirmaydi
-      sourcemap: false, // .map fayllarini yaratmaydi
-      target: "esnext", // Eski brauzerlar uchun kodni o'zgartirib o'tirmaydi
-      modulePreload: false, // Preload skriptlarini o'chiradi
-      reportCompressedSize: false, // Build oxirida hajmni hisoblamaydi (tezroq tugaydi)
-      rollupOptions: {
-         // Keraksiz yuklamalarni cheklash
-      },
-   },
+   // build: {
+   //    chunkSizeWarningLimit: 1000,
+   //    rollupOptions: {
+   //       output: {
+   //          manualChunks(id) {
+   //             if (id.includes("node_modules/primevue")) {
+   //                // Faqat adminApp'dan kelayotgan bo'lsa ham,
+   //                // Vite uni shared deb o'ylamasligi uchun nomini aniq qilamiz
+   //                return "admin-primevue";
+   //             }
+   //          },
+   //       },
+   //    },
+   // },
    plugins: [
+      Icons({
+         compiler: "vue3",
+      }),
+      // visualizer({
+      //    open: true, // Build tugagach brauzerda avtomatik ochiladi
+      //    filename: "stats.html", // Natija shu faylga yoziladi
+      //    gzipSize: true, // Gzip siqishdan keyingi hajmni ko'rsatadi
+      //    brotliSize: true, // Brotli siqishdan keyingi hajmni ko'rsatadi
+      // }),
       vue(),
       laravel({
          input: [
@@ -38,18 +50,6 @@ export default defineConfig({
          extensions: ["vue"],
          deep: true,
          dts: "components.d.ts",
-
-         // 🔹 iconlarni component sifatida auto-import qilish
-         resolvers: [
-            IconsResolver({
-               prefix: "", // <SunIcon /> bo‘lsin
-               extension: "vue",
-            }),
-         ],
-      }),
-      Icons({
-         compiler: "vue3",
-         autoInstall: true,
       }),
    ],
    server: {

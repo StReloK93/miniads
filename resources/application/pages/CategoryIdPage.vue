@@ -16,8 +16,8 @@
 <script setup lang="ts">
 import BaseProductCard from "@/components/BaseProductCard.vue";
 import { onMounted } from "vue";
-import CategoryRepo from "@/entities/Category/CategoryRepo";
-import { useFetchDecorator } from "@/modules/useFetch";
+import CategoryRepo from "@shared/entities/Category/CategoryRepo";
+import { useFetchDecorator } from "@shared/api/useFetch";
 import { useRoute } from "vue-router";
 import { ICategory } from "@shared/types";
 

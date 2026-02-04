@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
    <div>
       <div class="flex justify-center flex-col">
          <Drawer
@@ -33,13 +33,15 @@
 </template>
 
 <script setup lang="ts">
-import BaseTable from "@/components/BaseTable.vue";
-import BaseForm from "@/components/BaseForm.vue";
-import ParameterRepo from "@/entities/Parameter/ParameterRepo";
+import { Button, Drawer } from "primevue";
+import BaseTable from "@admin/components/BaseTable.vue";
+import BaseForm from "@admin/components/BaseForm.vue";
+import ParameterRepo from "@shared/entities/Parameter/ParameterRepo";
 import { onMounted, reactive, shallowRef } from "vue";
-import { useFetchDecorator } from "@/modules/useFetch";
-import { parameterInputs, superRefine, parameterColumns } from "@/entities/Parameter/ParameterInputs";
-import { IParameter } from "@/types";
+import { useFetchDecorator } from "@shared/api/useFetch";
+import { parameterInputs, superRefine, parameterColumns } from "@shared/entities/Parameter/ParameterInputs";
+import { TreeNode } from "primevue/treenode";
+import { IParameter } from "@shared/types";
 var submit: (values: any) => Promise<void>;
 
 const pageData = reactive<{
@@ -111,31 +113,4 @@ function closeDrawer() {
 onMounted(() => {
    executeParameters();
 });
-</script> -->
-
-<template>
-   <Menu as="div">
-      <MenuButton as="span">
-         <BaseButton>Options</BaseButton>
-      </MenuButton>
-      <MenuItems as="div">
-         <!-- Use the `active` state to conditionally style the active item. -->
-         <MenuItem v-for="link in links" :key="link.href" as="div" v-slot="{ active }">
-            <a :href="link.href" :class="{ 'bg-blue-500 text-white': active, 'bg-white text-black': !active }">
-               {{ link.label }}
-            </a>
-         </MenuItem>
-      </MenuItems>
-   </Menu>
-</template>
-
-<script setup lang="ts">
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
-
-const links = [
-   { href: "/account-settings", label: "Account settings" },
-   { href: "/support", label: "Support" },
-   { href: "/license", label: "License" },
-   { href: "/sign-out", label: "Sign out" },
-];
 </script>

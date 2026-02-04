@@ -21,10 +21,10 @@
 
 <script setup lang="ts">
 import { Swiper, SwiperSlide } from "swiper/vue";
-import CategoryRepo from "@/entities/Category/CategoryRepo";
+import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { onMounted, ref } from "vue";
 import { preloadImages } from "@/modules/Helpers";
-import { useFetchDecorator } from "@/modules/useFetch";
+import { useFetchDecorator } from "@shared/api/useFetch";
 import { ICategory } from "@shared/types";
 const { data: parentCategories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
 

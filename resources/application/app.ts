@@ -4,7 +4,7 @@ import { isTMA, retrieveRawInitData, postEvent, on } from "@tma.js/bridge";
 
 import App from "@/App.vue";
 import router from "@/router";
-import { useAuth } from "@/store/useAuth";
+import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/components/theme";
 import "@shared/css/ui.scss";
 initTheme();

@@ -1,6 +1,6 @@
 <template>
    <Form @submit="submit" class="mt-4">
-      <template v-if="isLoadingData == false">
+      <template v-if="isLoadingData == false" class="">
          <main
             v-for="(value, index) in formData"
             :key="index"
@@ -79,9 +79,12 @@
 </template>
 
 <script setup lang="ts">
-import CategoryParameterRepo from "@/entities/CategoryParameter/CategoryParameterRepo";
-import ParameterRepo from "@/entities/Parameter/ParameterRepo";
+import { Form } from "@primevue/forms";
+import { Button, Checkbox, InputNumber, Skeleton, ToggleButton } from "primevue";
+import CategoryParameterRepo from "@shared/entities/CategoryParameter/CategoryParameterRepo";
+import ParameterRepo from "@shared/entities/Parameter/ParameterRepo";
 import { IParameter } from "@shared/types";
+import { TreeNode } from "primevue/treenode";
 import { ref, onMounted } from "vue";
 
 const emit = defineEmits(["close"]);
@@ -137,13 +140,10 @@ async function getData() {
 
 onMounted(async () => {
    isLoadingData.value = true;
-   console.log("start");
 
    await getData();
-   console.log("next 1");
 
    const { data } = await CategoryParameterRepo.index(props.category.key);
-   console.log("next 2");
 
    data.forEach((categoryParameter) => {
       const pivot = categoryParameter.pivot;

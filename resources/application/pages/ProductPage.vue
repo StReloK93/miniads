@@ -40,11 +40,11 @@
 
 <script setup lang="ts">
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
-import ProductRepo from "@/entities/Product/ProductRepo";
+import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { useRoute } from "vue-router";
-import { useFetchDecorator } from "@/modules/useFetch";
+import { useFetchDecorator } from "@shared/api/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";

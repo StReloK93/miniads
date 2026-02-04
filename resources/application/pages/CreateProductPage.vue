@@ -43,14 +43,14 @@
 <script setup lang="ts">
 import BaseForm from "@shared/ui/BaseForm.vue";
 import { Inputs } from "@/modules/Inputs";
-import { productInputs, ZodTypeMapping } from "../entities/Product/ProductInputs";
+import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { ICategory, InputConfig } from "@shared/types";
 import { computed, onMounted, reactive, ref } from "vue";
-import CategoryRepo from "../entities/Category/CategoryRepo";
-import ProductRepo from "../entities/Product/ProductRepo";
+import CategoryRepo from "@shared/entities/Category/CategoryRepo";
+import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
-import { useFetchDecorator } from "@/modules/useFetch";
+import { useFetchDecorator } from "@shared/api/useFetch";
 import { preloadImages } from "@/modules/Helpers";
 import { PlusCircleIcon } from "@heroicons/vue/24/outline";
 const { data: categories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
@@ -68,7 +68,7 @@ var fullInputs: InputConfig[] = [];
 async function selectCategory(id: number) {
    const { data: category } = await CategoryRepo.show(id);
    const parameters = category.parameters;
-   const parameterInputs = parameters.map((parameter, index) => {
+   const customInputs = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
       return {
          component: Inputs[parameter.component] as Component,
@@ -81,7 +81,7 @@ async function selectCategory(id: number) {
          schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required, parameter.placeholder),
       };
    });
-   fullInputs = [...productInputs, ...parameterInputs];
+   fullInputs = [...productInputs, ...customInputs];
    pageData.selectedCategory = category;
 }
 

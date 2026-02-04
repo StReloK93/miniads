@@ -24,8 +24,8 @@
          </template>
       </div>
       <footer class="flex gap-3 p-4 border-t border-slate-200">
-         <Button severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </Button>
-         <Button type="submit" class="w-full" :loading="buttonLoader"> Saqlash </Button>
+         <BaseButton severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </BaseButton>
+         <BaseButton type="submit" class="w-full" :loading="buttonLoader"> Saqlash </BaseButton>
       </footer>
    </Form>
 </template>
@@ -34,8 +34,8 @@
 import { ref, computed } from "vue";
 import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import { z } from "zod";
 import type { InputConfig } from "@shared/types";
+import { z } from "zod";
 
 const emit = defineEmits(["close"]);
 

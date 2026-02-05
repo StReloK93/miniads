@@ -93,21 +93,11 @@ class CategorySeeder extends Seeder
 				],
 			],
 
-			// 👕 Shaxsiy buyumlar
-			[
-				'name' => 'Shaxsiy buyumlar',
-				'image' => '/icons/personal.svg',
-				'subs' => [
-					['name' => 'Kiyim-kechak', 'is_page' => true],
-					['name' => 'Poyabzal', 'is_page' => true],
-					['name' => 'Parfyumeriya va kosmetika', 'is_page' => true],
-					['name' => 'Aksessuarlar', 'is_page' => true],
-				]
-			],
 
-			// 💼 Ish va daromad
+
+			// 💼 Ish
 			[
-				'name' => 'Ish va daromad',
+				'name' => 'Ish',
 				'image' => '/icons/job.svg',
 				'subs' => [
 					['name' => 'Doimiy ish', 'is_page' => true],
@@ -154,13 +144,25 @@ class CategorySeeder extends Seeder
 
 			// 🐄 Chorva va hayvonlar
 			[
-				'name' => 'Chorva va hayvonlar',
+				'name' => 'Hayvonot',
 				'image' => '/icons/animal.svg',
 				'subs' => [
 					['name' => 'Qoramol', 'is_page' => true],
 					['name' => "Qo'y / Echki", 'is_page' => true],
 					['name' => 'Parrandalar', 'is_page' => true],
 					['name' => 'Uy hayvonlari', 'is_page' => true],
+				]
+			],
+
+			// 👕 Shaxsiy buyumlar
+			[
+				'name' => 'Shaxsiy buyumlar',
+				'image' => '/icons/personal.svg',
+				'subs' => [
+					['name' => 'Kiyim-kechak', 'is_page' => true],
+					['name' => 'Poyabzal', 'is_page' => true],
+					['name' => 'Parfyumeriya va kosmetika', 'is_page' => true],
+					['name' => 'Aksessuarlar', 'is_page' => true],
 				]
 			],
 

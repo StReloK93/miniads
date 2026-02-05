@@ -37,6 +37,7 @@
       "@primevue/forms": "^4.5.4",
       "@tma.js/bridge": "^2.2.2",
       "@vee-validate/zod": "^4.15.1",
+      "lucide-vue-next": "^0.563.0",
       "pinia": "^3.0.4",
       "primeicons": "^7.0.0",
       "primevue": "^4.5.4",

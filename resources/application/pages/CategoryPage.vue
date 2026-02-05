@@ -60,3 +60,53 @@ onMounted(async () => {
    await fetchCategories();
 });
 </script>
+
+<!--
+🏠 Uy-joy
+
+📱 Texnika
+
+🚗 Avto
+
+👕 Shaxsiy buyumlar
+
+💼 Ish va daromad
+
+🛠 Xizmatlar
+
+🪑 Mebel
+
+🎓 Ta’lim
+
+🐄 Chorva va hayvonlar
+
+🎁 Bepul beriladi
+
+🔎 Topildi / Yo‘qotildi
+
+📦 Boshqa
+-->
+
+<!-- 
+Main Page
+
+Elon Topishga mo'ljallagan bo'lim
+
+Qidiruv Yonida filter
+Pasida Kategoriyalar
+
+---------------
+Xizmatlar
+
+---------------
+Topilmalar
+
+---------------
+Ish o'rinlari 
+
+
+
+--------------
+
+Navigator
+-->

@@ -33,7 +33,7 @@
                      {{ option.label }}
                   </span>
 
-                  <CheckIcon v-if="selected" class="h-4 w-4 text-(--color-primary)" />
+                  <CheckIcon v-if="selected" class="h-4 w-4 text-primary" />
                </ListboxOption>
             </ListboxOptions>
          </div>
@@ -69,12 +69,6 @@ const props = withDefaults(
    },
 );
 
-/**
- * 🔑 OPTIONS NORMALIZATION
- * - string[]        → { label, value }
- * - {label,value}  → o‘z holicha
- * - custom object  → labelKey/valueKey orqali
- */
 const normalizedOptions = computed<NormalizedOption[]>(() => {
    return props.options.map((opt) => {
       // 1️⃣ Oddiy string / number

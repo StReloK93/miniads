@@ -19,7 +19,7 @@
       <RouterLink :to="{ name: 'create-product' }">
          <BaseButton severity="secondary" variant="text" class="flex-col gap-1.5! text-xs min-w-20">
             <template #icon>
-               <PlusCircleIcon class="size-5" />
+               <PlusIcon class="size-5" />
             </template>
             E'lon berish
          </BaseButton>
@@ -33,5 +33,5 @@
    </nav>
 </template>
 <script lang="ts" setup>
-import { HeartIcon, HomeIcon, PlusCircleIcon, UserIcon } from "@heroicons/vue/24/outline";
+import { HeartIcon, HomeIcon, PlusIcon, UserIcon } from "@heroicons/vue/24/outline";
 </script>

@@ -1,5 +1,5 @@
 <template>
-   <nav class="flex justify-between pt-1 pb-safe-bottom bg-slate-50 px-1">
+   <nav class="flex justify-around pt-1 pb-safe-bottom bg-slate-50 px-1">
       <RouterLink :to="{ name: 'home' }">
          <BaseButton severity="secondary" variant="text" class="flex-col gap-1.5! text-xs min-w-20">
             <template #icon>
@@ -24,12 +24,14 @@
             E'lon berish
          </BaseButton>
       </RouterLink>
-      <BaseButton severity="secondary" variant="text" class="flex-col gap-1.5! text-xs min-w-20">
-         <template #icon>
-            <UserIcon class="size-5" />
-         </template>
-         Profil
-      </BaseButton>
+      <RouterLink :to="{ name: 'profile' }">
+         <BaseButton severity="secondary" variant="text" class="flex-col gap-1.5! text-xs min-w-20">
+            <template #icon>
+               <UserIcon class="size-5" />
+            </template>
+            Profil
+         </BaseButton>
+      </RouterLink>
    </nav>
 </template>
 <script lang="ts" setup>

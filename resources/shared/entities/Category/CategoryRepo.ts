@@ -20,9 +20,9 @@ export default {
       });
       return { loading };
    },
-   parents(parent_id = null) {
-      if (!parent_id) return api.get<ICategory[]>(`${baseURL}/parents`);
-      return api.get<ICategory[]>(`${baseURL}/parents/${parent_id}`);
+   async parents(parent_id = null) {
+      if (!parent_id) return await api.get<{ categories: ICategory[]; breadcrumbs: any[] }>(`${baseURL}/parents`);
+      return await api.get<{ categories: ICategory[]; breadcrumbs: any[] }>(`${baseURL}/parents/${parent_id}`);
    },
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);

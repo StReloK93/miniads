@@ -2,7 +2,7 @@
    <main class="container mx-auto flex flex-col h-dvh bg-tertiary pt-safe-top pb-2">
       <section class="grow relative border-y border-slate-100">
          <router-view v-slot="{ Component, route }">
-            <transition name="slide-in">
+            <transition :name="route.meta.transition">
                <component
                   :is="Component"
                   :key="route.fullPath"

@@ -18,7 +18,8 @@ export default defineConfig([
       // Qoidalarni shu yerda sozlaymiz
       rules: {
          "@typescript-eslint/no-explicit-any": "off", // 'any' ishlatishga ruxsat berish
-         "vue/no-unused-vars": "warn", // Ixtiyoriy: boshqa qoidalar ham qo'shish mumkin
+         "no-unused-vars": "off", // Ixtiyoriy: boshqa qoidalar ham qo'shish mumkin
+         "@typescript-eslint/no-unused-vars": "off",
       },
    },
 ]);

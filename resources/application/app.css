@@ -14,3 +14,31 @@
    --swiper-pagination-bullet-inactive-opacity: 0.9;
    --swiper-pagination-bullet-inactive-color: white;
 }
+
+/* Konteyner nisbiy bo'lishi kerak */
+.route-wrapper {
+   position: relative;
+   overflow: hidden;
+}
+
+/* Yangi sahifa kirib kelayotgan vaqti */
+.slide-in-enter-active,
+.slide-in-leave-active {
+   transition: all 0.25s ease;
+   position: absolute; /* Ustma-ust tushishi uchun */
+   width: 100%;
+   top: 0;
+   left: 0;
+}
+
+/* Kirayotgan sahifa boshlang'ich holati (o'ngda) */
+.slide-in-enter-from {
+   transform: translateX(100%);
+   z-index: 2; /* Yangisi ustida bo'lishi uchun */
+}
+
+/* Eski sahifa chiqib ketayotgan holati (joyida qolishi yoki biroz xiralashishi mumkin) */
+.slide-in-leave-to {
+   transform: translateX(-30%) scale(0.9); /* Orqaga biroz suriladi */
+   opacity: 0;
+}

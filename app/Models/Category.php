@@ -26,7 +26,7 @@ class Category extends Model
     public function parent()
     {
         // Bu asosiy kategoriyani olish uchun
-        return $this->belongsTo(Category::class, 'parent_id');
+        return $this->belongsTo(Category::class, 'parent_id')->with('parent')->select('id', 'name', 'image', 'parent_id', 'is_page');
     }
 
     public function parameters()
@@ -41,5 +41,23 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+
+    public function getBreadcrumbs(): array
+    {
+        $breadcrumbs = [];
+        $current = $this;
+
+        while ($current) {
+            $breadcrumbs[] = [
+                'id' => $current->id,
+                'name' => $current->name,
+            ];
+
+            $current = $current->parent;
+        }
+
+        return array_reverse($breadcrumbs);
     }
 }

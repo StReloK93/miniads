@@ -1,9 +1,9 @@
 <template>
    <section>
       <h3 class="flex items-center gap-1 px-1 mb-2 text-secondary text-sm">
-         <RouterLink :to="{ name: 'categories', query: { open: `${category?.parent.id}` } }" class="underline"
+         <!-- <RouterLink :to="{ name: 'categories', query: { open: `${category?.parent?.id}` } }" class="underline"
             >{{ category?.parent.name }}
-         </RouterLink>
+         </RouterLink> -->
          <i class="pi pi-angle-right text-xs!"></i>
          {{ category?.name }}
       </h3>

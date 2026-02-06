@@ -15,7 +15,7 @@ Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetA
 
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
-    Route::get('/categories/parents', 'parents');
+    Route::get('/categories/parents/{id?}', 'parents');
     Route::post('/categories/change_parent/{id}', 'changeParent');
 
     Route::delete('categories/{id}/force', 'forceDelete');

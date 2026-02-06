@@ -20,8 +20,9 @@ export default {
       });
       return { loading };
    },
-   parents() {
-      return api.get<ICategory[]>(`${baseURL}/parents`);
+   parents(parent_id = null) {
+      if (!parent_id) return api.get<ICategory[]>(`${baseURL}/parents`);
+      return api.get<ICategory[]>(`${baseURL}/parents/${parent_id}`);
    },
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);

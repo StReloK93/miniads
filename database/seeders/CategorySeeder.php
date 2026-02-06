@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Category;
 class CategorySeeder extends Seeder
@@ -144,7 +143,7 @@ class CategorySeeder extends Seeder
 
 			// 🐄 Chorva va hayvonlar
 			[
-				'name' => 'Hayvonot',
+				'name' => 'Hayvonot olami',
 				'image' => '/icons/animal.svg',
 				'subs' => [
 					['name' => 'Qoramol', 'is_page' => true],
@@ -168,7 +167,7 @@ class CategorySeeder extends Seeder
 
 			// 🔎 Topildi / Yo‘qotildi
 			[
-				'name' => "Topildi / Yo'qotildi",
+				'name' => "Topildi-Yo'qotildi",
 				'image' => '/icons/lost.svg',
 				'subs' => [
 					['name' => 'Topildi', 'is_page' => true],

@@ -20,9 +20,23 @@ class CategoryController extends Controller
 			->select('id', 'name', 'image', 'parent_id', 'is_page')
 			->findOrFail($id);
 	}
-	public function parents()
+	public function parents($parent_id = null)
 	{
-		return Category::with('children')->whereNull('parent_id')->select('id', 'name', 'image', 'parent_id', 'is_page')->get();
+		$breadcrumbs = null;
+		if ($parent_id) {
+			$parent = Category::findOrFail($parent_id);
+			$breadcrumbs = $parent->getBreadcrumbs();
+		}
+
+		$categories = Category::where('parent_id', $parent_id)
+			->with('parent')
+			->select('id', 'name', 'image', 'parent_id', 'is_page')
+			->get();
+
+		return response()->json([
+			'breadcrumbs' => $breadcrumbs,
+			'categories' => $categories,
+		]);
 	}
 
 

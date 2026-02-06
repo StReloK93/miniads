@@ -10,12 +10,12 @@ export const routes: RouteRecordRaw[] = [
          {
             path: "/category/:id",
             component: () => import("@/pages/CategoryIdPage.vue"),
-            name: "category-id",
+            name: "category",
             props: true,
          },
          {
-            path: "/categories",
-            component: () => import("@/pages/CategoryPage.vue"),
+            path: "/categories/:id?",
+            component: () => import("@/pages/CategoriesPage.vue"),
             name: "categories",
          },
       ],

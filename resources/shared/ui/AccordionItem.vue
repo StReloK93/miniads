@@ -1,9 +1,5 @@
 <template>
-   <div
-      class="ui-accordion overflow-hidden border-b last:border-b-0 border-(--color-border)"
-      :data-size="size"
-      :data-open="isOpen"
-   >
+   <div class="ui-accordion overflow-hidden )" :data-size="size" :data-open="isOpen">
       <!-- HEADER -->
       <button
          type="button"
@@ -14,7 +10,7 @@
             {{ title }}
          </span>
 
-         <ChevronDownIcon
+         <ChevronRight
             class="h-5 w-5 text-(--color-text-secondary) transition-transform duration-(--duration-fast)"
             :class="isOpen && 'rotate-180'"
          />
@@ -36,7 +32,7 @@
 
 <script setup lang="ts">
 import { inject, computed } from "vue";
-import { ChevronDownIcon } from "@heroicons/vue/24/outline";
+import { ChevronRight } from "lucide-vue-next";
 
 type Size = "sm" | "md" | "lg";
 

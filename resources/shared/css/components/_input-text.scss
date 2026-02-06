@@ -47,10 +47,9 @@
    }
 
    /* FOCUS */
-   &:focus {
+   &:focus-within {
       outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+      box-shadow: 0 0 1px 2px color-mix(in srgb, var(--color-primary) 75%, transparent);
    }
 
    /* DISABLED */

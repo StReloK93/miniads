@@ -6,7 +6,7 @@
       <div>
          <AccordionGroup v-model="accordion">
             <AccordionItem
-               v-for="category in categories"
+               v-for="category in data?.categories"
                :key="category.id"
                :index="category.id"
                :title="category.name"
@@ -18,7 +18,7 @@
                   :key="child.id"
                   class="py-(--space-md) cursor-pointer flex items-center justify-between border-b border-(--color-border) last:border-0 w-full px-0!"
                >
-                  {{ child.name }} <PlusCircleIcon class="size-5" />
+                  {{ child.name }} <Plus class="size-5" />
                </button>
             </AccordionItem>
          </AccordionGroup>
@@ -52,8 +52,11 @@ import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import { useFetchDecorator } from "@shared/api/useFetch";
 import { preloadImages } from "@/modules/Helpers";
-import { PlusCircleIcon } from "@heroicons/vue/24/outline";
-const { data: categories, execute: fetchCategories } = useFetchDecorator<ICategory[]>(CategoryRepo.parents);
+
+import { Plus } from "lucide-vue-next";
+const { data, execute: fetchCategories } = useFetchDecorator<{ categories: ICategory[]; breadcrumbs: any[] }>(
+   CategoryRepo.parents,
+);
 
 const accordion = ref(null);
 
@@ -110,9 +113,9 @@ async function submitForm(values: any) {
 onMounted(async () => {
    await fetchCategories();
 
-   if (categories.value) {
-      const imageUrls: string[] = categories.value.map((category) => category.image);
-      await preloadImages(imageUrls);
+   if (data.value!.categories) {
+      const imageUrls: string[] | undefined = data.value?.categories.map((category) => category.image);
+      await preloadImages(imageUrls!);
       pageData.isImagesReady = true;
    }
 });

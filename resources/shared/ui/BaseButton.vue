@@ -10,7 +10,7 @@
       :data-icon-only="iconOnly || undefined"
    >
       <!-- LOADING -->
-      <ArrowPathIcon v-if="loading" class="ui-button__spinner size-5 animate-spin" />
+      <LoaderCircle v-if="loading" class="ui-button__spinner size-5 animate-spin" />
 
       <!-- ICON -->
       <component v-else-if="$slots.icon" :is="$slots.icon" />
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowPathIcon } from "@heroicons/vue/24/outline";
+import { LoaderCircle } from "lucide-vue-next";
 
 type Size = "sm" | "md" | "lg";
 type Severity = "primary" | "secondary" | "success" | "danger" | "light";

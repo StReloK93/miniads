@@ -4,7 +4,7 @@
          <BackPreviusPage class="pt-2">
             <BaseButton icon="pi pi-heart" iconOnly rounded severity="secondary">
                <template #icon>
-                  <HeartIcon class="size-5" />
+                  <Heart class="size-5" />
                </template>
             </BaseButton>
          </BackPreviusPage>
@@ -48,7 +48,7 @@ import { useFetchDecorator } from "@shared/api/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { HeartIcon } from "@heroicons/vue/24/outline";
+import { Heart } from "lucide-vue-next";
 const route = useRoute();
 
 const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);

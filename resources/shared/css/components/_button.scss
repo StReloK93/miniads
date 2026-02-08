@@ -15,9 +15,9 @@
    padding-inline: var(--btn-px);
    padding-block: var(--btn-py);
 
-   &:hover:not(:disabled) {
-      background: var(--btn-bg-hover);
-   }
+   // &:hover:not(:disabled) {
+   //    background: var(--btn-bg-hover);
+   // }
 }
 
 /* ================= SIZE ================= */

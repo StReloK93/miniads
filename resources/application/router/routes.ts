@@ -2,7 +2,7 @@ import { RouteRecordRaw } from "vue-router";
 export const routes: RouteRecordRaw[] = [
    {
       path: "/",
-      component: () => import("@/pages/AppLayout.vue"),
+      component: () => import("@/layouts/NavigationPage.vue"),
       redirect: { name: "home" },
       children: [
          { path: "", component: () => import("@/pages/HomePage.vue"), name: "home" },

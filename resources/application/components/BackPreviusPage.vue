@@ -2,7 +2,7 @@
    <div class="flex justify-between items-center">
       <BaseButton @click="goBack" icon="pi pi-heart" iconOnly rounded severity="secondary">
          <template #icon>
-            <ChevronLeftIcon class="size-5" />
+            <ChevronLeft class="size-5" />
          </template>
       </BaseButton>
       <span class="text-surface-700 font-semibold dark:text-surface-200">{{ props.title }}</span>
@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeftIcon } from "@heroicons/vue/24/outline";
+import { ChevronLeft } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 
 const emit = defineEmits(["close"]);

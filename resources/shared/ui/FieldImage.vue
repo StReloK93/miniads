@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { Field } from "vee-validate";
-import { XMarkIcon } from "@heroicons/vue/24/outline";
+import { X as XMarkIcon } from "lucide-vue-next";
 import { ref } from "vue";
 import { useAttrs } from "vue";
 

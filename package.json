@@ -32,7 +32,6 @@
    },
    "dependencies": {
       "@headlessui/vue": "^1.7.23",
-      "@heroicons/vue": "^2.2.0",
       "@primeuix/themes": "^2.0.3",
       "@primevue/forms": "^4.5.4",
       "@tma.js/bridge": "^2.2.2",

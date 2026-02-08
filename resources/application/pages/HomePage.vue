@@ -56,6 +56,46 @@
             </swiper-slide>
          </swiper>
       </main>
+      <main class="">
+         <swiper :slidesPerView="1.2" :space-between="10" class="w-full">
+            <swiper-slide v-for="card in colorCards" :key="card.color">
+               <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
+                  <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>
+                  <p class="font-black">{{ card.desc }}</p>
+               </div>
+            </swiper-slide>
+         </swiper>
+      </main>
+      <main class="">
+         <swiper :slidesPerView="1.2" :space-between="10" class="w-full">
+            <swiper-slide v-for="card in colorCards" :key="card.color">
+               <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
+                  <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>
+                  <p class="font-black">{{ card.desc }}</p>
+               </div>
+            </swiper-slide>
+         </swiper>
+      </main>
+      <main class="">
+         <swiper :slidesPerView="1.2" :space-between="10" class="w-full">
+            <swiper-slide v-for="card in colorCards" :key="card.color">
+               <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
+                  <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>
+                  <p class="font-black">{{ card.desc }}</p>
+               </div>
+            </swiper-slide>
+         </swiper>
+      </main>
+      <main class="">
+         <swiper :slidesPerView="1.2" :space-between="10" class="w-full">
+            <swiper-slide v-for="card in colorCards" :key="card.color">
+               <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
+                  <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>
+                  <p class="font-black">{{ card.desc }}</p>
+               </div>
+            </swiper-slide>
+         </swiper>
+      </main>
    </section>
 </template>
 

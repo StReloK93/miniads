@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { useCategory } from "@shared/entities/Category/useCategory";
-import { ChevronRight } from "lucide-vue-next";
+import { ChevronRight, House } from "lucide-vue-next";
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";

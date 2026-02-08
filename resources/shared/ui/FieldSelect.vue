@@ -17,7 +17,7 @@
                   {{ selectedLabel(field.value) }}
                </span>
 
-               <ChevronDownIcon class="h-5 w-5 text-(--color-text-secondary)" />
+               <ChevronDown class="h-5 w-5 text-(--color-text-secondary)" />
             </ListboxButton>
 
             <!-- OPTIONS -->
@@ -33,7 +33,7 @@
                      {{ option.label }}
                   </span>
 
-                  <CheckIcon v-if="selected" class="h-4 w-4 text-primary" />
+                  <Check v-if="selected" class="h-4 w-4 text-primary" />
                </ListboxOption>
             </ListboxOptions>
          </div>
@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { CheckIcon, ChevronDownIcon } from "@heroicons/vue/24/outline";
+import { Check, ChevronDown } from "lucide-vue-next";
 import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from "@headlessui/vue";
 import { Field } from "vee-validate";
 import { computed } from "vue";

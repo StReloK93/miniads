@@ -37,7 +37,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";
 
-const emit = defineEmits(["close"]);
+const emit = defineEmits(["close", "submit"]);
 
 const props = defineProps<{
    inputConfigs: InputConfig[];
@@ -70,6 +70,7 @@ const onSubmit: any = async (values) => {
          buttonLoader.value = false;
       }, 500);
    });
+   emit("submit", values);
    emit("close");
 };
 </script>

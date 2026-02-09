@@ -2,20 +2,26 @@
    <section class="flex flex-col gap-4">
       <BackPreviusPage title="Yangi e'lon" />
       <CategorySelector :categories="CategoryStore.parentCategories" @select-category="selectCategory" />
-      <!-- <main class="h-100" v-if="pageData.selectedCategory">
-         <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs">
+      <main class="absolute inset-0 bg-white flex flex-col" v-if="selectedCategory">
+         <main class="px-4 pt-4">
+            <BackPreviusPage title="Yangi e'lon" @close="selectedCategory = null" :model="true" />
+         </main>
+         <BaseForm
+            :submit="submitForm"
+            @close="isVisible = false"
+            @submit="$router.back()"
+            :input-configs="fullInputs"
+            class="grow"
+         >
             <template #header>
                <div class="flex items-center gap-4 px-5 py-3 text-tertiary font-semibold border-b border-secondary">
-                  <img :src="pageData.selectedCategory?.parent.image" class="w-6 dark:invert" />
                   <span>
-                     {{ pageData.selectedCategory?.parent.name }}
-                     <i class="pi pi-angle-right text-xs!"></i>
-                     {{ pageData.selectedCategory?.name }}
+                     {{ selectedCategory?.name }}
                   </span>
                </div>
             </template>
          </BaseForm>
-      </main> -->
+      </main>
    </section>
 </template>
 
@@ -25,31 +31,23 @@ import BaseForm from "@shared/ui/BaseForm.vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { ICategory, InputConfig } from "@shared/types";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, ref } from "vue";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
-import { useFetchDecorator } from "@shared/api/useFetch";
 
 import { useCategory } from "@shared/entities/Category/useCategory";
 
 const CategoryStore = useCategory();
 
-const { data, execute: fetchCategories } = useFetchDecorator<{ categories: ICategory[]; breadcrumbs: any[] }>(
-   CategoryRepo.parents,
-);
+const selectedCategory = ref<ICategory | null>(null);
 
-const pageData = reactive<{
-   selectedCategory: ICategory | null;
-   isImagesReady: boolean;
-}>({
-   selectedCategory: null,
-   isImagesReady: false,
-});
 var fullInputs: InputConfig[] = [];
-async function selectCategory(selectedCategory: ICategory) {
-   const { data: category } = await CategoryRepo.show(selectedCategory.id);
+
+async function selectCategory(cat: ICategory) {
+   const { data: category } = await CategoryRepo.show(cat.id);
+
    const parameters = category.parameters;
    const customInputs = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
@@ -65,14 +63,14 @@ async function selectCategory(selectedCategory: ICategory) {
       };
    });
    fullInputs = [...productInputs, ...customInputs];
-   pageData.selectedCategory = category;
+   selectedCategory.value = category;
 }
 
 async function submitForm(values: any) {
    const payload: any = {
       title: values.title,
       description: values.description,
-      category_id: pageData.selectedCategory?.id,
+      category_id: selectedCategory.value?.id,
       parameters: [],
       images: values.images,
    };
@@ -90,13 +88,10 @@ async function submitForm(values: any) {
    await ProductRepo.store(payload);
 }
 
-onMounted(async () => {
-   await fetchCategories();
-});
 const isVisible = computed({
-   get: () => !!pageData.selectedCategory, // Agar null bo'lmasa true qaytaradi
+   get: () => !!selectedCategory.value, // Agar null bo'lmasa true qaytaradi
    set: (value) => {
-      if (!value) pageData.selectedCategory = null; // Modal yopilganda datani null qiladi
+      if (!value) selectedCategory.value = null; // Modal yopilganda datani null qiladi
    },
 });
 </script>

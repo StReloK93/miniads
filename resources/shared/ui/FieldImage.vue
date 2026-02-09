@@ -15,7 +15,7 @@
             <main v-for="(image, index) in images_source" :key="index" class="relative">
                <BaseButton
                   @click.stop="deleteImage({ url: image.url, index }, field)"
-                  class="absolute! top-1 right-1 z-50"
+                  class="absolute! -top-2 -right-2 z-50 border border-slate-200 opacity-90"
                   rounded
                   severity="secondary"
                   icon-only

@@ -28,7 +28,7 @@
                      {{ cat.name }}
                   </span>
 
-                  <span v-if="!cat.is_page" class="text-gray-400"> → </span>
+                  <ChevronRight v-if="!cat.is_page" class="size-4 text-gray-400" />
                </li>
             </ul>
          </Transition>

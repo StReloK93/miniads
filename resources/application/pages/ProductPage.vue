@@ -1,7 +1,7 @@
 <template>
-   <section class="container mx-auto bg-tertiary h-dvh relative">
-      <div class="absolute top-0 z-20 pt-safe-top! p-2 w-full">
-         <BackPreviusPage class="pt-2">
+   <section class="bg-tertiary h-dvh relative">
+      <div class="absolute right-4 left-4 z-20">
+         <BackPreviusPage>
             <BaseButton icon="pi pi-heart" iconOnly rounded severity="secondary">
                <template #icon>
                   <Heart class="size-5" />
@@ -11,7 +11,7 @@
       </div>
 
       <div>
-         <main class="relative">
+         <main class="relative -mx-4 -mt-4">
             <swiper :modules="[Pagination]" pagination class="h-64">
                <swiper-slide v-for="image in product?.images" :key="image.id">
                   <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
@@ -19,7 +19,7 @@
             </swiper>
          </main>
 
-         <main class="px-4 py-3">
+         <main class="pt-4">
             <h1 class="font-semibold leading-4">{{ product?.title }}</h1>
 
             <div class="flex gap-2 flex-wrap py-3" v-if="product?.parameter_values.length">

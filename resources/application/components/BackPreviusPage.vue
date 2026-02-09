@@ -6,7 +6,7 @@
          </template>
       </BaseButton>
       <span class="text-surface-700 dark:text-surface-200">{{ props.title }}</span>
-      <span class="min-w-8 h-1">
+      <span class="min-w-8">
          <slot></slot>
       </span>
    </div>

@@ -1,5 +1,5 @@
 <template>
-   <div>Favorites</div>
+   <section>Favorites</section>
 </template>
 
 <script setup lang="ts"></script>

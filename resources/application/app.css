@@ -39,7 +39,7 @@
 
 /* Eski sahifa chiqib ketayotgan holati (joyida qolishi yoki biroz xiralashishi mumkin) */
 .slide-in-leave-to {
-   transform: translateX(-30%) scale(0.9); /* Orqaga biroz suriladi */
+   transform: translateX(-30%) scale(0.98); /* Orqaga biroz suriladi */
    opacity: 0;
 }
 
@@ -61,7 +61,7 @@
 
 /* Eski sahifa chiqib ketayotgan holati (o‘ng tomonga suriladi) */
 .slide-out-leave-to {
-   transform: translateX(30%) scale(0.9);
+   transform: translateX(30%) scale(0.98);
    opacity: 0;
 }
 
@@ -71,4 +71,26 @@
 }
 .no-scrollbar::-webkit-scrollbar {
    display: none; /* Chrome, Safari */
+}
+
+/* Orqaga qaytishda sahifa kirib kelishi */
+.slide-bottom-enter-active,
+.slide-bottom-leave-active {
+   transition: all 0.2s ease;
+   position: absolute;
+   width: 100%;
+   top: 0;
+   left: 0;
+}
+
+/* Kirayotgan sahifa boshlang‘ich holati (chapda) */
+.slide-bottom-enter-from {
+   transform: translateY(70%);
+   z-index: 2;
+}
+
+/* Eski sahifa chiqib ketayotgan holati (o‘ng tomonga suriladi) */
+.slide-bottom-leave-to {
+   transform: translateY(10%);
+   opacity: 0;
 }

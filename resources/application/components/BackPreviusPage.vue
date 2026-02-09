@@ -2,11 +2,11 @@
    <div class="flex justify-between items-center">
       <BaseButton @click="goBack" icon="pi pi-heart" iconOnly rounded severity="secondary">
          <template #icon>
-            <ChevronLeft class="size-5" />
+            <ChevronLeft class="size-4" />
          </template>
       </BaseButton>
-      <span class="text-surface-700 font-semibold dark:text-surface-200">{{ props.title }}</span>
-      <span class="min-w-8">
+      <span class="text-surface-700 dark:text-surface-200">{{ props.title }}</span>
+      <span class="min-w-8 h-1">
          <slot></slot>
       </span>
    </div>

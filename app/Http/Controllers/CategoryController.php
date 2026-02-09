@@ -29,7 +29,7 @@ class CategoryController extends Controller
 		}
 
 		$categories = Category::where('parent_id', $parent_id)
-			->with('parent')
+			->with('children')
 			->select('id', 'name', 'image', 'parent_id', 'is_page')
 			->get();
 

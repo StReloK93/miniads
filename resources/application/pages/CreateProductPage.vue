@@ -1,29 +1,8 @@
 <template>
-   <section class="pt-safe-top">
-      <main class="p-(--space-md) border-b border-(--color-border)">
-         <BackPreviusPage title="Yangi e'lon" />
-      </main>
-      <div>
-         <AccordionGroup v-model="accordion">
-            <AccordionItem
-               v-for="category in data?.categories"
-               :key="category.id"
-               :index="category.id"
-               :title="category.name"
-            >
-               <button
-                  v-for="child in category.children"
-                  @click="selectCategory(child.id)"
-                  :to="{ name: 'category-id', params: { id: child.id } }"
-                  :key="child.id"
-                  class="py-(--space-md) cursor-pointer flex items-center justify-between border-b border-(--color-border) last:border-0 w-full px-0!"
-               >
-                  {{ child.name }} <Plus class="size-5" />
-               </button>
-            </AccordionItem>
-         </AccordionGroup>
-      </div>
-      <main class="h-100" v-if="pageData.selectedCategory">
+   <section class="flex flex-col gap-4">
+      <BackPreviusPage title="Yangi e'lon" />
+      <CategorySelector :categories="CategoryStore.parentCategories" @select-category="selectCategory" />
+      <!-- <main class="h-100" v-if="pageData.selectedCategory">
          <BaseForm :submit="submitForm" @close="isVisible = false" :input-configs="fullInputs">
             <template #header>
                <div class="flex items-center gap-4 px-5 py-3 text-tertiary font-semibold border-b border-secondary">
@@ -36,11 +15,12 @@
                </div>
             </template>
          </BaseForm>
-      </main>
+      </main> -->
    </section>
 </template>
 
 <script setup lang="ts">
+import CategorySelector from "@components/CategorySelector.vue";
 import BaseForm from "@shared/ui/BaseForm.vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
@@ -51,14 +31,14 @@ import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Component } from "vue";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import { useFetchDecorator } from "@shared/api/useFetch";
-import { preloadImages } from "@/modules/Helpers";
 
-import { Plus } from "lucide-vue-next";
+import { useCategory } from "@shared/entities/Category/useCategory";
+
+const CategoryStore = useCategory();
+
 const { data, execute: fetchCategories } = useFetchDecorator<{ categories: ICategory[]; breadcrumbs: any[] }>(
    CategoryRepo.parents,
 );
-
-const accordion = ref(null);
 
 const pageData = reactive<{
    selectedCategory: ICategory | null;
@@ -68,8 +48,8 @@ const pageData = reactive<{
    isImagesReady: false,
 });
 var fullInputs: InputConfig[] = [];
-async function selectCategory(id: number) {
-   const { data: category } = await CategoryRepo.show(id);
+async function selectCategory(selectedCategory: ICategory) {
+   const { data: category } = await CategoryRepo.show(selectedCategory.id);
    const parameters = category.parameters;
    const customInputs = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
@@ -112,12 +92,6 @@ async function submitForm(values: any) {
 
 onMounted(async () => {
    await fetchCategories();
-
-   if (data.value!.categories) {
-      const imageUrls: string[] | undefined = data.value?.categories.map((category) => category.image);
-      await preloadImages(imageUrls!);
-      pageData.isImagesReady = true;
-   }
 });
 const isVisible = computed({
    get: () => !!pageData.selectedCategory, // Agar null bo'lmasa true qaytaradi

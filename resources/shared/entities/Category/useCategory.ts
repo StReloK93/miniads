@@ -4,9 +4,11 @@ import { ref } from "vue";
 export const useCategory = defineStore("useCategory", () => {
    const parentCategories = ref();
 
-   CategoryRepo.parents().then(({ data }) => {
+   async function getParentCategories() {
+      const { data } = await CategoryRepo.parents();
+      console.log(data);
       parentCategories.value = data.categories;
-   });
+   }
 
-   return { parentCategories };
+   return { parentCategories, getParentCategories };
 });

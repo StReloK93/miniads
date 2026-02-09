@@ -15,25 +15,25 @@ class CategoryParameterSeeder extends Seeder
     {
         $CategoryParameters = [
             [
-                'category_id' => 2,
+                'category_id' => 3,
                 'is_required' => false,
                 'parameter_id' => 1,
                 'sort_order' => 1,
             ],
             [
-                'category_id' => 2,
+                'category_id' => 3,
                 'is_required' => true,
                 'parameter_id' => 2,
                 'sort_order' => 2,
             ],
             [
-                'category_id' => 2,
+                'category_id' => 3,
                 'is_required' => true,
                 'parameter_id' => 3,
                 'sort_order' => 3,
             ],
             [
-                'category_id' => 2,
+                'category_id' => 3,
                 'is_required' => false,
                 'parameter_id' => 4,
                 'sort_order' => 4,

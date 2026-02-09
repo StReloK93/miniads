@@ -30,10 +30,7 @@
          </div>
          <swiper :slidesPerView="5.5" :space-between="10" class="w-full px-4!">
             <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.name">
-               <RouterLink
-                  :to="{ name: 'categories', params: { id: `${category.id}` } }"
-                  class="select-none inline-flex flex-col items-center gap-1"
-               >
+               <RouterLink :to="{ name: 'categories' }" class="select-none inline-flex flex-col items-center gap-1">
                   <div
                      class="w-14 h-14 flex items-center justify-center gap-2 bg-slate-50 border-slate-100 border rounded-md"
                   >

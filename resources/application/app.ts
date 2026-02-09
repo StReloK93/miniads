@@ -5,6 +5,7 @@ import { isTMA, retrieveRawInitData, postEvent, on } from "@tma.js/bridge";
 import App from "@/App.vue";
 import router from "@/router";
 import { useAuth } from "@shared/store/useAuth";
+import { useCategory } from "@shared/entities/Category/useCategory";
 import { initTheme } from "@shared/components/theme";
 import "@shared/css/ui.scss";
 initTheme();
@@ -12,6 +13,7 @@ const app = createApp(App);
 app.use(createPinia());
 
 const authStore = useAuth();
+const categoryStore = useCategory();
 
 const setupTMAUI = () => {
    postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
@@ -26,6 +28,7 @@ const setupTMAUI = () => {
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {
+   await categoryStore.getParentCategories();
    if (isTMA()) setupTMAUI();
 
    try {

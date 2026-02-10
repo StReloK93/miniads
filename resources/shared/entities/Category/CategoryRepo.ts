@@ -1,4 +1,4 @@
-import { api } from "@shared/api/useFetch";
+import { api } from "@shared/composables/useFetch";
 import { ICategory } from "@shared/types";
 import { ref } from "vue";
 const baseURL = "categories";
@@ -20,9 +20,8 @@ export default {
       });
       return { loading };
    },
-   async parents(parent_id = null) {
-      if (!parent_id) return await api.get<{ categories: ICategory[]; breadcrumbs: any[] }>(`${baseURL}/parents`);
-      return await api.get<{ categories: ICategory[]; breadcrumbs: any[] }>(`${baseURL}/parents/${parent_id}`);
+   async parents() {
+      return await api.get<ICategory[]>(`${baseURL}/parents`);
    },
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);

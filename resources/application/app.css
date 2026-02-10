@@ -15,12 +15,6 @@
    --swiper-pagination-bullet-inactive-color: white;
 }
 
-/* Konteyner nisbiy bo'lishi kerak */
-.route-wrapper {
-   position: relative;
-   overflow: hidden;
-}
-
 /* Yangi sahifa kirib kelayotgan vaqti */
 .slide-in-enter-active,
 .slide-in-leave-active {
@@ -73,7 +67,6 @@
    display: none; /* Chrome, Safari */
 }
 
-/* Orqaga qaytishda sahifa kirib kelishi */
 .slide-bottom-enter-active,
 .slide-bottom-leave-active {
    transition: all 0.2s ease;
@@ -83,13 +76,11 @@
    left: 0;
 }
 
-/* Kirayotgan sahifa boshlang‘ich holati (chapda) */
 .slide-bottom-enter-from {
    transform: translateY(70%);
    z-index: 2;
 }
 
-/* Eski sahifa chiqib ketayotgan holati (o‘ng tomonga suriladi) */
 .slide-bottom-leave-to {
    transform: translateY(10%);
    opacity: 0;

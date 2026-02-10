@@ -82,7 +82,7 @@ import { findParentId } from "@admin/modules/Helpers";
 import { TreeNode } from "primevue/treenode";
 import CategoryParameterDialog from "@admin/components/CategoryParameterDialog.vue";
 import { formatCategories } from "@admin/modules/Helpers";
-import { useFetchDecorator } from "@shared/api/useFetch";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 
 const { data: parentCategories, execute: fetchCategories } = useFetchDecorator(CategoryRepo.parents);
 var submit: (values: any) => Promise<void>;

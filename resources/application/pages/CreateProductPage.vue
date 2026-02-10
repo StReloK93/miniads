@@ -1,27 +1,37 @@
 <template>
-   <section class="flex flex-col gap-4">
+   <section class="grid grid-rows-[auto_1fr] gap-4">
       <BackPreviusPage title="Yangi e'lon" />
-      <CategorySelector :categories="CategoryStore.parentCategories" @select-category="selectCategory" />
-      <main class="absolute inset-0 bg-white flex flex-col" v-if="selectedCategory">
-         <main class="px-4 pt-4">
-            <BackPreviusPage title="Yangi e'lon" @close="selectedCategory = null" :model="true" />
-         </main>
-         <BaseForm
-            :submit="submitForm"
-            @close="isVisible = false"
-            @submit="$router.back()"
-            :input-configs="fullInputs"
-            class="grow"
-         >
-            <template #header>
-               <div class="flex items-center gap-4 px-5 py-3 text-tertiary font-semibold border-b border-secondary">
-                  <span>
-                     {{ selectedCategory?.name }}
-                  </span>
-               </div>
-            </template>
-         </BaseForm>
-      </main>
+      <aside>
+         <CategorySelector
+            v-if="CategoryStore.parentCategories"
+            :categories="CategoryStore.parentCategories"
+            @select-category="selectCategory"
+         />
+         <Transition name="fade-in">
+            <main class="absolute inset-0 bg-white flex flex-col" v-if="selectedCategory">
+               <main class="px-4 pt-4">
+                  <BackPreviusPage title="Yangi e'lon" @close="selectedCategory = null" :model="true" />
+               </main>
+               <BaseForm
+                  :submit="submitForm"
+                  @close="isVisible = false"
+                  @submit="$router.back()"
+                  :input-configs="fullInputs"
+                  class="grow"
+               >
+                  <template #header>
+                     <div
+                        class="flex items-center gap-4 px-5 py-3 text-tertiary font-semibold border-b border-secondary"
+                     >
+                        <span>
+                           {{ selectedCategory?.name }}
+                        </span>
+                     </div>
+                  </template>
+               </BaseForm>
+            </main>
+         </Transition>
+      </aside>
    </section>
 </template>
 

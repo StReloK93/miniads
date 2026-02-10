@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
 import router from "@/router";
-import { api } from "@shared/api/useFetch";
+import { api } from "@shared/composables/useFetch";
 export const useAuth = defineStore("useAuth", () => {
    const user: Ref = ref(null);
    const token: Ref = ref(null);

@@ -1,4 +1,4 @@
-import { api } from "@shared/api/useFetch";
+import { api } from "@shared/composables/useFetch";
 import { IParameter } from "@shared/types";
 const baseURL = "parameters";
 

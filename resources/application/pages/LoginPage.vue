@@ -7,7 +7,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { api } from "@shared/api/useFetch";
+import { api } from "@shared/composables/useFetch";
 import { useRouter } from "vue-router";
 import { useAuth } from "@shared/store/useAuth";
 const router = useRouter();

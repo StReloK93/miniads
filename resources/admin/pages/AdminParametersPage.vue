@@ -38,7 +38,7 @@ import BaseTable from "@admin/components/BaseTable.vue";
 import BaseForm from "@admin/components/BaseForm.vue";
 import ParameterRepo from "@shared/entities/Parameter/ParameterRepo";
 import { onMounted, reactive, shallowRef } from "vue";
-import { useFetchDecorator } from "@shared/api/useFetch";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 import { parameterInputs, superRefine, parameterColumns } from "@shared/entities/Parameter/ParameterInputs";
 import { TreeNode } from "primevue/treenode";
 import { IParameter } from "@shared/types";

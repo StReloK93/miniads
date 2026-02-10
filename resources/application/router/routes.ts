@@ -1,4 +1,5 @@
 import { RouteRecordRaw } from "vue-router";
+
 export const routes: RouteRecordRaw[] = [
    {
       path: "/",
@@ -6,12 +7,12 @@ export const routes: RouteRecordRaw[] = [
       // redirect: { name: "home" },
       meta: { layoutKey: "nav" },
       children: [
-         { path: "", component: () => import("@/pages/HomePage.vue"), name: "home" },
-         { path: "favorites", component: () => import("@/pages/FavoritePage.vue"), name: "favorites" },
-         { path: "profile", component: () => import("@/pages/ProfilePage.vue"), name: "profile" },
+         { path: "", component: () => import("@pages/HomePage.vue"), name: "home" },
+         { path: "favorites", component: () => import("@pages/FavoritePage.vue"), name: "favorites" },
+         { path: "profile", component: () => import("@pages/ProfilePage.vue"), name: "profile" },
          {
             path: "category/:id",
-            component: () => import("@/pages/CategoryIdPage.vue"),
+            component: () => import("@pages/CategoryIdPage.vue"),
             name: "category",
             props: true,
          },
@@ -24,16 +25,16 @@ export const routes: RouteRecordRaw[] = [
       children: [
          {
             path: "categories",
-            component: () => import("@/pages/CategoriesPage.vue"),
+            component: () => import("@pages/CategoriesPage.vue"),
             name: "categories",
          },
          {
             path: "/create-product",
-            component: () => import("@/pages/CreateProductPage.vue"),
+            component: () => import("@pages/CreateProductPage.vue"),
             name: "create-product",
          },
-         { path: "/product/:id", component: () => import("@/pages/ProductPage.vue"), name: "product-id", props: true },
-         { path: "/login", component: () => import("@/pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
+         { path: "/product/:id", component: () => import("@pages/ProductPage.vue"), name: "product-id", props: true },
+         { path: "/login", component: () => import("@pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
       ],
    },
 ];

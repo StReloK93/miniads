@@ -44,7 +44,7 @@ import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { useRoute } from "vue-router";
-import { useFetchDecorator } from "@shared/api/useFetch";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";

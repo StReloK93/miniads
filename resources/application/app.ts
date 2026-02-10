@@ -1,11 +1,10 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { isTMA, retrieveRawInitData, postEvent, on } from "@tma.js/bridge";
-
+import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
 import App from "@/App.vue";
 import router from "@/router";
+import { setupTMAUI } from "@/modules/InitApp";
 import { useAuth } from "@shared/store/useAuth";
-import { useCategory } from "@shared/entities/Category/useCategory";
 import { initTheme } from "@shared/components/theme";
 import "@shared/css/ui.scss";
 initTheme();
@@ -13,35 +12,19 @@ const app = createApp(App);
 app.use(createPinia());
 
 const authStore = useAuth();
-const categoryStore = useCategory();
-
-const setupTMAUI = () => {
-   postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
-   postEvent("web_app_expand");
-   postEvent("web_app_request_content_safe_area");
-
-   on("content_safe_area_changed", (payload) => {
-      document.documentElement.style.setProperty("--safe-area-top", `${payload.top + 26}px`);
-      document.documentElement.style.setProperty("--safe-area-bottom", "37px");
-   });
-};
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {
-   await categoryStore.getParentCategories();
    if (isTMA()) setupTMAUI();
 
    try {
-      // Avval foydalanuvchini tekshiramiz
       await authStore.getUser();
    } catch (error) {
-      // Agar user yo'q bo'lsa va bu TMA bo'lsa, login qilamiz
       const initData = isTMA() ? retrieveRawInitData() : null;
       if (initData) {
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
       }
    } finally {
-      // Nima bo'lganda ham ilovani ekranga chiqaramiz
       app.use(router).mount("#app");
    }
 };

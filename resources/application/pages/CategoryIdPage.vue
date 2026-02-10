@@ -17,7 +17,7 @@
 import BaseProductCard from "@/components/BaseProductCard.vue";
 import { onMounted } from "vue";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { useFetchDecorator } from "@shared/api/useFetch";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRoute } from "vue-router";
 import { ICategory } from "@shared/types";
 

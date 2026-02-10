@@ -5,9 +5,8 @@ export const useCategory = defineStore("useCategory", () => {
    const parentCategories = ref();
 
    async function getParentCategories() {
-      const { data } = await CategoryRepo.parents();
-      console.log(data);
-      parentCategories.value = data.categories;
+      const { data: categories } = await CategoryRepo.parents();
+      parentCategories.value = categories;
    }
 
    return { parentCategories, getParentCategories };

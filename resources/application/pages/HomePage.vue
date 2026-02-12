@@ -11,16 +11,12 @@
          </aside>
          <aside></aside>
          <aside>
-            <BaseButton severity="secondary" rounded>
-               <Bell class="size-5" stroke-width="1" />
-            </BaseButton>
+            <RouterLink :to="{ name: 'profile' }">
+               <BaseButton severity="secondary" rounded>
+                  <User class="size-5" stroke-width="1" />
+               </BaseButton>
+            </RouterLink>
          </aside>
-      </main>
-
-      <main>
-         <article>
-            <FieldText placeholder="Qidiruv" name="search" />
-         </article>
       </main>
 
       <main class="mt-4 -mx-4">
@@ -59,7 +55,7 @@
 <script setup lang="ts">
 import { useCategory } from "@shared/entities/Category/useCategory";
 import icons from "@/modules/icons";
-import { Bell, ChevronDown, MapPin } from "lucide-vue-next";
+import { Bell, ChevronDown, MapPin, Router, User } from "lucide-vue-next";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { onMounted } from "vue";
 // import { preloadImages } from "@/modules/Helpers";

@@ -24,6 +24,11 @@ export const routes: RouteRecordRaw[] = [
       meta: { layoutKey: "full" },
       children: [
          {
+            path: "search",
+            component: () => import("@pages/SearchPage.vue"),
+            name: "search",
+         },
+         {
             path: "categories",
             component: () => import("@pages/CategoriesPage.vue"),
             name: "categories",

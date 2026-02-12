@@ -1,5 +1,5 @@
 <template>
-   <section class="grid grid-rows-[auto_1fr] gap-4">
+   <section class="grid grid-rows-[auto_1fr] gap-4 relative w-full h-dvh">
       <BackPreviusPage title="Yangi e'lon" />
       <aside>
          <CategorySelector
@@ -7,7 +7,7 @@
             :categories="CategoryStore.parentCategories"
             @select-category="selectCategory"
          />
-         <Transition name="fade-in">
+         <Transition name="slide-bottom" mode="out-in">
             <main class="absolute inset-0 bg-white flex flex-col" v-if="selectedCategory">
                <main class="px-4 pt-4">
                   <BackPreviusPage title="Yangi e'lon" @close="selectedCategory = null" :model="true" />

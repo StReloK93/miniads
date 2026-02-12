@@ -6,19 +6,19 @@
          <BaseButton
             :severity="$route.name == 'home' ? 'primary' : 'secondary'"
             variant="text"
-            class="flex-col gap-1! text-xs min-w-20 p-1! font-black!"
+            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
          >
             <template #icon>
                <House class="size-4" stroke-width="3" />
             </template>
-            Bosh sahifa
+            Asosiy
          </BaseButton>
       </RouterLink>
       <RouterLink :to="{ name: 'favorites' }">
          <BaseButton
             :severity="$route.name == 'favorites' ? 'primary' : 'secondary'"
             variant="text"
-            class="flex-col gap-1! text-xs min-w-20 p-1! font-black!"
+            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
          >
             <template #icon>
                <Heart class="size-4" stroke-width="3" />
@@ -26,11 +26,24 @@
             Sevimlilar
          </BaseButton>
       </RouterLink>
+
+      <RouterLink :to="{ name: 'search' }">
+         <BaseButton
+            :severity="$route.name == 'search' ? 'primary' : 'secondary'"
+            variant="text"
+            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
+         >
+            <template #icon>
+               <Search class="size-4" stroke-width="3" />
+            </template>
+            Qidiruv
+         </BaseButton>
+      </RouterLink>
       <RouterLink :to="{ name: 'create-product' }">
          <BaseButton
             :severity="$route.name == 'create-product' ? 'primary' : 'secondary'"
             variant="text"
-            class="flex-col gap-1! text-xs min-w-20 p-1! font-black!"
+            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
          >
             <template #icon>
                <Plus class="size-4" stroke-width="3" />
@@ -38,20 +51,8 @@
             E'lon berish
          </BaseButton>
       </RouterLink>
-      <RouterLink :to="{ name: 'profile' }">
-         <BaseButton
-            :severity="$route.name == 'profile' ? 'primary' : 'secondary'"
-            variant="text"
-            class="flex-col gap-1! text-xs min-w-20 p-1! font-black!"
-         >
-            <template #icon>
-               <User class="size-4" stroke-width="3" />
-            </template>
-            Profil
-         </BaseButton>
-      </RouterLink>
    </nav>
 </template>
 <script lang="ts" setup>
-import { House, Plus, User, Heart } from "lucide-vue-next";
+import { House, Plus, Heart, Search } from "lucide-vue-next";
 </script>

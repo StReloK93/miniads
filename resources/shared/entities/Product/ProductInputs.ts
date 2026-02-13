@@ -26,7 +26,7 @@ export const productInputs: InputConfig[] = [
       name: "description",
       props: { placeholder: "Izoh", maxHeight: 120 },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
-      class: ["mb-1.5"],
+      class: ["mb-3"],
    },
    {
       component: Inputs["FieldText"],
@@ -39,11 +39,11 @@ export const productInputs: InputConfig[] = [
 
 export const ZodTypeMapping: Record<string, (required: boolean, label: string) => any> = {
    string: (required, label) => {
-      const s = z.string("Majburiy maydon!").trim();
+      const s = z.string({ message: "Majburiy maydon!" }).trim();
       return required ? s.min(1, `${label} to'ldirilishi shart`) : s.optional().nullable().or(z.literal(""));
    },
    number: (required, label) => {
-      const n = z.coerce.number("Majburiy maydon!").min(1, `${label} Majburiy maydon!`);
+      const n = z.coerce.number({ message: "Majburiy maydon!" }).min(1, `${label} Majburiy maydon!`);
 
       return required ? n : n.optional().nullable();
    },

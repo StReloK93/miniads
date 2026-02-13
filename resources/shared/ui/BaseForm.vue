@@ -8,22 +8,23 @@
       <main>
          <slot name="header" />
       </main>
+      <main class="relative">
+         <div class="overflow-y-auto p-1 inset-0 absolute no-scrollbar">
+            <slot name="inputs" />
+            <template v-for="input in inputConfigs" :key="input.name">
+               <div :class="input.class">
+                  <component :is="input.component" :name="input.name" v-bind="input.props" />
 
-      <div class="overflow-y-auto p-4">
-         <slot name="inputs" />
-         <template v-for="input in inputConfigs" :key="input.name">
-            <div :class="input.class">
-               <component :is="input.component" :name="input.name" v-bind="input.props" />
-
-               <ErrorMessage :name="input.name" v-slot="{ message }">
-                  <p class="text-sm text-red-500 mt-1">
-                     {{ message }}
-                  </p>
-               </ErrorMessage>
-            </div>
-         </template>
-      </div>
-      <footer class="flex gap-3 p-4 border-t border-slate-200">
+                  <ErrorMessage :name="input.name" v-slot="{ message }">
+                     <p class="text-sm text-red-500 mt-1">
+                        {{ message }}
+                     </p>
+                  </ErrorMessage>
+               </div>
+            </template>
+         </div>
+      </main>
+      <footer class="flex gap-3 py-4 px-1">
          <BaseButton severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </BaseButton>
          <BaseButton type="submit" class="w-full" :loading="buttonLoader"> Saqlash </BaseButton>
       </footer>

@@ -1,5 +1,5 @@
 <template>
-   <main class="container mx-auto h-dvh">
+   <main class="h-dvh">
       <section class="relative w-full h-full overflow-hidden">
          <router-view v-slot="{ Component, route }">
             <transition name="slide-in" mode="out-in">

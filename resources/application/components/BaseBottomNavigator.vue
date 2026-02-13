@@ -28,23 +28,15 @@
       </RouterLink>
 
       <RouterLink :to="{ name: 'search' }">
-         <BaseButton
-            :severity="$route.name == 'search' ? 'primary' : 'secondary'"
-            variant="text"
-            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
-         >
+         <BaseButton severity="secondary" variant="text" class="flex-col gap-1! text-xs min-w-18 p-1! font-black!">
             <template #icon>
                <Search class="size-4" stroke-width="3" />
             </template>
             Qidiruv
          </BaseButton>
       </RouterLink>
-      <RouterLink :to="{ name: 'create-product' }">
-         <BaseButton
-            :severity="$route.name == 'create-product' ? 'primary' : 'secondary'"
-            variant="text"
-            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
-         >
+      <RouterLink :to="{ name: 'create-select-category' }">
+         <BaseButton severity="secondary" variant="text" class="flex-col gap-1! text-xs min-w-18 p-1! font-black!">
             <template #icon>
                <Plus class="size-4" stroke-width="3" />
             </template>

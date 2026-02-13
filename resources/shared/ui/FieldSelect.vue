@@ -1,104 +1,130 @@
 <template>
    <Field :name="name" v-slot="{ field, meta, handleChange }">
       <Listbox
+         v-slot="{ open: slotOpen }"
          :model-value="field.value"
          @update:model-value="handleChange"
          as="div"
          class="ui-select"
-         :data-size="size"
          :data-error="(meta.touched && !meta.valid) || undefined"
       >
+         <!-- CONTROL -->
+         <ListboxButton
+            ref="reference"
+            class="ui-select__control w-full flex items-center justify-between px-3 py-2 rounded"
+         >
+            <span class="truncate"> {{ selectedLabel(field.value) }} </span>
+
+            <span class="flex gap-2 items-center">
+               <Check v-if="field.value" class="h-4 w-4 text-blue-600" />
+               <ChevronDown class="h-4 w-4 transition-transform duration-150" :class="{ 'rotate-180': slotOpen }" />
+            </span>
+         </ListboxButton>
+
+         <!-- OPTIONS -->
          <div class="relative">
-            <!-- CONTROL -->
-            <ListboxButton
-               class="ui-select__control w-full flex items-center justify-between transition focus:outline-none"
+            <Transition
+               enter-active-class="transition ease-out duration-150"
+               enter-from-class="opacity-0 scale-95"
+               enter-to-class="opacity-100 scale-100"
+               leave-active-class="transition ease-in duration-100"
+               leave-from-class="opacity-100 scale-100"
+               leave-to-class="opacity-0 scale-95"
             >
-               <span class="truncate">
-                  {{ selectedLabel(field.value) }}
-               </span>
-
-               <ChevronDown class="h-5 w-5 text-(--color-text-secondary)" />
-            </ListboxButton>
-
-            <!-- OPTIONS -->
-            <ListboxOptions class="ui-select__options absolute z-10 mt-1 w-full overflow-auto">
-               <ListboxOption
-                  v-for="option in normalizedOptions"
-                  :key="option.value"
-                  :value="option.value"
-                  class="ui-select__option"
-                  v-slot="{ selected }"
+               <!-- 🔑 MUHIM: open && isPositioned -->
+               <ListboxOptions
+                  v-if="slotOpen"
+                  v-show="isPositioned"
+                  ref="floating"
+                  :style="floatingStyles"
+                  class="ui-select__options z-50 w-(--ref-width) overflow-auto -left-1!"
                >
-                  <span class="truncate">
-                     {{ option.label }}
-                  </span>
-
-                  <Check v-if="selected" class="h-4 w-4 text-primary" />
-               </ListboxOption>
-            </ListboxOptions>
+                  <ListboxOption
+                     v-for="option in normalizedOptions"
+                     :key="option.value"
+                     :value="option.value"
+                     class="cursor-pointer px-3 py-2 flex justify-between items-center hover:bg-gray-100"
+                     :class="{ 'bg-slate-200!': field.value === option.value }"
+                     v-slot="{ selected }"
+                  >
+                     <span>{{ option.label }}</span>
+                     <Check v-if="selected" class="h-4 w-4 text-blue-600" />
+                  </ListboxOption>
+               </ListboxOptions>
+            </Transition>
          </div>
       </Listbox>
    </Field>
 </template>
 
 <script setup lang="ts">
-import { Check, ChevronDown } from "lucide-vue-next";
-import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from "@headlessui/vue";
+import { ref, computed, watch } from "vue";
 import { Field } from "vee-validate";
-import { computed } from "vue";
+import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from "@headlessui/vue";
+import { Check, ChevronDown } from "lucide-vue-next";
+import { useFloating, offset, flip, shift, size, autoUpdate } from "@floating-ui/vue";
 
-type Size = "sm" | "md" | "lg";
-
-type NormalizedOption = {
-   label: string;
-   value: any;
-};
+/* ================= PROPS ================= */
 
 const props = withDefaults(
    defineProps<{
       name: string;
       options: any[];
-      size?: Size;
-      labelKey?: string;
-      valueKey?: string;
       placeholder?: string;
    }>(),
-   {
-      size: "md",
-      placeholder: "Tanlang",
+   { placeholder: "Tanlang" },
+);
+
+/* ================= STATE ================= */
+
+const reference = ref<HTMLElement | null>(null);
+const floating = ref<HTMLElement | null>(null);
+const isPositioned = ref(false);
+
+/* ================= FLOATING ================= */
+
+const { floatingStyles } = useFloating(reference, floating, {
+   placement: "bottom-start",
+   whileElementsMounted: autoUpdate,
+   middleware: [
+      offset(4),
+      flip(),
+      shift({ padding: 8 }),
+      size({
+         apply({ rects, elements }) {
+            elements.floating.style.setProperty("--ref-width", `${rects.reference.width}px`);
+
+            // 🔥 faqat joy aniq bo‘lganda render qilish uchun
+            if (!isPositioned.value) {
+               isPositioned.value = true;
+            }
+         },
+      }),
+   ],
+});
+
+/* 🔑 open yopilganda reset */
+watch(
+   () => floating.value,
+   (val) => {
+      if (!val) {
+         isPositioned.value = false;
+      }
    },
 );
 
-const normalizedOptions = computed<NormalizedOption[]>(() => {
-   return props.options.map((opt) => {
-      // 1️⃣ Oddiy string / number
-      if (typeof opt === "string" || typeof opt === "number") {
-         return { label: String(opt), value: opt };
-      }
+/* ================= OPTIONS ================= */
 
-      // 2️⃣ { label, value }
-      if ("label" in opt && "value" in opt) {
+const normalizedOptions = computed(() =>
+   props.options.map((opt) => {
+      if (typeof opt === "object") {
          return { label: opt.label, value: opt.value };
       }
-
-      // 3️⃣ Custom keys
-      if (props.labelKey && props.valueKey) {
-         return {
-            label: opt[props.labelKey],
-            value: opt[props.valueKey],
-         };
-      }
-
-      // 4️⃣ Fallback (xato bo‘lsa ham yiqilmasin)
-      return {
-         label: String(opt),
-         value: opt,
-      };
-   });
-});
+      return { label: String(opt), value: opt };
+   }),
+);
 
 function selectedLabel(value: any) {
-   const found = normalizedOptions.value.find((o) => o.value === value);
-   return found ? found.label : props.placeholder;
+   return normalizedOptions.value.find((o) => o.value === value)?.label ?? props.placeholder;
 }
 </script>

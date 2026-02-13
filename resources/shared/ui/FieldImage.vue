@@ -1,43 +1,39 @@
 <template>
    <Field :name="props.name" v-slot="{ field, handleChange }" class="flex flex-col gap-1">
       <main class="relative">
-         <input
-            ref="inputFile"
-            type="file"
-            :id="props.name + 'id'"
-            v-bind="$attrs"
-            @input="handleChange"
-            @change="(event) => onNativeFileChange(event, field)"
-            class="hidden"
-            @vue:mounted="inputMouted(field)"
-         />
          <div :class="{ 'grid gap-4 grid-cols-3': attrs.multiple }">
             <main v-for="(image, index) in images_source" :key="index" class="relative">
                <BaseButton
                   @click.stop="deleteImage({ url: image.url, index }, field)"
-                  class="absolute! -top-2 -right-2 z-50 border border-slate-200 opacity-90"
+                  class="absolute! top-0 right-0 z-50"
                   rounded
-                  severity="secondary"
+                  severity="danger"
                   icon-only
+                  variant="text"
                   size="sm"
                >
                   <template #icon>
-                     <XMarkIcon class="size-5" />
+                     <Trash class="size-5" />
                   </template>
                </BaseButton>
                <div class="w-full aspect-square">
-                  <img
-                     :src="image.url"
-                     class="rounded-md aspect-square grayscale object-cover w-full border border-slate-200 dark:border-slate-700"
-                  />
+                  <img :src="image.url" class="rounded-md aspect-square grayscale object-cover w-full" />
                </div>
             </main>
             <label
                v-if="attrs.multiple || images_source.length === 0"
-               class="bg-secondary aspect-square cursor-pointer flex justify-center items-center rounded-md border border-slate-200 dark:border-slate-700"
-               :for="props.name + 'id'"
+               class="aspect-square cursor-pointer flex justify-center items-center rounded-md bg-(--color-surface)"
             >
-               <img :src="'/images/image.svg'" class="w-10 grayscale" />
+               <input
+                  ref="inputFile"
+                  type="file"
+                  v-bind="$attrs"
+                  @input="handleChange"
+                  @change="(event) => onNativeFileChange(event, field)"
+                  class="hidden"
+                  @vue:mounted="inputMouted(field)"
+               />
+               <img :src="'/images/image.svg'" class="w-10" />
             </label>
          </div>
       </main>
@@ -46,7 +42,7 @@
 
 <script setup lang="ts">
 import { Field } from "vee-validate";
-import { X as XMarkIcon } from "lucide-vue-next";
+import { Trash } from "lucide-vue-next";
 import { ref } from "vue";
 import { useAttrs } from "vue";
 

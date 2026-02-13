@@ -19,14 +19,32 @@
          </aside>
       </main>
 
-      <main class="mt-4 -mx-4">
-         <div class="flex items-center justify-between mb-2 px-4">
-            <h3 class="text-base text-slate-600">Kategoriyalar</h3>
-            <RouterLink :to="{ name: 'categories' }" class="text-sm text-blue-800"> Barchasi </RouterLink>
+      <main class="-mx-4">
+         <div class="flex items-center text-sm justify-between mb-2 px-4">
+            <h3 class="text-slate-600">Kategoriyalar</h3>
+            <RouterLink :to="{ name: 'categories' }" class="text-blue-800"> Barchasi </RouterLink>
          </div>
          <swiper :slidesPerView="5.5" :space-between="10" class="w-full px-4!">
             <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.name">
-               <RouterLink :to="{ name: 'categories' }" class="select-none inline-flex flex-col items-center gap-1">
+               <RouterLink
+                  v-if="category.is_page"
+                  :to="{ name: 'category', params: { id: category.id } }"
+                  class="select-none inline-flex flex-col items-center gap-1"
+               >
+                  <div
+                     class="w-14 h-14 flex items-center justify-center gap-2 bg-slate-50 border-slate-100 border rounded-md"
+                  >
+                     <component :is="icons[category.image]" stroke-width="1.5" class="size-5 text-blue-800" />
+                  </div>
+                  <div class="text-xs text-center">
+                     {{ category.name }}
+                  </div>
+               </RouterLink>
+               <RouterLink
+                  v-else
+                  :to="{ name: 'categories', query: { category_id: category.id } }"
+                  class="select-none inline-flex flex-col items-center gap-1"
+               >
                   <div
                      class="w-14 h-14 flex items-center justify-center gap-2 bg-slate-50 border-slate-100 border rounded-md"
                   >
@@ -39,8 +57,8 @@
             </swiper-slide>
          </swiper>
       </main>
-      <main>
-         <swiper :slidesPerView="1.2" :space-between="10" class="w-full">
+      <main class="mt-4 -mx-4">
+         <swiper :slidesPerView="1.2" :space-between="10" class="w-full px-4!">
             <swiper-slide v-for="card in colorCards" :key="card.color">
                <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
                   <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>

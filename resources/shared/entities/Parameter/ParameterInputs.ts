@@ -1,4 +1,5 @@
 import { PrimeVueInputs } from "@admin/modules/PrimeVueInputs";
+import { Inputs } from "@/modules/Inputs";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
@@ -24,7 +25,7 @@ export const parameterInputs: InputConfig[] = [
       component: PrimeVueInputs["Select"],
       name: "component",
       placeholder: "Input turi",
-      props: { ...globalProps, options: Object.keys(PrimeVueInputs) },
+      props: { ...globalProps, options: Object.keys(Inputs) },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
@@ -49,7 +50,8 @@ export const parameterInputs: InputConfig[] = [
 export const parameterColumns = [
    { field: "id", header: "ID" },
    { field: "placeholder", header: "Nomi" },
-   { field: "type", header: "Input turi" },
+   { field: "component", header: "Input turi" },
+   { field: "type", header: "Malumot turi" },
    { field: "unit", header: "O'lchov birligi" },
    {
       field: "options",

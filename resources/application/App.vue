@@ -45,7 +45,8 @@ onMounted(async () => {
          import("@pages/CategoriesPage.vue");
          import("@pages/CategoryIdPage.vue");
          import("@pages/ProductPage.vue");
-         import("@pages/CreateProductPage.vue");
+         import("@pages/SearchPage.vue");
+         import("@pages/Create/SelectCategoryPage.vue");
          import("@pages/FavoritePage.vue");
          import("@/layouts/FullPage.vue");
       }

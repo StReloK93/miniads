@@ -4,7 +4,7 @@
       <aside>
          <main>
             <article>
-               <FieldText placeholder="Qidiruv" name="search" />
+               <FieldText placeholder="Nima qidiryabsiz? Uy , Avto, Mebel!" name="search" />
             </article>
          </main>
       </aside>

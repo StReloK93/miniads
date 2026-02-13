@@ -4,7 +4,6 @@
    --input-radius: var(--radius-md);
 }
 
-/* SIZE */
 .ui-select[data-size="sm"] {
    --input-px: var(--space-sm);
    --input-py: var(--space-sm);
@@ -17,13 +16,11 @@
    font-size: 1rem;
 }
 
-/* CONTROL (INPUT LOOK) */
 .ui-select__control {
    padding-inline: var(--input-px);
    padding-block: var(--input-py);
 
    border-radius: var(--input-radius);
-   border: 1px solid var(--color-border);
 
    background: var(--color-surface);
    color: var(--color-text-primary);
@@ -31,10 +28,10 @@
    cursor: pointer;
 }
 
-.ui-select__control:focus {
-   border-color: var(--color-primary);
-   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
-}
+// .ui-select__control:focus-within {
+//    border-color: var(--color-primary);
+//    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 80%, transparent);
+// }
 
 /* ERROR */
 .ui-select[data-error] .ui-select__control {
@@ -45,9 +42,8 @@
 .ui-select__options {
    background: var(--color-surface);
    border-radius: var(--radius-md);
-   border: 1px solid var(--color-border);
    max-height: 240px;
-   padding: 4px;
+   padding: 10px 0px;
 }
 
 /* OPTION */

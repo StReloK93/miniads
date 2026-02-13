@@ -1,10 +1,15 @@
 <template>
    <Field :name="props.name" v-slot="{ field, handleChange }" class="flex flex-col gap-1">
       <main class="relative">
-         <div :class="{ 'grid gap-4 grid-cols-3': attrs.multiple }">
-            <main v-for="(image, index) in images_source" :key="index" class="relative">
+         <div :class="{ 'grid gap-1 grid-cols-3': attrs.multiple }">
+            <main
+               v-for="(image, index) in images_source"
+               :key="index"
+               :class="[index == 0 ? 'col-span-3 aspect-video' : 'aspect-square']"
+               class="relative"
+            >
                <BaseButton
-                  @click.stop="deleteImage({ url: image.url, index }, field)"
+                  @click="deleteImage({ url: image.url, index }, field)"
                   class="absolute! top-0 right-0 z-50"
                   rounded
                   severity="danger"
@@ -16,13 +21,18 @@
                      <Trash class="size-5" />
                   </template>
                </BaseButton>
-               <div class="w-full aspect-square">
-                  <img :src="image.url" class="rounded-md aspect-square grayscale object-cover w-full" />
+               <div class="w-full">
+                  <img
+                     :src="image.url"
+                     :class="[index == 0 ? 'col-span-3 aspect-video' : 'aspect-square']"
+                     class="rounded-md grayscale object-cover w-full"
+                  />
                </div>
             </main>
             <label
                v-if="attrs.multiple || images_source.length === 0"
-               class="aspect-square cursor-pointer flex justify-center items-center rounded-md bg-(--color-surface)"
+               :class="[images_source.length > 0 ? 'aspect-square' : 'col-span-3 aspect-video']"
+               class="cursor-pointer flex justify-center items-center rounded-md bg-(--color-primary)/5 border border-(--color-primary) border-dashed"
             >
                <input
                   ref="inputFile"
@@ -33,7 +43,9 @@
                   class="hidden"
                   @vue:mounted="inputMouted(field)"
                />
-               <img :src="'/images/image.svg'" class="w-10" />
+               <div class="size-10 bg-white rounded-full flex justify-center items-center">
+                  <Camera class="size-5 text-blue-500" />
+               </div>
             </label>
          </div>
       </main>
@@ -42,7 +54,7 @@
 
 <script setup lang="ts">
 import { Field } from "vee-validate";
-import { Trash } from "lucide-vue-next";
+import { Camera, Trash } from "lucide-vue-next";
 import { ref } from "vue";
 import { useAttrs } from "vue";
 
@@ -101,6 +113,8 @@ function onNativeFileChange(event: Event, $field: any) {
 }
 
 function deleteImage(image: { index: number; url: string }, $field: any) {
+   console.log(image, $field);
+
    const files = $field.value as (File | string)[];
    if (!files || files.length === 0) return;
 

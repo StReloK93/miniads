@@ -9,10 +9,15 @@
          <slot name="header" />
       </main>
       <main class="relative">
-         <div class="overflow-y-auto p-1 inset-0 absolute no-scrollbar">
+         <div class="overflow-y-auto inset-0 absolute no-scrollbar p-4">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
                <div :class="input.class">
+                  <label>
+                     <p class="mb-1 text-xs text-(--color-text-secondary) tracking-wide">
+                        {{ input.props?.title }}
+                     </p>
+                  </label>
                   <component :is="input.component" :name="input.name" v-bind="input.props" />
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
@@ -24,9 +29,16 @@
             </template>
          </div>
       </main>
-      <footer class="flex gap-3 py-4 px-1">
-         <BaseButton severity="secondary" class="w-full" @click="emit('close')"> Bekor qilish </BaseButton>
-         <BaseButton type="submit" class="w-full" :loading="buttonLoader"> Saqlash </BaseButton>
+      <footer class="flex flex-col gap-3 p-4 border-t border-(--color-border)">
+         <BaseButton type="submit" class="w-full rounded-2xl!" :loading="buttonLoader">
+            <template #icon>
+               <CheckCircle class="w-5 h-5 mr-2" />
+            </template>
+            E'lonni joylash
+         </BaseButton>
+         <p class="text-xs px-4 leading-4.5 text-center text-(--color-text-secondary)">
+            Elon joylashtirish orqali siz foydalanish shartlari va rozilik bildirasiz.
+         </p>
       </footer>
    </Form>
 </template>
@@ -37,6 +49,7 @@ import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";
+import { CheckCircle } from "lucide-vue-next";
 
 const emit = defineEmits(["close", "submit"]);
 

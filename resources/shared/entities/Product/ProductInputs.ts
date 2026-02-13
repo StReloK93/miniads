@@ -10,6 +10,7 @@ export const productInputs: InputConfig[] = [
       name: "images",
       props: {
          multiple: true,
+         title: "Rasmlar",
       },
       schema: z.array(z.any()).min(1, "Kamida 1 ta rasm yuklash kerak!"),
       class: ["mb-3"],
@@ -17,21 +18,21 @@ export const productInputs: InputConfig[] = [
    {
       component: Inputs["FieldText"],
       name: "title",
-      props: { placeholder: "Sarlavha" },
+      props: { title: "Sarlavha", placeholder: "Masalan: Iphone 13 Pro Max" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
    },
    {
       component: Inputs["FieldTextarea"],
       name: "description",
-      props: { placeholder: "Izoh", maxHeight: 120 },
+      props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz  haqida qo'shimcha ma'lumot" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
    },
    {
       component: Inputs["FieldText"],
       name: "phone",
-      props: { placeholder: "Telefon raqam" },
+      props: { title: "Telefon raqam", placeholder: "99-999-99-99" },
       schema: z.string().optional().nullable(),
       class: ["mb-3"],
    },

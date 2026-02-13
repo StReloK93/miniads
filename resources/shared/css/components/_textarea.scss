@@ -26,6 +26,7 @@
 }
 
 .ui-textarea__field {
+   font-size: 14px;
    display: block;
    width: 100%;
 
@@ -38,6 +39,7 @@
    transition: box-shadow var(--duration-fast);
 
    &::placeholder {
+      font-size: 14px;
       color: var(--color-text-secondary);
    }
 }

@@ -1,6 +1,6 @@
 <template>
-   <section class="grid grid-rows-[auto_1fr] gap-4 h-full">
-      <BackPreviusPage title="Ortga qaytish" model @close="backToCategoryPage" />
+   <section class="grid grid-rows-[auto_1fr] gap-4 h-full -mx-4">
+      <BackPreviusPage title="Ortga qaytish" class="px-4" model @close="backToCategoryPage" />
       <BaseForm
          v-if="selectedCategory"
          :submit="submitForm"

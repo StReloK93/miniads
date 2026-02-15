@@ -32,7 +32,7 @@
             <label
                v-if="attrs.multiple || images_source.length === 0"
                :class="[images_source.length > 0 ? 'aspect-square' : 'col-span-3 aspect-video']"
-               class="cursor-pointer flex justify-center items-center rounded-md bg-(--color-primary)/5 border border-(--color-primary) border-dashed"
+               class="cursor-pointer flex justify-center items-center rounded-md bg-(--z-color-primary)/5 border border-(--z-color-primary) border-dashed"
             >
                <input
                   ref="inputFile"

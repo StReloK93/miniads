@@ -1,0 +1,36 @@
+.field {
+   width: 100%;
+   padding: var(--space-md);
+   border-radius: var(--radius-md);
+   border: 1px solid var(--z-color-border);
+
+   background-color: var(--z-bg-field);
+   color: var(--z-color-text-primary);
+
+   font-family: inherit;
+   font-size: 14px;
+   line-height: 1.4;
+
+   transition:
+      border-color var(--duration-fast) var(--ease-soft),
+      box-shadow var(--duration-fast) var(--ease-soft),
+      background-color var(--duration-fast) var(--ease-soft);
+
+   /* PLACEHOLDER */
+   &::placeholder {
+      color: var(--z-color-text-secondary);
+   }
+
+   /* FOCUS */
+   &:focus-within {
+      outline: none;
+      box-shadow: 0 0 1px 2px color-mix(in srgb, var(--z-color-primary) 75%, transparent);
+   }
+
+   /* DISABLED */
+   &:disabled {
+      background-color: var(--z-bg-secondary);
+      color: var(--z-color-text-secondary);
+      cursor: not-allowed;
+   }
+}

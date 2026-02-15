@@ -22,34 +22,28 @@
       <main class="-mx-4">
          <div class="flex items-center text-sm justify-between mb-2 px-4">
             <h3 class="text-slate-600">Kategoriyalar</h3>
-            <RouterLink :to="{ name: 'categories' }" class="text-blue-800"> Barchasi </RouterLink>
+            <RouterLink :to="{ name: 'categories' }" class="text-(--z-color-primary)"> Barchasi </RouterLink>
          </div>
          <swiper :slidesPerView="5.5" :space-between="10" class="w-full px-4!">
-            <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.name">
+            <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.id">
                <RouterLink
-                  v-if="category.is_page"
-                  :to="{ name: 'category', params: { id: category.id } }"
+                  :to="
+                     category.is_page
+                        ? { name: 'category', params: { id: category.id } }
+                        : { name: 'categories', query: { category_id: category.id } }
+                  "
                   class="select-none inline-flex flex-col items-center gap-1"
                >
                   <div
-                     class="w-14 h-14 flex items-center justify-center gap-2 bg-slate-50 border-slate-100 border rounded-md"
+                     class="size-14 grid place-items-center bg-(--z-bg-secondary) border border-(--z-color-border) rounded-(--z-rounded)"
                   >
-                     <component :is="icons[category.image]" stroke-width="1.5" class="size-5 text-blue-800" />
+                     <component
+                        :is="icons[category.image]"
+                        stroke-width="1.5"
+                        class="size-5 text-(--z-color-primary)"
+                     />
                   </div>
-                  <div class="text-xs text-center">
-                     {{ category.name }}
-                  </div>
-               </RouterLink>
-               <RouterLink
-                  v-else
-                  :to="{ name: 'categories', query: { category_id: category.id } }"
-                  class="select-none inline-flex flex-col items-center gap-1"
-               >
-                  <div
-                     class="w-14 h-14 flex items-center justify-center gap-2 bg-slate-50 border-slate-100 border rounded-md"
-                  >
-                     <component :is="icons[category.image]" stroke-width="1.5" class="size-5 text-blue-800" />
-                  </div>
+
                   <div class="text-xs text-center">
                      {{ category.name }}
                   </div>
@@ -59,9 +53,9 @@
       </main>
       <main class="mt-4 -mx-4">
          <swiper :slidesPerView="1.2" :space-between="10" class="w-full px-4!">
-            <swiper-slide v-for="card in colorCards" :key="card.color">
-               <div :class="[card.color]" class="w-full h-32 rounded-md p-4 relative">
-                  <h3 class="rounded-full mb-2 relative text-sm">{{ card.name }}</h3>
+            <swiper-slide v-for="(card, index) in colorCards" :key="index">
+               <div class="h-32 p-4 border rounded-(--z-rounded) border-(--z-color-border) z-bg-gradient">
+                  <h3 class="mb-2 text-sm">{{ card.name }}</h3>
                   <p class="font-black">{{ card.desc }}</p>
                </div>
             </swiper-slide>
@@ -73,7 +67,7 @@
 <script setup lang="ts">
 import { useCategory } from "@shared/entities/Category/useCategory";
 import icons from "@/modules/icons";
-import { Bell, ChevronDown, MapPin, Router, User } from "lucide-vue-next";
+import { ChevronDown, MapPin, User } from "lucide-vue-next";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { onMounted } from "vue";
 // import { preloadImages } from "@/modules/Helpers";
@@ -83,17 +77,14 @@ const CategoryStore = useCategory();
 
 const colorCards = [
    {
-      color: "bg-gradient-to-r from-zinc-100 to-slate-100",
       name: "Ocean Blue",
       desc: "Toza va ishonchli, umumiy e'lonlar uchun",
    },
    {
-      color: "bg-gradient-to-r from-slate-200 to-zinc-200",
       name: "Warm Peach",
       desc: "Iliq va premium, uy-joy va mebel uchun",
    },
    {
-      color: "bg-gradient-to-r from-stone-100  to-slate-100",
       name: "Mint Green",
       desc: "Zamonaviy va yengil, xizmatlar uchun",
    },

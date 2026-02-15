@@ -14,14 +14,14 @@
             <template v-for="input in inputConfigs" :key="input.name">
                <div :class="input.class">
                   <label>
-                     <p class="mb-1 text-xs text-(--color-text-secondary) tracking-wide">
+                     <p class="mb-1 text-sm text-(--color-text-secondary) tracking-wide">
                         {{ input.props?.title }}
                      </p>
                   </label>
                   <component :is="input.component" :name="input.name" v-bind="input.props" />
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
-                     <p class="text-sm text-red-500 mt-1">
+                     <p class="text-sm text-(--z-color-danger) mt-1">
                         {{ message }}
                      </p>
                   </ErrorMessage>
@@ -29,14 +29,14 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 border-t border-(--color-border)">
+      <footer class="flex flex-col gap-3 p-4 border-t border-(--z-color-border)">
          <BaseButton type="submit" class="w-full rounded-2xl!" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
             </template>
             E'lonni joylash
          </BaseButton>
-         <p class="text-xs px-4 leading-4.5 text-center text-(--color-text-secondary)">
+         <p class="text-xs px-4 leading-4.5 text-center text-(--z-color-text-secondary)">
             Elon joylashtirish orqali siz foydalanish shartlari va rozilik bildirasiz.
          </p>
       </footer>

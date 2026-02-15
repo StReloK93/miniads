@@ -15,6 +15,10 @@
    --swiper-pagination-bullet-inactive-color: white;
 }
 
+.z-bg-gradient {
+   @apply bg-linear-to-r from-stone-100  to-slate-100;
+}
+
 /* Yangi sahifa kirib kelayotgan vaqti */
 .slide-in-enter-active,
 .slide-in-leave-active {

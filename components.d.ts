@@ -11,8 +11,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AccordionGroup: typeof import('./resources/shared/ui/AccordionGroup.vue')['default']
-    AccordionItem: typeof import('./resources/shared/ui/AccordionItem.vue')['default']
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']

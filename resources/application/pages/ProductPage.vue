@@ -28,11 +28,11 @@
                </span>
             </div>
 
-            <div class="text-sky-500 text-right pb-2 text-sm font-semibold">900 000 000 so'm</div>
-            <hr class="border-secondary -mx-5 mt-1" />
+            <div class="text-(--z-color-primary) text-right pb-2 text-sm font-semibold">900 000 000 so'm</div>
+            <hr class="border-(--z-color-border) -mx-5 mt-1" />
 
             <h3 class="mt-2 font-semibold">Izoh</h3>
-            <div class="py-2 text-secondary leading-5">{{ product?.description }}</div>
+            <div class="py-2 text-(--z-color-text-secondary) leading-5">{{ product?.description }}</div>
          </main>
       </div>
    </section>
@@ -56,16 +56,12 @@ const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(P
 const isImagesReady = ref(false);
 
 onMounted(async () => {
-   // 1. API'dan ma'lumotni olamiz
    await executeProduct(route.params.id);
 
-   // 2. Agar rasmlar bo'lsa, ularni yuklaymiz
    if (product.value?.images?.length) {
       const imageUrls = product.value.images.map((img) => `/storage/${img.src}`);
       await preloadImages(imageUrls);
    }
-
-   // 3. Hamma narsa tayyor bo'lgach, loadingni o'chiramiz
    isImagesReady.value = true;
 });
 </script>

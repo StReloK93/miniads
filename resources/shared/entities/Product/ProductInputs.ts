@@ -23,6 +23,13 @@ export const productInputs: InputConfig[] = [
       class: ["mb-3"],
    },
    {
+      component: Inputs["FieldNumber"],
+      name: "price",
+      props: { title: "Narx", placeholder: "Masalan: 1 000 000" },
+      schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Narx 1 dan katta bo'lishi kerak!"),
+      class: ["mb-3"],
+   },
+   {
       component: Inputs["FieldTextarea"],
       name: "description",
       props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz  haqida qo'shimcha ma'lumot" },

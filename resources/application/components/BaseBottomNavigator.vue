@@ -1,50 +1,27 @@
 <template>
-   <nav
-      class="flex justify-around p-1 bg-linear-to-r from-stone-100/60 to-slate-100/60 backdrop-blur-sm border rounded-xl border-stone-200/70"
-   >
-      <RouterLink :to="{ name: 'home' }">
+   <nav class="flex justify-around p-1 z-bg-gradient backdrop-blur-sm border rounded-xl border-(--z-color-border)">
+      <RouterLink v-for="item in items" :key="item.name" :to="{ name: item.name }">
          <BaseButton
-            :severity="$route.name == 'home' ? 'primary' : 'secondary'"
+            :severity="$route.name === item.name ? 'primary' : 'secondary'"
             variant="text"
             class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
          >
             <template #icon>
-               <House class="size-4" stroke-width="3" />
+               <component :is="item.icon" class="size-4" stroke-width="3" />
             </template>
-            Asosiy
-         </BaseButton>
-      </RouterLink>
-      <RouterLink :to="{ name: 'favorites' }">
-         <BaseButton
-            :severity="$route.name == 'favorites' ? 'primary' : 'secondary'"
-            variant="text"
-            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
-         >
-            <template #icon>
-               <Heart class="size-4" stroke-width="3" />
-            </template>
-            Sevimlilar
-         </BaseButton>
-      </RouterLink>
-
-      <RouterLink :to="{ name: 'search' }">
-         <BaseButton severity="secondary" variant="text" class="flex-col gap-1! text-xs min-w-18 p-1! font-black!">
-            <template #icon>
-               <Search class="size-4" stroke-width="3" />
-            </template>
-            Qidiruv
-         </BaseButton>
-      </RouterLink>
-      <RouterLink :to="{ name: 'create-select-category' }">
-         <BaseButton severity="secondary" variant="text" class="flex-col gap-1! text-xs min-w-18 p-1! font-black!">
-            <template #icon>
-               <Plus class="size-4" stroke-width="3" />
-            </template>
-            E'lon berish
+            {{ item.label }}
          </BaseButton>
       </RouterLink>
    </nav>
 </template>
+
 <script lang="ts" setup>
 import { House, Plus, Heart, Search } from "lucide-vue-next";
+
+const items = [
+   { name: "home", label: "Asosiy", icon: House },
+   { name: "favorites", label: "Sevimlilar", icon: Heart },
+   { name: "search", label: "Qidiruv", icon: Search },
+   { name: "create-select-category", label: "E'lon berish", icon: Plus },
+];
 </script>

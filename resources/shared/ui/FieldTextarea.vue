@@ -1,6 +1,6 @@
 <template>
    <Field :name="props.name" v-slot="{ field, handleChange }">
-      <div class="ui-textarea" :data-size="size">
+      <div class="field" :data-size="size">
          <textarea
             ref="el"
             v-bind="{ ...field, ...$attrs }"
@@ -45,7 +45,7 @@ function resize() {
    el.value.style.height = el.value.scrollHeight + "px";
 }
 
-function onInput(event, callback: Function) {
+function onInput(event, callback: (event) => void) {
    callback?.(event);
    resize();
 }

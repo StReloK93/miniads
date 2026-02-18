@@ -33,17 +33,22 @@ function selectCategory(category: ICategory) {
    const parameters = category.parameters;
    const customInputs = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
+
       return {
          component: Inputs[parameter.component] as Component,
          name: `parameter_${parameter.id}`,
          class: latest ? [] : ["mb-3"],
+
          props: {
+            title: parameter.title,
             placeholder: parameter.placeholder,
             options: parameter.options || [],
          },
          schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required, parameter.placeholder),
       };
    });
+   console.log(customInputs);
+
    fullInputs = [...productInputs, ...customInputs];
    selectedCategory.value = category;
 }

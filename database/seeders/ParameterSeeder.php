@@ -15,35 +15,40 @@ class ParameterSeeder extends Seeder
     {
         $parameters = [
             [
-                'placeholder' => 'Xonalar soni',
+                'title' => 'Xonalar soni',
+                'placeholder' => 'Masalan: 3, 4',
                 'component' => 'FieldNumber',
                 'type' => 'number',
                 'unit' => 'xona',
                 'options' => null
             ],
             [
-                'placeholder' => 'Maydoni',
+                'title' => 'Maydoni',
+                'placeholder' => 'Masalan: 55m²',
                 'component' => 'FieldNumber',
                 'type' => 'number',
                 'unit' => 'm²',
                 'options' => null
             ],
             [
-                'placeholder' => 'Qavat',
+                'title' => 'Qavat',
+                'placeholder' => 'Masalan: 2',
                 'component' => 'FieldNumber',
                 'type' => 'number',
                 'unit' => 'qavat',
                 'options' => null
             ],
             [
-                'placeholder' => 'Tamir turi',
+                'title' => 'Tamir turi',
+                'placeholder' => 'Tanlang',
                 'component' => 'FieldSelect',
                 'type' => 'string',
                 'unit' => null,
                 'options' => ['Yomon', "O'rtacha", 'Yaxshi', "Zo'r"]
             ],
             [
-                'placeholder' => 'Rangi',
+                'title' => 'Rangi',
+                'placeholder' => 'Tanlang',
                 'component' => 'FieldSelect',
                 'type' => 'string',
                 'unit' => null,

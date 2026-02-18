@@ -1,37 +1,8 @@
-.ui-select {
-   --input-px: var(--space-md);
-   --input-py: var(--space-md);
-   --input-radius: var(--radius-md);
-}
-
-.ui-select[data-size="sm"] {
-   --input-px: var(--space-sm);
-   --input-py: var(--space-sm);
-   font-size: 0.875rem;
-}
-
-.ui-select[data-size="lg"] {
-   --input-px: var(--space-lg);
-   --input-py: var(--space-lg);
-   font-size: 1rem;
-}
-
 .ui-select__control {
-   padding-inline: var(--input-px);
-   padding-block: var(--input-py);
-
-   border-radius: var(--input-radius);
-
-   background: var(--color-surface);
-   color: var(--color-text-primary);
-
+   padding-inline: var(--space-md);
+   padding-block: var(--space-md);
    cursor: pointer;
 }
-
-// .ui-select__control:focus-within {
-//    border-color: var(--color-primary);
-//    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 80%, transparent);
-// }
 
 /* ERROR */
 .ui-select[data-error] .ui-select__control {
@@ -40,7 +11,7 @@
 
 /* OPTIONS */
 .ui-select__options {
-   background: var(--color-surface);
+   background: var(--z-bg-secondary);
    border-radius: var(--radius-md);
    max-height: 240px;
    padding: 10px 0px;
@@ -58,9 +29,9 @@
 }
 
 .ui-select__option[data-headlessui-state~="active"] {
-   background: var(--color-surface-muted);
+   background: var(--z-bg-field);
 }
 
 .ui-select__option[data-headlessui-state~="selected"] {
-   color: var(--color-primary);
+   color: var(--z-color-primary);
 }

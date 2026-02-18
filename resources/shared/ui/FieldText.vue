@@ -2,9 +2,8 @@
    <Field :name="props.name" v-slot="{ field, handleChange }">
       <input
          type="text"
-         class="input-text"
+         class="field"
          @input="handleChange"
-         :class="[size && `input-${size}`]"
          v-bind="{ ...field, ...$attrs }"
          :placeholder="placeholder"
          :disabled="disabled"
@@ -21,6 +20,5 @@ const props = defineProps<{
    type?: string;
    disabled?: boolean;
    invalid?: boolean;
-   size?: "sm" | "md" | "lg";
 }>();
 </script>

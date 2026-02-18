@@ -5,14 +5,11 @@
          :model-value="field.value"
          @update:model-value="handleChange"
          as="div"
-         class="ui-select"
+         class="ui-select field p-0!"
          :data-error="(meta.touched && !meta.valid) || undefined"
       >
-         <!-- CONTROL -->
-         <ListboxButton
-            ref="reference"
-            class="ui-select__control w-full flex items-center justify-between px-3 py-2 rounded"
-         >
+         <!-- CONTROL ui-select  -->
+         <ListboxButton ref="reference" class="ui-select__control w-full flex items-center justify-between px-3 py-2">
             <span class="truncate"> {{ selectedLabel(field.value) }} </span>
 
             <span class="flex gap-2 items-center">
@@ -37,14 +34,14 @@
                   v-show="isPositioned"
                   ref="floating"
                   :style="floatingStyles"
-                  class="ui-select__options z-50 w-(--ref-width) overflow-auto -left-1!"
+                  class="ui-select__options z-50 w-(--ref-width) overflow-auto border border-(--z-color-border)"
                >
                   <ListboxOption
                      v-for="option in normalizedOptions"
                      :key="option.value"
                      :value="option.value"
                      class="cursor-pointer px-3 py-2 flex justify-between items-center hover:bg-gray-100"
-                     :class="{ 'bg-slate-200!': field.value === option.value }"
+                     :class="{ 'bg-(--z-color-border)': field.value === option.value }"
                      v-slot="{ selected }"
                   >
                      <span>{{ option.label }}</span>

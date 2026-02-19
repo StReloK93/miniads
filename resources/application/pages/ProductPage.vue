@@ -1,6 +1,6 @@
 <template>
-   <section class="bg-tertiary h-dvh relative">
-      <div class="absolute right-4 left-4 z-20">
+   <section class="relative pb-[calc(var(--safe-area-bottom)+var(--spacing)*2)]">
+      <div class="absolute right-4 left-4 z-20 pt-[calc(var(--safe-area-top)+var(--spacing)*8)]">
          <BackPreviusPage>
             <BaseButton icon="pi pi-heart" iconOnly rounded severity="secondary">
                <template #icon>
@@ -12,14 +12,14 @@
 
       <div>
          <main class="relative -mx-4 -mt-4">
-            <swiper :modules="[Pagination]" pagination class="h-64">
+            <swiper :modules="[Pagination]" pagination class="h-70">
                <swiper-slide v-for="image in product?.images" :key="image.id">
                   <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
                </swiper-slide>
             </swiper>
          </main>
 
-         <main class="pt-4">
+         <main class="pt-4 px-4">
             <h1 class="font-semibold leading-4">{{ product?.title }}</h1>
 
             <div class="flex gap-2 flex-wrap py-3" v-if="product?.parameter_values.length">
@@ -28,7 +28,7 @@
                </span>
             </div>
 
-            <div class="text-(--z-color-primary) text-right pb-2 text-sm font-semibold">900 000 000 so'm</div>
+            <div class="text-(--z-color-primary) text-right pb-2 text-sm font-semibold">{{ product?.price }}</div>
             <hr class="border-(--z-color-border) -mx-5 mt-1" />
 
             <h3 class="mt-2 font-semibold">Izoh</h3>

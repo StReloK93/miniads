@@ -1,8 +1,7 @@
 import { Inputs } from "@/modules/Inputs";
+import { api } from "@shared/composables/useFetch";
 import { InputConfig } from "@shared/types";
 import z from "zod";
-
-export const globalProps = { size: "sm" };
 
 export const productInputs: InputConfig[] = [
    {
@@ -28,6 +27,23 @@ export const productInputs: InputConfig[] = [
       props: { title: "Narx", placeholder: "Masalan: 1 000 000" },
       schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Narx 1 dan katta bo'lishi kerak!"),
       class: ["mb-3"],
+      teleport_parent_class: "parent_price",
+   },
+   {
+      component: Inputs["FieldSelect"],
+      name: "price_type_id",
+      generateProps: async function () {
+         const { data } = await api.get("/price-types");
+         this.props = {
+            options: data,
+            value: "name",
+            selectIcon: false,
+         };
+      },
+      value: 1,
+      schema: z.number({ message: "Majburiy maydon!" }),
+      class: ["w-22", "absolute", "top-0.5", "right-0"],
+      teleport_child_class: "parent_price",
    },
    {
       component: Inputs["FieldTextarea"],

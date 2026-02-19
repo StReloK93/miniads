@@ -7,8 +7,16 @@ const globalProps = { size: "small", fluid: true };
 export const parameterInputs: InputConfig[] = [
    {
       component: PrimeVueInputs["InputText"],
+      name: "title",
+      placeholder: "Title",
+      props: globalProps,
+      schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
+      class: ["mb-4"],
+   },
+   {
+      component: PrimeVueInputs["InputText"],
       name: "placeholder",
-      placeholder: "Nomi",
+      placeholder: "Placeholder",
       props: globalProps,
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
@@ -49,7 +57,8 @@ export const parameterInputs: InputConfig[] = [
 
 export const parameterColumns = [
    { field: "id", header: "ID" },
-   { field: "placeholder", header: "Nomi" },
+   { field: "title", header: "Title" },
+   { field: "placeholder", header: "Placeholder" },
    { field: "component", header: "Input turi" },
    { field: "type", header: "Malumot turi" },
    { field: "unit", header: "O'lchov birligi" },

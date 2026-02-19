@@ -14,6 +14,7 @@ class Product extends Model
         'district',
         'phone',
         'price',
+        'price_type_id',
         'views_count',
         'expires_at'
     ];
@@ -35,5 +36,10 @@ class Product extends Model
     public function images()
     {
         return $this->hasMany(ProductImage::class, 'product_id');
+    }
+
+    public function price_type()
+    {
+        return $this->hasOne(PriceType::class, 'price_type_id');
     }
 }

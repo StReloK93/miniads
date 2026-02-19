@@ -24,7 +24,7 @@ export interface ICategoryParameter {
 
 export interface InputConfig {
    component: Component;
-   props: IProps | null;
+   props?: IProps | null;
    generateProps?: () => Promise<void>;
    name: string;
    placeholder?: string;
@@ -32,7 +32,8 @@ export interface InputConfig {
    class?: string[];
    value?: any;
    selectOption?: IProps;
-   condition?: ($form: any) => boolean;
+   teleport_child_class?: string;
+   teleport_parent_class?: string;
 }
 
 export interface IProps {
@@ -46,6 +47,7 @@ export interface IParameterOption {
 
 export interface IParameter {
    id: number;
+   title: string;
    placeholder: string;
    component: string;
    type: string;

@@ -26,5 +26,6 @@ Route::apiResource('categories', App\Http\Controllers\CategoryController::class)
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
 Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);
 Route::apiResource('products', App\Http\Controllers\ProductController::class);
+Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::class);
 
 

@@ -46,8 +46,9 @@ export const routes: RouteRecordRaw[] = [
             component: () => import("@pages/Create/CreateProductPage.vue"),
             name: "create-product",
          },
-         { path: "product/:id", component: () => import("@pages/ProductPage.vue"), name: "product-id", props: true },
+
          { path: "login", component: () => import("@pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
       ],
    },
+   { path: "/product/:id", component: () => import("@pages/ProductPage.vue"), name: "product-id", props: true },
 ];

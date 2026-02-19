@@ -4,6 +4,13 @@
    cursor: pointer;
 }
 
+.child .ui-select__control {
+   font-size: 14px;
+   padding-inline: var(--space-md);
+   padding-block: 10px;
+   cursor: pointer;
+}
+
 /* ERROR */
 .ui-select[data-error] .ui-select__control {
    border-color: var(--color-danger);
@@ -14,7 +21,11 @@
    background: var(--z-bg-secondary);
    border-radius: var(--radius-md);
    max-height: 240px;
-   padding: 10px 0px;
+   padding: 4px 0px;
+}
+
+.child .ui-select__options {
+   font-size: 14px;
 }
 
 /* OPTION */

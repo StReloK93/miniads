@@ -26,7 +26,9 @@ return new class extends Migration {
             $table->integer('views_count')->default(0); // Ko'rishlar soni
             $table->integer('price')->nullable(); // Narxi
 
-            $table->timestamp('expires_at')->nullable(); // E'lonning amal qilish muddati
+            $table->foreignId('price_type_id')->constrained()->onDelete('cascade');
+
+            $table->timestamp('expires_at')->default(now()); // E'lonning amal qilish muddati
             $table->timestamps();
         });
     }

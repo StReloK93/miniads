@@ -1,4 +1,9 @@
-.field {
+.child {
+   position: absolute;
+   right: 0;
+}
+
+:not(.child) > .field {
    width: 100%;
    padding: var(--space-md);
    border-radius: var(--radius-md);

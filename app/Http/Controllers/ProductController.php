@@ -17,7 +17,10 @@ class ProductController extends Controller
     {
         $product = Product::create([
             'title' => $request->title,
+            'price' => $request->price,
+            'price_type_id' => $request->price_type_id,
             'description' => $request->description,
+            'phone' => $request->phone,
             'category_id' => $request->category_id,
             'user_id' => 1, // yoki $request->user_id
             'district' => 2, // yoki $request->user_id
@@ -30,11 +33,11 @@ class ProductController extends Controller
 
             foreach ($params as $param) {
                 // Faqat qiymat kiritilgan bo'lsa saqlaymiz
-                if ($param['value'] !== null) {
+                if ($param['id'] !== null) {
                     ProductParameterValue::create([
                         'product_id' => $product->id,
                         'parameter_id' => $param['id'],
-                        'value' => $param['value'],
+                        'value' => $param['id'],
                     ]);
                 }
             }

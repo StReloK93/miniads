@@ -12,13 +12,18 @@
          <div class="overflow-y-auto inset-0 absolute no-scrollbar p-4">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
-               <div :class="input.class">
-                  <label>
-                     <p class="mb-1 text-sm text-(--color-text-secondary) tracking-wide">
-                        {{ input.props?.title }}
-                     </p>
-                  </label>
-                  <component :is="input.component" :name="input.name" v-bind="input.props" />
+               <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
+                  <main :class="input.class" class="child">
+                     <component :is="input.component" :name="input.name" v-bind="input.props" />
+                  </main>
+               </Teleport>
+               <div v-else :class="input.class">
+                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--color-text-secondary) tracking-wide">
+                     {{ input.props?.title }}
+                  </p>
+                  <main class="relative" :class="input.teleport_parent_class">
+                     <component :is="input.component" :name="input.name" v-bind="input.props" />
+                  </main>
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
                      <p class="text-sm text-(--z-color-danger) mt-1">
@@ -60,7 +65,12 @@ const props = defineProps<{
 }>();
 
 const buttonLoader = ref(false);
-const initialValues = computed(() => Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value])));
+const initialValues = computed(() => {
+   const bals = Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value]));
+   console.log(bals);
+
+   return bals;
+});
 
 const schema = computed(() => {
    const shape: Record<string, z.ZodTypeAny> = {};

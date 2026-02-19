@@ -13,7 +13,7 @@
             <span class="truncate"> {{ selectedLabel(field.value) }} </span>
 
             <span class="flex gap-2 items-center">
-               <Check v-if="field.value" class="h-4 w-4 text-blue-600" />
+               <Check v-if="field.value && selectIcon" class="h-4 w-4 text-blue-600" />
                <ChevronDown class="h-4 w-4 transition-transform duration-150" :class="{ 'rotate-180': slotOpen }" />
             </span>
          </ListboxButton>
@@ -67,9 +67,12 @@ const props = withDefaults(
    defineProps<{
       name: string;
       options: any[];
+      value?: string;
+      id?: string;
       placeholder?: string;
+      selectIcon?: boolean;
    }>(),
-   { placeholder: "Tanlang" },
+   { placeholder: "Tanlang", value: "value", id: "id", selectIcon: true },
 );
 
 /* ================= STATE ================= */
@@ -115,7 +118,7 @@ watch(
 const normalizedOptions = computed(() =>
    props.options.map((opt) => {
       if (typeof opt === "object") {
-         return { label: opt.label, value: opt.value };
+         return { label: opt[props.value], value: opt[props.id] };
       }
       return { label: String(opt), value: opt };
    }),

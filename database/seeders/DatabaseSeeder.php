@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ParameterSeeder::class);
         $this->call(CategoryParameterSeeder::class);
 
-
+        $this->call(PriceTypeSeeder::class);
 
     }
 }

@@ -1,6 +1,9 @@
 import { postEvent, on } from "@tma.js/bridge";
 
 export const setupTMAUI = () => {
+   postEvent("web_app_setup_back_button", {
+      is_visible: false,
+   });
    postEvent("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
    postEvent("web_app_expand");
    postEvent("web_app_request_content_safe_area");

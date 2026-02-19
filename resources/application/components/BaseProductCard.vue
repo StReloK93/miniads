@@ -1,14 +1,28 @@
 <template>
    <RouterLink :to="{ name: 'product-id', params: { id: product.id } }" class>
-      <section class="bg-secondary p-1.5 rounded-xl select-none">
-         <div>
-            <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-video" />
+      <section class="bg-(--z-bg-secondary) p-2 rounded-xl select-none border border-(--z-color-border)">
+         <div class="mb-2.5">
+            <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-4/2" />
          </div>
-         <h3 class="my-1.5 font-semibold line-clamp-1 text-sm">{{ product.title }}</h3>
-         <div class="flex flex-wrap gap-x-3 text-xs">
-            <span v-for="param in shortParameters" :key="param.id"> {{ param.value }} {{ param.parameter.unit }} </span>
-         </div>
-         <h3 class="mt-1 text-primary font-semibold text-sm">{{ product.price }}</h3>
+         <main class="p-1.5">
+            <div class="flex justify-between">
+               <h3 class="font-semibold line-clamp-1">{{ product.title }}</h3>
+               <h3
+                  class="inline-flex items-center gap-1"
+                  :class="{ 'flex-row-reverse': product.price_type.type === 'left' }"
+               >
+                  <span class="font-semibold">
+                     {{ product.price }}
+                  </span>
+                  {{ product.price_type.type }}
+               </h3>
+            </div>
+            <!-- <div class="flex flex-wrap gap-x-3 text-xs">
+               <span v-for="param in shortParameters" :key="param.id">
+                  {{ param.value }} {{ param.parameter.unit }}
+               </span>
+            </div> -->
+         </main>
       </section>
    </RouterLink>
 </template>

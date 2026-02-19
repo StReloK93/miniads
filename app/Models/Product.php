@@ -20,7 +20,7 @@ class Product extends Model
     ];
 
 
-    protected $with = ['parameter_values', 'images'];
+    protected $with = ['parameter_values', 'images', 'price_type'];
 
     protected $hidden = [
         'expires_at',
@@ -40,6 +40,6 @@ class Product extends Model
 
     public function price_type()
     {
-        return $this->hasOne(PriceType::class, 'price_type_id');
+        return $this->belongsTo(PriceType::class);
     }
 }

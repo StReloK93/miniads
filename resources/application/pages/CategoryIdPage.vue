@@ -7,7 +7,11 @@
          <i class="pi pi-angle-right text-xs!"></i>
          {{ category?.name }}
       </h3>
-      <div class="grid grid-cols-2 lg:grid-cols-3 gap-2 content-start">
+      <div class="grid grid-cols-1 gap-2">
+         <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
+         <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
+         <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
+         <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
          <BaseProductCard v-for="product in category?.products || []" :key="product.id" :product />
       </div>
    </section>

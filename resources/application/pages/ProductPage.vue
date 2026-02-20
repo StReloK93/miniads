@@ -4,7 +4,7 @@
          <BackPreviusPage>
             <BaseButton icon="pi pi-heart" iconOnly rounded severity="secondary">
                <template #icon>
-                  <Heart class="size-5" />
+                  <Heart class="size-4 text-red-500" />
                </template>
             </BaseButton>
          </BackPreviusPage>
@@ -28,7 +28,9 @@
                </span>
             </div>
 
-            <div class="text-(--z-color-primary) text-right pb-2 text-sm font-semibold">{{ product?.price }}</div>
+            <div class="text-(--z-color-primary) text-right pb-2 text-sm font-semibold">
+               {{ formatPrice(product?.price) }}
+            </div>
             <hr class="border-(--z-color-border) -mx-5 mt-1" />
 
             <h3 class="mt-2 font-semibold">Izoh</h3>
@@ -39,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatPrice } from "@/modules/Helpers";
 import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { Pagination } from "swiper/modules";

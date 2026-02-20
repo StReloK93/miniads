@@ -8,8 +8,7 @@
             @close="backToCategoryPage"
             @submit="backToCategoryPage"
             :input-configs="fullInputs"
-         >
-         </BaseForm>
+         />
       </section>
       <main v-else class="grid grid-rows-[auto_1fr] gap-4 w-full h-full">
          <aside class="flex justify-between items-center">
@@ -36,7 +35,7 @@
                   <div class="skeleton h-12 mb-4"></div>
                </article>
             </main>
-            <main class="border-t border-(--z-color-border) h-32 p-4 flex flex-col items-center -mx-4">
+            <main class="border-t border-(--z-color-border) h-28 p-4 pb-0 flex flex-col items-center -mx-4">
                <div class="skeleton h-12 rounded-2xl! mb-3 w-full"></div>
                <p class="skeleton h-3 w-4/5 mb-1"></p>
                <p class="skeleton h-3 w-2/5"></p>
@@ -73,6 +72,13 @@ async function selectCategory(category: ICategory) {
    );
 
    const parameters = category.parameters;
+
+   const phoneInput = inputConfigs.value.at(-1);
+   if (parameters.length) {
+      phoneInput!.class = ["mb-3"];
+   } else {
+      phoneInput!.class = [];
+   }
    const customInputs = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
 
@@ -86,7 +92,7 @@ async function selectCategory(category: ICategory) {
             placeholder: parameter.placeholder,
             options: parameter.options || [],
          },
-         schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required, parameter.placeholder),
+         schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required),
       };
    });
 

@@ -9,7 +9,7 @@
          <slot name="header" />
       </main>
       <main class="relative">
-         <div class="overflow-y-auto inset-0 absolute no-scrollbar p-4">
+         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
                <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
@@ -34,7 +34,7 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 border-t border-(--z-color-border)">
+      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-color-border)">
          <BaseButton type="submit" class="w-full rounded-2xl!" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
@@ -65,12 +65,7 @@ const props = defineProps<{
 }>();
 
 const buttonLoader = ref(false);
-const initialValues = computed(() => {
-   const bals = Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value]));
-   console.log(bals);
-
-   return bals;
-});
+const initialValues = computed(() => Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value])));
 
 const schema = computed(() => {
    const shape: Record<string, z.ZodTypeAny> = {};

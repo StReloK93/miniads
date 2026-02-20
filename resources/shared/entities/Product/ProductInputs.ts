@@ -24,7 +24,7 @@ export const productInputs: InputConfig[] = [
    {
       component: Inputs["FieldNumber"],
       name: "price",
-      props: { title: "Narx", placeholder: "Masalan: 1 000 000" },
+      props: { title: "Narx", placeholder: "Masalan: 1 000 000", min: 0, max: 9999999999999 },
       schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Narx 1 dan katta bo'lishi kerak!"),
       class: ["mb-3"],
       teleport_parent_class: "parent_price",
@@ -53,26 +53,25 @@ export const productInputs: InputConfig[] = [
       class: ["mb-3"],
    },
    {
-      component: Inputs["FieldText"],
+      component: Inputs["FieldMask"],
       name: "phone",
-      props: { title: "Telefon raqam", placeholder: "99-999-99-99" },
+      props: { title: "Telefon raqam", placeholder: "99-999-99-99", mask: "99 999 99 99" },
       schema: z.string().optional().nullable(),
-      class: ["mb-3"],
    },
 ];
 
-export const ZodTypeMapping: Record<string, (required: boolean, label: string) => any> = {
-   string: (required, label) => {
+export const ZodTypeMapping: Record<string, (required: boolean) => any> = {
+   string: (required) => {
       const s = z.string({ message: "Majburiy maydon!" }).trim();
-      return required ? s.min(1, `${label} to'ldirilishi shart`) : s.optional().nullable().or(z.literal(""));
+      return required ? s.min(1, `To'ldirilishi shart`) : s.optional().nullable().or(z.literal(""));
    },
-   number: (required, label) => {
-      const n = z.coerce.number({ message: "Majburiy maydon!" }).min(1, `${label} Majburiy maydon!`);
+   number: (required) => {
+      const n = z.coerce.number({ message: "Majburiy maydon!" }).min(1, `Majburiy maydon!`);
 
       return required ? n : n.optional().nullable();
    },
-   boolean: (required, label) => {
+   boolean: (required) => {
       const b = z.coerce.boolean();
-      return required ? b.refine((val) => val === true, { message: `${label} tanlanishi shart` }) : b.default(false);
+      return required ? b.refine((val) => val === true, { message: `Tanlanishi shart` }) : b.default(false);
    },
 };

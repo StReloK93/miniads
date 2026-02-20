@@ -16,7 +16,7 @@
 }
 
 .z-bg-gradient {
-   @apply bg-linear-to-r from-stone-100  to-slate-100;
+   @apply bg-linear-to-r from-stone-100/60  to-slate-100/60;
 }
 
 /* Yangi sahifa kirib kelayotgan vaqti */
@@ -110,4 +110,8 @@
    100% {
       transform: translateX(100%);
    }
+}
+
+.full-page {
+   @apply px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
 }

@@ -1,5 +1,7 @@
 <template>
-   <nav class="flex justify-around p-1 z-bg-gradient backdrop-blur-sm border rounded-xl border-(--z-color-border)">
+   <nav
+      class="flex justify-around p-1 z-bg-gradient backdrop-blur-sm border rounded-(--z-rounded) border-(--z-color-border)"
+   >
       <RouterLink v-for="item in items" :key="item.name" :to="{ name: item.name }">
          <BaseButton
             :severity="$route.name === item.name ? 'primary' : 'secondary'"
@@ -16,12 +18,12 @@
 </template>
 
 <script lang="ts" setup>
-import { House, Plus, Heart, Search } from "lucide-vue-next";
+import { House, Plus, Search, User } from "lucide-vue-next";
 
 const items = [
    { name: "home", label: "Asosiy", icon: House },
-   { name: "favorites", label: "Sevimlilar", icon: Heart },
    { name: "search", label: "Qidiruv", icon: Search },
    { name: "create-select-category", label: "E'lon berish", icon: Plus },
+   { name: "profile", label: "Profil", icon: User },
 ];
 </script>

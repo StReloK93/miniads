@@ -1,35 +1,54 @@
 <template>
-   <RouterLink :to="{ name: 'product-id', params: { id: product.id } }" class>
-      <section class="bg-(--z-bg-secondary) p-2 rounded-xl select-none border border-(--z-color-border)">
-         <div class="mb-2.5">
-            <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-4/2" />
-         </div>
-         <main class="p-1.5">
-            <div class="flex justify-between">
-               <h3 class="font-semibold line-clamp-1">{{ product.title }}</h3>
-               <h3
-                  class="inline-flex items-center gap-1"
-                  :class="{ 'flex-row-reverse': product.price_type.type === 'left' }"
-               >
-                  <span class="font-semibold">
-                     {{ product.price }}
-                  </span>
-                  {{ product.price_type.type }}
-               </h3>
-            </div>
-            <!-- <div class="flex flex-wrap gap-x-3 text-xs">
-               <span v-for="param in shortParameters" :key="param.id">
-                  {{ param.value }} {{ param.parameter.unit }}
+   <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
+      <section class="bg-(--z-bg-secondary) p-1.5 rounded-xl select-none border border-(--z-color-border)">
+         <div class="mb-2.5 relative">
+            <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-5/2" />
+            <div
+               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-color-border)"
+               :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
+            >
+               <span class="font-semibold">
+                  {{ formatPrice(product?.price) }}
                </span>
-            </div> -->
+               <span>
+                  {{ product.price_type.type }}
+               </span>
+            </div>
+            <!--  -->
+            <BaseButton
+               @click.stop=""
+               class="absolute top-2 right-2"
+               icon="pi pi-heart"
+               iconOnly
+               rounded
+               severity="secondary"
+            >
+               <template #icon>
+                  <Heart class="size-4 text-red-500" />
+               </template>
+            </BaseButton>
+         </div>
+         <main class="px-1.5">
+            <h3 class="font-semibold line-clamp-1">{{ product.title }}</h3>
+            <aside class="text-sm my-1">
+               <span class="text-(--z-color-text-secondary) inline-flex items-center gap-1">
+                  Uchquduq <span class="inline-flex w-1.5 h-1.5 rounded-full bg-(--z-color-text-secondary)"></span>
+                  <span class="capitalize">
+                     {{ timeAgo(product.created_at) }}
+                  </span>
+               </span>
+            </aside>
          </main>
       </section>
-   </RouterLink>
+   </main>
 </template>
 
 <script setup lang="ts">
+import { Heart } from "lucide-vue-next";
+import { timeAgo } from "@admin/modules/TimeFunctions";
 import { IProduct } from "@shared/types";
 import { computed } from "vue";
+import { formatPrice } from "@/modules/Helpers";
 const props = defineProps<{
    product: IProduct;
 }>();

@@ -9,3 +9,8 @@ export const preloadImages = (urls: string[]) => {
    });
    return Promise.all(promises);
 };
+
+export function formatPrice(value?: number | null): string {
+   if (value === null || value === undefined) return "";
+   return value.toLocaleString("ru-RU"); // 1 000 / 40 000
+}

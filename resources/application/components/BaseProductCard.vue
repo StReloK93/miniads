@@ -4,7 +4,7 @@
          <div class="mb-2.5 relative">
             <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-5/2" />
             <div
-               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-color-border)"
+               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full text-(--z-color-primary) border-(--z-color-border)"
                :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
             >
                <span class="font-semibold">
@@ -17,14 +17,15 @@
             <!--  -->
             <BaseButton
                @click.stop=""
-               class="absolute top-2 right-2"
+               class="absolute top-2 right-2 border border-(--z-color-border)"
                icon="pi pi-heart"
                iconOnly
                rounded
-               severity="secondary"
+               severity="glass"
             >
+               <!-- fill-red-500 text-red-500 -->
                <template #icon>
-                  <Heart class="size-4 text-red-500" />
+                  <Heart class="size-4" />
                </template>
             </BaseButton>
          </div>

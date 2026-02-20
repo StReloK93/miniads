@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
+import { isTMA, retrieveRawInitData, retrieveLaunchParams } from "@tma.js/bridge";
 import App from "@/App.vue";
 import router from "@/router";
 import { setupTMAUI } from "@/modules/InitApp";
@@ -18,7 +18,8 @@ const initApp = async () => {
    if (isTMA()) {
       const initData = isTMA() ? retrieveRawInitData() : null;
       setupTMAUI();
-      console.info(initData);
+      const telegramData = retrieveLaunchParams();
+      console.info(initData, telegramData);
    }
    try {
       await authStore.getUser();

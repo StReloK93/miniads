@@ -55,7 +55,7 @@ export const productInputs: InputConfig[] = [
    {
       component: Inputs["FieldMask"],
       name: "phone",
-      props: { title: "Telefon raqam", placeholder: "99-999-99-99", mask: "99 999 99 99" },
+      props: { title: "Telefon raqam", placeholder: "99-999-99-99", mask: "99-999-99-99" },
       schema: z.string().optional().nullable(),
    },
 ];

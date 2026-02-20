@@ -1,11 +1,15 @@
 <template>
-   <section class="px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] bg-white flex flex-col h-full">
-      <slot name="header"></slot>
+   <section class="pt-[calc(var(--safe-area-top)+var(--spacing)*4)] bg-white flex flex-col h-full">
+      <main class="px-4">
+         <slot name="header"></slot>
+      </main>
       <main class="relative w-full grow">
          <aside
             class="absolute inset-0 overflow-y-auto no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)]"
          >
-            <slot name="content"></slot>
+            <main class="px-4">
+               <slot name="content"></slot>
+            </main>
          </aside>
       </main>
       <div

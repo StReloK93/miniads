@@ -56,6 +56,13 @@
    --btn-text: var(--z-color-text-primary);
 }
 
+.ui-button[data-severity="glass"] {
+   --btn-bg: color-mix(in oklab, var(--color-stone-100) 60%, transparent);
+   --btn-bg-hover: var(--z-color-border);
+   --btn-text: var(--z-color-text-primary);
+   backdrop-filter: blur(var(--blur-sm));
+}
+
 .ui-button[data-severity="success"] {
    --btn-bg: #16a34a;
    --btn-bg-hover: #15803d;

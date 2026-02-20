@@ -12,7 +12,7 @@
             </aside>
             <aside></aside>
          </main>
-         <main class="-mx-4 border-b border-(--z-color-border) pb-4">
+         <main class="border-b border-(--z-color-border) pb-4 -mx-4">
             <div class="flex items-center text-sm justify-between mb-2 px-4">
                <h3 class="text-slate-600">Kategoriyalar</h3>
                <RouterLink :to="{ name: 'categories' }" class="text-(--z-color-primary)"> Barchasi </RouterLink>
@@ -47,32 +47,41 @@
       </template>
 
       <template #content>
-         <aside>
-            <main class="-mx-4 mb-4">
-               <swiper :slidesPerView="1.2" :space-between="20" class="w-full px-4!">
-                  <swiper-slide v-for="(card, index) in colorCards" :key="index">
-                     <div class="h-32 p-4 border rounded-(--z-rounded) border-(--z-color-border) z-bg-gradient">
-                        <h3 class="mb-2 text-sm">{{ card.name }}</h3>
-                        <p class="font-black">{{ card.desc }}</p>
-                     </div>
-                  </swiper-slide>
-               </swiper>
-            </main>
-         </aside>
+         <main class="mb-4 -mx-4">
+            <swiper :slidesPerView="1.2" :space-between="20" class="w-full px-4!">
+               <swiper-slide v-for="(card, index) in colorCards" :key="index">
+                  <div class="h-32 p-4 border rounded-(--z-rounded) border-(--z-color-border) z-bg-gradient">
+                     <h3 class="mb-2 text-sm">{{ card.name }}</h3>
+                     <p class="font-black">{{ card.desc }}</p>
+                  </div>
+               </swiper-slide>
+            </swiper>
+         </main>
+         <main class="flex flex-col gap-4">
+            <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
+            <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
+         </main>
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import icons from "@/modules/icons";
 import { ChevronDown, MapPin } from "lucide-vue-next";
 import { Swiper, SwiperSlide } from "swiper/vue";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 // import { preloadImages } from "@/modules/Helpers";
 import { useAuth } from "@shared/store/useAuth";
+import BaseProductCard from "@/components/BaseProductCard.vue";
+import { IProduct } from "@shared/types";
+import { onMounted } from "vue";
 const AuthStore = useAuth();
 const CategoryStore = useCategory();
+
+const { data: latest_ten, execute: executeLatest } = useFetchDecorator<IProduct[]>(ProductRepo.latestTen);
 
 const colorCards = [
    {
@@ -88,4 +97,8 @@ const colorCards = [
       desc: "Zamonaviy va yengil, xizmatlar uchun",
    },
 ];
+
+onMounted(() => {
+   executeLatest();
+});
 </script>

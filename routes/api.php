@@ -28,4 +28,6 @@ Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParamet
 Route::apiResource('products', App\Http\Controllers\ProductController::class);
 Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::class);
 
+Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
+
 

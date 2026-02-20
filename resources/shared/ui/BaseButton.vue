@@ -26,7 +26,7 @@
 import { LoaderCircle } from "lucide-vue-next";
 
 type Size = "sm" | "md" | "lg";
-type Severity = "primary" | "secondary" | "success" | "danger" | "light";
+type Severity = "primary" | "secondary" | "success" | "danger" | "light" | "glass";
 type Variant = "default" | "text";
 
 const props = withDefaults(

@@ -26,6 +26,10 @@ class Product extends Model
         'expires_at',
     ];
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function parameter_values()
     {

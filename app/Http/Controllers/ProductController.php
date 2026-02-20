@@ -72,4 +72,9 @@ class ProductController extends Controller
     }
 
 
+    public function latestTen()
+    {
+        return Product::with('category')->latest()->take(10)->get();
+    }
+
 }

@@ -19,4 +19,7 @@ export default {
    update(id: string | number, formData: IProduct) {
       return api.put<IProduct>(`${baseURL}/${id}`, formData);
    },
+   latestTen() {
+      return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
+   },
 };

@@ -8,7 +8,11 @@
             <BaseProductCard v-for="product in category?.products" :key="product.id" :product />
          </div>
          <template v-if="!fullMountedPage">
-            <div class="skeleton h-40"></div>
+            <main class="h-full flex justify-center items-center flex-col px-12">
+               <div class="skeleton w-full h-3 mb-4"></div>
+               <div class="skeleton w-full h-3 mb-4"></div>
+               <div class="skeleton w-full h-3 mb-4"></div>
+            </main>
          </template>
          <main v-if="fullMountedPage && category?.products.length == 0" class="h-full flex justify-center items-center">
             <aside class="text-center">
@@ -43,8 +47,8 @@ const fullMountedPage = ref(false);
 onMounted(async () => {
    await execute(route.params.id);
 
-   const products = category.value?.products!;
-   const imageUrls: string[] = products
+   const products = category.value?.products;
+   const imageUrls: string[] = products!
       .filter((product) => product.images.length > 0)
       .map((product) => `/storage/${product.images[0].src}`);
 

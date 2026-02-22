@@ -113,5 +113,5 @@
 }
 
 .full-page {
-   @apply px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
+   @apply px-3 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
 }

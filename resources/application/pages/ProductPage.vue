@@ -1,13 +1,13 @@
 <template>
    <section class="relative pb-[calc(var(--safe-area-bottom)+var(--spacing)*2)]">
       <div class="absolute right-4 left-4 z-20 pt-[calc(var(--safe-area-top)+var(--spacing)*8)]">
-         <BackPreviusPage>
+         <!-- <BackPreviusPage>
             <BaseButton icon="pi pi-heart" iconOnly rounded severity="secondary">
                <template #icon>
                   <Heart class="size-4 text-red-500" />
                </template>
             </BaseButton>
-         </BackPreviusPage>
+         </BackPreviusPage> -->
       </div>
 
       <div>

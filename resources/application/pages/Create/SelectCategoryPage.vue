@@ -1,6 +1,6 @@
 <template>
    <section class="grid grid-rows-[auto_1fr] gap-4 w-full h-dvh">
-      <BackPreviusPage title="Qanday e'lon bermoqchisiz?" @close="$router.push({ name: 'home' })" model />
+      <!-- <BackPreviusPage title="Qanday e'lon bermoqchisiz?" @close="$router.push({ name: 'home' })" model /> -->
       <aside>
          <div
             class="p-2 px-4 text-sm text-(--z-color-text-primary) mb-2 bg-(--z-color-primary)/5 rounded-md flex items-start gap-2"

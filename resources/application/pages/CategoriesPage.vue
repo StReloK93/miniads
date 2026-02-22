@@ -1,6 +1,6 @@
 <template>
    <section class="flex flex-col gap-4">
-      <BackPreviusPage :title="pageTitle" />
+      <!-- <BackPreviusPage :title="pageTitle" model @close="$router.push({ name: 'home' })" /> -->
       <CategorySelector
          v-if="CategoryStore?.parentCategories?.length"
          :activeCategoryId="activeCategoryId"

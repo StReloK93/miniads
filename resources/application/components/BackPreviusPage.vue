@@ -33,7 +33,7 @@ const goBack = () => {
    if (props.model) return emit("close");
    // window.history.length > 1 bo'lsa, demak orqada qaysidir sahifa bor
    if (window.history.length > 1) {
-      router.back(); // yoki router.go(-1)
+      router.go(-1); // yoki router.go(-1)
    } else {
       // Agar istoriya bo'lmasa, Bosh sahifaga (Home) qaytaradi
       router.push("/");

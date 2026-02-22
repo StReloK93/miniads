@@ -1,6 +1,6 @@
 <template>
    <section class="grid grid-rows-[auto_1fr] gap-4">
-      <BackPreviusPage title="Qidiruv" />
+      <!-- <BackPreviusPage title="Qidiruv" /> -->
       <aside>
          <main>
             <article>

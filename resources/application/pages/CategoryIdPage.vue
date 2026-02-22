@@ -1,8 +1,8 @@
 <template>
    <NavigationPageDecorator>
-      <template #header>
+      <!-- <template #header>
          <BackPreviusPage title="Ortga qaytish" model @close="backToCategoryPage" />
-      </template>
+      </template> -->
       <template #content>
          <div v-show="fullMountedPage" class="grid grid-cols-1 gap-4">
             <BaseProductCard v-for="product in category?.products" :key="product.id" :product />

@@ -17,7 +17,7 @@
                <h3 class="text-slate-600">Kategoriyalar</h3>
                <RouterLink :to="{ name: 'categories' }" class="text-(--z-color-primary)"> Barchasi </RouterLink>
             </div>
-            <swiper :slidesPerView="5.5" :space-between="20" class="w-full px-4!">
+            <swiper :slidesPerView="5.5" :space-between="10" class="w-full px-4!">
                <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.id">
                   <RouterLink
                      :to="

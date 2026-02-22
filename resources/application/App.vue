@@ -9,11 +9,16 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute, useRouter } from "vue-router";
+
 import { nextTick, onMounted, ref } from "vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
+import { on, postEvent } from "@tma.js/bridge";
 const categoryStore = useCategory();
 const animationName = ref("");
 
+const router = useRouter();
+const route = useRoute();
 function onComponentMounted() {
    animationName.value = "slide-bottom";
 }
@@ -51,5 +56,14 @@ onMounted(async () => {
          import("@/layouts/FullPage.vue");
       }
    }, 1500);
+
+   // ===== BACK BOSILGANDA =====
+   on("back_button_pressed", () => {
+      if (route.name === "home") {
+         postEvent("web_app_close");
+      } else {
+         router.back();
+      }
+   });
 });
 </script>

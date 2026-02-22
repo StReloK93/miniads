@@ -4,7 +4,7 @@
          <div class="mb-2.5 relative">
             <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-5/2" />
             <div
-               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full text-(--z-color-primary) border-(--z-color-border)"
+               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-color-border)"
                :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
             >
                <span class="font-semibold">

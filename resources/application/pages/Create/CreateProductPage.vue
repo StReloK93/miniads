@@ -1,7 +1,6 @@
 <template>
-   <section class="h-full">
-      <section v-if="selectedCategory" class="grid grid-rows-[auto_1fr] gap-4 h-full -mx-4 relative">
-         <!-- <BackPreviusPage title="Ortga qaytish" class="px-4" model @close="backToCategoryPage" /> -->
+   <section class="h-full px-3">
+      <main v-if="selectedCategory" class="h-full">
          <BaseForm
             v-if="selectedCategory"
             :submit="submitForm"
@@ -9,14 +8,9 @@
             @submit="backToCategoryPage"
             :input-configs="fullInputs"
          />
-      </section>
-      <main v-else class="grid grid-rows-[auto_1fr] gap-4 w-full h-full">
-         <aside class="flex justify-between items-center">
-            <div class="skeleton w-10 h-10 rounded-full!"></div>
-            <div class="skeleton w-32 h-5 rounded-full!"></div>
-            <div class="w-10"></div>
-         </aside>
-         <aside class="pt-5 flex flex-col justify-between">
+      </main>
+      <main v-else class="h-full grid grid-rows-[auto_1fr]]">
+         <aside class="flex flex-col justify-between">
             <main class="relative grow">
                <article class="absolute inset-0 overflow-y-auto no-scrollbar">
                   <div class="skeleton w-16 h-3 mb-2"></div>
@@ -48,7 +42,6 @@
 <script setup lang="ts">
 import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
-import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import { useRoute, useRouter } from "vue-router";
 import { ICategory, InputConfig } from "@shared/types";
 import { Component, onMounted, ref, shallowRef } from "vue";
@@ -105,6 +98,7 @@ async function selectCategory(category: ICategory) {
 async function submitForm(values: any) {
    const payload: any = {
       title: values.title,
+      phone: values.phone,
       description: values.description,
       price: values.price,
       price_type_id: values.price_type_id,

@@ -16,7 +16,7 @@
       <component v-else-if="$slots.icon" :is="$slots.icon" />
 
       <!-- LABEL -->
-      <span v-if="!iconOnly" class="ui-button__label">
+      <span v-if="!iconOnly" class="ui-button__label inline-flex items-center gap-2">
          <slot />
       </span>
    </button>

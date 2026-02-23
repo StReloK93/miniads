@@ -29,15 +29,14 @@ class ProductController extends Controller
 
         // 2. Dinamik parametrlarni saqlash
         if ($request->has('parameters')) {
-            $params = $request->parameters; // [ "1" => 3, "2" => 55 ]
+            $params = $request->parameters;
 
             foreach ($params as $param) {
-                // Faqat qiymat kiritilgan bo'lsa saqlaymiz
                 if ($param['id'] !== null) {
                     ProductParameterValue::create([
                         'product_id' => $product->id,
                         'parameter_id' => $param['id'],
-                        'value' => $param['id'],
+                        'value' => $param['value'],
                     ]);
                 }
             }
@@ -47,8 +46,6 @@ class ProductController extends Controller
         // 3. Rasmlarni saqlash (File Upload)
         if ($request->has('images')) {
             foreach ($request->file('images') as $image) {
-                // Rasmni 'public/products' papkasiga saqlaymiz
-                // store() funksiyasi avtomatik ravishda noyob nom beradi
                 $path = $image['file']->store('products', 'public');
 
                 // ProductImage modeliga saqlash

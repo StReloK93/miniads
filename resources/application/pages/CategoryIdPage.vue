@@ -1,8 +1,6 @@
 <template>
    <NavigationPageDecorator>
-      <!-- <template #header>
-         <BackPreviusPage title="Ortga qaytish" model @close="backToCategoryPage" />
-      </template> -->
+      <template #header> </template>
       <template #content>
          <div v-show="fullMountedPage" class="grid grid-cols-1 gap-4">
             <BaseProductCard v-for="product in category?.products" :key="product.id" :product />
@@ -27,7 +25,6 @@
 <script setup lang="ts">
 import { preloadImages } from "@/modules/Helpers";
 import { useRouter } from "vue-router";
-import BackPreviusPage from "@/components/BackPreviusPage.vue";
 import BaseProductCard from "@/components/BaseProductCard.vue";
 import { onMounted, ref } from "vue";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";

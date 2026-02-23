@@ -17,7 +17,7 @@
                <h3 class="text-slate-600">Kategoriyalar</h3>
                <RouterLink :to="{ name: 'categories' }" class="text-(--z-color-primary)"> Barchasi </RouterLink>
             </div>
-            <swiper :slidesPerView="5.5" :space-between="10" class="w-full px-4!">
+            <swiper :slidesPerView="5.5" :space-between="10" :modules="[FreeMode]" class="w-full px-4!">
                <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.id">
                   <RouterLink
                      :to="
@@ -47,8 +47,8 @@
       </template>
 
       <template #content>
-         <main class="mb-4 -mx-4">
-            <swiper :slidesPerView="1.2" :space-between="20" class="w-full px-4!">
+         <main class="mb-4 -mx-3">
+            <swiper :slidesPerView="1.2" :space-between="20" class="w-full px-3!">
                <swiper-slide v-for="(card, index) in colorCards" :key="index">
                   <div class="h-32 p-4 border rounded-(--z-rounded) border-(--z-color-border) z-bg-gradient">
                      <h3 class="mb-2 text-sm">{{ card.name }}</h3>
@@ -59,13 +59,13 @@
          </main>
          <main class="flex flex-col gap-4">
             <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
-            <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
          </main>
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
+import { FreeMode } from "swiper/modules";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useCategory } from "@shared/entities/Category/useCategory";

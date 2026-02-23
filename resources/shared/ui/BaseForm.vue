@@ -3,13 +3,10 @@
       @submit="onSubmit"
       :validation-schema="validationSchema"
       :initialValues="initialValues"
-      class="grid-rows-[auto_1fr_auto] h-full grid"
+      class="grid-rows-[1fr_auto] h-full grid -mx-3"
    >
-      <main>
-         <slot name="header" />
-      </main>
       <main class="relative">
-         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
+         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-3 pb-4">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
                <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
@@ -42,7 +39,7 @@
             E'lonni joylash
          </BaseButton>
          <p class="text-xs px-4 leading-4.5 text-center text-(--z-color-text-secondary)">
-            Elon joylashtirish orqali siz foydalanish shartlari va rozilik bildirasiz.
+            Elon joylashtirish orqali siz foydalanish shartlariga bildirasiz.
          </p>
       </footer>
    </Form>

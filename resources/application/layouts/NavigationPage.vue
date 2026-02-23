@@ -1,5 +1,5 @@
 <template>
-   <main class="h-dvh relative">
+   <main class="h-full">
       <router-view v-slot="{ Component, route }">
          <transition name="slide-in" mode="out-in">
             <component :is="Component" :key="route.fullPath" />

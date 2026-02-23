@@ -13,6 +13,20 @@
    --swiper-pagination-bullet-size: 6px;
    --swiper-pagination-bullet-inactive-opacity: 0.9;
    --swiper-pagination-bullet-inactive-color: white;
+   --swiper-theme-color: black;
+}
+
+.swiper-pagination {
+   padding-left: 12px;
+   text-align: left;
+   bottom: 15px !important;
+}
+
+.swiper-pagination-bullet {
+   border-radius: 0 !important;
+   margin: 0 3px !important;
+   width: 20px;
+   height: 2px;
 }
 
 .z-bg-gradient {
@@ -113,5 +127,5 @@
 }
 
 .full-page {
-   @apply px-3 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
+   @apply h-full pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
 }

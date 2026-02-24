@@ -30,11 +30,7 @@
                      <div
                         class="size-14 grid place-items-center bg-(--z-bg-secondary) border border-(--z-color-border) rounded-(--z-rounded)"
                      >
-                        <component
-                           :is="icons[category.image]"
-                           stroke-width="1.5"
-                           class="size-5 text-(--z-color-primary)"
-                        />
+                        <component :is="icons[category.image]" stroke-width="1.5" class="size-5" />
                      </div>
 
                      <div class="text-xs text-center">

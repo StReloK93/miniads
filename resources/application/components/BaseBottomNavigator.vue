@@ -23,7 +23,7 @@ import { House, Plus, Search, User } from "lucide-vue-next";
 const items = [
    { name: "home", label: "Asosiy", icon: House },
    { name: "search", label: "Qidiruv", icon: Search },
-   { name: "create-select-category", label: "E'lon berish", icon: Plus },
+   { name: "create-select-category", label: "E'lon joylash", icon: Plus },
    { name: "profile", label: "Profil", icon: User },
 ];
 </script>

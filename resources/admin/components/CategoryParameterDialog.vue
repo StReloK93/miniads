@@ -16,7 +16,7 @@
                   offIcon="pi pi-lock-open"
                   class="w-20"
                />
-               <div class="w-1/2 text-tertiary">{{ index + 1 }} - {{ value.parameter.placeholder }}</div>
+               <div class="w-1/2 text-tertiary">{{ index + 1 }} - {{ value.parameter.title }}</div>
             </main>
             <main class="flex w-3/5 items-center" :class="{ 'opacity-40 dark:opacity-25': !value.select }">
                <div class="w-1/2">

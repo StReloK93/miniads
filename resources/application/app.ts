@@ -15,11 +15,11 @@ const authStore = useAuth();
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {
+   var userData: any = null;
    const tma = isTMA();
    if (tma) {
-      const initData = tma ? retrieveRawInitData() : null;
       setupTMAUI();
-      const telegramData = retrieveLaunchParams();
+      userData = retrieveLaunchParams();
    }
    try {
       await authStore.getUser();
@@ -30,7 +30,7 @@ const initApp = async () => {
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
       }
    } finally {
-      app.use(router).provide("tma", tma).mount("#app");
+      app.use(router).provide("userData", userData).mount("#app");
    }
 };
 

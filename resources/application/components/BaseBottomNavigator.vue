@@ -1,29 +1,32 @@
 <template>
-   <nav
-      class="flex justify-around p-1 z-bg-gradient backdrop-blur-sm border rounded-(--z-rounded) border-(--z-color-border)"
-   >
+   <nav class="flex justify-between p-1 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)">
       <RouterLink v-for="item in items" :key="item.name" :to="{ name: item.name }">
-         <BaseButton
-            :severity="$route.name === item.name ? 'primary' : 'secondary'"
-            variant="text"
-            class="flex-col gap-1! text-xs min-w-18 p-1! font-black!"
+         <button
+            v-if="!item.iconOnly"
+            :class="{ 'bg-(--z-primary)/10 font-bold ': $route.name === item.name }"
+            class="flex flex-col items-center gap-1 text-xs min-w-18 p-1 rounded-full"
          >
-            <template #icon>
-               <component :is="item.icon" class="size-4" stroke-width="3" />
-            </template>
+            <component :is="item.icon" class="size-5" stroke-width="2" />
             {{ item.label }}
-         </BaseButton>
+         </button>
+         <button
+            v-else
+            class="flex items-center justify-center size-12 rounded-full bg-(--z-primary) text-white aspect-square border border-(--z-border) shadow-md -translate-y-4"
+         >
+            <component :is="item.icon" class="size-5" stroke-width="2" />
+         </button>
       </RouterLink>
    </nav>
 </template>
 
 <script lang="ts" setup>
-import { House, Plus, Search, User } from "lucide-vue-next";
+import { House, Plus, Search, User, Heart } from "lucide-vue-next";
 
 const items = [
    { name: "home", label: "Asosiy", icon: House },
    { name: "search", label: "Qidiruv", icon: Search },
-   { name: "create-select-category", label: "E'lon joylash", icon: Plus },
+   { name: "create-select-category", icon: Plus, iconOnly: true },
+   { name: "favorites", label: "Sevimli", icon: Heart },
    { name: "profile", label: "Profil", icon: User },
 ];
 </script>

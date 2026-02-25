@@ -25,14 +25,14 @@
                   <img
                      :src="image.url"
                      :class="[index == 0 ? 'col-span-3 aspect-video' : 'aspect-square']"
-                     class="rounded-md grayscale object-cover w-full"
+                     class="rounded-(--z-rounded) grayscale object-cover w-full"
                   />
                </div>
             </main>
             <label
                v-if="attrs.multiple || images_source.length === 0"
                :class="[images_source.length > 0 ? 'aspect-square' : 'col-span-3 aspect-video']"
-               class="cursor-pointer flex justify-center items-center rounded-md bg-(--z-color-primary)/5 border border-(--z-color-primary) border-dashed"
+               class="cursor-pointer flex justify-center items-center rounded-(--z-rounded) bg-(--z-primary)/5 border border-(--z-primary) border-dashed"
             >
                <input
                   ref="inputFile"
@@ -43,8 +43,8 @@
                   class="hidden"
                   @vue:mounted="inputMouted(field)"
                />
-               <div class="size-10 bg-white rounded-full flex justify-center items-center">
-                  <Camera class="size-5 text-blue-500" />
+               <div class="size-10 bg-(--z-field-background) rounded-full flex justify-center items-center">
+                  <Camera class="size-5 text-(--z-primary)" />
                </div>
             </label>
          </div>

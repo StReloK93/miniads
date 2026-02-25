@@ -6,11 +6,11 @@
 :not(.child) > .field {
    width: 100%;
    padding: var(--space-md);
-   border-radius: var(--radius-md);
-   border: 1px solid var(--z-color-border);
+   border-radius: var(--z-rounded);
+   border: 1px solid var(--z-border);
 
-   background-color: var(--z-bg-field);
-   color: var(--z-color-text-primary);
+   background-color: var(--z-field-background);
+   color: var(--z-primary);
 
    font-family: inherit;
    font-size: 14px;
@@ -23,18 +23,18 @@
 
    /* PLACEHOLDER */
    &::placeholder {
-      color: var(--z-color-text-secondary);
+      color: var(--z-secondary);
    }
 
    /* FOCUS */
    &:focus-within {
-      outline: 2px solid color-mix(in srgb, var(--z-color-primary) 70%, transparent);
+      outline: 2px solid color-mix(in srgb, var(--z-primary) 70%, transparent);
    }
 
    /* DISABLED */
    &:disabled {
-      background-color: var(--z-bg-secondary);
-      color: var(--z-color-text-secondary);
+      background-color: var(--z-card);
+      color: var(--z-secondary);
       cursor: not-allowed;
    }
 }

@@ -34,14 +34,14 @@
                   v-show="isPositioned"
                   ref="floating"
                   :style="floatingStyles"
-                  class="ui-select__options z-50 w-(--ref-width) overflow-auto border border-(--z-color-border)"
+                  class="ui-select__options z-50 w-(--ref-width) overflow-auto border border-(--z-border)"
                >
                   <ListboxOption
                      v-for="option in normalizedOptions"
                      :key="option.value"
                      :value="option.value"
                      class="cursor-pointer px-3 py-2 flex justify-between items-center hover:bg-gray-100"
-                     :class="{ 'bg-(--z-color-border)': field.value === option.value }"
+                     :class="{ 'bg-(--z-border)': field.value === option.value }"
                      v-slot="{ selected }"
                   >
                      <span>{{ option.label }}</span>

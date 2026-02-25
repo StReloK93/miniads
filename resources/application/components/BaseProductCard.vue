@@ -1,10 +1,10 @@
 <template>
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
-      <section class="bg-(--z-bg-secondary) p-1.5 rounded-xl select-none border border-(--z-color-border)">
+      <section class="bg-(--z-card) p-1.5 rounded-xl select-none border border-(--z-border)">
          <div class="mb-2.5 relative">
             <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-5/2" />
             <div
-               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-color-border)"
+               class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
                :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
             >
                <span class="font-semibold">
@@ -17,7 +17,7 @@
             <!--  -->
             <BaseButton
                @click.stop=""
-               class="absolute top-2 right-2 border border-(--z-color-border)"
+               class="absolute top-2 right-2 border border-(--z-border)"
                icon="pi pi-heart"
                iconOnly
                rounded
@@ -30,11 +30,11 @@
             </BaseButton>
          </div>
          <main class="px-1.5">
-            <h3 class="font-semibold line-clamp-1">{{ product.title }}</h3>
-            <aside class="text-sm my-1">
-               <span class="text-(--z-color-text-secondary) inline-flex items-center gap-1">
-                  Uchquduq <span class="inline-flex w-1.5 h-1.5 rounded-full bg-(--z-color-text-secondary)"></span>
-                  <span class="capitalize">
+            <h3 class="font-medium line-clamp-1">{{ product.title }}</h3>
+            <aside class="text-xs my-1">
+               <span class="text-(--z-secondary) inline-flex items-center gap-1">
+                  <!-- Uchquduq <span class="inline-flex w-1.5 h-1.5 rounded-full bg-(--z-secondary)"></span> -->
+                  <span class="uppercase">
                      {{ timeAgo(product.created_at) }}
                   </span>
                </span>
@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { Heart } from "lucide-vue-next";
-import { timeAgo } from "@admin/modules/TimeFunctions";
+import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed } from "vue";
 import { formatPrice } from "@/modules/Helpers";

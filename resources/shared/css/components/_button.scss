@@ -2,9 +2,9 @@
    /* ===== default tokens (md) ===== */
    --btn-px: var(--space-md);
    --btn-py: var(--space-md);
-   --btn-radius: var(--radius-md);
-   --btn-bg: var(--z-color-primary);
-   --btn-bg-hover: var(--z-color-primary-hover);
+   --btn-radius: var(--z-rounded);
+   --btn-bg: var(--z-primary);
+   --btn-bg-hover: var(--z-primary-hover);
    --btn-text: #fff;
 
    border-radius: var(--btn-radius);
@@ -45,21 +45,21 @@
 
 /* ================= SEVERITY ================= */
 .ui-button[data-severity="primary"] {
-   --btn-bg: var(--z-color-primary);
-   --btn-bg-hover: var(--z-color-primary-hover);
+   --btn-bg: var(--z-primary);
+   --btn-bg-hover: var(--z-primary-hover);
    --btn-text: #fff;
 }
 
 .ui-button[data-severity="secondary"] {
-   --btn-bg: var(--z-bg-secondary);
-   --btn-bg-hover: var(--z-color-border);
-   --btn-text: var(--z-color-text-primary);
+   --btn-bg: var(--z-card);
+   --btn-bg-hover: var(--z-border);
+   --btn-text: var(--z-primary);
 }
 
 .ui-button[data-severity="glass"] {
    --btn-bg: color-mix(in oklab, var(--color-stone-100) 60%, transparent);
-   --btn-bg-hover: var(--z-color-border);
-   --btn-text: var(--z-color-text-primary);
+   --btn-bg-hover: var(--z-border);
+   --btn-text: var(--z-primary);
    backdrop-filter: blur(var(--blur-sm));
 }
 
@@ -70,7 +70,7 @@
 }
 
 .ui-button[data-severity="danger"] {
-   --btn-bg: var(--z-color-danger);
+   --btn-bg: var(--z-danger);
    --btn-bg-hover: #b91c1c;
    --btn-text: #fff;
 }
@@ -87,13 +87,13 @@
 }
 
 .ui-button[data-variant="text"][data-severity="primary"] {
-   --btn-text: var(--z-color-primary);
-   --btn-bg-hover: color-mix(in srgb, var(--z-color-primary) 12%, transparent);
+   --btn-text: var(--z-primary);
+   --btn-bg-hover: color-mix(in srgb, var(--z-primary) 12%, transparent);
 }
 
 .ui-button[data-variant="text"][data-severity="danger"] {
-   --btn-text: var(--z-color-danger);
-   --btn-bg-hover: color-mix(in srgb, var(--z-color-danger) 12%, transparent);
+   --btn-text: var(--z-danger);
+   --btn-bg-hover: color-mix(in srgb, var(--z-danger) 12%, transparent);
 }
 
 .ui-button[data-variant="text"][data-severity="success"] {

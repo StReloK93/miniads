@@ -2,15 +2,13 @@
    <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full">
       <!-- Breadcrumb -->
       <div class="p-2 text-sm flex flex-wrap items-center gap-2 mb-2">
-         <span class="cursor-pointer text-(--z-color-text-secondary) active:text-black" @click="goRoot">
-            Kategoriyalar
-         </span>
+         <span class="cursor-pointer text-(--z-secondary) active:text-black" @click="goRoot"> Bo'limlar </span>
 
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
-            <span class="text-(--z-color-text-secondary)">
-               <ChevronRight class="size-4 text-(--z-color-text-secondary)" />
+            <span class="text-(--z-secondary)">
+               <ChevronRight class="size-4 text-(--z-secondary)" />
             </span>
-            <span class="cursor-pointer text-(--z-color-text-primary) active:text-black" @click="goBack(i)">
+            <span class="cursor-pointer text-(--z-primary) active:text-black" @click="goBack(i)">
                {{ bc.name }}
             </span>
          </template>
@@ -19,18 +17,18 @@
       <!-- Category list -->
       <div class="overflow-hidden relative">
          <Transition :name="transitionName" mode="out-in">
-            <ul :key="stack.length" class="divide-y divide-(--z-color-border)">
+            <ul :key="stack.length" class="divide-y divide-(--z-border)">
                <li
                   v-for="cat in currentCategories"
                   :key="cat.id"
                   @click="selectCategory(cat)"
-                  class="flex items-center justify-between p-2 cursor-pointer active:bg-(--z-bg-secondary) rounded-md"
+                  class="flex items-center justify-between p-2 cursor-pointer active:bg-(--z-card) rounded-md"
                >
-                  <span class="font-medium text-(--z-color-text-primary)">
+                  <span class="font-medium text-(--z-primary)">
                      {{ cat.name }}
                   </span>
 
-                  <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-color-text-secondary)" />
+                  <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-secondary)" />
                </li>
             </ul>
          </Transition>

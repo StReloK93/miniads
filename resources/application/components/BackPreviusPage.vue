@@ -5,7 +5,7 @@
             <ChevronLeft class="size-4" />
          </template>
       </BaseButton>
-      <span class="text-(--z-color-text-primary)">{{ props.title }}</span>
+      <span class="text-(--z-primary)">{{ props.title }}</span>
       <span class="min-w-8">
          <slot></slot>
       </span>

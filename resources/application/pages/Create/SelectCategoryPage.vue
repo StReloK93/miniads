@@ -1,10 +1,8 @@
 <template>
    <section class="px-3">
-      <div
-         class="py-2 px-3 text-sm text-(--z-color-text-primary) mb-2 bg-(--z-color-primary)/5 rounded-md flex items-start gap-2"
-      >
+      <div class="py-2 px-3 text-sm text-(--z-primary) mb-2 bg-(--z-primary)/5 rounded-md flex items-start gap-2">
          <Info class="size-5 mt-1" />
-         E'loningiz qaysi kategoriyaga tegishli ekanligini tanlang.
+         E'loningiz qaysi bo'limga tegishli ekanligini tanlang.
       </div>
 
       <CategorySelector

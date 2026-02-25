@@ -4,16 +4,11 @@
 @use "./components/field-textarea";
 @use "./components/field-select";
 
-//
-//
-//
-//
-//
-//
-//
 :root {
-   --z-bg-primary: #ffffff;
-   --z-bg-secondary: #f8f8f8;
+   --z-background: #f8fafc;
+   --z-card: #ffffff;
+   --z-foreground: #0f172a;
+   --z-border: #e2e8f0;
 
    /* SPACING */
    --space-sm: 8px;
@@ -21,33 +16,24 @@
    --space-lg: 16px;
 
    /* RADIUS */
-   --z-rounded: 8px;
-   --z-color-border: #eeeeee;
+   --z-rounded: 1rem;
 
    /* COLORS */
-   --z-color-primary: #002ae4;
-   --z-color-danger: #ff3b30;
+   --z-danger: #ff3b30;
+   --z-primary: #0f172a;
+   --z-secondary: #64748b;
 
-   --z-bg-field: #f8f8f8;
-   --z-color-surface-muted: #f9fafb;
-
-   --z-color-text-primary: #111827;
-   --z-color-text-secondary: #6b7280;
+   --z-field-background: #ffffff;
 
    /* ANIMATION */
    --duration: 150ms;
    --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-* {
-   box-sizing: border-box;
-   font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-}
 body {
    margin: 0;
-   background: var(--z-bg-primary);
+   background: var(--z-background);
    color: var(--color-text-primary);
-   font-family: system-ui, sans-serif;
 }
 
 // html.dark {

@@ -15,7 +15,7 @@
                   </main>
                </Teleport>
                <div v-else :class="input.class">
-                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--color-text-secondary) tracking-wide">
+                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--color-text-secondary) tracking-wide px-2">
                      {{ input.props?.title }}
                   </p>
                   <main class="relative" :class="input.teleport_parent_class">
@@ -23,7 +23,7 @@
                   </main>
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
-                     <p class="text-sm text-(--z-color-danger) mt-1">
+                     <p class="text-sm text-(--z-danger) mt-1">
                         {{ message }}
                      </p>
                   </ErrorMessage>
@@ -31,14 +31,14 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-color-border)">
-         <BaseButton type="submit" class="w-full rounded-2xl!" :loading="buttonLoader">
+      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border)">
+         <BaseButton type="submit" class="w-full" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
             </template>
             E'lonni joylash
          </BaseButton>
-         <p class="text-xs px-4 leading-4.5 text-center text-(--z-color-text-secondary)">
+         <p class="text-xs px-4 leading-4.5 text-center text-(--z-secondary)">
             Elon joylashtirish orqali siz foydalanish shartlariga bildirasiz.
          </p>
       </footer>

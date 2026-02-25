@@ -7,47 +7,68 @@
                   <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
                </swiper-slide>
             </swiper>
+         </main>
+
+         <main class="pt-5 px-4">
+            <!--  -->
+
             <div
-               class="absolute bottom-3 right-3 z-50 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-color-border)"
+               class="inline-flex items-center gap-1 font-extrabold text-2xl mb-3"
                :class="{ 'flex-row-reverse': product?.price_type.position === 'left' }"
             >
-               <span class="font-semibold">
+               <span>
                   {{ formatPrice(product?.price) }}
                </span>
                <span>
                   {{ product?.price_type.type }}
                </span>
             </div>
-         </main>
 
-         <main class="pt-6 px-3">
-            <h1 class="leading-4 mb-4 text-xl">{{ product?.title }}</h1>
-            <hr class="border-(--z-color-border) -mx-3" />
-            <aside v-if="product?.parameter_values.length" class="flex gap-2 flex-wrap py-4 text-sm">
-               <div
-                  v-for="v in product.parameter_values"
-                  :key="v.id"
-                  class="flex gap-2 bg-(--z-bg-secondary) rounded-(--z-rounded) px-3 py-1"
-               >
-                  <span class="text-(--z-color-text-secondary)" v-if="!v.parameter.unit">
+            <!--  -->
+
+            <h1 class="mb-4 text-xl font-medium">{{ product?.title }}</h1>
+
+            <!--  -->
+            <div class="text-(--z-secondary) text-xs flex gap-2 items-center mb-6">
+               <span class="capitalize">
+                  {{ timeAgo(product?.created_at!) }}
+               </span>
+               <span class="inline-block w-1 h-1 rounded-full bg-(--z-secondary)"> </span>
+               <span class="flex items-center gap-1"> 1.2k ko'rildi </span>
+               <span class="inline-block w-1 h-1 rounded-full bg-(--z-secondary)"> </span>
+
+               <span class="flex items-center gap-1">
+                  <MapPin class="size-3 inline" />
+                  Uchquduq
+               </span>
+            </div>
+            <!--  -->
+
+            <!--  -->
+            <h3 class="text-(--z-secondary) uppercase text-sm">Izoh</h3>
+            <div class="py-1 leading-5 text-sm mb-6">{{ product?.description }}</div>
+
+            <h3 v-if="product?.parameter_values.length" class="text-(--z-secondary) uppercase text-sm mb-2">
+               Qo'shimcha ma'lumot
+            </h3>
+            <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-gray-50">
+               <div v-for="v in product.parameter_values" :key="v.id" class="flex justify-between py-2">
+                  <span class="text-(--z-secondary)">
                      {{ v.parameter.title }}
                   </span>
-                  <span class="font-semibold">
-                     {{ v.value }}
-                  </span>
-
-                  <span v-if="v.parameter.unit" class="text-(--z-color-text-secondary)">
-                     {{ v.parameter.unit }}
-                  </span>
+                  <main class="flex gap-1.5 font-medium">
+                     <span>
+                        {{ v.value }}
+                     </span>
+                     <span v-if="v.parameter.unit">
+                        {{ v.parameter.unit }}
+                     </span>
+                  </main>
                </div>
             </aside>
-
-            <hr class="border-(--z-color-border) -mx-3" />
-
-            <div class="py-2 leading-5 text-sm">{{ product?.description }}</div>
          </main>
       </aside>
-      <aside class="px-3 pt-3 border-t border-(--z-color-border) flex gap-3">
+      <aside class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
          <BaseButton @click="callPhone(product?.phone!)" severity="primary" class="grow">
             <template #icon>
                <Phone class="size-4 inline" />
@@ -64,6 +85,7 @@
 </template>
 
 <script setup lang="ts">
+import { timeAgo } from "@/modules/Helpers";
 import { isTMA } from "@tma.js/bridge";
 import { formatPrice } from "@/modules/Helpers";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
@@ -74,7 +96,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { Heart, Phone } from "lucide-vue-next";
+import { Eye, Heart, MapPin, Phone } from "lucide-vue-next";
 const route = useRoute();
 
 const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);

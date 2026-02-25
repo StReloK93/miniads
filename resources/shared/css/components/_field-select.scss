@@ -18,7 +18,7 @@
 
 /* OPTIONS */
 .ui-select__options {
-   background: var(--z-bg-secondary);
+   background: var(--z-card);
    border-radius: var(--radius-md);
    max-height: 240px;
    padding: 4px 0px;
@@ -40,9 +40,9 @@
 }
 
 .ui-select__option[data-headlessui-state~="active"] {
-   background: var(--z-bg-field);
+   background: var(--z-field-background);
 }
 
 .ui-select__option[data-headlessui-state~="selected"] {
-   color: var(--z-color-primary);
+   color: var(--z-primary);
 }

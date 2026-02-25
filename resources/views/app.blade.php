@@ -5,17 +5,17 @@
 	<meta charset="UTF-8">
 	<meta name="viewport"
 		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	<link rel="preload" href="/fonts/PlusJakartaSans-Regular.woff2" as="font" type="font/woff2" crossorigin />
+	<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
 	<title>Telegram mini app</title>
 	<style>
 		@font-face {
-			font-family: 'Plus Jakarta Sans';
-			src: url('/fonts/PlusJakartaSans-Regular.woff2') format('woff2'),
-				url('/fonts/PlusJakartaSans-Regular.woff') format('woff');
-			font-weight: normal;
+			font-family: InterVariable;
 			font-style: normal;
+			font-weight: 100 900;
 			font-display: swap;
+			src: url("/fonts/InterVariable.woff2") format("woff2");
 		}
+
 
 		#loader {
 			position: fixed;

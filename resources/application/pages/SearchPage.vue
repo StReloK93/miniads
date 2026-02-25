@@ -1,7 +1,7 @@
 <template>
    <NavigationPageDecorator>
       <template #header>
-         <article class="pb-4">
+         <article class="pb-4 h-32 border-b border-(--z-border)">
             <FieldText placeholder="Nima qidiryabsiz? Uy , Avto, Mebel!" name="search" />
          </article>
       </template>

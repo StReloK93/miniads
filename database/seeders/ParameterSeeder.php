@@ -35,7 +35,7 @@ class ParameterSeeder extends Seeder
                 'placeholder' => 'Masalan: 2',
                 'component' => 'FieldNumber',
                 'type' => 'number',
-                'unit' => 'qavat',
+                'unit' => null,
                 'options' => null
             ],
             [

@@ -1,5 +1,5 @@
 <template>
-   <NavigationPageDecorator :content-class="['bg-(--z-bg-secondary)']">
+   <NavigationPageDecorator :content-class="['bg-(--z-card)']">
       <template #header>
          <aside class="flex flex-col items-center py-6">
             <div class="mb-2">
@@ -10,16 +10,14 @@
             </div>
             <!-- {{ userData.tgWebAppData.user.photo_url }} -->
             <h3 class="font-semibold">{{ user?.first_name }} {{ user?.last_name }}</h3>
-            <div class="text-(--z-color-text-secondary)">
-               {{ user?.username }}
-            </div>
+            <div class="text-(--z-secondary)">@{{ user?.username }}</div>
          </aside>
       </template>
       <template #content>
          <aside class="py-3 flex flex-col gap-1">
-            <div class="bg-(--z-bg-primary) rounded-(--z-rounded) p-4 flex justify-between items-center">
+            <div class="bg-(--z-background) rounded-(--z-rounded) p-4 flex justify-between items-center">
                <span class="inline-flex gap-2 items-center">
-                  <List class="size-4 inline text-(--z-color-primary)" />
+                  <List class="size-4 inline text-(--z-primary)" />
                   <span> Mening e'lonlarim </span>
                </span>
                <span>
@@ -28,19 +26,19 @@
             </div>
             <RouterLink
                :to="{ name: 'favorites' }"
-               class="bg-(--z-bg-primary) rounded-(--z-rounded) p-4 flex justify-between items-center"
+               class="bg-(--z-background) rounded-(--z-rounded) p-4 flex justify-between items-center"
             >
                <span class="inline-flex gap-2 items-center">
-                  <Heart class="size-4 inline text-(--z-color-danger)" />
+                  <Heart class="size-4 inline text-(--z-danger)" />
                   <span> Sevimlilar </span>
                </span>
                <span>
                   <ChevronRight class="size-4" />
                </span>
             </RouterLink>
-            <div class="bg-(--z-bg-primary) rounded-(--z-rounded) p-4 flex justify-between items-center">
+            <div class="bg-(--z-background) rounded-(--z-rounded) p-4 flex justify-between items-center">
                <span class="inline-flex gap-2 items-center">
-                  <Bell class="size-4 inline text-(--z-color-primary)" />
+                  <Bell class="size-4 inline text-(--z-primary)" />
                   <span> Bildirishnomalar </span>
                </span>
                <span>

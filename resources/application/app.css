@@ -6,31 +6,57 @@
    --spacing-safe-top: var(--safe-area-top);
    --spacing-safe-bottom: var(--safe-area-bottom);
 }
-
+* {
+   box-sizing: border-box;
+   font-family: "InterVariable", system-ui, sans-serif;
+}
 :root {
    --safe-area-top: env(safe-area-inset-top, 0px);
    --safe-area-bottom: env(safe-area-inset-bottom, 0);
    --swiper-pagination-bullet-size: 6px;
    --swiper-pagination-bullet-inactive-opacity: 0.9;
-   --swiper-pagination-bullet-inactive-color: white;
-   --swiper-theme-color: black;
+   --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.3);
+   --swiper-theme-color: white;
 }
 
 .swiper-pagination {
-   padding-left: 12px;
-   text-align: left;
+   padding: 5px 8px;
+   border-radius: 20px;
    bottom: 15px !important;
+   left: 50% !important;
+   transform: translateX(-50%) !important;
+   background: rgba(0, 0, 0, 0.3);
+   width: auto !important;
+   display: flex;
+   gap: 4px;
+   backdrop-filter: blur(2px);
+}
+
+.swiper-pagination-lock {
+   display: none;
 }
 
 .swiper-pagination-bullet {
-   border-radius: 0 !important;
-   margin: 0 3px !important;
-   width: 20px;
-   height: 2px;
+   margin: 0 !important;
 }
 
 .z-bg-gradient {
    @apply bg-linear-to-r from-stone-100/60  to-slate-100/60;
+}
+
+.v-enter-active,
+.v-leave-active {
+   transition: opacity 0.2s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+   opacity: 0;
+}
+
+.v-enter-to,
+.v-leave-from {
+   opacity: 1;
 }
 
 /* Yangi sahifa kirib kelayotgan vaqti */
@@ -106,7 +132,7 @@
 
 .skeleton {
    background: #e5e7eb;
-   border-radius: var(--radius-md);
+   border-radius: var(--z-rounded);
    position: relative;
    overflow: hidden;
 }
@@ -127,5 +153,5 @@
 }
 
 .full-page {
-   @apply h-full pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-white;
+   @apply h-full pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-(--z-bg-background);
 }

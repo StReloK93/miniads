@@ -3,7 +3,7 @@
       <RouterLink v-for="item in items" :key="item.name" :to="{ name: item.name }">
          <button
             v-if="!item.iconOnly"
-            :class="{ 'bg-(--z-primary)/10 font-bold ': $route.name === item.name }"
+            :class="{ 'bg-(--z-primary)/10 font-extrabold ': $route.name === item.name }"
             class="flex flex-col items-center gap-1 text-xs min-w-18 p-1 rounded-full"
          >
             <component :is="item.icon" class="size-5" stroke-width="2" />

@@ -13,7 +13,7 @@
       <LoaderCircle v-if="loading" class="ui-button__spinner size-5 animate-spin" />
 
       <!-- ICON -->
-      <component v-else-if="$slots.icon" :is="$slots.icon" />
+      <component v-else-if="$slots.icon" :is="$slots.icon" class="" />
 
       <!-- LABEL -->
       <span v-if="!iconOnly" class="ui-button__label inline-flex items-center gap-2">

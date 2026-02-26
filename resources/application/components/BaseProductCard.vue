@@ -32,8 +32,8 @@
          <main class="px-1.5">
             <h3 class="font-medium line-clamp-1">{{ product.title }}</h3>
             <aside class="text-xs my-1">
-               <span class="text-(--z-secondary) inline-flex items-center gap-1">
-                  <!-- Uchquduq <span class="inline-flex w-1.5 h-1.5 rounded-full bg-(--z-secondary)"></span> -->
+               <span class="text-(--z-muted-text) inline-flex items-center gap-1">
+                  <!-- Uchquduq <span class="inline-flex w-1.5 h-1.5 rounded-full bg-(--z-muted-text)"></span> -->
                   <span class="uppercase">
                      {{ timeAgo(product.created_at) }}
                   </span>

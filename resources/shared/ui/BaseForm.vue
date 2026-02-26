@@ -38,8 +38,8 @@
             </template>
             E'lonni joylash
          </BaseButton>
-         <p class="text-xs px-4 leading-4.5 text-center text-(--z-secondary)">
-            Elon joylashtirish orqali siz foydalanish shartlariga bildirasiz.
+         <p class="text-xs px-4 leading-4.5 text-center text-(--z-muted-text)">
+            Elon joylashtirish orqali siz foydalanish shartlariga rozilik bildirasiz.
          </p>
       </footer>
    </Form>

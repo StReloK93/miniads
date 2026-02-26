@@ -32,6 +32,7 @@
             <main class="border-t border-(--z-border) h-28 p-4 pb-0 flex flex-col items-center -mx-4">
                <div class="skeleton h-12 rounded-2xl! mb-3 w-full"></div>
                <p class="skeleton h-3 w-4/5 mb-1"></p>
+               <p class="skeleton h-3 w-2/5 mb-1"></p>
             </main>
          </aside>
       </main>

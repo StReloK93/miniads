@@ -21,6 +21,7 @@ export const routes: RouteRecordRaw[] = [
             name: "category",
             props: true,
          },
+         { path: "favorites", component: () => import("@pages/FavoritePage.vue"), name: "favorites" },
       ],
    },
    {
@@ -28,7 +29,6 @@ export const routes: RouteRecordRaw[] = [
       component: () => import("@/layouts/FullPage.vue"),
       meta: { layoutKey: "full" },
       children: [
-         { path: "favorites", component: () => import("@pages/FavoritePage.vue"), name: "favorites" },
          {
             path: "categories",
             component: () => import("@pages/CategoriesPage.vue"),

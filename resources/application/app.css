@@ -6,10 +6,7 @@
    --spacing-safe-top: var(--safe-area-top);
    --spacing-safe-bottom: var(--safe-area-bottom);
 }
-* {
-   box-sizing: border-box;
-   font-family: "InterVariable", system-ui, sans-serif;
-}
+
 :root {
    --safe-area-top: env(safe-area-inset-top, 0px);
    --safe-area-bottom: env(safe-area-inset-bottom, 0);
@@ -18,6 +15,15 @@
    --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.3);
    --swiper-theme-color: white;
 }
+
+* {
+   box-sizing: border-box;
+   font-family: "InterVariable", system-ui, sans-serif;
+}
+
+/* body {
+   color: var(--z-foreground);
+} */
 
 .swiper-pagination {
    padding: 5px 8px;
@@ -77,8 +83,9 @@
 
 /* Eski sahifa chiqib ketayotgan holati (joyida qolishi yoki biroz xiralashishi mumkin) */
 .slide-in-leave-to {
-   transform: translateX(-30%); /* Orqaga biroz suriladi */
+   transform: translateX(-10%) scale(0.98); /* Orqaga biroz suriladi */
    opacity: 0;
+   z-index: 0; /* Yangisi ustida bo'lishi uchun */
 }
 
 /* Orqaga qaytishda sahifa kirib kelishi */
@@ -154,4 +161,8 @@
 
 .full-page {
    @apply h-full pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-(--z-bg-background);
+}
+
+.title {
+   @apply text-(--z-muted-text) uppercase;
 }

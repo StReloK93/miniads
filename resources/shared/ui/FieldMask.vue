@@ -6,7 +6,8 @@
          :value="applyMask(value)"
          @input="onInput($event, setValue)"
          @keydown="onKeydown($event, value, setValue)"
-         :placeholder="mask"
+         :placeholder="placeholder"
+         :inputmode="inputmode"
          :disabled="disabled"
       />
    </Field>
@@ -19,6 +20,8 @@ const props = defineProps<{
    name: string;
    mask: string;
    disabled?: boolean;
+   placeholder?: string;
+   inputmode?: "text" | "email" | "search" | "tel" | "url" | "none" | "numeric" | "decimal" | "search";
 }>();
 
 const rules: Record<string, RegExp> = {

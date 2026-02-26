@@ -2,11 +2,11 @@
    <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full">
       <!-- Breadcrumb -->
       <div class="p-2 text-sm flex flex-wrap items-center gap-2 mb-2">
-         <span class="cursor-pointer text-(--z-secondary) active:text-black" @click="goRoot"> Bo'limlar </span>
+         <span class="cursor-pointer active:text-black" @click="goRoot"> Bo'limlar </span>
 
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
-            <span class="text-(--z-secondary)">
-               <ChevronRight class="size-4 text-(--z-secondary)" />
+            <span class="text-(--z-muted-text)">
+               <ChevronRight class="size-4 text-(--z-muted-text)" />
             </span>
             <span class="cursor-pointer text-(--z-primary) active:text-black" @click="goBack(i)">
                {{ bc.name }}
@@ -28,7 +28,7 @@
                      {{ cat.name }}
                   </span>
 
-                  <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-secondary)" />
+                  <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-muted-text)" />
                </li>
             </ul>
          </Transition>

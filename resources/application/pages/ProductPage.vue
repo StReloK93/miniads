@@ -29,13 +29,13 @@
             <h1 class="mb-4 text-xl font-medium">{{ product?.title }}</h1>
 
             <!--  -->
-            <div class="text-(--z-secondary) text-xs flex gap-2 items-center mb-6">
+            <div class="text-(--z-muted-text) text-xs flex gap-2 items-center mb-6">
                <span class="capitalize">
                   {{ timeAgo(product?.created_at!) }}
                </span>
-               <span class="inline-block w-1 h-1 rounded-full bg-(--z-secondary)"> </span>
+               <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
                <span class="flex items-center gap-1"> 1.2k ko'rildi </span>
-               <span class="inline-block w-1 h-1 rounded-full bg-(--z-secondary)"> </span>
+               <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
 
                <span class="flex items-center gap-1">
                   <MapPin class="size-3 inline" />
@@ -45,15 +45,13 @@
             <!--  -->
 
             <!--  -->
-            <h3 class="text-(--z-secondary) uppercase text-sm">Izoh</h3>
+            <h3 class="title text-sm">Izoh</h3>
             <div class="py-1 leading-5 text-sm mb-6">{{ product?.description }}</div>
 
-            <h3 v-if="product?.parameter_values.length" class="text-(--z-secondary) uppercase text-sm mb-2">
-               Qo'shimcha ma'lumot
-            </h3>
+            <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">Qo'shimcha ma'lumot</h3>
             <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-gray-50">
                <div v-for="v in product.parameter_values" :key="v.id" class="flex justify-between py-2">
-                  <span class="text-(--z-secondary)">
+                  <span class="text-(--z-muted-text)">
                      {{ v.parameter.title }}
                   </span>
                   <main class="flex gap-1.5 font-medium">

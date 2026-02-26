@@ -23,10 +23,11 @@ class AuthService
       $telegram_user = $request->telegram_user;
       $first_name = $telegram_user['first_name'];
       $last_name = $telegram_user['last_name'];
+      $username = $telegram_user['username'];
 
       $user = User::updateOrCreate(
          ['telegram_user_id' => $telegram_user['id']],
-         ['name' => "$first_name $last_name"],
+         ['name' => "$first_name $last_name", 'username' => "$username"],
       );
 
       if (Auth::loginUsingId($user->id)) {

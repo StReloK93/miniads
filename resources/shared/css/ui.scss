@@ -9,7 +9,7 @@
    --z-card: #ffffff;
    --z-foreground: #0f172a;
    --z-border: #e2e8f0;
-
+   --z-muted: #f1f5f9;
    /* SPACING */
    --space-sm: 8px;
    --space-md: 12px;
@@ -20,9 +20,10 @@
 
    /* COLORS */
    --z-danger: #ff3b30;
-   --z-primary: #0f172a;
-   --z-secondary: #64748b;
 
+   --z-primary: #0f172a;
+   --z-secondary: #e2e8f0;
+   --z-muted-text: #64748b;
    --z-field-background: #ffffff;
 
    /* ANIMATION */
@@ -33,7 +34,7 @@
 body {
    margin: 0;
    background: var(--z-background);
-   color: var(--color-text-primary);
+   color: var(--z-foreground);
 }
 
 // html.dark {

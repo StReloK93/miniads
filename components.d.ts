@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
+    BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldMask: typeof import('./resources/shared/ui/FieldMask.vue')['default']
     FieldNumber: typeof import('./resources/shared/ui/FieldNumber.vue')['default']

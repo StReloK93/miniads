@@ -1,13 +1,13 @@
 <template>
-   <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full">
+   <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full select-none">
       <!-- Breadcrumb -->
       <div class="py-2 text-sm flex flex-wrap items-center gap-1">
-         <span class="font-semibold" @click="goRoot"> Barchasi </span>
+         <span class="font-bold" @click="goRoot"> Barchasi </span>
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
-            <span class="font-semibold">
-               <ChevronRight class="size-3 font-semibold" />
+            <span class="font-bold">
+               <ChevronRight class="size-3 font-bold" />
             </span>
-            <span class="font-semibold" @click="goBack(i)">
+            <span class="font-bold" @click="goBack(i)">
                {{ bc.name }}
             </span>
          </template>
@@ -23,7 +23,7 @@
                   @click="selectCategory(cat)"
                   class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md"
                >
-                  <span class="text-(--z-primary)">
+                  <span>
                      {{ cat.name }}
                   </span>
 

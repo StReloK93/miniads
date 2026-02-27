@@ -44,7 +44,7 @@
                   @vue:mounted="inputMouted(field)"
                />
                <div class="size-10 bg-(--z-field-background) rounded-full flex justify-center items-center">
-                  <Camera class="size-5 text-(--z-primary)" />
+                  <Camera class="size-5" />
                </div>
             </label>
          </div>

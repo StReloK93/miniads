@@ -11,8 +11,8 @@
             <main v-if="fullLoadingImages" class="flex flex-col gap-4">
                <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
             </main>
-            <main v-else>
-               <aside v-for="n in 3" class="skeleton h-50" />
+            <main v-else class="flex flex-col gap-4">
+               <BaseSkeletonCard v-for="n in 3" />
             </main>
          </Transition>
       </template>
@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import BaseSkeletonCard from "@/components/BaseSkeletonCard.vue";
 import BaseProductCard from "@/components/BaseProductCard.vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { preloadImages } from "@/modules/Helpers";

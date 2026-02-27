@@ -31,7 +31,7 @@
                <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
             </main>
             <main v-else class="flex flex-col gap-4">
-               <aside v-for="value in 3" class="skeleton h-50"></aside>
+               <BaseSkeletonCard v-for="n in 3" />
             </main>
          </Transition>
       </template>
@@ -39,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import BaseSkeletonCard from "@/components/BaseSkeletonCard.vue";
 import CategoriesSlider from "@/components/CategoriesSlider.vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";

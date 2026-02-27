@@ -1,8 +1,8 @@
 <template>
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
-      <section class="bg-(--z-card) p-1.5 rounded-xl select-none border border-(--z-border)">
+      <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <div class="mb-2.5 relative">
-            <img :src="productImage" @error="handleImageError" class="rounded-md w-full object-cover aspect-5/2" />
+            <img :src="productImage" @error="handleImageError" class="rounded-xl w-full object-cover aspect-4/2" />
             <div
                class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
                :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"

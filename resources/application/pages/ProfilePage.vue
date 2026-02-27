@@ -3,7 +3,7 @@
       <template #header>
          <h3 class="font-bold text-xl">Profil</h3>
          <aside class="flex flex-col items-center pb-6 py-4">
-            <div class="mb-2">
+            <div class="mb-2 flex">
                <img
                   v-if="user.photo_url && isImagesReady"
                   :src="user.photo_url"
@@ -64,7 +64,7 @@ const user = computed(() => {
       return userData?.tgWebAppData.user;
    } else {
       return {
-         photo_url: null,
+         photo_url: "/images/no-image.webp",
          first_name: "Bumin",
          last_name: "Xoqon",
          username: "Ruzzifer",

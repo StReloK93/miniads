@@ -1,5 +1,5 @@
 <template>
-   <main class="border-b border-(--z-border) pb-4 -mx-4">
+   <main class="pb-4 -mx-4">
       <div class="flex items-center text-sm justify-between mb-2 px-4">
          <h3 class="title text-xs">Bo'limlar</h3>
       </div>

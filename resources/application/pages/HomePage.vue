@@ -1,5 +1,5 @@
 <template>
-   <NavigationPageDecorator>
+   <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
          <main v-if="AuthStore.user" class="flex items-center justify-between mb-4">
             <aside>

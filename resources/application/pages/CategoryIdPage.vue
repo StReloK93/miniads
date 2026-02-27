@@ -1,7 +1,7 @@
 <template>
-   <NavigationPageDecorator>
+   <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
-         <main class="border-b border-(--z-border) -mx-4 px-4">
+         <main class="-mx-4 px-4">
             <h3 class="font-bold text-xl mb-4">{{ category?.name }}</h3>
             <aside class="pb-4">
                <main class="flex gap-1 items-center">

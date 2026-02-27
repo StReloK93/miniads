@@ -1,6 +1,21 @@
 <template>
    <NavigationPageDecorator>
-      <template #header> </template>
+      <template #header>
+         <main class="border-b border-(--z-border) -mx-4 px-4">
+            <h3 class="font-bold text-xl mb-4">{{ category?.name }}</h3>
+            <aside class="pb-4">
+               <main class="flex gap-1 items-center">
+                  <span
+                     v-for="(item, index) in buildBreadcrumb(category)"
+                     :key="item.id"
+                     class="text-sm text-(--z-muted-text)"
+                  >
+                     <ChevronRight v-if="index" class="size-3 inline" /> {{ item.name }}
+                  </span>
+               </main>
+            </aside>
+         </main>
+      </template>
       <template #content>
          <div v-show="fullMountedPage" class="grid grid-cols-1 gap-4">
             <BaseProductCard v-for="product in category?.products" :key="product.id" :product />
@@ -15,7 +30,7 @@
          <main v-if="fullMountedPage && category?.products.length == 0" class="h-full flex justify-center items-center">
             <aside class="text-center">
                <h3 class="text-xl font-semibold mb-4">Hech nima yo'q</h3>
-               <p>Ushbu kategoriya tegishli fa'ol e'lonlar yo'q</p>
+               <p class="text-(--z-muted-text)">Ushbu kategoriya tegishli fa'ol e'lonlar yo'q</p>
             </aside>
          </main>
       </template>
@@ -23,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import { buildBreadcrumb } from "@/modules/Helpers";
 import { preloadImages } from "@/modules/Helpers";
 import { useRouter } from "vue-router";
 import BaseProductCard from "@/components/BaseProductCard.vue";
@@ -32,6 +48,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRoute } from "vue-router";
 import { ICategory } from "@shared/types";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import { ChevronRight } from "lucide-vue-next";
 
 const route = useRoute();
 const router = useRouter();

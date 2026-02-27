@@ -26,17 +26,14 @@
                </swiper-slide>
             </swiper>
          </main>
-         <main class="flex flex-col gap-4">
-            <TransitionGroup>
-               <BaseProductCard
-                  v-if="fullLoadingImages"
-                  v-for="product in latest_ten"
-                  :product="product"
-                  :key="product.id"
-               />
-               <aside v-else v-for="value in 3" class="skeleton h-50"></aside>
-            </TransitionGroup>
-         </main>
+         <Transition mode="out-in">
+            <main v-if="fullLoadingImages" class="flex flex-col gap-4">
+               <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />
+            </main>
+            <main v-else class="flex flex-col gap-4">
+               <aside v-for="value in 3" class="skeleton h-50"></aside>
+            </main>
+         </Transition>
       </template>
    </NavigationPageDecorator>
 </template>

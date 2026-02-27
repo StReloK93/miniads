@@ -3,7 +3,6 @@
       <!-- Breadcrumb -->
       <div class="py-2 text-sm flex flex-wrap items-center gap-1">
          <span class="font-semibold" @click="goRoot"> Barchasi </span>
-
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
             <span class="font-semibold">
                <ChevronRight class="size-3 font-semibold" />
@@ -17,7 +16,7 @@
       <!-- Category list -->
       <div class="overflow-hidden relative">
          <Transition :name="transitionName" mode="out-in">
-            <ul :key="stack.length" class="divide-y divide-(--z-border)">
+            <ul :key="stack.length" class="divide-y divide-(--z-muted)">
                <li
                   v-for="cat in currentCategories"
                   :key="cat.id"

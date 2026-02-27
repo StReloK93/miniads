@@ -170,8 +170,8 @@ class CategorySeeder extends Seeder
 				'name' => "Topilmalar",
 				'image' => 'Megaphone',
 				'subs' => [
-					['name' => 'Topildi', 'is_page' => true],
-					['name' => "Yo'qotildi", 'is_page' => true],
+					['name' => 'Topilgan', 'is_page' => true],
+					['name' => "Yo'qotilgan", 'is_page' => true],
 				]
 			],
 			// 🎁 Bepul beriladi

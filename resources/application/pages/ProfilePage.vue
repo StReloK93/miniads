@@ -4,7 +4,13 @@
          <h3 class="font-bold text-xl">Profil</h3>
          <aside class="flex flex-col items-center pb-6 py-4">
             <div class="mb-2">
-               <img v-if="user.photo_url" :src="user.photo_url" class="rounded-full w-18 h-18 object-fill" />
+               <img
+                  v-if="user.photo_url && isImagesReady"
+                  :src="user.photo_url"
+                  class="rounded-full w-18 h-18 object-fill"
+               />
+               <span v-else-if="user.photo_url && !isImagesReady" class="rounded-full! w-18 h-18 skeleton inline-block">
+               </span>
                <span v-else class="rounded-full w-18 h-18 bg-slate-100 inline-flex justify-center items-center">
                   <User class="size-5" />
                </span>
@@ -36,61 +42,25 @@
       </template>
       <template #content>
          <BaseTabs :items="['Faol', `O'chiq`, 'Tekshiruvda']" @change="onTabChange" class="w-full" />
-         <!-- <aside class="py-3 flex flex-col gap-1">
-            <div class="bg-(--z-card) rounded-(--z-rounded) p-4 flex justify-between items-center">
-               <span class="inline-flex gap-2 items-center">
-                  <List class="size-4 inline text-(--z-primary)" />
-                  <span> Mening e'lonlarim </span>
-               </span>
-               <span>
-                  <ChevronRight class="size-4" />
-               </span>
-            </div>
-            <RouterLink
-               :to="{ name: 'favorites' }"
-               class="bg-(--z-card) rounded-(--z-rounded) p-4 flex justify-between items-center"
-            >
-               <span class="inline-flex gap-2 items-center">
-                  <Heart class="size-4 inline text-(--z-danger)" />
-                  <span> Sevimlilar </span>
-               </span>
-               <span>
-                  <ChevronRight class="size-4" />
-               </span>
-            </RouterLink>
-            <div class="bg-(--z-card) rounded-(--z-rounded) p-4 flex justify-between items-center">
-               <span class="inline-flex gap-2 items-center">
-                  <Bell class="size-4 inline text-(--z-primary)" />
-                  <span> Bildirishnomalar </span>
-               </span>
-               <span>
-                  <ChevronRight class="size-4" />
-               </span>
-            </div>
-         </aside> -->
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
-import { useAuth } from "@shared/store/useAuth";
+import { preloadImages } from "@/modules/Helpers";
+import { computed, inject, onMounted, ref } from "vue";
+import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import { isTMA } from "@tma.js/bridge";
+import { User } from "lucide-vue-next";
+const isImagesReady = ref(false);
+const userData: any = inject("userData");
 
 function onTabChange({ index, value }) {
    console.log(index, value); // 0, 1, 2
 }
 
-const userData: any = inject("userData");
-const AuthStore = useAuth();
-import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
-import { isTMA } from "@tma.js/bridge";
-import { Bell, ChevronRight, Heart, List, User } from "lucide-vue-next";
-import { RouterLink } from "vue-router";
-
 const user = computed(() => {
    if (isTMA()) {
-      console.log(userData?.tgWebAppData.user);
-
       return userData?.tgWebAppData.user;
    } else {
       return {
@@ -100,5 +70,17 @@ const user = computed(() => {
          username: "Ruzzifer",
       };
    }
+});
+
+onMounted(async () => {
+   const images = <string[]>[];
+   if (user.value.photo_url) {
+      images.push(user.value.photo_url);
+   }
+   await preloadImages(images);
+
+   setTimeout(() => {
+      isImagesReady.value = true;
+   }, 1000);
 });
 </script>

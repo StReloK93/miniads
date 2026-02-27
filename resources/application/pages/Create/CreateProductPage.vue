@@ -3,7 +3,17 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="pb-4 border-b border-(--z-border) -mx-4 px-4">
             <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-            <p class="title text-xs">2-qadam: E'lon ma'lumotlari</p>
+            <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
+
+            <main class="flex gap-1 items-center">
+               <span
+                  v-for="(category, index) in buildBreadcrumb(selectedCategory)"
+                  :key="category.id"
+                  class="text-sm font-bold"
+               >
+                  <ChevronRight v-if="index" class="size-3 font-semibold inline" /> {{ category.name }}
+               </span>
+            </main>
          </aside>
          <BaseForm
             v-if="selectedCategory"
@@ -15,8 +25,16 @@
       </main>
       <main v-else class="h-full grid grid-rows-[auto_1fr]]">
          <aside class="flex flex-col justify-between">
+            <main class="pb-4 border-b border-(--z-border) -mx-4 px-4">
+               <div class="skeleton w-22 h-5 mb-4"></div>
+               <div class="skeleton w-44 h-3 mb-4"></div>
+               <div class="flex gap-2 mb-1">
+                  <span class="skeleton w-18 h-4 inline-block"></span>
+                  <span class="skeleton w-18 h-4 inline-block"></span>
+               </div>
+            </main>
             <main class="relative grow">
-               <article class="absolute inset-0 overflow-y-auto no-scrollbar">
+               <article class="absolute inset-0 overflow-y-auto no-scrollbar py-3">
                   <div class="skeleton w-16 h-3 mb-2"></div>
                   <div class="skeleton aspect-video mb-4"></div>
 
@@ -44,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
@@ -53,6 +72,7 @@ import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
+import { ChevronRight } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
 

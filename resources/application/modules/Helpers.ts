@@ -44,3 +44,20 @@ export function timeAgo(date: Date | string | number): string {
    // 🔹 2+ KUN
    return `${dayDiff} kun oldin`;
 }
+
+export function buildBreadcrumb(category) {
+   const items = <any>[];
+
+   let current = category;
+
+   while (current) {
+      items.push({
+         id: current.id,
+         name: current.name,
+      });
+
+      current = current.parent;
+   }
+
+   return items.reverse(); // yuqoridan pastga
+}

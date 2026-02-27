@@ -1,6 +1,6 @@
 <template>
    <section class="full-page flex flex-col">
-      <aside class="grow relative">
+      <aside v-if="product" class="grow relative">
          <main class="relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
             <swiper :modules="[Pagination]" pagination class="h-64">
                <swiper-slide v-for="image in product?.images" :key="image.id">
@@ -66,7 +66,21 @@
             </aside>
          </main>
       </aside>
-      <aside class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
+      <aside v-else class="grow">
+         <main class="relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
+            <div class="skeleton h-64 rounded-none!"></div>
+         </main>
+         <main class="py-5.5 px-4">
+            <div class="skeleton h-5.5 mb-6 w-24"></div>
+            <div class="skeleton h-4.5 w-full mb-5.5"></div>
+            <div class="skeleton h-4 w-2/3 mb-7"></div>
+            <div class="skeleton h-3 w-12 mb-3"></div>
+            <div class="skeleton h-2 w-4/5 mb-3"></div>
+            <div class="skeleton h-2 w-full mb-3"></div>
+            <div class="skeleton h-2 w-2/3"></div>
+         </main>
+      </aside>
+      <aside v-if="product" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
          <BaseButton @click="callPhone(product?.phone!)" severity="primary" class="grow">
             <template #icon>
                <Phone class="size-4 inline" />
@@ -78,6 +92,10 @@
                <Heart class="size-5 inline" />
             </template>
          </BaseButton>
+      </aside>
+      <aside v-else class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
+         <div class="skeleton h-12 grow"></div>
+         <div class="skeleton size-12"></div>
       </aside>
    </section>
 </template>
@@ -94,7 +112,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { Eye, Heart, MapPin, Phone } from "lucide-vue-next";
+import { Heart, MapPin, Phone } from "lucide-vue-next";
 const route = useRoute();
 
 const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);
@@ -109,11 +127,13 @@ function callPhone(phone: string) {
 
 onMounted(async () => {
    await executeProduct(route.params.id);
-
    if (product.value?.images?.length) {
       const imageUrls = product.value.images.map((img) => `/storage/${img.src}`);
       await preloadImages(imageUrls);
    }
-   isImagesReady.value = true;
+
+   setTimeout(() => {
+      isImagesReady.value = true;
+   }, 350);
 });
 </script>

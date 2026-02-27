@@ -1,14 +1,14 @@
 <template>
    <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full">
       <!-- Breadcrumb -->
-      <div class="p-2 text-sm flex flex-wrap items-center gap-2 mb-2">
-         <span class="cursor-pointer active:text-black" @click="goRoot"> Bo'limlar </span>
+      <div class="py-2 text-sm flex flex-wrap items-center gap-1">
+         <span class="font-semibold" @click="goRoot"> Barchasi </span>
 
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
-            <span class="text-(--z-muted-text)">
-               <ChevronRight class="size-4 text-(--z-muted-text)" />
+            <span class="font-semibold">
+               <ChevronRight class="size-3 font-semibold" />
             </span>
-            <span class="cursor-pointer text-(--z-primary) active:text-black" @click="goBack(i)">
+            <span class="font-semibold" @click="goBack(i)">
                {{ bc.name }}
             </span>
          </template>
@@ -22,13 +22,13 @@
                   v-for="cat in currentCategories"
                   :key="cat.id"
                   @click="selectCategory(cat)"
-                  class="flex items-center justify-between p-2 cursor-pointer active:bg-(--z-card) rounded-md"
+                  class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md"
                >
-                  <span class="font-medium text-(--z-primary)">
+                  <span class="text-(--z-primary)">
                      {{ cat.name }}
                   </span>
 
-                  <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-muted-text)" />
+                  <ChevronRight v-if="!cat.is_page" class="size-4" />
                </li>
             </ul>
          </Transition>

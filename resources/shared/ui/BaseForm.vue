@@ -3,10 +3,10 @@
       @submit="onSubmit"
       :validation-schema="validationSchema"
       :initialValues="initialValues"
-      class="grid-rows-[1fr_auto] h-full grid -mx-3"
+      class="grid-rows-[1fr_auto] h-full grid -mx-4"
    >
       <main class="relative">
-         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-3 pb-4">
+         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
                <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
@@ -31,7 +31,7 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border)">
+      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border) bg-(--z-card)">
          <BaseButton type="submit" class="w-full" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />

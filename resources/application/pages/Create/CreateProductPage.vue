@@ -1,6 +1,10 @@
 <template>
-   <section class="h-full px-3">
-      <main v-if="selectedCategory" class="h-full">
+   <section class="h-full">
+      <main v-if="selectedCategory" class="h-full flex flex-col">
+         <aside class="pb-4 border-b border-(--z-border) -mx-4 px-4">
+            <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+            <p class="title text-xs">2-qadam: E'lon ma'lumotlari</p>
+         </aside>
          <BaseForm
             v-if="selectedCategory"
             :submit="submitForm"
@@ -48,9 +52,11 @@ import { Component, onMounted, ref, shallowRef } from "vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-
+import { useFetchDecorator } from "@shared/composables/useFetch";
 const route = useRoute();
 const router = useRouter();
+
+const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
 var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
@@ -126,10 +132,10 @@ function backToCategoryPage() {
 
 onMounted(async () => {
    const categoryId = route.params.categoryId as string;
-   const { data: category } = await CategoryRepo.show(categoryId);
+   await executeCategory(categoryId);
 
-   if (category) {
-      selectCategory(category);
+   if (category.value) {
+      selectCategory(category.value);
    }
 });
 </script>

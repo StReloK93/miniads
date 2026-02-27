@@ -1,0 +1,1 @@
+import{_ as o}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{e as n,c as r,B as t}from"./index-DvgdEg0x.js";const s={};function a(c,e){return n(),r("div",null,[...e[0]||(e[0]=[t("h1",null,"Admin Home",-1)])])}const d=o(s,[["render",a]]);export{d as default};

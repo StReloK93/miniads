@@ -10,7 +10,10 @@ class ProductController extends Controller
 {
     public function index()
     {
-        return Product::all();
+        return Product::withExists([
+            'favorites as is_favorite' => fn($q) =>
+                $q->where('user_id', auth()->id())
+        ])->all();
     }
 
     public function store(Request $request)
@@ -64,14 +67,20 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::withExists([
+            'favorites as is_favorite' => fn($q) =>
+                $q->where('user_id', auth()->id())
+        ])->findOrFail($id);
         return response()->json($product);
     }
 
 
     public function latestTen()
     {
-        return Product::with('category')->latest()->take(10)->get();
+        return Product::with('category')->withExists([
+            'favorites as is_favorite' => fn($q) =>
+                $q->where('user_id', auth()->id())
+        ])->latest()->take(10)->get();
     }
 
 }

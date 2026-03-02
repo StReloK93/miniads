@@ -16,16 +16,17 @@
             </div>
             <!--  -->
             <BaseButton
-               @click.stop=""
+               @click.stop="toggleFavorite"
                class="absolute top-2 right-2 border border-(--z-border)"
                icon="pi pi-heart"
                iconOnly
                rounded
+               :loading="isFavoriteButtonLoading"
                severity="glass"
             >
                <!-- fill-red-500 text-red-500 -->
                <template #icon>
-                  <Heart class="size-4" />
+                  <Heart class="size-4" :class="{ 'stroke-red-500 fill-red-500': product.is_favorite }" />
                </template>
             </BaseButton>
          </div>
@@ -48,17 +49,30 @@
 import { Heart } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
 import { formatPrice } from "@/modules/Helpers";
 const props = defineProps<{
    product: IProduct;
 }>();
 
-const shortParameters = computed(() => {
-   return props.product.parameter_values.slice(0, 2);
-});
+const isFavoriteButtonLoading = ref(false);
 
-// 1. Agar massiv bo'sh bo'lsa, default rasm yo'lini qaytaramiz
+async function toggleFavorite() {
+   isFavoriteButtonLoading.value = true;
+
+   if (props.product.is_favorite) {
+      await FavoriteRepo.delete(props.product.id).finally(() => {
+         isFavoriteButtonLoading.value = false;
+      });
+   } else {
+      await FavoriteRepo.store(props.product.id).finally(() => {
+         isFavoriteButtonLoading.value = false;
+      });
+   }
+   props.product.is_favorite = !props.product.is_favorite;
+}
+
 const productImage = computed(() => {
    if (props.product.images && props.product.images.length > 0) {
       return `/storage/${props.product.images[0].src}`;

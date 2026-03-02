@@ -25,9 +25,20 @@ Route::controller(App\Http\Controllers\CategoryController::class)->group(functio
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->except('update');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
 Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);
-Route::apiResource('products', App\Http\Controllers\ProductController::class);
+
 Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::class);
 
-Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
+
+    Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
+    Route::apiResource('products', App\Http\Controllers\ProductController::class);
+});
+
+
+
+
 
 

@@ -1,0 +1,1 @@
+import{V as e}from"./index-BYjx1Fp_.js";const r="products",n={index(){return e.get(`${r}`)},store(t){return e.post(`${r}`,t,{headers:{"Content-Type":"multipart/form-data"}})},show(t){return e.get(`${r}/${t}`)},update(t,o){return e.put(`${r}/${t}`,o)},latestTen(){return e.get(`${r}/custom/latest_ten`)}};export{n as P};

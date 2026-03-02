@@ -46,4 +46,9 @@ class Product extends Model
     {
         return $this->belongsTo(PriceType::class);
     }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 }

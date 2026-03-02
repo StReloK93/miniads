@@ -25,6 +25,11 @@ class User extends Authenticatable
         'telegram_user_id',
     ];
 
+    protected $with = [
+        'favorites',
+
+    ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -45,5 +50,10 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
     }
 }

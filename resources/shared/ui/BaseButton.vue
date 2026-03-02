@@ -10,7 +10,7 @@
       :data-icon-only="iconOnly || undefined"
    >
       <!-- LOADING -->
-      <LoaderCircle v-if="loading" class="ui-button__spinner size-5 animate-spin" />
+      <LoaderCircle v-if="loading" class="ui-button__spinner size-4 animate-spin" />
 
       <!-- ICON -->
       <component v-else-if="$slots.icon" :is="$slots.icon" class="" />

@@ -22,6 +22,8 @@ const initApp = async () => {
       initData = tma ? retrieveRawInitData() : null;
       setupTMAUI();
       userData = retrieveLaunchParams();
+   } else {
+      await authStore.getUser();
    }
    try {
       if (initData) {

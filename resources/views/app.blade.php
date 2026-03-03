@@ -77,6 +77,12 @@
 		}
 	</style>
 	@vite(['resources/application/app.css', 'resources/application/app.ts'])
+
+	<script>
+		var ENV = {
+			TELEGRAM_BOT_NAME: "{{ env('TELEGRAM_BOT_NAME') }}"
+		}
+	</script>
 </head>
 
 <body>

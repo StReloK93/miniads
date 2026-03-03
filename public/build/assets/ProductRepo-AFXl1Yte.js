@@ -1,0 +1,1 @@
+import{a4 as t}from"./index-DD7S0Vfw.js";const e="products",a={index(){return t.get(`${e}`)},store(r){return t.post(`${e}`,r,{headers:{"Content-Type":"multipart/form-data"}})},show(r){return t.get(`${e}/${r}`)},update(r,s){return t.put(`${e}/${r}`,s)},latestTen(){return t.get(`${e}/custom/latest_ten`)},myAds(){return t.get(`${e}/custom/my_ads`)}};export{a as P};

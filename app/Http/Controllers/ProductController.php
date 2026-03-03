@@ -25,7 +25,7 @@ class ProductController extends Controller
             'description' => $request->description,
             'phone' => $request->phone,
             'category_id' => $request->category_id,
-            'user_id' => 1, // yoki $request->user_id
+            'user_id' => $request->user()->id,
             'district' => 2, // yoki $request->user_id
         ]);
 
@@ -81,6 +81,13 @@ class ProductController extends Controller
             'favorites as is_favorite' => fn($q) =>
                 $q->where('user_id', auth()->id())
         ])->latest()->take(10)->get();
+    }
+
+
+    public function myAds()
+    {
+        return Product::where('user_id', auth()->id())
+            ->latest()->get();
     }
 
 }

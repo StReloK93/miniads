@@ -7,11 +7,8 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { api } from "@shared/composables/useFetch";
-import { useRouter } from "vue-router";
 import { useAuth } from "@shared/store/useAuth";
-const router = useRouter();
-const { getUser } = useAuth();
+const { widgetTelegramAuth } = useAuth();
 const telegramWrapper = ref(null);
 
 onMounted(() => {
@@ -29,20 +26,7 @@ onMounted(() => {
    telegramWrapper.value.appendChild(script);
 
    window.onTelegramAuth = (user) => {
-      onTelegramAuth(user);
+      widgetTelegramAuth(user);
    };
 });
-
-async function onTelegramAuth(user) {
-   await api
-      .post("telegram/widget-sign-in", user)
-      .then(async (result) => {
-         localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
-         await getUser();
-         router.push({ name: "home" });
-      })
-      .catch((err) => {
-         console.error("Widget login xatosi:", err);
-      });
-}
 </script>

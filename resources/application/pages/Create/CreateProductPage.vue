@@ -15,13 +15,7 @@
                </span>
             </main>
          </aside>
-         <BaseForm
-            v-if="selectedCategory"
-            :submit="submitForm"
-            @close="backToCategoryPage"
-            @submit="backToCategoryPage"
-            :input-configs="fullInputs"
-         />
+         <BaseForm v-if="selectedCategory" :submit="submitForm" @submit="onSubmit" :input-configs="fullInputs" />
       </main>
       <main v-else class="h-full grid grid-rows-[auto_1fr]]">
          <aside class="flex flex-col justify-between">
@@ -146,8 +140,8 @@ async function submitForm(values: any) {
    await ProductRepo.store(payload);
 }
 
-function backToCategoryPage() {
-   router.push({ name: "create-select-category", query: { category_id: selectedCategory.value?.parent_id } });
+function onSubmit() {
+   router.push({ name: "profile", query: { category_id: selectedCategory.value?.parent_id } });
 }
 
 onMounted(async () => {

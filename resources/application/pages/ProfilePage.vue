@@ -39,25 +39,33 @@
                <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton>
             </div>
          </aside>
+         <BaseTabs :items="['Faol', `O'chiq`, 'Tekshiruvda']" @change="onTabChange" class="w-full" />
       </template>
       <template #content>
-         <BaseTabs :items="['Faol', `O'chiq`, 'Tekshiruvda']" @change="onTabChange" class="w-full" />
+         <div class="flex flex-col gap-4">
+            <BaseProductCard v-for="product in products" :product="product" />
+         </div>
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
+import BaseProductCard from "@/components/BaseProductCard.vue";
+import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
 import { User } from "lucide-vue-next";
+import { useFetchDecorator } from "@shared/composables/useFetch";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 
 function onTabChange({ index, value }) {
    console.log(index, value); // 0, 1, 2
 }
+
+const { data: products, execute: fetchProducts } = useFetchDecorator(ProductRepo.myAds);
 
 const user = computed(() => {
    if (isTMA()) {
@@ -73,6 +81,8 @@ const user = computed(() => {
 });
 
 onMounted(async () => {
+   await fetchProducts();
+
    const images = <string[]>[];
    if (user.value.photo_url) {
       images.push(user.value.photo_url);

@@ -16,7 +16,12 @@ export const useAuth = defineStore("useAuth", () => {
          )
          .then(async (result) => {
             localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
-            await getUser();
+
+            api.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+
+            token.value = localStorage.getItem("token");
+            user.value = result.data.user;
+
             router.push({ name: "home" });
          });
    }
@@ -24,6 +29,24 @@ export const useAuth = defineStore("useAuth", () => {
    async function getUser() {
       api.defaults.headers.common["Authorization"] = localStorage.getItem("token");
       user.value = await api.get("user").then((result) => result.data);
+   }
+
+   async function widgetTelegramAuth(user) {
+      await api
+         .post("telegram/widget-sign-in", user)
+         .then(async (result) => {
+            localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
+
+            api.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+
+            token.value = localStorage.getItem("token");
+            user.value = result.data.user;
+
+            router.push({ name: "home" });
+         })
+         .catch((err) => {
+            console.error("Widget login xatosi:", err);
+         });
    }
 
    async function logout() {
@@ -41,6 +64,7 @@ export const useAuth = defineStore("useAuth", () => {
       user,
       token,
       getUser,
+      widgetTelegramAuth,
       signInTelegram,
       logout,
    };

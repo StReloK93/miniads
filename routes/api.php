@@ -32,6 +32,7 @@ Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::clas
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
+    Route::get('/products/custom/my_ads', [App\Http\Controllers\ProductController::class, 'myAds']);
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
     Route::apiResource('products', App\Http\Controllers\ProductController::class);

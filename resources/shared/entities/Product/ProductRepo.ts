@@ -22,4 +22,8 @@ export default {
    latestTen() {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
    },
+
+   myAds() {
+      return api.get<IProduct[]>(`${baseURL}/custom/my_ads`);
+   },
 };

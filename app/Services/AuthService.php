@@ -18,12 +18,18 @@ class AuthService
       $request->user()->currentAccessToken()->delete();
    }
 
+
+   // 
+   // 
+   // 
+   // 
+   // 
    public function telegramAuth($request)
    {
       $telegram_user = $request->telegram_user;
       $first_name = $telegram_user['first_name'];
       $last_name = $telegram_user['last_name'];
-      $username = $telegram_user['username'];
+      $username = $telegram_user['username'] ?? null;
 
       $user = User::updateOrCreate(
          ['telegram_user_id' => $telegram_user['id']],
@@ -31,13 +37,22 @@ class AuthService
       );
 
       if (Auth::loginUsingId($user->id)) {
-         $token = $this->createToken($user);
-         return response()->json(['token' => $token, 'type' => 'Bearer'], 200);
+         $user->tokens()->delete();
+
+         $token = $user->createToken('mini-app')->plainTextToken;
+
+
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
       }
 
       return response()->json(['message' => 'Login failed'], 500);
    }
 
+
+   // 
+   // 
+   // 
+   // 
    public function telegramWidgetAuth(Request $request)
    {
       $data = $request->all(); // Widgetdan kelgan barcha malumotlar
@@ -61,14 +76,16 @@ class AuthService
          [
             'name' => trim("$firstName $lastName"),
             // Agar bazangizda username bo'lsa:
-            // 'username' => $data['username'] ?? null 
+            'username' => $data['username'] ?? null
          ],
       );
 
       // 4. Token generatsiya qilish (Sanctum)
       if ($user) {
-         $token = $this->createToken($user);
-         return response()->json(['token' => $token, 'type' => 'Bearer'], 200);
+         $user->tokens()->delete();
+
+         $token = $user->createToken('mini-app')->plainTextToken;
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
       }
 
       return response()->json(['message' => 'Login failed'], 500);

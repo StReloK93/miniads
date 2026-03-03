@@ -18,21 +18,17 @@ const initApp = async () => {
    var userData: any = null;
    var initData: any = null;
    const tma = isTMA();
-   if (tma) {
-      initData = tma ? retrieveRawInitData() : null;
-      setupTMAUI();
-      userData = retrieveLaunchParams();
-   } else {
-      await authStore.getUser();
-   }
+
    try {
-      if (initData) {
+      if (tma) {
+         initData = tma ? retrieveRawInitData() : null;
+         setupTMAUI();
+         userData = retrieveLaunchParams();
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
+      } else {
+         await authStore.getUser();
       }
    } catch (error) {
-      if (initData) {
-         await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
-      }
    } finally {
       app.use(router).provide("userData", userData).mount("#app");
    }

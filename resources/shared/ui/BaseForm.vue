@@ -31,7 +31,7 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border) bg-(--z-card)">
+      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border)">
          <BaseButton type="submit" class="w-full" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
@@ -53,7 +53,7 @@ import type { InputConfig } from "@shared/types";
 import { z } from "zod";
 import { CheckCircle } from "lucide-vue-next";
 
-const emit = defineEmits(["close", "submit"]);
+const emit = defineEmits(["submit"]);
 
 const props = defineProps<{
    inputConfigs: InputConfig[];
@@ -87,6 +87,5 @@ const onSubmit: any = async (values) => {
       }, 500);
    });
    emit("submit", values);
-   emit("close");
 };
 </script>

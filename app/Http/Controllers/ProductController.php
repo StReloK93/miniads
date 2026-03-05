@@ -90,4 +90,31 @@ class ProductController extends Controller
             ->latest()->get();
     }
 
+    public function search(Request $request)
+    {
+
+        if (!$request->filled('search')) {
+            return response()->json([]);
+        }
+        $query = Product::search($request->search ?? '');
+
+        if ($request->city_id) {
+            $query->where('city_id', $request->city_id);
+        }
+
+        if ($request->category_id) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        if ($request->price_from) {
+            $query->where('price', '>=', $request->price_from);
+        }
+
+        if ($request->price_to) {
+            $query->where('price', '<=', $request->price_to);
+        }
+
+        return $query->get();
+    }
+
 }

@@ -13,6 +13,10 @@ Route::get('/user', function (Request $request) {
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
 Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetAuth']);
 
+if (app()->environment('local')) {
+    Route::post('/test-auth', [AuthController::class, 'testAuth']);
+}
+
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents/{id?}', 'parents');
@@ -22,6 +26,7 @@ Route::controller(App\Http\Controllers\CategoryController::class)->group(functio
     Route::post('categories/{id}', 'update');
     Route::get('categories/{id}/products', 'products');
 });
+
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->except('update');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
 Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);
@@ -33,6 +38,7 @@ Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::clas
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads', [App\Http\Controllers\ProductController::class, 'myAds']);
+    Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
     Route::apiResource('products', App\Http\Controllers\ProductController::class);

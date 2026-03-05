@@ -5,9 +5,8 @@
             <aside>
                <h2 class="mb-0.5 text-(--color-text-secondary)">{{ AuthStore.user?.name }}</h2>
                <div class="flex gap-2 items-center text-sm">
-                  <MapPin class="size-3" />
+                  <MapPin class="size-4" />
                   Uchquduq
-                  <ChevronDown class="size-4" />
                </div>
             </aside>
             <aside></aside>

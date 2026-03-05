@@ -5,6 +5,20 @@ import { api } from "@shared/composables/useFetch";
 export const useAuth = defineStore("useAuth", () => {
    const user: Ref = ref(null);
    const token: Ref = ref(null);
+
+   async function testAuth() {
+      await api.post("test-auth").then(async (result) => {
+         localStorage.setItem("token", `${result.data.type} ${result.data.token}`);
+
+         api.defaults.headers.common["Authorization"] = localStorage.getItem("token");
+
+         token.value = localStorage.getItem("token");
+         user.value = result.data.user;
+
+         router.push({ name: "home" });
+      });
+   }
+
    async function signInTelegram(initDataRaw) {
       await api
          .post(
@@ -63,6 +77,7 @@ export const useAuth = defineStore("useAuth", () => {
    return {
       user,
       token,
+      testAuth,
       getUser,
       widgetTelegramAuth,
       signInTelegram,

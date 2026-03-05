@@ -115,4 +115,29 @@ class AuthService
 
       return hash_equals($hash, $check_hash);
    }
+
+
+
+
+
+
+   public function testAuth()
+   {
+      if (!app()->environment('local')) {
+         abort(403, 'Forbidden');
+      }
+
+      $user = User::find(1);
+
+      if (Auth::loginUsingId($user->id)) {
+         $user->tokens()->delete();
+
+         $token = $user->createToken('mini-app')->plainTextToken;
+
+
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
+      }
+
+      return response()->json(['message' => 'Login failed'], 500);
+   }
 }

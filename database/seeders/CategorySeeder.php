@@ -88,7 +88,6 @@ class CategorySeeder extends Seeder
 					['name' => 'Mototsikl', 'is_page' => true],
 					['name' => 'Avtobus-Yuk tashuvchi', 'is_page' => true],
 					['name' => 'Ehtiyot qismlar', 'is_page' => true],
-					['name' => 'Ijara', 'is_page' => true],
 				],
 			],
 

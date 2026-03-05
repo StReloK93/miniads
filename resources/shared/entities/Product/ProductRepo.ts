@@ -26,4 +26,8 @@ export default {
    myAds() {
       return api.get<IProduct[]>(`${baseURL}/custom/my_ads`);
    },
+
+   search(search: string) {
+      return api.get<IProduct[]>(`${baseURL}/custom/search?search=${search}`);
+   },
 };

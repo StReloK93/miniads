@@ -27,6 +27,9 @@ const initApp = async () => {
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
       } else {
          await authStore.getUser();
+         if (import.meta.env.DEV && !authStore.user) {
+            await authStore.testAuth();
+         }
       }
    } catch (error) {
    } finally {

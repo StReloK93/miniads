@@ -3,9 +3,17 @@
    right: 0;
 }
 
+.field_input {
+   outline: none !important;
+   flex-grow: 1;
+}
+
 :not(.child) > .field {
+   display: flex;
+   align-items: center;
    width: 100%;
-   padding: var(--space-md);
+   height: 45px;
+   padding: 0 var(--space-md);
    border-radius: var(--z-rounded);
    border: 1px solid var(--z-border);
 

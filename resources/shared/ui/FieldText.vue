@@ -1,13 +1,17 @@
 <template>
    <Field :name="props.name" v-slot="{ field, handleChange }">
-      <input
-         type="text"
-         class="field"
-         @input="handleChange"
-         v-bind="{ ...field, ...$attrs }"
-         :placeholder="placeholder"
-         :disabled="disabled"
-      />
+      <div class="field">
+         <slot name="left"></slot>
+         <input
+            :type="props.type || 'text'"
+            class="field_input"
+            @input="handleChange"
+            v-bind="{ ...field, ...$attrs }"
+            :placeholder="placeholder"
+            :disabled="disabled"
+         />
+         <slot name="right"></slot>
+      </div>
    </Field>
 </template>
 

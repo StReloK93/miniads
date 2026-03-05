@@ -24,4 +24,9 @@ class AuthController extends Controller
 	{
 		return $this->authService->telegramWidgetAuth($request);
 	}
+
+	public function testAuth(Request $request)
+	{
+		return $this->authService->testAuth();
+	}
 }

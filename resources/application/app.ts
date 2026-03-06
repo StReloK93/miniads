@@ -5,7 +5,7 @@ import App from "@/App.vue";
 import router from "@/router";
 import { setupTMAUI } from "@/modules/InitApp";
 import { useAuth } from "@shared/store/useAuth";
-import { initTheme } from "@shared/components/theme";
+import { initTheme } from "@shared/composables/useTheme";
 import "@shared/css/ui.scss";
 initTheme();
 const app = createApp(App);

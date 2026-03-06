@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
+    BaseModal: typeof import('./resources/shared/ui/BaseModal.vue')['default']
     BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldMask: typeof import('./resources/shared/ui/FieldMask.vue')['default']
@@ -23,5 +24,6 @@ declare module 'vue' {
     FieldToggleButton: typeof import('./resources/shared/ui/FieldToggleButton.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ThemeSwitcher: typeof import('./resources/shared/ui/ThemeSwitcher.vue')['default']
   }
 }

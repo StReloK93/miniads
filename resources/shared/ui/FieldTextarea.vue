@@ -1,6 +1,6 @@
 <template>
    <Field :name="props.name" v-slot="{ field, handleChange }">
-      <div class="field" :data-size="size">
+      <div class="field py-3!" :data-size="size">
          <textarea
             ref="el"
             v-bind="{ ...field, ...$attrs }"
@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { Field } from "vee-validate";
-import { ref, watch, nextTick } from "vue";
+import { ref } from "vue";
 
 type Size = "sm" | "md" | "lg";
 
@@ -50,3 +50,23 @@ function onInput(event, callback: (event) => void) {
    resize();
 }
 </script>
+<style scoped lang="scss">
+.ui-textarea__field {
+   font-size: 14px;
+   display: block;
+   width: 100%;
+
+   padding-inline: var(--input-px);
+
+   color: var(--color-text-primary);
+
+   line-height: 1.4;
+
+   transition: box-shadow var(--duration-fast);
+
+   &::placeholder {
+      font-size: 14px;
+      color: var(--z-muted-text);
+   }
+}
+</style>

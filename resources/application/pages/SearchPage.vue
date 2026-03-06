@@ -2,8 +2,8 @@
    <NavigationPageDecorator>
       <template #header>
          <h3 class="font-bold text-xl">Qidiruv</h3>
-         <article class="py-4 border-b border-(--z-border) -mx-4 px-4 flex gap-4">
-            <Form @submit="onSubmit" class="w-full" autocomplete="off">
+         <article class="flex gap-4 p-4 border-b border-(--z-border) -mx-4">
+            <Form @submit="onSubmit" class="grow flex" autocomplete="off">
                <FieldText
                   v-model="searchText"
                   autocomplete="off"
@@ -12,7 +12,7 @@
                   type="search"
                >
                   <template #left>
-                     <div class="flex pr-2.5">
+                     <div class="px-2.5">
                         <Search class="size-4.5 inline" />
                      </div>
                   </template>
@@ -24,7 +24,7 @@
                         type="button"
                         icon-only
                         rounded
-                        size="sm"
+                        class="h-10!"
                         :loading="isLoading"
                         variant="text"
                      >
@@ -35,14 +35,30 @@
                   </template>
                </FieldText>
             </Form>
-            <BaseButton icon-only>
-               <template #icon>
-                  <SlidersHorizontal class="size-5" />
-               </template>
-            </BaseButton>
+            <main class="w-12">
+               <BaseButton icon-only>
+                  <template #icon>
+                     <SlidersHorizontal class="size-5" @click="isFilterOpen = true" />
+                  </template>
+               </BaseButton>
+            </main>
          </article>
       </template>
       <template #content>
+         <BaseModal
+            :open="isFilterOpen"
+            title="Filterlash"
+            confirm-text="Saqlash"
+            cancel-text="Yopish"
+            :danger="true"
+            @close="isFilterOpen = false"
+         >
+            <template #icon>
+               <SlidersHorizontal class="size-4" />
+            </template>
+
+            <FieldSelect name="city" :options="['Uchquduq', 'Zarafshon', 'Navoiy']" />
+         </BaseModal>
          <aside v-if="showRecent">
             <article class="flex justify-between items-center">
                <h3 class="title text-xs">Oxirgi qidiruvlar</h3>
@@ -80,6 +96,7 @@ import { useRecentSearches } from "@shared/composables/useRecentSearch";
 import { computed, ref } from "vue";
 import { IProduct } from "@shared/types";
 
+const isFilterOpen = ref(false);
 const {
    data: products,
    execute: fetchProducts,

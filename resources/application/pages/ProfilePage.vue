@@ -2,7 +2,7 @@
    <NavigationPageDecorator>
       <template #header>
          <h3 class="font-bold text-xl">Profil</h3>
-         <aside class="flex flex-col items-center pb-6 py-4">
+         <aside class="flex flex-col items-center py-4">
             <div class="mb-2 flex">
                <img
                   v-if="user.photo_url && isImagesReady"
@@ -12,7 +12,7 @@
                <span v-else-if="user.photo_url && !isImagesReady" class="rounded-full! w-18 h-18 skeleton inline-block">
                </span>
                <span v-else class="rounded-full w-18 h-18 bg-slate-100 inline-flex justify-center items-center">
-                  <User class="size-5" />
+                  <Camera class="size-5" stroke-width="2" stroke="currentColor" />
                </span>
             </div>
             <!-- {{ userData.tgWebAppData.user.photo_url }} -->
@@ -21,7 +21,7 @@
 
             <main class="flex w-full divide-x divide-(--z-border)">
                <div class="text-center w-1/3">
-                  <span class="font-semibold">45</span>
+                  <span class="font-semibold">{{ products?.length }}</span>
                   <h3 class="text-(--z-muted-text) text-sm">E'lon</h3>
                </div>
                <div class="text-center w-1/3">
@@ -35,8 +35,9 @@
             </main>
 
             <div class="flex gap-2 w-full mt-8">
-               <BaseButton size="sm" rounded class="w-full"> E'lonlar </BaseButton>
-               <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton>
+               <h3 class="text-center text-2xl font-bold w-full">E'lonlar</h3>
+               <!-- <BaseButton size="sm" rounded class="w-full" variant="text"> E'lonlar </BaseButton> -->
+               <!-- <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton> -->
             </div>
          </aside>
          <BaseTabs :items="['Faol', `O'chiq`, 'Tekshiruvda']" @change="onTabChange" class="w-full" />
@@ -56,8 +57,9 @@ import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
-import { User } from "lucide-vue-next";
+import { Camera } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
+import { IProduct } from "@shared/types";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 
@@ -65,14 +67,14 @@ function onTabChange({ index, value }) {
    console.log(index, value); // 0, 1, 2
 }
 
-const { data: products, execute: fetchProducts } = useFetchDecorator(ProductRepo.myAds);
+const { data: products, execute: fetchProducts } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);
 
 const user = computed(() => {
    if (isTMA()) {
       return userData?.tgWebAppData.user;
    } else {
       return {
-         photo_url: "/images/no-image.webp",
+         photo_url: null,
          first_name: "Bumin",
          last_name: "Xoqon",
          username: "Ruzzifer",

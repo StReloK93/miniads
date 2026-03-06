@@ -1,10 +1,25 @@
 <template>
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
+         <BaseModal
+            :open="isOpen"
+            title="Shaharni tanlang"
+            description="Siz quyida tanlagan shahringizga mos e'lonlarni ko'ra olasiz."
+            confirm-text="Saqlash"
+            cancel-text="Yopish"
+            :danger="true"
+            @close="isOpen = false"
+         >
+            <template #icon>
+               <MapPin class="size-4" />
+            </template>
+
+            <FieldSelect name="city" :options="['Uchquduq', 'Zarafshon', 'Navoiy']" />
+         </BaseModal>
          <main v-if="AuthStore.user" class="flex items-center justify-between mb-4">
             <aside>
                <h2 class="mb-0.5 text-(--color-text-secondary)">{{ AuthStore.user?.name }}</h2>
-               <div class="flex gap-2 items-center text-sm">
+               <div @click="isOpen = true" class="flex gap-2 items-center text-sm">
                   <MapPin class="size-4" />
                   Uchquduq
                </div>
@@ -51,6 +66,8 @@ import BaseProductCard from "@/components/BaseProductCard.vue";
 import { IProduct } from "@shared/types";
 import { onMounted, ref } from "vue";
 const AuthStore = useAuth();
+
+const isOpen = ref(false);
 
 const { data: latest_ten, execute: executeLatest } = useFetchDecorator<IProduct[]>(ProductRepo.latestTen);
 const fullLoadingImages = ref<boolean>(false);

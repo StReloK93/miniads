@@ -10,7 +10,9 @@
       >
          <!-- CONTROL -->
          <ListboxButton ref="reference" class="ui-select__control w-full flex items-center justify-between px-3 py-2">
-            <span class="truncate">{{ selectedLabel(field.value) }}</span>
+            <span class="truncate" :class="{ 'text-(--z-muted-text)': !field.value }">
+               {{ selectedLabel(field.value) }}
+            </span>
 
             <span class="flex gap-2 items-center">
                <Check v-if="field.value && selectIcon" class="h-4 w-4 text-blue-600" />
@@ -160,8 +162,8 @@ watch(floating, async (el) => {
    display: flex;
    justify-content: space-between;
    align-items: center;
-   padding: var(--space-sm) var(--space-md);
-   border-radius: 8px;
+   padding: var(--space-md) var(--space-md);
+   border-radius: 10px;
    cursor: pointer;
 }
 

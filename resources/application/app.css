@@ -47,7 +47,7 @@
 }
 
 .z-bg-gradient {
-   @apply bg-linear-to-r from-stone-100/60  to-slate-100/60;
+   @apply bg-linear-to-r from-stone-100/70  to-slate-100/70;
 }
 
 .v-enter-active,

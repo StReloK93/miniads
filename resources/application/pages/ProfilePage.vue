@@ -40,7 +40,7 @@
                <!-- <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton> -->
             </div>
          </aside>
-         <BaseTabs :items="['Faol', `O'chiq`, 'Tekshiruvda']" @change="onTabChange" class="w-full" />
+         <BaseTabs :items="['Faol', `O'chiq`]" @change="onTabChange" class="w-full" />
       </template>
       <template #content>
          <div class="flex flex-col gap-4">

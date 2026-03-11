@@ -4,13 +4,11 @@ import FieldMask from "@shared/ui/FieldMask.vue";
 import FieldNumber from "@shared/ui/FieldNumber.vue";
 import FieldTextarea from "@shared/ui/FieldTextarea.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
-import FieldToggleButton from "@shared/ui/FieldToggleButton.vue";
 export const Inputs = {
    FieldText,
    FieldNumber,
    FieldSelect,
    FieldTextarea,
-   FieldToggleButton,
    FieldImage,
    FieldMask,
 };

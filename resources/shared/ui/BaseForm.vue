@@ -15,7 +15,7 @@
                   </main>
                </Teleport>
                <div v-else :class="input.class">
-                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--color-text-secondary) tracking-wide">
+                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--z-muted-text) tracking-wide">
                      {{ input.props?.title }}
                   </p>
                   <main class="relative" :class="input.teleport_parent_class">

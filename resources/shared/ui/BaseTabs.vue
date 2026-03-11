@@ -1,25 +1,29 @@
 <template>
-   <div class="tabs">
-      <div class="tabs-list" ref="listRef">
+   <div class="border-b border-(--z-border)">
+      <div class="relative flex w-full overflow-x-none">
          <button
             v-for="(item, index) in items"
             :key="getKey(item, index)"
-            class="tab"
-            :class="{ active: index === activeIndex }"
-            @click="selectTab(index)"
             ref="tabRefs"
+            class="min-w-0 flex-1 shrink-0 cursor-pointer border-0 bg-transparent px-2 py-2 text-center text-sm font-medium whitespace-nowrap transition-colors duration-200 ease-(--ease-soft) sm:px-3 sm:py-2.5"
+            :class="index === activeIndex ? 'text-(--z-foreground)' : 'text-(--z-muted-text)'"
+            @click="selectTab(index)"
          >
-            {{ getLabel(item) }}
+            <span class="block truncate">
+               {{ getLabel(item) }}
+            </span>
          </button>
 
-         <!-- Active bottom indicator -->
-         <span class="indicator" :style="indicatorStyle" />
+         <span
+            class="absolute -bottom-px left-0 h-0.5 toppx rounded-(--z-rounded) bg-(--z-foreground) transition-[transform,width] duration-200 ease-(--ease-soft)"
+            :style="indicatorStyle"
+         />
       </div>
    </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from "vue";
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 
 /* ================= PROPS ================= */
 
@@ -49,7 +53,6 @@ const emit = defineEmits<{
 /* ================= STATE ================= */
 
 const activeIndex = ref(props.modelValue ?? 0);
-const listRef = ref<HTMLElement | null>(null);
 const tabRefs = ref<HTMLElement[]>([]);
 const indicatorStyle = ref<Record<string, string>>({});
 
@@ -82,6 +85,17 @@ const updateIndicator = () => {
    };
 };
 
+const scrollToActiveTab = () => {
+   const el = tabRefs.value[activeIndex.value];
+   if (!el) return;
+
+   el.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+   });
+};
+
 const selectTab = async (index: number) => {
    activeIndex.value = index;
 
@@ -92,6 +106,12 @@ const selectTab = async (index: number) => {
       item: props.items[index],
    });
 
+   await nextTick();
+   updateIndicator();
+   scrollToActiveTab();
+};
+
+const handleResize = async () => {
    await nextTick();
    updateIndicator();
 };
@@ -105,61 +125,27 @@ watch(
          activeIndex.value = val;
          await nextTick();
          updateIndicator();
+         scrollToActiveTab();
       }
    },
 );
 
-onMounted(() => {
+watch(
+   () => props.items,
+   async () => {
+      await nextTick();
+      updateIndicator();
+   },
+   { deep: true },
+);
+
+onMounted(async () => {
+   await nextTick();
    updateIndicator();
+   window.addEventListener("resize", handleResize);
+});
+
+onBeforeUnmount(() => {
+   window.removeEventListener("resize", handleResize);
 });
 </script>
-
-<style scoped>
-.tabs {
-   border-bottom: 1px solid var(--z-border);
-   display: flex;
-}
-.tabs-list {
-   position: relative;
-   display: flex;
-   width: 100%; /* 🔑 butun joyni oladi */
-}
-
-.tab {
-   border-bottom: 1px solid var(--z-border);
-   flex: 1 1 0%; /* 🔑 teng bo‘linadi */
-   text-align: center;
-}
-
-.tab {
-   background: none;
-   border: none;
-   cursor: pointer;
-
-   padding: var(--space-sm) 0;
-
-   font-size: 14px;
-   font-weight: 500;
-   color: var(--z-muted-text);
-
-   transition: color var(--duration) var(--ease-soft);
-}
-
-.tab.active {
-   color: var(--z-foreground);
-}
-
-.indicator {
-   position: absolute;
-   bottom: 0;
-   left: 0;
-
-   height: 2px;
-   background: var(--z-foreground);
-   border-radius: var(--z-rounded);
-
-   transition:
-      transform var(--duration) var(--ease-soft),
-      width var(--duration) var(--ease-soft);
-}
-</style>

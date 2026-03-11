@@ -3,7 +3,9 @@
       <template #header>
          <aside class="mb-4">
             <h3 class="font-bold text-xl mb-4">Sevimlilar</h3>
-            <p class="text-sm text-(--z-muted-text)">Sizda sevimlilar ro'yhatida {{ favorites?.length }} e'lon bor.</p>
+            <p class="text-sm text-(--z-muted-text)">
+               Sizda sevimlilar ro'yhatida {{ favorites?.length }} ta e'lon mavjud.
+            </p>
          </aside>
       </template>
       <template #content>
@@ -31,7 +33,7 @@ import { onMounted, ref } from "vue";
 
 const fullLoadingImages = ref<boolean>(false);
 
-const { data: favorites, execute: executeLatest } = useFetchDecorator<IProduct[]>(FavoriteRepo.index);
+const { data: favorites, execute: executeLatest, isFirstLoading } = useFetchDecorator<IProduct[]>(FavoriteRepo.index);
 
 onMounted(async () => {
    await executeLatest();

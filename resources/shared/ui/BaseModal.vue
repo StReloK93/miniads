@@ -27,7 +27,7 @@
                   leave-to="opacity-0 translate-y-4 scale-[0.98]"
                >
                   <DialogPanel
-                     class="w-full max-w-md transform rounded-(--z-rounded) bg-(--z-background) text-left align-middle shadow-sm transition-all"
+                     class="w-full max-w-md transform rounded-(--z-rounded) z-bg-gradient backdrop-blur-sm text-left align-middle shadow-sm transition-all border border-(--z-border)"
                   >
                      <div class="p-(--space-lg)">
                         <!-- Header -->
@@ -62,7 +62,7 @@
                         </div>
 
                         <!-- Footer -->
-                        <div class="mt-6 flex gap-4">
+                        <div v-if="showButtons" class="mt-6 flex gap-4">
                            <BaseButton @click="close" type="button" severity="glass" class="w-full">
                               {{ cancelText }}
                            </BaseButton>
@@ -81,7 +81,6 @@
 </template>
 
 <script setup lang="ts">
-import { X as Close } from "lucide-vue-next";
 import { Dialog, DialogDescription, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from "@headlessui/vue";
 
 interface Props {
@@ -92,6 +91,7 @@ interface Props {
    cancelText?: string;
    showCancel?: boolean;
    danger?: boolean;
+   showButtons?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -100,6 +100,7 @@ withDefaults(defineProps<Props>(), {
    cancelText: "Bekor qilish",
    showCancel: true,
    danger: false,
+   showButtons: true,
 });
 
 const emit = defineEmits<{

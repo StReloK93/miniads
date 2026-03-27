@@ -5,9 +5,11 @@
       </main>
       <main class="relative w-full grow">
          <aside
+            ref="scrollEl"
             :class="props.contentClass"
             @touchstart="handleTouchStart"
             @touchmove="handleTouchMove"
+            @touchend="handleTouchEnd"
             @wheel="handleWheel"
             class="absolute px-4 inset-0 overflow-y-auto no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
@@ -21,9 +23,16 @@
 </template>
 <script setup lang="ts">
 import { useGestureHeader } from "@shared/composables/useGestureHeader";
-const { isCompact, handleTouchStart, handleTouchMove, handleWheel } = useGestureHeader();
+import { onMounted, ref } from "vue";
+const { isCompact, setContainer, handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel } = useGestureHeader();
+
+const scrollEl = ref<HTMLElement | null>(null);
 const props = defineProps<{
    headerClass?: string[];
    contentClass?: string[];
 }>();
+
+onMounted(() => {
+   setContainer(scrollEl.value);
+});
 </script>

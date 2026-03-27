@@ -1,1 +1,0 @@
-import{a6 as r,h as o}from"./index-DxVL09n4.js";import{C as s}from"./CategoryRepo-D9737r-m.js";const g=r("useCategory",()=>{const e=o();async function t(){const{data:a}=await s.parents();e.value=a}return{parentCategories:e,getParentCategories:t}});export{g as u};

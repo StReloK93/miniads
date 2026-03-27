@@ -1,8 +1,11 @@
 <template>
    <NavigationPageDecorator>
-      <template #header>
+      <template #header="{ isCompact }">
          <h3 class="font-bold text-xl">Profil</h3>
-         <aside class="flex flex-col items-center py-4">
+         <aside
+            class="flex flex-col items-center overflow-hidden transition-all duration-300"
+            :class="[isCompact ? 'max-h-0 py-0 opacity-0' : 'max-h-200 py-4']"
+         >
             <div class="mb-2 flex">
                <img
                   v-if="user.photo_url && isImagesReady"

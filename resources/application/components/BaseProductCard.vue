@@ -26,7 +26,7 @@
             >
                <!-- fill-red-500 text-red-500 -->
                <template #icon>
-                  <Heart class="size-4" :class="{ 'stroke-red-500 fill-red-500': product.is_favorite }" />
+                  <Heart class="size-4" :class="{ ' fill-black': product.is_favorite }" />
                </template>
             </BaseButton>
          </div>

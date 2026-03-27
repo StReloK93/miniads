@@ -1,1 +1,0 @@
-import{a6 as r,h as o}from"./index-CIDqEXTC.js";import{C as s}from"./CategoryRepo-C60BWZx4.js";const g=r("useCategory",()=>{const e=o();async function t(){const{data:a}=await s.parents();e.value=a}return{parentCategories:e,getParentCategories:t}});export{g as u};

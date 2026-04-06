@@ -16,14 +16,12 @@ class CategoryController extends Controller
 	public function show($id)
 	{
 		return Category::with(['parameters', 'parent'])
-			->select('id', 'name', 'image', 'parent_id', 'is_page')
 			->findOrFail($id);
 	}
 	public function parents($parent_id = null)
 	{
 		return Category::where('parent_id', $parent_id)
 			->with('children')
-			->select('id', 'name', 'image', 'parent_id', 'is_page')
 			->get();
 
 	}

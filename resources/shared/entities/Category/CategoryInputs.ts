@@ -26,6 +26,22 @@ export const categoryInputs: InputConfig[] = [
       class: ["mb-4"],
    },
    {
+      component: PrimeVueInputs["InputNumber"],
+      name: "listing_duration_days",
+      placeholder: "E'lon davomiyligi 5-20 kun",
+      props: { ...globalProps, min: 5, max: 20 },
+      schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Davomiyligi 1 dan katta bo'lishi kerak!"),
+      class: ["mb-4"],
+   },
+   // {
+   //    component: PrimeVueInputs["FieldNumber"],
+   //    name: "listing_duration_days",
+   //    props: { title: "E'lon davomiyligi (kun)", placeholder: "Masalan: 7", min: 1, max: 365 },
+   //    schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Davomiyligi 1 dan katta bo'lishi kerak!"),
+   //    class: ["mb-3"],
+   // },
+
+   {
       component: PrimeVueInputs["ImageUpload"],
       name: "image",
       props: {},

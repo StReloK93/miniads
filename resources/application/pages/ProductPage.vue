@@ -82,12 +82,24 @@
          </main>
       </aside>
       <aside v-if="product" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
+         <BaseButton
+            v-if="product.user.username"
+            severity="secondary"
+            @click="openSellerChat(product)"
+            iconOnly
+            class="aspect-square"
+         >
+            <template #icon>
+               <MessageCircle class="size-5 inline" />
+            </template>
+         </BaseButton>
          <BaseButton @click="callPhone(product?.phone!)" severity="primary" class="grow">
             <template #icon>
                <Phone class="size-4 inline" />
             </template>
             Qo'ng'iroq qilish
          </BaseButton>
+
          <BaseButton
             severity="secondary"
             @click="toggleFavorite"
@@ -96,7 +108,7 @@
             :loading="isFavoriteButtonLoading"
          >
             <template #icon>
-               <Heart class="size-5 inline" :class="{ 'stroke-red-500 fill-red-500': product.is_favorite }" />
+               <Heart class="size-5 inline" :class="{ 'fill-(--z-primary)': product.is_favorite }" />
             </template>
          </BaseButton>
       </aside>
@@ -119,8 +131,10 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { Heart, MapPin, Phone } from "lucide-vue-next";
+import { Heart, MapPin, MessageCircle, Phone } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
+import { postEvent } from "@tma.js/bridge";
+
 const route = useRoute();
 
 const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);
@@ -131,6 +145,20 @@ function callPhone(phone: string) {
    if (isTMA()) {
       window.open(`tel:${phone}`);
    }
+}
+
+function openSellerChat(product: IProduct) {
+   const username = product.user.username?.trim().replace(/^@/, "");
+
+   if (!username) return;
+
+   const text = `Assalomu alaykum, "${product.title}" e'loni bo'yicha yozyabman.\n\n` + `E'lon ID: ${product.id}`;
+
+   const pathFull = `${username}?text=${encodeURIComponent(text)}`;
+
+   postEvent("web_app_open_tg_link", {
+      path_full: pathFull,
+   });
 }
 
 const isFavoriteButtonLoading = ref(false);

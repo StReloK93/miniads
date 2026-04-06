@@ -13,7 +13,7 @@ class ProductController extends Controller
         return Product::withExists([
             'favorites as is_favorite' => fn($q) =>
                 $q->where('user_id', auth()->id())
-        ])->all();
+        ])->active()->all();
     }
 
     public function store(Request $request)
@@ -29,6 +29,8 @@ class ProductController extends Controller
             'district' => 2, // yoki $request->user_id
         ]);
 
+        $product->expires_at = now()->addDays($product->category->listing_duration_days);
+        $product->save();
 
         // 2. Dinamik parametrlarni saqlash
         if ($request->has('parameters')) {
@@ -70,7 +72,7 @@ class ProductController extends Controller
         $product = Product::withExists([
             'favorites as is_favorite' => fn($q) =>
                 $q->where('user_id', auth()->id())
-        ])->findOrFail($id);
+        ])->with(['user'])->findOrFail($id);
         return response()->json($product);
     }
 
@@ -80,13 +82,14 @@ class ProductController extends Controller
         return Product::with('category')->withExists([
             'favorites as is_favorite' => fn($q) =>
                 $q->where('user_id', auth()->id())
-        ])->latest()->take(10)->get();
+        ])->active()->latest()->take(10)->get();
     }
 
 
     public function myAds()
     {
         return Product::where('user_id', auth()->id())
+            ->active()
             ->latest()->get();
     }
 
@@ -96,25 +99,28 @@ class ProductController extends Controller
         if (!$request->filled('search')) {
             return response()->json([]);
         }
-        $query = Product::search($request->search ?? '');
 
-        if ($request->city_id) {
-            $query->where('city_id', $request->city_id);
-        }
+        return Product::search($request->search)
+            ->query(function (\Illuminate\Database\Eloquent\Builder $query) use ($request) {
+                $query->active();
 
-        if ($request->category_id) {
-            $query->where('category_id', $request->category_id);
-        }
+                if ($request->city_id) {
+                    $query->where('city_id', $request->city_id);
+                }
 
-        if ($request->price_from) {
-            $query->where('price', '>=', $request->price_from);
-        }
+                if ($request->category_id) {
+                    $query->where('category_id', $request->category_id);
+                }
 
-        if ($request->price_to) {
-            $query->where('price', '<=', $request->price_to);
-        }
+                if ($request->price_from) {
+                    $query->where('price', '>=', $request->price_from);
+                }
 
-        return $query->get();
+                if ($request->price_to) {
+                    $query->where('price', '<=', $request->price_to);
+                }
+            })
+            ->get();
     }
 
 }

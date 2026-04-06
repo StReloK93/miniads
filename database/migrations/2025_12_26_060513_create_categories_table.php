@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('name'); // Masalan: "Elektronika" yoki "Telefonlar"
             $table->string('image')->nullable(); // Faqat asosiy kategoriyalar uchun
             $table->unsignedBigInteger('parent_id')->nullable(); // Shu joyi muhim!
+            $table->unsignedBigInteger('listing_duration_days')->default(7)->nullable(); // Shu joyi muhim!
             $table->boolean('is_page')->default(false); // Faqat asosiy kategoriyalar uchun
 
             $table->softDeletes();

@@ -70,6 +70,15 @@ export interface IProduct {
    created_at: string;
    updated_at: string;
    expires_at: string;
+   user: IUser;
+   user_id: number;
+}
+
+export interface IUser {
+   id: number;
+   name: string;
+   username: string | null;
+   telegram_id: number | null;
 }
 
 export interface IParameterValue {

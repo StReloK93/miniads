@@ -8,13 +8,16 @@
    >
       <div class="flex gap-3 items-center py-0.5">
          <i :class="props.node.droppable == false ? 'pi pi-link text-primary' : 'pi pi-folder'" />
-         <img
+         <!-- <img
             v-if="props.node.image"
             :src="props.node.image"
             draggable="false"
             class="w-6 pointer-events-none dark:invert"
-         />
-         <span class="font-medium"> {{ props.node.label }}</span>
+         /> -->
+         <span class="font-medium">
+            {{ props.node.label }}
+            <span v-if="props.node.is_page" class="text-gray-400"> - {{ props.node.listing_duration_days }} kun </span>
+         </span>
       </div>
 
       <div class="flex items-center gap-1">

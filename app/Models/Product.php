@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
+use Illuminate\Database\Eloquent\Builder;
 class Product extends Model
 {
 
@@ -35,6 +37,19 @@ class Product extends Model
     protected $hidden = [
         'expires_at',
     ];
+
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('expires_at', '>', now());
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+
 
     public function category()
     {

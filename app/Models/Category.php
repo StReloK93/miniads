@@ -12,15 +12,17 @@ class Category extends Model
         'image',
         'parent_id',
         'is_page',
+        'listing_duration_days',
     ];
 
     protected $casts = [
         'is_page' => 'boolean',
+        'listing_duration_days' => 'integer',
     ];
     public function children()
     {
         // Bu podkategoriyalarni olish uchun
-        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'image', 'parent_id', 'is_page');
+        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'image', 'parent_id', 'is_page', 'listing_duration_days');
     }
 
     public function parent()

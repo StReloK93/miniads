@@ -39,6 +39,7 @@ export function formatCategories(categories): TreeNode[] {
          is_page: item.is_page, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
          children: [], // Bolalar uchun bo'sh massiv
          droppable: !item.is_page, // Bolalar uchun bo'sh massiv
+         listing_duration_days: item.listing_duration_days, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali
       };
       if (item.children && item.children.length > 0) {
          node.children = formatCategories(item.children);

@@ -68,6 +68,7 @@ export interface IProduct {
    images: { id: number; product_id: number; src: string }[];
    is_favorite: boolean;
    created_at: string;
+   district: { id: number; name: string };
    updated_at: string;
    expires_at: string;
    user: IUser;

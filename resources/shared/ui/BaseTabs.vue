@@ -98,7 +98,6 @@ const scrollToActiveTab = () => {
 
 const selectTab = async (index: number) => {
    activeIndex.value = index;
-
    emit("update:modelValue", index);
    emit("change", {
       index,

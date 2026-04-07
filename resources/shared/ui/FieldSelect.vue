@@ -5,11 +5,14 @@
          :model-value="field.value"
          @update:model-value="handleChange"
          as="div"
-         class="ui-select field p-0!"
+         class="ui-select field p-0! focus:outline-none"
          :data-error="(meta.touched && !meta.valid) || undefined"
       >
          <!-- CONTROL -->
-         <ListboxButton ref="reference" class="ui-select__control w-full flex items-center justify-between px-3 py-2">
+         <ListboxButton
+            ref="reference"
+            class="ui-select__control w-full flex items-center justify-between px-3 py-2 focus:outline-none"
+         >
             <span class="truncate" :class="{ 'text-(--z-muted-text)': !field.value }">
                {{ selectedLabel(field.value) }}
             </span>
@@ -35,7 +38,7 @@
                   <ListboxOptions
                      v-show="isPositioned"
                      static
-                     class="ui-select__options overflow-auto border border-(--z-border)"
+                     class="ui-select__options overflow-auto border border-(--z-border) focus:outline-none"
                   >
                      <ListboxOption
                         v-for="option in normalizedOptions"

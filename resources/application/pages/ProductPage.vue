@@ -39,7 +39,7 @@
 
                   <span class="flex items-center gap-1">
                      <MapPin class="size-3 inline" />
-                     Uchquduq
+                     {{ product?.district?.name }}
                   </span>
                </div>
                <!--  -->
@@ -152,7 +152,7 @@ function openSellerChat(product: IProduct) {
 
    if (!username) return;
 
-   const text = `Assalomu alaykum, "${product.title}" e'loni bo'yicha yozyabman.\n\n` + `E'lon ID: ${product.id}`;
+   const text = `Assalomu alaykum, "${product.title}" e'loni bo'yicha yozyabman.`;
 
    const pathFull = `${username}?text=${encodeURIComponent(text)}`;
 

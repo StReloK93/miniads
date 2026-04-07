@@ -19,7 +19,10 @@ return new class extends Migration {
             $table->text('description'); // Batafsil ma'lumot
 
             // Manzil (Navoiy viloyati tumanlari uchun)
-            $table->string('district'); // Masalan: Uchquduq, Zarafshon, Navoiy sh.
+            $table->foreignId('district_id')
+                ->nullable()
+                ->constrained('districts')
+                ->nullOnDelete();// Masalan: Uchquduq, Zarafshon, Navoiy sh.
             // Aloqa
             $table->string('phone')->nullable(); // Telefon raqam
             // Holati

@@ -26,7 +26,7 @@ class ProductController extends Controller
             'phone' => $request->phone,
             'category_id' => $request->category_id,
             'user_id' => $request->user()->id,
-            'district' => 2, // yoki $request->user_id
+            'district_id' => $request->user()->active_district_id, // yoki $request->user_id
         ]);
 
         $product->expires_at = now()->addDays($product->category->listing_duration_days);
@@ -86,11 +86,18 @@ class ProductController extends Controller
     }
 
 
-    public function myAds()
+    public function myAds(Request $request, $status)
     {
-        return Product::where('user_id', auth()->id())
-            ->active()
-            ->latest()->get();
+        $query = Product::where('user_id', $request->user()->id)
+            ->latest();
+
+        if ($status === 'active') {
+            $query->active();
+        } else if ($status === 'expired') {
+            $query->passive();
+        }
+
+        return $query->get();
     }
 
     public function search(Request $request)

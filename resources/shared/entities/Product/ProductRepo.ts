@@ -23,8 +23,8 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
    },
 
-   myAds() {
-      return api.get<IProduct[]>(`${baseURL}/custom/my_ads`);
+   myAds(status: string) {
+      return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`);
    },
 
    search(search: string) {

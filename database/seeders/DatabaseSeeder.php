@@ -15,17 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
+        $this->call(DistrictSeeder::class);
         User::create([
             'name' => 'Bumin Xoqon',
             'telegram_user_id' => 100,
-            'role' => 'admin'
+            'role' => 'admin',
+            'username' => 'zeno',
+            'active_district_id' => 1,
         ]);
+
         $this->call(CategorySeeder::class);
         $this->call(ParameterSeeder::class);
         $this->call(CategoryParameterSeeder::class);
 
         $this->call(PriceTypeSeeder::class);
+
+
 
     }
 }

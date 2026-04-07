@@ -39,6 +39,9 @@
 import { ref, computed, watch } from "vue";
 import { ICategory } from "@shared/types";
 import { ChevronRight } from "lucide-vue-next";
+import { useRoute, useRouter } from "vue-router";
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps<{
    categories: ICategory[];
@@ -139,6 +142,13 @@ function openCategoryById(categoryId: number) {
  * Select category (user click)
  */
 function selectCategory(cat: ICategory) {
+   router.push({
+      query: {
+         ...route.query,
+         category_id: cat.id,
+      },
+   });
+
    if (cat.is_page) {
       emit("selectCategory", cat);
       return;

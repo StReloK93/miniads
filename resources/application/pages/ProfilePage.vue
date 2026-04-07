@@ -48,12 +48,21 @@
                <!-- <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton> -->
             </div>
          </aside>
-         <BaseTabs :items="['Faol', `O'chiq`]" @change="onTabChange" class="w-full" />
+         <BaseTabs
+            :items="[
+               { label: 'Faol', status: 'active' },
+               { label: `O'chiq`, status: 'expired' },
+            ]"
+            @change="onTabChange"
+            class="w-full"
+         />
       </template>
       <template #content>
-         <div class="flex flex-col gap-4">
-            <BaseProductCard v-for="product in products" :product="product" />
-         </div>
+         <Transition mode="out-in">
+            <div v-if="!isLoading" class="flex flex-col gap-4">
+               <BaseProductCard v-for="product in products" :key="product.id" :product="product" />
+            </div>
+         </Transition>
       </template>
    </NavigationPageDecorator>
 </template>
@@ -71,11 +80,11 @@ import { IProduct } from "@shared/types";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 
-function onTabChange({ index, value }) {
-   console.log(index, value); // 0, 1, 2
+function onTabChange(status) {
+   fetchProducts(status.item.status);
 }
 
-const { data: products, execute: fetchProducts } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);
+const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);
 
 const user = computed(() => {
    if (isTMA()) {
@@ -91,7 +100,7 @@ const user = computed(() => {
 });
 
 onMounted(async () => {
-   await fetchProducts();
+   await fetchProducts("active");
 
    const images = <string[]>[];
    if (user.value.photo_url) {

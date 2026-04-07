@@ -23,7 +23,7 @@ class Product extends Model
         'description',
         'category_id',
         'user_id',
-        'district',
+        'district_id',
         'phone',
         'price',
         'price_type_id',
@@ -32,7 +32,7 @@ class Product extends Model
     ];
 
 
-    protected $with = ['parameter_values', 'images', 'price_type'];
+    protected $with = ['parameter_values', 'images', 'price_type', 'district'];
 
     protected $hidden = [
         'expires_at',
@@ -41,15 +41,25 @@ class Product extends Model
     #[Scope]
     protected function active(Builder $query): void
     {
-        $query->where('expires_at', '>', now());
+        $query->where('expires_at', '>=', now());
     }
+
+    #[Scope]
+    protected function passive(Builder $query): void
+    {
+        $query->where('expires_at', '<=', now());
+    }
+
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
 
     public function category()
     {

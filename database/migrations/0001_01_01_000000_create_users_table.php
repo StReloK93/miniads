@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('username')->nullable();
             $table->bigInteger('telegram_user_id')->nullable()->unique(); // TG user uchun asosiy ID
+            $table->foreignId('active_district_id')->nullable()->constrained('districts')->nullOnDelete();
             $table->enum('role', ['user', 'admin'])->default('user'); // Rollarni ajratish
             $table->timestamps();
         });

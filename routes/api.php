@@ -7,7 +7,7 @@ use App\Http\Middleware\TelegramAuth;
 
 
 Route::get('/user', function (Request $request) {
-    return $request->user();
+    return $request->user()->load('activeDistrict');
 })->middleware('auth:sanctum');
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
@@ -31,6 +31,9 @@ Route::apiResource('categories', App\Http\Controllers\CategoryController::class)
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class);
 Route::apiResource('categories.parameters', App\Http\Controllers\CategoryParameterController::class);
 
+
+Route::apiResource('districts', App\Http\Controllers\DistrictController::class);
+
 Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::class);
 
 
@@ -42,6 +45,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
     Route::apiResource('products', App\Http\Controllers\ProductController::class);
+    Route::post('/user/change-district', [AuthController::class, 'changeDistrict']);
 });
 
 

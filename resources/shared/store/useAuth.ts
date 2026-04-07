@@ -19,6 +19,11 @@ export const useAuth = defineStore("useAuth", () => {
       });
    }
 
+   async function changeDistrict(district_id: number) {
+      const { data } = await api.post("user/change-district", { district_id });
+      user.value = data;
+   }
+
    async function signInTelegram(initDataRaw) {
       await api
          .post(
@@ -82,5 +87,6 @@ export const useAuth = defineStore("useAuth", () => {
       widgetTelegramAuth,
       signInTelegram,
       logout,
+      changeDistrict,
    };
 });

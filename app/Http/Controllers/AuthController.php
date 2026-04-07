@@ -29,4 +29,13 @@ class AuthController extends Controller
 	{
 		return $this->authService->testAuth();
 	}
+
+	public function changeDistrict(Request $request)
+	{
+		$user = $request->user();
+		$user->active_district_id = $request->input('district_id');
+		$user->save();
+
+		return $user->load('activeDistrict');
+	}
 }

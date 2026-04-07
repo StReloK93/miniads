@@ -1,0 +1,1 @@
+import{a7 as r,h as o}from"./index-Jp-5gBX8.js";import{C as s}from"./CategoryRepo-XGyc8wPq.js";const g=r("useCategory",()=>{const e=o();async function t(){const{data:a}=await s.parents();e.value=a}return{parentCategories:e,getParentCategories:t}});export{g as u};

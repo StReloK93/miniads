@@ -109,3 +109,8 @@ export interface ITreeNode {
    draggable?: boolean; // o‘zi ko‘chiriladimi
    droppable?: boolean; // ichiga tashlash mumkinmi
 }
+
+export interface IDistrict {
+   id: number;
+   name: string;
+}

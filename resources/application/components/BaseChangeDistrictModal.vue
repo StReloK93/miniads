@@ -66,12 +66,6 @@ function changeDistrict(values: Record<string, unknown>) {
       loading.value = false;
       isOpen.value = false;
    });
-
-   // const district = districts.value?.find((d) => d.id === district_id);
-   // if (district) {
-   //    AuthStore.user.active_district_id = district_id;
-   //    AuthStore.user.active_district = district;
-   // }
 }
 const isOpen: Ref<boolean> = ref(false);
 

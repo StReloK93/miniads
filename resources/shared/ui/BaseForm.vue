@@ -6,7 +6,7 @@
       class="grid-rows-[1fr_auto] h-full grid -mx-4"
    >
       <main class="relative">
-         <div class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
+         <div ref="parentScroll" class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
             <slot name="inputs" />
             <template v-for="input in inputConfigs" :key="input.name">
                <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
@@ -19,7 +19,12 @@
                      {{ input.props?.title }}
                   </p>
                   <main class="relative" :class="input.teleport_parent_class">
-                     <component :is="input.component" :name="input.name" v-bind="input.props" />
+                     <component
+                        :is="input.component"
+                        :name="input.name"
+                        v-bind="input.props"
+                        @focusin="centerElement($event.target, parentScroll!)"
+                     />
                   </main>
 
                   <ErrorMessage :name="input.name" v-slot="{ message }">
@@ -31,7 +36,10 @@
             </template>
          </div>
       </main>
-      <footer class="flex flex-col gap-3 p-4 pb-0 border-t border-(--z-border)">
+      <footer
+         :class="[hasFocusedInput ? 'max-h-0 py-0' : 'py-4  max-h-40 border-t']"
+         class="flex flex-col gap-3 px-4 pb-0 border-(--z-border) overflow-hidden transition-all"
+      >
          <BaseButton type="submit" class="w-full" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
@@ -46,6 +54,10 @@
 </template>
 
 <script setup lang="ts">
+import { useFocusedInput } from "@shared/composables/useFocusInput";
+const { hasFocusedInput } = useFocusedInput();
+
+import { centerElement } from "@/modules/Helpers";
 import { ref, computed } from "vue";
 import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -54,6 +66,8 @@ import { z } from "zod";
 import { CheckCircle } from "lucide-vue-next";
 
 const emit = defineEmits(["submit"]);
+
+const parentScroll = ref<HTMLElement>();
 
 const props = defineProps<{
    inputConfigs: InputConfig[];

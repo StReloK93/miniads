@@ -1,7 +1,10 @@
 <template>
    <section class="h-full">
       <main v-if="selectedCategory" class="h-full flex flex-col">
-         <aside class="pb-4 border-b border-(--z-border) -mx-4 px-4">
+         <aside
+            :class="[hasFocusedInput ? 'max-h-0' : 'pb-4 border-b border-(--z-border) max-h-40']"
+            class="-mx-4 px-4 overflow-hidden transition-all"
+         >
             <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
             <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
 
@@ -56,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
@@ -69,6 +73,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { ChevronRight } from "lucide-vue-next";
 const route = useRoute();
 const router = useRouter();
+const { hasFocusedInput } = useFocusedInput();
 
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 

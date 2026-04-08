@@ -1,3 +1,6 @@
+import { Ref } from "vue";
+import { set } from "zod/v4";
+
 export const preloadImages = (urls: string[]) => {
    const promises = urls.map((url) => {
       return new Promise((resolve) => {
@@ -60,4 +63,18 @@ export function buildBreadcrumb(category) {
    }
 
    return items.reverse(); // yuqoridan pastga
+}
+
+export function centerElement(target: HTMLElement, parentScroll: HTMLElement) {
+   if (!target) return;
+
+   const rect = target.getBoundingClientRect();
+   const offset = rect.top - window.innerHeight / 2 + rect.height / 2;
+
+   setTimeout(() => {
+      parentScroll.scrollBy({
+         top: offset,
+         behavior: "smooth",
+      });
+   }, 400);
 }

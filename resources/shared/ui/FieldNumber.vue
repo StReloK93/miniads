@@ -1,8 +1,9 @@
 <template>
-   <Field :name="name" v-slot="{ value, setValue }">
+   <Field :name="name" v-slot="{ value, setValue, field }">
       <input
          type="text"
          class="field"
+         v-bind="{ ...field, ...$attrs }"
          :value="format(value)"
          @input="onInput($event, value, setValue)"
          :placeholder="placeholder"

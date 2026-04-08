@@ -24,7 +24,7 @@ export const productInputs: InputConfig[] = [
    {
       component: Inputs["FieldNumber"],
       name: "price",
-      props: { title: "Narx", placeholder: "Masalan: 1 000 000", min: 0, max: 9999999999999 },
+      props: { title: "Narx", placeholder: "Masalan: 1 000 000", min: 0, max: 9999999999999, inputmode: "numeric" },
       schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Narx 1 dan katta bo'lishi kerak!"),
       class: ["mb-3"],
       teleport_parent_class: "parent_price",

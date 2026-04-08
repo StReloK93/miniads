@@ -9,6 +9,7 @@
 </template>
 
 <script setup lang="ts">
+import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { useRoute, useRouter } from "vue-router";
 
 import { nextTick, onMounted, ref } from "vue";
@@ -19,6 +20,8 @@ const animationName = ref("");
 
 const router = useRouter();
 const route = useRoute();
+
+const { hasFocusedInput, focusedElement } = useFocusedInput();
 function onComponentMounted() {
    animationName.value = "slide-bottom";
 }
@@ -59,6 +62,11 @@ onMounted(async () => {
 
    // ===== BACK BOSILGANDA =====
    on("back_button_pressed", () => {
+      if (hasFocusedInput.value) {
+         focusedElement.value?.blur();
+         return;
+      }
+
       if (route.name === "home") {
          postEvent("web_app_close");
       } else {

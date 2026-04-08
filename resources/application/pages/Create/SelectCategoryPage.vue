@@ -16,7 +16,6 @@
 <script setup lang="ts">
 import CategorySelector from "@components/CategorySelector.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
-import { Info, Slash } from "lucide-vue-next";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";
 

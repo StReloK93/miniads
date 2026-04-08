@@ -64,6 +64,20 @@
                      </main>
                   </div>
                </aside>
+
+               <hr class="border-(--z-border)" />
+
+               <div class="flex items-center gap-3 my-3">
+                  <div
+                     class="w-10 h-10 rounded-full bg-(--z-border) flex items-center justify-center text-sm font-bold text-(--z-muted-text)"
+                  >
+                     {{ product.user.name[0] }}
+                  </div>
+                  <main class="leading-4">
+                     <h3 class="font-medium">{{ product.user.name }}</h3>
+                     <span class="text-(--z-muted-text) text-xs">@{{ product.user.username }}</span>
+                  </main>
+               </div>
             </main>
          </article>
       </aside>

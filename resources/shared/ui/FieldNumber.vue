@@ -3,7 +3,7 @@
       <input
          type="text"
          class="field"
-         v-bind="{ ...field, ...$attrs }"
+         v-bind="{ ...$attrs }"
          :value="format(value)"
          @input="onInput($event, value, setValue)"
          :placeholder="placeholder"

@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { LoaderCircle } from "lucide-vue-next";
 
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 type Severity = "primary" | "secondary" | "success" | "danger" | "light" | "glass";
 type Variant = "default" | "text";
 
@@ -75,6 +75,12 @@ const props = withDefaults(
 }
 
 /* ================= SIZE ================= */
+.ui-button[data-size="xs"] {
+   --btn-px: var(10px);
+   --btn-py: var(10px);
+   font-size: 0.875rem;
+}
+
 .ui-button[data-size="sm"] {
    --btn-px: var(--space-sm);
    --btn-py: var(--space-sm);

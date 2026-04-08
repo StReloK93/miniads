@@ -46,7 +46,7 @@ import DistrictRepo from "@shared/entities/District/DistrictRepo";
 import { useAuth } from "@shared/store/useAuth";
 import { IDistrict } from "@shared/types";
 import { Form } from "vee-validate";
-import { onMounted, ref, Ref } from "vue";
+import { ref, Ref } from "vue";
 
 const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
 

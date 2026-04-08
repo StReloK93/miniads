@@ -60,7 +60,7 @@
       <template #content>
          <Transition mode="out-in">
             <div v-if="!isLoading" class="flex flex-col gap-4">
-               <BaseProductCard v-for="product in products" :key="product.id" :product="product" />
+               <ProfileProductCard v-for="product in products" :key="product.id" :product="product" />
             </div>
          </Transition>
       </template>
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import BaseProductCard from "@/components/BaseProductCard.vue";
+import ProfileProductCard from "@/components/ProfileProductCard.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, onMounted, ref } from "vue";

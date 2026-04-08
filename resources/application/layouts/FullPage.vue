@@ -5,7 +5,7 @@
             :is="Component"
             :key="route.fullPath"
             :class="{ 'pb-0!': hasFocusedInput }"
-            class="full-page px-4"
+            class="full-page px-4 transition-all"
          />
       </transition>
    </router-view>

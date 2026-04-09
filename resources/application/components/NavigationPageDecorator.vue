@@ -6,18 +6,19 @@
       <main class="relative w-full grow">
          <aside
             ref="scrollEl"
-            :class="props.contentClass"
             @touchstart="handleTouchStart"
             @touchmove="handleTouchMove"
             @touchend="handleTouchEnd"
             @wheel="handleWheel"
-            class="absolute px-4 inset-0 overflow-y-auto no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
+            :class="[props.contentClass]"
+            class="absolute px-4 inset-0 no-scrollbar overflow-y-auto pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
+            <!-- isCompact ? 'overflow-y-auto' : 'overflow-hidden',  -->
             <slot name="content" :is-compact="isCompact"></slot>
          </aside>
       </main>
       <div
-         class="absolute inset-0 top-auto pointer-events-none h-20 bg-linear-to-t from-white/90 via-white/60 to-transparent z-50"
+         class="absolute inset-0 top-auto pointer-events-none h-12 bg-linear-to-t from-white/90 via-white/60 to-transparent z-50"
       />
    </section>
 </template>

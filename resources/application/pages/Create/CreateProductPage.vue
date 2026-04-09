@@ -1,12 +1,11 @@
 <template>
    <section class="h-full">
       <main v-if="selectedCategory" class="h-full flex flex-col">
-         <aside
-            :class="[hasFocusedInput ? 'max-h-0' : 'pb-4 border-b border-(--z-border) max-h-40']"
-            class="-mx-4 px-4 overflow-hidden transition-all"
-         >
-            <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-            <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
+         <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
+            <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
+               <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+               <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
+            </main>
 
             <main class="flex gap-1 items-center">
                <span
@@ -109,6 +108,7 @@ async function selectCategory(category: ICategory) {
             title: parameter.title,
             placeholder: parameter.placeholder,
             options: parameter.options || [],
+            inputmode: parameter.type === "number" ? "numeric" : undefined,
          },
          schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required),
       };

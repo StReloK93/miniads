@@ -37,6 +37,7 @@
                <input
                   ref="inputFile"
                   type="file"
+                  accept="image/jpeg,image/png,image/webp"
                   v-bind="$attrs"
                   @input="handleChange"
                   @change="(event) => onNativeFileChange(event, field)"

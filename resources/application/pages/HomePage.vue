@@ -6,7 +6,7 @@
       </template>
 
       <template #content>
-         <main class="mb-4 -mx-3">
+         <!-- <main class="mb-4 -mx-3">
             <swiper :slidesPerView="1.2" :space-between="20" class="w-full px-3!">
                <swiper-slide v-for="(card, index) in colorCards" :key="index">
                   <div class="h-32 p-4 border rounded-(--z-rounded) border-(--z-border) bg-(--z-card)">
@@ -15,7 +15,7 @@
                   </div>
                </swiper-slide>
             </swiper>
-         </main>
+         </main> -->
          <Transition mode="out-in">
             <main v-if="fullLoadingImages" class="flex flex-col gap-4">
                <BaseProductCard v-for="product in latest_ten" :product="product" :key="product.id" />

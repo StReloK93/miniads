@@ -21,11 +21,13 @@
                   </div>
                </aside>
                <main class="flex justify-end gap-2">
-                  <BaseButton size="sm" variant="text" severity="secondary" rounded icon-only>
-                     <template #icon>
-                        <Eye class="size-4" />
-                     </template>
-                  </BaseButton>
+                  <RouterLink :to="{ name: 'product-id', params: { id: product.id } }">
+                     <BaseButton size="sm" variant="text" severity="secondary" rounded icon-only>
+                        <template #icon>
+                           <Eye class="size-4" />
+                        </template>
+                     </BaseButton>
+                  </RouterLink>
                   <BaseButton size="sm" variant="text" rounded icon-only>
                      <template #icon>
                         <Pen class="size-4" />
@@ -44,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, Pen, Trash } from "lucide-vue-next";
+import { Eye, Pen, Route, Trash } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";

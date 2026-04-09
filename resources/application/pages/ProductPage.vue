@@ -39,7 +39,7 @@
 
                   <span class="flex items-center gap-1">
                      <MapPin class="size-3 inline" />
-                     {{ product?.district?.name }}
+                     {{ product?.district?.name || "Navoiy V." }}
                   </span>
                </div>
                <!--  -->

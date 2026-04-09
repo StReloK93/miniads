@@ -4,8 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductParameterValue;
-use Auth;
+
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Decoders\Base64ImageDecoder;
+
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 class ProductController extends Controller
 {
     public function index()
@@ -18,52 +27,70 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $product = Product::create([
-            'title' => $request->title,
-            'price' => $request->price,
-            'price_type_id' => $request->price_type_id,
-            'description' => $request->description,
-            'phone' => $request->phone,
-            'category_id' => $request->category_id,
-            'user_id' => $request->user()->id,
-            'district_id' => $request->user()->active_district_id, // yoki $request->user_id
-        ]);
+        DB::beginTransaction();
 
-        $product->expires_at = now()->addDays($product->category->listing_duration_days);
-        $product->save();
+        try {
+            $product = Product::create([
+                'title' => $request->title,
+                'price' => $request->price,
+                'price_type_id' => $request->price_type_id,
+                'description' => $request->description,
+                'phone' => $request->phone,
+                'category_id' => $request->category_id,
+                'user_id' => $request->user()->id,
+                'district_id' => $request->user()->active_district_id,
+            ]);
 
-        // 2. Dinamik parametrlarni saqlash
-        if ($request->has('parameters')) {
-            $params = $request->parameters;
+            $product->expires_at = now()->addDays($product->category->listing_duration_days);
+            $product->save();
 
-            foreach ($params as $param) {
-                if ($param['id'] !== null) {
-                    ProductParameterValue::create([
+            if ($request->has('parameters')) {
+                foreach ($request->parameters as $param) {
+                    if (($param['id'] ?? null) !== null) {
+                        ProductParameterValue::create([
+                            'product_id' => $product->id,
+                            'parameter_id' => $param['id'],
+                            'value' => $param['value'] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            $manager = ImageManager::usingDriver(Driver::class);
+
+            if ($request->has('images')) {
+                foreach ($request->file('images') as $image) {
+
+                    $filename = Str::uuid() . '.webp';
+                    $path = 'products/' . $filename;
+
+                    $encoded = $manager
+                        ->decode($image['file'])
+                        ->scaleDown(width: 800);
+
+                    $encoded->save(public_path('storage/' . $path), 80, 'webp');
+
+                    ProductImage::create([
                         'product_id' => $product->id,
-                        'parameter_id' => $param['id'],
-                        'value' => $param['value'],
+                        'src' => $path,
                     ]);
                 }
             }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "E'lon muvaffaqiyatli joylandi!",
+                'product_id' => $product->id,
+            ], 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'message' => 'Xatolik yuz berdi',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-
-        // 3. Rasmlarni saqlash (File Upload)
-        if ($request->has('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image['file']->store('products', 'public');
-
-                // ProductImage modeliga saqlash
-                \App\Models\ProductImage::create([
-                    'product_id' => $product->id,
-                    'src' => $path // Bu bazada 'products/filename.jpg' ko'rinishida saqlanadi
-                ]);
-            }
-        }
-
-
-
-        return response()->json(['message' => 'E\'lon muvaffaqiyatli joylandi!'], 201);
     }
 
 

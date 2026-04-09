@@ -9,7 +9,9 @@ class TelegramAuth
 {
     public function handle(Request $request, Closure $next)
     {
-        $authHeader = $request->header('Authorization');
+        $authHeader = $authHeader = $authHeader = $request->header('Authorization')
+            ?? $request->server('HTTP_AUTHORIZATION')
+            ?? $request->server('REDIRECT_HTTP_AUTHORIZATION');
 
         if (!$authHeader || !str_starts_with($authHeader, 'tma ')) {
             return response()->json(['error' => 'Unauthorized'], 401);

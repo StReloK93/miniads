@@ -1,0 +1,1 @@
+const s=r=>{const e=r.map(t=>new Promise(n=>{const o=new Image;o.src=t,o.onload=n,o.onerror=n}));return Promise.all(e)};function i(r){return r==null?"":r.toLocaleString("ru-RU")}export{i as f,s as p};

@@ -1,0 +1,1 @@
+import{_ as e}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{e as o,c as r}from"./index-L9WvnJFs.js";const t={};function c(n,a){return o(),r("section",null,"Favorites")}const f=e(t,[["render",c]]);export{f as default};

@@ -78,10 +78,9 @@ const { data: category, execute: executeCategory } = useFetchDecorator<ICategory
 
 var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
-const inputConfigs = shallowRef(productInputs);
+const inputConfigs = shallowRef([...productInputs]);
 
 async function selectCategory(category: ICategory) {
-   console.log(category);
    if (category.with_price == false) {
       const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
       if (indexPrice !== -1) {
@@ -106,8 +105,6 @@ async function selectCategory(category: ICategory) {
          return input;
       }),
    );
-
-   console.log(inputConfigs.value);
 
    const parameters = category.parameters;
 

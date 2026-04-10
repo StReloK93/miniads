@@ -89,25 +89,6 @@ function findCategoryPath(categories: ICategory[], targetId: number, path: ICate
    return null;
 }
 
-function findCategory(categories: ICategory[], targetId: number, path: ICategory[] = []): ICategory | null {
-   for (const cat of categories) {
-      const newPath = [...path, cat];
-
-      if (cat.id === targetId) {
-         return cat;
-      }
-
-      if (cat.children?.length) {
-         const result = findCategory(cat.children, targetId, newPath);
-         if (result) return result;
-      }
-   }
-   return null;
-}
-
-/**
- * Open category by external id
- */
 function openCategoryById(categoryId: number) {
    const path = findCategoryPath(props.categories, categoryId);
    if (!path) return;
@@ -190,7 +171,7 @@ function goRoot() {
 watch(
    () => [props.activeCategoryId, props.categories],
    ([id, categories]: any) => {
-      if (!id) return;
+      if (!id) goRoot();
       if (!categories || categories.length === 0) return;
 
       openCategoryById(id);

@@ -6,7 +6,7 @@
             <main class="flex flex-col justify-between grow pr-1">
                <aside>
                   <h3 class="font-extrabold line-clamp-1">{{ product.title }}</h3>
-                  <div>
+                  <div v-if="product.price">
                      <span
                         class="inline-flex items-center gap-1"
                         :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"

@@ -17,7 +17,7 @@ export const productInputs: InputConfig[] = [
    {
       component: Inputs["FieldText"],
       name: "title",
-      props: { title: "Sarlavha", placeholder: "Masalan: Iphone 13 Pro Max" },
+      props: { title: "Sarlavha", placeholder: "Eloningiz sarlavhasi" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
    },
@@ -49,14 +49,14 @@ export const productInputs: InputConfig[] = [
       component: Inputs["FieldTextarea"],
       name: "description",
       props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz  haqida qo'shimcha ma'lumot" },
-      schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
+      schema: z.string({ message: "Majburiy maydon!" }).trim().optional().nullable(),
       class: ["mb-3"],
    },
    {
       component: Inputs["FieldMask"],
       name: "phone",
       props: { title: "Telefon raqam", placeholder: "93-123-45-67", mask: "99-999-99-99", inputmode: "tel" },
-      schema: z.string().optional().nullable(),
+      schema: z.string({ message: "Majburiy maydon!" }).trim().min(9, "To'liq telefon raqamini kiriting!"),
    },
 ];
 

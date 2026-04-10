@@ -26,6 +26,32 @@ export const categoryInputs: InputConfig[] = [
       class: ["mb-4"],
    },
    {
+      component: PrimeVueInputs["ToggleButton"],
+      name: "with_price",
+      props: {
+         ...globalProps,
+         onLabel: "Narx ko'rsatiladi",
+         offLabel: "Narx ko'rsatilmaydi",
+         onIcon: "pi pi-circle",
+         offIcon: "pi pi-circle-fill",
+      },
+      schema: z.boolean().optional(),
+      class: ["mb-4"],
+   },
+   {
+      component: PrimeVueInputs["ToggleButton"],
+      name: "with_image",
+      props: {
+         ...globalProps,
+         onLabel: "Rasm ko'rsatiladi",
+         offLabel: "Rasm ko'rsatilmaydi",
+         onIcon: "pi pi-circle",
+         offIcon: "pi pi-circle-fill",
+      },
+      schema: z.boolean().optional(),
+      class: ["mb-4"],
+   },
+   {
       component: PrimeVueInputs["InputNumber"],
       name: "listing_duration_days",
       placeholder: "E'lon davomiyligi 5-20 kun",

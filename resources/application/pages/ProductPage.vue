@@ -3,16 +3,23 @@
       <aside v-if="product" class="grow relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
          <article class="absolute inset-0 overflow-y-auto no-scrollbar">
             <main class="relative">
-               <swiper :modules="[Pagination]" pagination class="h-64">
+               <swiper v-if="product?.images.length" :modules="[Pagination]" pagination class="h-64">
                   <swiper-slide v-for="image in product?.images" :key="image.id">
                      <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
                   </swiper-slide>
                </swiper>
+               <img
+                  v-else
+                  class="h-64 w-full bg-(--z-border) rounded-tl-[10px] rounded-tr-[10px]"
+                  :src="'/images/no-image.webp'"
+                  alt="No Image"
+               />
             </main>
             <main class="pt-5 px-4">
                <!--  -->
 
                <div
+                  v-if="product?.price"
                   class="inline-flex items-center gap-1 font-extrabold text-2xl mb-3"
                   :class="{ 'flex-row-reverse': product?.price_type.position === 'left' }"
                >
@@ -45,8 +52,10 @@
                <!--  -->
 
                <!--  -->
-               <h3 class="title text-sm">Izoh</h3>
-               <div class="py-1 leading-5 text-sm mb-6">{{ product?.description }}</div>
+               <div v-if="product?.description">
+                  <h3 class="title text-sm">Izoh</h3>
+                  <div class="py-1 leading-5 text-sm mb-6">{{ product?.description }}</div>
+               </div>
 
                <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">Qo'shimcha ma'lumot</h3>
                <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-gray-50">

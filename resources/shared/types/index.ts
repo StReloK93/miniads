@@ -8,6 +8,8 @@ export interface ICategory {
    image: string;
    products: IProduct[];
    is_page: boolean;
+   with_price: boolean;
+   with_image: boolean;
    parent: ICategory;
    parent_id: number | null;
    parameters: IParameter[];

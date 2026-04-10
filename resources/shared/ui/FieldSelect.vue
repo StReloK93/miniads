@@ -1,6 +1,7 @@
 <template>
    <Field :name="name" v-slot="{ field, meta, handleChange }">
       <Listbox
+         v-bind="{ ...$attrs }"
          v-slot="{ open: slotOpen }"
          :model-value="field.value"
          @update:model-value="handleChange"

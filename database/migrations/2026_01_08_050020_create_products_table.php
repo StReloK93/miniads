@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             $table->string('title'); // E'lon sarlavhasi
-            $table->text('description'); // Batafsil ma'lumot
+            $table->text('description')->nullable(); // Batafsil ma'lumot
 
             // Manzil (Navoiy viloyati tumanlari uchun)
             $table->foreignId('district_id')
@@ -29,7 +29,7 @@ return new class extends Migration {
             $table->integer('views_count')->default(0); // Ko'rishlar soni
             $table->bigInteger('price')->nullable(); // Narxi
 
-            $table->foreignId('price_type_id')->constrained()->onDelete('cascade');
+            $table->foreignId('price_type_id')->nullable()->constrained()->onDelete('cascade');
 
             $table->timestamp('expires_at')->default(now()); // E'lonning amal qilish muddati
             $table->timestamps();

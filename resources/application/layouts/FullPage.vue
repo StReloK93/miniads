@@ -3,7 +3,7 @@
       <transition name="slide-in" mode="out-in">
          <component
             :is="Component"
-            :key="route.fullPath"
+            :key="route.name"
             :class="{ 'pb-0!': hasFocusedInput }"
             class="full-page px-4 transition-all"
          />

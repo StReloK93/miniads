@@ -67,7 +67,6 @@ export function buildBreadcrumb(category) {
 
 export function centerElement(target: HTMLElement, parentScroll: HTMLElement) {
    if (!target) return;
-
    const rect = target.getBoundingClientRect();
    const offset = rect.top - window.innerHeight / 2 + rect.height / 2;
 

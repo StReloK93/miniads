@@ -76,6 +76,8 @@ class CategoryController extends Controller
 
 		$data = $request->all(); // Barcha ma'lumotlarni o'zgaruvchiga olamiz
 		$data['is_page'] = $request->boolean('is_page');
+		$data['with_price'] = $request->boolean('with_price');
+		$data['with_image'] = $request->boolean('with_image');
 
 		if ($request->hasFile('image')) {
 			// 1. Eski faylni o'chirish logikasi
@@ -95,7 +97,6 @@ class CategoryController extends Controller
 			// Yangi pathni ma'lumotlar massiviga qo'shamiz
 			$data['image'] = '/icons/' . $fileName;
 		}
-
 
 		$category->update($data);
 

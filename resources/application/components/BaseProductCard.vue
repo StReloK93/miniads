@@ -2,20 +2,21 @@
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <div class="mb-2.5 relative">
-            <!-- <img :src="productImage" @error="handleImageError" class="rounded-[10px] w-full object-cover aspect-4/2" /> -->
+            <img :src="productImage" @error="handleImageError" class="rounded-[10px] w-full object-cover aspect-4/2" />
             <!-- bg-linear-to-r from-rose-400 to-red-400 -->
             <!-- bg-linear-to-r from-slate-700 to-slate-900 -->
             <!-- bg-linear-to-r from-blue-500 to-cyan-500 -->
             <!-- bg-linear-to-r from-purple-500 to-pink-600 -->
             <!-- bg-linear-to-r from-emerald-500 to-teal-600 -->
-            <div
-               class="rounded-[10px] w-full object-cover aspect-4/2 bg-linear-to-r from-slate-700 to-slate-900 flex items-center"
+            <!-- <div
+               class="rounded-[10px] w-full object-cover aspect-4/2 bg-linear-to-r from-rose-400 to-red-400 flex items-center"
             >
                <h3 class="font-bold text-2xl text-white px-4 pt-3 text-center w-full">
                   {{ product.title }}
                </h3>
-            </div>
+            </div> -->
             <div
+               v-if="product.price"
                class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
                :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
             >
@@ -36,14 +37,13 @@
                :loading="isFavoriteButtonLoading"
                severity="glass"
             >
-               <!-- fill-red-500 text-red-500 -->
                <template #icon>
                   <Heart class="size-4" :class="{ ' fill-black': product.is_favorite }" />
                </template>
             </BaseButton>
          </div>
          <main class="px-1.5">
-            <!-- <h3 class="font-medium line-clamp-1">{{ product.title }}</h3> -->
+            <h3 class="font-medium line-clamp-1">{{ product.title }}</h3>
             <aside class="text-xs my-1">
                <span class="text-(--z-muted-text) inline-flex items-center gap-1">
                   {{ product.district?.name || "Navoiy V." }}

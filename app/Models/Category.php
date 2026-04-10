@@ -12,11 +12,15 @@ class Category extends Model
         'image',
         'parent_id',
         'is_page',
+        'with_price',
+        'with_image',
         'listing_duration_days',
     ];
 
     protected $casts = [
         'is_page' => 'boolean',
+        'with_price' => 'boolean',
+        'with_image' => 'boolean',
         'listing_duration_days' => 'integer',
     ];
     public function children()

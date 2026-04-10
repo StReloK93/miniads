@@ -81,12 +81,33 @@ const selectedCategory = ref<ICategory | null>(null);
 const inputConfigs = shallowRef(productInputs);
 
 async function selectCategory(category: ICategory) {
+   console.log(category);
+   if (category.with_price == false) {
+      const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
+      if (indexPrice !== -1) {
+         inputConfigs.value.splice(indexPrice, 1);
+      }
+      const indexPriceTypeId = inputConfigs.value.findIndex((input) => input.name === "price_type_id");
+      if (indexPriceTypeId !== -1) {
+         inputConfigs.value.splice(indexPriceTypeId, 1);
+      }
+   }
+
+   if (category.with_image == false) {
+      const indexImages = inputConfigs.value.findIndex((input) => input.name === "images");
+      if (indexImages !== -1) {
+         inputConfigs.value.splice(indexImages, 1);
+      }
+   }
+
    await Promise.all(
       inputConfigs.value.map(async (input) => {
          if (input.generateProps) await input.generateProps();
          return input;
       }),
    );
+
+   console.log(inputConfigs.value);
 
    const parameters = category.parameters;
 

@@ -17,7 +17,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('parent_id')->nullable(); // Shu joyi muhim!
             $table->unsignedBigInteger('listing_duration_days')->default(7)->nullable(); // Shu joyi muhim!
             $table->boolean('is_page')->default(false); // Faqat asosiy kategoriyalar uchun
-
+            $table->boolean('with_price')->default(true);
+            $table->boolean('with_image')->default(true);
             $table->softDeletes();
             $table->foreign('parent_id')->references('id')->on('categories')->onDelete('cascade');
             $table->timestamps();

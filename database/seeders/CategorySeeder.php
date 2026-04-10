@@ -49,19 +49,19 @@ class CategorySeeder extends Seeder
 					[
 						'name' => 'Sotuv',
 						'subs' => [
-							['name' => 'Kvartira', 'is_page' => true],
-							['name' => 'Hovli', 'is_page' => true],
-							['name' => 'Yer', 'is_page' => true],
-							['name' => "Do'kon-Ofis", 'is_page' => true],
+							['name' => 'Kvartira', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => 'Hovli', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => 'Yer', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => "Do'kon-Ofis", 'is_page' => true, 'with_image' => true, 'with_price' => true],
 						],
 					],
 					[
 						'name' => 'Ijara',
 						'subs' => [
-							['name' => 'Kvartira', 'is_page' => true],
-							['name' => 'Hovli', 'is_page' => true],
-							['name' => 'Yer', 'is_page' => true],
-							['name' => "Do'kon-Ofis", 'is_page' => true],
+							['name' => 'Kvartira', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => 'Hovli', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => 'Yer', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+							['name' => "Do'kon-Ofis", 'is_page' => true, 'with_image' => true, 'with_price' => true],
 						],
 					],
 				]
@@ -72,10 +72,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Texnika',
 				'image' => 'MonitorSmartphone',
 				'subs' => [
-					['name' => 'Telefon', 'is_page' => true],
-					['name' => 'Noutbuk-Kompyuter', 'is_page' => true],
-					['name' => 'Maishiy texnika', 'is_page' => true],
-					['name' => 'TV-Audio', 'is_page' => true],
+					['name' => 'Telefon', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Noutbuk-Kompyuter', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Maishiy texnika', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'TV-Audio', 'is_page' => true, 'with_image' => true, 'with_price' => true],
 				]
 			],
 
@@ -84,10 +84,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Avto',
 				'image' => 'Car',
 				'subs' => [
-					['name' => 'Yengil avto', 'is_page' => true],
-					['name' => 'Mototsikl', 'is_page' => true],
-					['name' => 'Avtobus-Yuk tashuvchi', 'is_page' => true],
-					['name' => 'Ehtiyot qismlar', 'is_page' => true],
+					['name' => 'Yengil avto', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Mototsikl', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Avtobus-Yuk tashuvchi', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Ehtiyot qismlar', 'is_page' => true, 'with_image' => true, 'with_price' => true],
 				],
 			],
 
@@ -98,10 +98,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Ish',
 				'image' => 'BriefcaseBusiness',
 				'subs' => [
-					['name' => 'Doimiy ish', 'is_page' => true],
-					['name' => 'Kunlik ish', 'is_page' => true],
-					['name' => 'Masofaviy ish', 'is_page' => true],
-					['name' => 'Xizmat takliflari', 'is_page' => true],
+					['name' => 'Doimiy ish', 'is_page' => true, 'with_image' => false, 'with_price' => false],
+					['name' => 'Kunlik ish', 'is_page' => true, 'with_image' => false, 'with_price' => false],
+					['name' => 'Masofaviy ish', 'is_page' => true, 'with_image' => false, 'with_price' => false],
+					['name' => 'Xizmat takliflari', 'is_page' => true, 'with_image' => false, 'with_price' => false],
 				]
 			],
 
@@ -110,10 +110,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Xizmatlar',
 				'image' => 'Wrench',
 				'subs' => [
-					['name' => "Qurilish va ta'mirlash", 'is_page' => true],
-					['name' => 'Usta xizmatlari', 'is_page' => true],
-					['name' => 'Avto xizmatlar', 'is_page' => true],
-					['name' => 'IT va texnik xizmatlar', 'is_page' => true],
+					['name' => "Qurilish va ta'mirlash", 'is_page' => true, 'with_image' => true, 'with_price' => false],
+					['name' => 'Usta xizmatlari', 'is_page' => true, 'with_image' => true, 'with_price' => false],
+					['name' => 'Avto xizmatlar', 'is_page' => true, 'with_image' => true, 'with_price' => false],
+					['name' => 'IT va texnik xizmatlar', 'is_page' => true, 'with_image' => true, 'with_price' => false],
 				]
 			],
 
@@ -122,10 +122,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Mebel',
 				'image' => 'Armchair',
 				'subs' => [
-					['name' => 'Divan-Krovat', 'is_page' => true],
-					['name' => 'Stol-Stul', 'is_page' => true],
-					['name' => 'Shkaf', 'is_page' => true],
-					['name' => 'Oshxona mebeli', 'is_page' => true],
+					['name' => 'Divan-Krovat', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Stol-Stul', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Shkaf', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Oshxona mebeli', 'is_page' => true, 'with_image' => true, 'with_price' => true],
 				]
 			],
 
@@ -134,9 +134,9 @@ class CategorySeeder extends Seeder
 				'name' => "Talim",
 				'image' => 'GraduationCap',
 				'subs' => [
-					['name' => 'Kurslar', 'is_page' => true],
-					['name' => 'Repetitor', 'is_page' => true],
-					['name' => 'Online darslar', 'is_page' => true],
+					['name' => 'Kurslar', 'is_page' => true, 'with_image' => false, 'with_price' => true],
+					['name' => 'Repetitor', 'is_page' => true, 'with_image' => false, 'with_price' => true],
+					['name' => 'Online darslar', 'is_page' => true, 'with_image' => false, 'with_price' => true],
 				]
 			],
 
@@ -145,10 +145,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Hayvonot olami',
 				'image' => 'Cat',
 				'subs' => [
-					['name' => 'Qoramol', 'is_page' => true],
-					['name' => "Qo'y-Echki", 'is_page' => true],
-					['name' => 'Parrandalar', 'is_page' => true],
-					['name' => 'Uy hayvonlari', 'is_page' => true],
+					['name' => 'Qoramol', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => "Qo'y-Echki", 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Parrandalar', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Uy hayvonlari', 'is_page' => true, 'with_image' => true, 'with_price' => true],
 				]
 			],
 
@@ -157,10 +157,10 @@ class CategorySeeder extends Seeder
 				'name' => 'Shaxsiy buyumlar',
 				'image' => 'Shirt',
 				'subs' => [
-					['name' => 'Kiyim-kechak', 'is_page' => true],
-					['name' => 'Poyabzal', 'is_page' => true],
-					['name' => 'Parfyumeriya va kosmetika', 'is_page' => true],
-					['name' => 'Aksessuarlar', 'is_page' => true],
+					['name' => 'Kiyim-kechak', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Poyabzal', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Parfyumeriya va kosmetika', 'is_page' => true, 'with_image' => true, 'with_price' => true],
+					['name' => 'Aksessuarlar', 'is_page' => true, 'with_image' => true, 'with_price' => true],
 				]
 			],
 
@@ -169,22 +169,26 @@ class CategorySeeder extends Seeder
 				'name' => "Topilmalar",
 				'image' => 'Megaphone',
 				'subs' => [
-					['name' => 'Topilgan', 'is_page' => true],
-					['name' => "Yo'qotilgan", 'is_page' => true],
+					['name' => 'Topilgan', 'is_page' => true, 'with_image' => true, 'with_price' => false],
+					['name' => "Yo'qotilgan", 'is_page' => true, 'with_image' => true, 'with_price' => false],
 				]
 			],
 			// 🎁 Bepul beriladi
 			[
 				'name' => 'Bepul beriladi',
 				'image' => 'Gift',
-				'is_page' => true
+				'is_page' => true,
+				'with_image' => true,
+				'with_price' => false,
 			],
 
 			// 📦 Boshqa
 			[
 				'name' => 'Boshqa',
 				'image' => 'BadgeQuestionMark',
-				'is_page' => true
+				'is_page' => true,
+				'with_image' => true,
+				'with_price' => true,
 			],
 		];
 
@@ -202,6 +206,8 @@ class CategorySeeder extends Seeder
 				'name' => $item['name'],
 				'image' => $item['image'] ?? null,
 				'is_page' => $item['is_page'] ?? false,
+				'with_image' => $item['with_image'] ?? false,
+				'with_price' => $item['with_price'] ?? false,
 				'parent_id' => $parentId,
 			]);
 

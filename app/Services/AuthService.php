@@ -8,22 +8,12 @@ use Illuminate\Support\Facades\Auth;
 class AuthService
 {
 
-   private function createToken(User $user): string
-   {
-      return $user->createToken('userToken', ['almighty'])->plainTextToken;
-   }
 
    public function logout($request): void
    {
       $request->user()->currentAccessToken()->delete();
    }
 
-
-   // 
-   // 
-   // 
-   // 
-   // 
    public function telegramAuth($request)
    {
       $telegram_user = $request->telegram_user;
@@ -42,7 +32,7 @@ class AuthService
          $token = $user->createToken('mini-app')->plainTextToken;
 
 
-         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user->load('activeDistrict')], 200);
       }
 
       return response()->json(['message' => 'Login failed'], 500);

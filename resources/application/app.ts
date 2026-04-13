@@ -24,6 +24,8 @@ const initApp = async () => {
          initData = tma ? retrieveRawInitData() : null;
          setupTMAUI();
          userData = retrieveLaunchParams();
+         console.log(userData);
+
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
       } else {
          await authStore.getUser().catch(() => console.warn("User fetch failed"));

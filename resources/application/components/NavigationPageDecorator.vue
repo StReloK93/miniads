@@ -1,20 +1,20 @@
 <template>
    <section class="pt-[calc(var(--safe-area-top)+var(--spacing)*4)] bg-(--z-background) flex flex-col h-full">
       <main class="px-4" :class="props.headerClass">
-         <slot name="header" :is-compact="isCompact"></slot>
+         <slot name="header" :is-compact="isActive" :progress="displayProgress"></slot>
       </main>
       <main class="relative w-full grow">
          <aside
             ref="scrollEl"
-            @touchstart="handleTouchStart"
-            @touchmove="handleTouchMove"
-            @touchend="handleTouchEnd"
-            @wheel="handleWheel"
-            :class="[props.contentClass]"
-            class="absolute px-4 inset-0 no-scrollbar overflow-y-auto pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
+            :class="[
+               props.contentClass,
+               isActive ? 'overflow-y-auto' : 'overflow-hidden',
+               { 'overflow-y-auto': props.autoScroll },
+            ]"
+            class="absolute px-4 inset-0 no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
             <!-- isCompact ? 'overflow-y-auto' : 'overflow-hidden',  -->
-            <slot name="content" :is-compact="isCompact"></slot>
+            <slot name="content" :is-compact="isActive" :progress="displayProgress"></slot>
          </aside>
       </main>
       <div
@@ -23,17 +23,30 @@
    </section>
 </template>
 <script setup lang="ts">
-import { useGestureHeader } from "@shared/composables/useGestureHeader";
+// import { useGestureHeader } from "@shared/composables/useGestureHeader";
 import { onMounted, ref } from "vue";
-const { isCompact, setContainer, handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel } = useGestureHeader();
+// const { isCompact, setContainer, handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel } = useGestureHeader();
+import { useTouchToggleProgress } from "@shared/composables/useTouchToggleProgress";
 
 const scrollEl = ref<HTMLElement | null>(null);
-const props = defineProps<{
-   headerClass?: string[];
-   contentClass?: string[];
-}>();
+
+const { progress, isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
+   threshold: 120,
+});
+const props = withDefaults(
+   defineProps<{
+      headerClass?: string[];
+      contentClass?: string[];
+      autoScroll?: boolean;
+   }>(),
+   {
+      headerClass: () => [],
+      contentClass: () => [],
+      autoScroll: true,
+   },
+);
 
 onMounted(() => {
-   setContainer(scrollEl.value);
+   // setContainer(scrollEl.value);
 });
 </script>

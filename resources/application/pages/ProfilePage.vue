@@ -1,15 +1,16 @@
 <template>
-   <NavigationPageDecorator>
-      <template #header="{ isCompact }">
-         <h3 class="font-bold text-xl transition-all" :class="[isCompact ? 'pb-4' : 'pb-0']">
+   <NavigationPageDecorator :auto-scroll="false">
+      <template #header="{ isCompact, progress }">
+         <h3 class="font-bold text-xl transition-all" :class="[progress == 100 ? 'pb-4' : 'pb-0']">
             <Transition mode="out-in">
-               <span v-if="isCompact"> E'lonlar </span>
+               <span v-if="progress == 100"> E'lonlar</span>
                <span v-else> Profil </span>
             </Transition>
          </h3>
+         <!-- :class="[isCompact ? 'max-h-0 py-0' : 'max-h-95 py-4']" -->
          <aside
-            class="flex flex-col items-center overflow-hidden transition-all duration-300"
-            :class="[isCompact ? 'max-h-0 py-0' : 'max-h-200 py-4']"
+            class="flex flex-col items-center overflow-hidden"
+            :style="{ maxHeight: 260 - (260 / 100) * progress + 'px' }"
          >
             <div class="mb-2 flex">
                <img

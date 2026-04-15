@@ -19,7 +19,8 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
    watch(isActive, (newVal) => {
       if (!isTMA()) return;
       postEvent("web_app_trigger_haptic_feedback", {
-         type: "selection_change",
+         type: "impact",
+         impact_style: "medium",
       });
    });
 

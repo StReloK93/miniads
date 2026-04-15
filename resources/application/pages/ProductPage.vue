@@ -10,7 +10,10 @@
                </swiper>
                <div
                   v-else
-                  class="h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-900 flex justify-center items-center"
+                  :style="{
+                     backgroundImage: product.back_color.gradient,
+                  }"
+                  class="h-64 w-full flex justify-center items-center"
                >
                   <span class="text-white text-2xl font-semibold text-center px-5">
                      {{ product?.title }}

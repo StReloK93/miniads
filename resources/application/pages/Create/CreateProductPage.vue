@@ -142,6 +142,7 @@ async function submitForm(values: any) {
    const payload: any = {
       title: values.title,
       phone: values.phone,
+      back_color_id: values.back_color_id,
       description: values.description,
       price: values.price,
       price_type_id: values.price_type_id,

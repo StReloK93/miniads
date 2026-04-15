@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         $this->call(CategoryParameterSeeder::class);
 
         $this->call(PriceTypeSeeder::class);
+        $this->call(BackColorSeeder::class);
 
 
 

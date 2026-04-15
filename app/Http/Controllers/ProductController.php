@@ -9,11 +9,8 @@ use App\Models\ProductParameterValue;
 
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-use Intervention\Image\Decoders\Base64ImageDecoder;
-
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 class ProductController extends Controller
 {
@@ -33,6 +30,7 @@ class ProductController extends Controller
             $product = Product::create([
                 'title' => $request->title,
                 'price' => $request->price,
+                'back_color_id' => $request->back_color_id,
                 'price_type_id' => $request->price_type_id,
                 'description' => $request->description,
                 'phone' => $request->phone,

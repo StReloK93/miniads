@@ -7,11 +7,11 @@
                <span v-else> Profil </span>
             </Transition>
          </h3>
-         <!-- :class="[isCompact ? 'max-h-0 py-0' : 'max-h-95 py-4']" -->
+         <!-- :class="[isCompact ? 'max-h-0 py-0' : 'max-h-95']" -->
          <aside
-            class="flex flex-col items-center overflow-hidden origin-bottom"
+            class="flex flex-col items-center overflow-hidden origin-bottom py-4"
             :style="{
-               maxHeight: 260 - (260 / 100) * progress + 'px',
+               maxHeight: 292 - (292 / 100) * progress + 'px',
                scale: 1 - (1 / 100) * progress,
                opacity: 1 - (1 / 100) * progress,
             }"

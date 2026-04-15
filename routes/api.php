@@ -39,6 +39,8 @@ Route::apiResource('price-types', App\Http\Controllers\PriceTypeController::clas
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/back-colors', [App\Http\Controllers\BackColorController::class, 'index']);
+
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);

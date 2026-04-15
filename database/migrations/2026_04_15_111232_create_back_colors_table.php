@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('back_colors', function (Blueprint $table) {
             $table->id();
             $table->text('gradient');
+            $table->string('border');
         });
     }
 

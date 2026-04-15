@@ -15,6 +15,7 @@ declare module 'vue' {
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     BaseModal: typeof import('./resources/shared/ui/BaseModal.vue')['default']
     BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
+    FieldColors: typeof import('./resources/shared/ui/FieldColors.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldMask: typeof import('./resources/shared/ui/FieldMask.vue')['default']
     FieldNumber: typeof import('./resources/shared/ui/FieldNumber.vue')['default']

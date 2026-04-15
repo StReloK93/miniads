@@ -49,19 +49,19 @@
          <p class="text-xs px-4 leading-4.5 text-center text-(--z-muted-text)">
             Elon joylashtirish orqali siz foydalanish shartlariga rozilik bildirasiz.
          </p>
+         <BaseButton
+            :class="[hasFocusedInput ? 'bottom-4' : '-bottom-22']"
+            type="button"
+            class="absolute right-4 transition-all duration-300 delay-150"
+            rounded
+            icon-only
+            :loading="buttonLoader"
+         >
+            <template #icon>
+               <ChevronRight class="w-5 h-5" />
+            </template>
+         </BaseButton>
       </footer>
-      <BaseButton
-         :class="[hasFocusedInput ? 'bottom-4 ' : '-bottom-20']"
-         type="submit"
-         class="absolute right-4 transition-all duration-300 delay-150"
-         rounded
-         icon-only
-         :loading="buttonLoader"
-      >
-         <template #icon>
-            <CheckCircle class="w-5 h-5" />
-         </template>
-      </BaseButton>
    </Form>
 </template>
 
@@ -73,7 +73,7 @@ import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";
-import { CheckCircle } from "lucide-vue-next";
+import { CheckCircle, ChevronRight } from "lucide-vue-next";
 
 const { hasFocusedInput } = useFocusedInput();
 

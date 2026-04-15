@@ -17,7 +17,7 @@ return new class extends Migration {
 
             $table->string('title'); // E'lon sarlavhasi
             $table->text('description')->nullable(); // Batafsil ma'lumot
-
+            $table->bigInteger('back_color_id')->default(1); // Rasm(lar) uchun JSON formatida saqlanadi
             // Manzil (Navoiy viloyati tumanlari uchun)
             $table->foreignId('district_id')
                 ->nullable()

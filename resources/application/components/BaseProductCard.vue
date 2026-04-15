@@ -2,19 +2,23 @@
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <div class="mb-2.5 relative">
-            <img :src="productImage" @error="handleImageError" class="rounded-[10px] w-full object-cover aspect-4/2" />
-            <!-- bg-linear-to-r from-rose-400 to-red-400 -->
-            <!-- bg-linear-to-r from-slate-700 to-slate-900 -->
-            <!-- bg-linear-to-r from-blue-500 to-cyan-500 -->
-            <!-- bg-linear-to-r from-purple-500 to-pink-600 -->
-            <!-- bg-linear-to-r from-emerald-500 to-teal-600 -->
-            <!-- <div
-               class="rounded-[10px] w-full object-cover aspect-4/2 bg-linear-to-r from-rose-400 to-red-400 flex items-center"
+            <img
+               v-if="props.product.images && props.product.images.length > 0"
+               :src="productImage"
+               @error="handleImageError"
+               class="rounded-[10px] w-full object-cover aspect-4/2"
+            />
+            <div
+               v-else
+               :style="{
+                  backgroundImage: product.back_color.gradient,
+               }"
+               class="rounded-[10px] w-full object-cover aspect-4/2 flex items-center"
             >
                <h3 class="font-bold text-2xl text-white px-4 pt-3 text-center w-full">
                   {{ product.title }}
                </h3>
-            </div> -->
+            </div>
             <div
                v-if="product.price"
                class="absolute top-3.5 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"

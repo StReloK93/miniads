@@ -28,11 +28,12 @@ class Product extends Model
         'price',
         'price_type_id',
         'views_count',
+        'back_color_id',
         'expires_at'
     ];
 
 
-    protected $with = ['parameter_values', 'images', 'price_type', 'district'];
+    protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor'];
 
     protected $hidden = [
         'expires_at',
@@ -85,5 +86,11 @@ class Product extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+
+    public function backColor()
+    {
+        return $this->belongsTo(BackColor::class, 'back_color_id');
     }
 }

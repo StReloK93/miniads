@@ -13,7 +13,6 @@
             ]"
             class="absolute px-4 inset-0 no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
-            <!-- isCompact ? 'overflow-y-auto' : 'overflow-hidden',  -->
             <slot name="content" :is-compact="isActive" :progress="displayProgress"></slot>
          </aside>
       </main>
@@ -23,7 +22,7 @@
    </section>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { useTouchToggleProgress } from "@shared/composables/useTouchToggleProgress";
 
 const props = withDefaults(
@@ -41,12 +40,8 @@ const props = withDefaults(
 
 const scrollEl = ref<HTMLElement | null>(null);
 
-const { progress, isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
-   threshold: 120,
+const { isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
+   threshold: 99,
    autoScroll: props.autoScroll,
-});
-
-onMounted(() => {
-   // setContainer(scrollEl.value);
 });
 </script>

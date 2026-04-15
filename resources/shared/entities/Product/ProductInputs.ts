@@ -5,6 +5,20 @@ import z from "zod";
 
 export const productInputs: InputConfig[] = [
    {
+      component: Inputs["FieldColors"],
+      name: "back_color_id",
+      generateProps: async function () {
+         const { data } = await api.get("/back-colors");
+         this.props = {
+            items: data,
+            title: "Agar rasm bolmasa, fon rangi",
+         };
+      },
+      value: 1,
+      schema: z.number({ message: "Majburiy maydon!" }),
+      class: ["mb-3"],
+   },
+   {
       component: Inputs["FieldImage"],
       name: "images",
       props: {

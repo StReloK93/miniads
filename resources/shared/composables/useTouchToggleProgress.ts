@@ -1,8 +1,10 @@
-import { ref, onMounted, onBeforeUnmount, type Ref } from "vue";
+import { ref, onMounted, onBeforeUnmount, type Ref, watch } from "vue";
+import { postEvent, isTMA } from "@tma.js/bridge";
 
 interface Options {
    threshold?: number;
    easing?: number; // 0.05 - 0.25 oralig'i yaxshi
+   autoScroll?: boolean;
 }
 
 export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, options: Options = {}) {
@@ -13,6 +15,13 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
    const displayProgress = ref(0); // ekranga chiqadigan yumshoq progress
    const isActive = ref(false);
    const isTouching = ref(false);
+
+   watch(isActive, (newVal) => {
+      if (!isTMA()) return;
+      postEvent("web_app_trigger_haptic_feedback", {
+         type: "selection_change",
+      });
+   });
 
    let startY = 0;
    let lastY = 0;
@@ -107,7 +116,7 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
 
    onMounted(() => {
       const el = containerRef.value;
-      if (!el) return;
+      if (!el || options.autoScroll) return;
 
       el.addEventListener("touchstart", onTouchStart, { passive: true });
       el.addEventListener("touchmove", onTouchMove, { passive: true });

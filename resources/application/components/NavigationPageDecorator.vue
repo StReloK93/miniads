@@ -26,11 +26,6 @@
 import { onMounted, ref } from "vue";
 import { useTouchToggleProgress } from "@shared/composables/useTouchToggleProgress";
 
-const scrollEl = ref<HTMLElement | null>(null);
-
-const { progress, isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
-   threshold: 120,
-});
 const props = withDefaults(
    defineProps<{
       headerClass?: string[];
@@ -43,6 +38,13 @@ const props = withDefaults(
       autoScroll: true,
    },
 );
+
+const scrollEl = ref<HTMLElement | null>(null);
+
+const { progress, isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
+   threshold: 120,
+   autoScroll: props.autoScroll,
+});
 
 onMounted(() => {
    // setContainer(scrollEl.value);

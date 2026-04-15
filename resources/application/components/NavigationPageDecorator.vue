@@ -23,9 +23,7 @@
    </section>
 </template>
 <script setup lang="ts">
-// import { useGestureHeader } from "@shared/composables/useGestureHeader";
 import { onMounted, ref } from "vue";
-// const { isCompact, setContainer, handleTouchStart, handleTouchMove, handleTouchEnd, handleWheel } = useGestureHeader();
 import { useTouchToggleProgress } from "@shared/composables/useTouchToggleProgress";
 
 const scrollEl = ref<HTMLElement | null>(null);

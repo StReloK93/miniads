@@ -50,13 +50,23 @@
             Elon joylashtirish orqali siz foydalanish shartlariga rozilik bildirasiz.
          </p>
       </footer>
+      <BaseButton
+         :class="[hasFocusedInput ? 'bottom-4 ' : '-bottom-20']"
+         type="submit"
+         class="absolute right-4 transition-all duration-300 delay-150"
+         rounded
+         icon-only
+         :loading="buttonLoader"
+      >
+         <template #icon>
+            <CheckCircle class="w-5 h-5" />
+         </template>
+      </BaseButton>
    </Form>
 </template>
 
 <script setup lang="ts">
 import { useFocusedInput } from "@shared/composables/useFocusInput";
-const { hasFocusedInput } = useFocusedInput();
-
 import { centerElement } from "@/modules/Helpers";
 import { ref, computed } from "vue";
 import { Form, ErrorMessage } from "vee-validate";
@@ -64,6 +74,8 @@ import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";
 import { CheckCircle } from "lucide-vue-next";
+
+const { hasFocusedInput } = useFocusedInput();
 
 const emit = defineEmits(["submit"]);
 

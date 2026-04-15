@@ -1,16 +1,20 @@
 <template>
    <NavigationPageDecorator :auto-scroll="false">
       <template #header="{ isCompact, progress }">
-         <h3 class="font-bold text-xl transition-all" :class="[progress == 100 ? 'pb-4' : 'pb-0']">
+         <h3 class="font-bold text-xl transition-all" :class="[isCompact ? 'pb-4' : 'pb-0']">
             <Transition mode="out-in">
-               <span v-if="progress == 100"> E'lonlar</span>
+               <span v-if="isCompact"> E'lonlar</span>
                <span v-else> Profil </span>
             </Transition>
          </h3>
          <!-- :class="[isCompact ? 'max-h-0 py-0' : 'max-h-95 py-4']" -->
          <aside
-            class="flex flex-col items-center overflow-hidden"
-            :style="{ maxHeight: 260 - (260 / 100) * progress + 'px' }"
+            class="flex flex-col items-center overflow-hidden origin-bottom"
+            :style="{
+               maxHeight: 260 - (260 / 100) * progress + 'px',
+               scale: 1 - (1 / 100) * progress,
+               opacity: 1 - (1 / 100) * progress,
+            }"
          >
             <div class="mb-2 flex">
                <img
@@ -44,7 +48,12 @@
             </main>
 
             <div class="flex gap-2 w-full mt-8">
-               <h3 class="text-center text-2xl font-bold w-full">E'lonlar</h3>
+               <h3
+                  :class="[isCompact ? 'opacity-0' : 'opacity-100']"
+                  class="text-center text-2xl font-bold w-full overflow-hidden transition-all duration-300 delay-150"
+               >
+                  E'lonlar
+               </h3>
                <!-- <BaseButton size="sm" rounded class="w-full" variant="text"> E'lonlar </BaseButton> -->
                <!-- <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton> -->
             </div>

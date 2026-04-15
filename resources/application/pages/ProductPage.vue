@@ -8,12 +8,20 @@
                      <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
                   </swiper-slide>
                </swiper>
-               <img
+               <div
                   v-else
+                  class="h-64 w-full bg-linear-to-r from-zinc-800 to-zinc-900 flex justify-center items-center"
+               >
+                  <span class="text-white text-2xl font-semibold text-center px-5">
+                     {{ product?.title }}
+                  </span>
+               </div>
+               <!-- <img
+                  
                   class="h-64 w-full bg-(--z-border) rounded-tl-[10px] rounded-tr-[10px]"
                   :src="'/images/no-image.webp'"
                   alt="No Image"
-               />
+               /> -->
             </main>
             <main class="pt-5 px-4">
                <!--  -->

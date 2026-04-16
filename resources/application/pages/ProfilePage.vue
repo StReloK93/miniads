@@ -1,17 +1,17 @@
 <template>
    <NavigationPageDecorator :auto-scroll="false">
       <template #header="{ isCompact, progress }">
-         <h3 class="font-bold text-xl transition-all" :class="[isCompact ? 'pb-4' : 'pb-0']">
+         <h3 class="font-bold text-xl transition-all">
             <Transition mode="out-in">
                <span v-if="isCompact"> E'lonlar</span>
                <span v-else> Profil </span>
             </Transition>
          </h3>
-         <!-- :class="[isCompact ? 'max-h-0 py-0' : 'max-h-95']" -->
          <aside
-            class="flex flex-col items-center overflow-hidden origin-bottom py-4"
+            :class="[!isCompact ? 'py-4' : 'pb-4']"
+            class="flex flex-col items-center overflow-hidden origin-center transition-[padding]"
             :style="{
-               maxHeight: 292 - (292 / 100) * progress + 'px',
+               maxHeight: 240 - (240 / 100) * progress + 'px',
                scale: 1 - (1 / 100) * progress,
                opacity: 1 - (1 / 100) * progress,
             }"
@@ -30,28 +30,25 @@
             </div>
             <!-- {{ userData.tgWebAppData.user.photo_url }} -->
             <h3 class="font-semibold">{{ user?.first_name }} {{ user?.last_name }}</h3>
-            <div class="text-(--z-muted-text) mb-6">@{{ user?.username }}</div>
+            <div class="text-(--z-muted-text)">@{{ user?.username }}</div>
 
-            <main class="flex w-full divide-x divide-(--z-border)">
-               <div class="text-center w-1/3">
+            <!-- <main class="flex w-full divide-x divide-(--z-border)">
+            <div class="text-center w-1/2">
                   <span class="font-semibold">{{ products?.length }}</span>
-                  <h3 class="text-(--z-muted-text) text-sm">E'lon</h3>
+                  <h3 class="text-(--z-muted-text) text-sm">Faol</h3>
                </div>
-               <div class="text-center w-1/3">
+               <div class="text-center w-1/2">
                   <span class="font-semibold">12</span>
-                  <h3 class="text-(--z-muted-text) text-sm">Kuzatuvchi</h3>
+                  <h3 class="text-(--z-muted-text) text-sm">O'chiq</h3>
                </div>
-               <div class="text-center w-1/3">
+            <div class="text-center w-1/3">
                   <span class="font-semibold">4.5</span>
                   <h3 class="text-(--z-muted-text) text-sm">Baho</h3>
                </div>
-            </main>
+            </main> -->
 
             <div class="flex gap-2 w-full mt-8">
-               <h3
-                  :class="[isCompact ? 'opacity-0' : 'opacity-100']"
-                  class="text-center text-2xl font-bold w-full overflow-hidden transition-all duration-300 delay-150"
-               >
+               <h3 class="text-center text-2xl font-bold w-full overflow-hidden transition-all duration-300 delay-150">
                   E'lonlar
                </h3>
                <!-- <BaseButton size="sm" rounded class="w-full" variant="text"> E'lonlar </BaseButton> -->
@@ -60,7 +57,7 @@
          </aside>
          <BaseTabs
             :items="[
-               { label: 'Faol', status: 'active' },
+               { label: `Faol`, status: 'active' },
                { label: `O'chiq`, status: 'expired' },
             ]"
             @change="onTabChange"

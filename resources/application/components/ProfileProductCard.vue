@@ -50,13 +50,10 @@ import { Eye, Pen, Route, Trash } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";
-import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
 import { formatPrice } from "@/modules/Helpers";
 const props = defineProps<{
    product: IProduct;
 }>();
-
-const isFavoriteButtonLoading = ref(false);
 
 const productImage = computed(() => {
    if (props.product.images && props.product.images.length > 0) {

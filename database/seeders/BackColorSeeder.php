@@ -13,29 +13,46 @@ class BackColorSeeder extends Seeder
      */
     public function run(): void
     {
+
+
+
         $colors = [
+            // 1. Blue calm
             [
-                'gradient' => "linear-gradient(135deg, oklch(27.4% 0.006 286.033), oklch(21% 0.006 285.885))",
-                'border' => "border-zinc-800",
+                'gradient' => "radial-gradient(circle at top left, rgba(96,165,250,.28), transparent 38%), radial-gradient(circle at bottom right, rgba(59,130,246,.22), transparent 42%), linear-gradient(135deg, #1e293b, #0f172a)",
+                'border' => "rgba(96,165,250,1)",
             ],
+
+            // 2. Emerald calm
             [
-                'gradient' => "linear-gradient(135deg, oklch(62% 0.18 20), oklch(55% 0.16 25))",
-                'border' => "border-rose-300",
+                'gradient' => "radial-gradient(circle at top left, rgba(52,211,153,.26), transparent 38%), radial-gradient(circle at bottom right, rgba(16,185,129,.20), transparent 42%), linear-gradient(135deg, #1f2937, #111827)",
+                'border' => "rgba(52,211,153,1)",
             ],
+
+            // 3. Purple soft
             [
-                'gradient' => "linear-gradient(135deg, oklch(60% 0.16 250), oklch(65% 0.12 220))",
-                'border' => "border-blue-400",
+                'gradient' => "radial-gradient(circle at top left, rgba(167,139,250,.26), transparent 38%), radial-gradient(circle at bottom right, rgba(139,92,246,.20), transparent 42%), linear-gradient(135deg, #1e1b4b, #020617)",
+                'border' => "rgba(167,139,250,1)",
             ],
+
+            // 4. Rose muted (issiq lekin yumshoq)
             [
-                'gradient' => "linear-gradient(135deg, oklch(58% 0.20 300), oklch(60% 0.18 320))",
-                'border' => "border-purple-400",
+                'gradient' => "radial-gradient(circle at top left, rgba(251,113,133,.22), transparent 38%), radial-gradient(circle at bottom right, rgba(244,63,94,.18), transparent 42%), linear-gradient(135deg, #2a1a1a, #111827)",
+                'border' => "rgba(251,113,133,1)",
             ],
+
+            // 5. Cyan calm
             [
-                'gradient' => "linear-gradient(135deg, oklch(60% 0.14 160), oklch(55% 0.10 180))",
-                'border' => "border-emerald-400",
+                'gradient' => "radial-gradient(circle at top left, rgba(103,232,249,.24), transparent 38%), radial-gradient(circle at bottom right, rgba(6,182,212,.18), transparent 42%), linear-gradient(135deg, #0f2a30, #111827)",
+                'border' => "rgba(103,232,249,1)",
+            ],
+
+            // 6. Neutral premium (eng vazmin)
+            [
+                'gradient' => "radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 30%), radial-gradient(circle at bottom right, rgba(148,163,184,.10), transparent 36%), linear-gradient(135deg, #374151, #111827)",
+                'border' => "rgba(10,10,10,1)",
             ],
         ];
-
         BackColor::insert($colors);
 
     }

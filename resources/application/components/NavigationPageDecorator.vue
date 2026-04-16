@@ -41,7 +41,7 @@ const props = withDefaults(
 const scrollEl = ref<HTMLElement | null>(null);
 
 const { isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
-   threshold: 99,
+   threshold: 135,
    autoScroll: props.autoScroll,
 });
 </script>

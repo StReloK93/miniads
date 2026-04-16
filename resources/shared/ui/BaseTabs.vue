@@ -27,7 +27,7 @@ import { ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
 
 /* ================= PROPS ================= */
 
-type Item = string | Record<string, any>;
+type Item = any | Record<string, any>;
 
 const props = defineProps<{
    items: Item[];

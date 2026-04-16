@@ -6,16 +6,16 @@
                v-if="props.product.images && props.product.images.length > 0"
                :src="productImage"
                @error="handleImageError"
-               class="rounded-[10px] w-full object-cover aspect-4/2"
+               class="rounded-[10px] w-full object-cover aspect-2/1"
             />
             <div
                v-else
                :style="{
                   backgroundImage: product.back_color.gradient,
                }"
-               class="rounded-[10px] w-full object-cover aspect-4/2 flex items-center"
+               class="rounded-[10px] w-full object-cover aspect-2/1 flex items-center"
             >
-               <h3 class="font-bold text-2xl text-white px-4 pt-3 text-center w-full">
+               <h3 class="font-bold text-2xl text-white px-4 pt-5 text-center w-full">
                   {{ product.title }}
                </h3>
             </div>
@@ -47,7 +47,9 @@
             </BaseButton>
          </div>
          <main class="px-1.5">
-            <h3 class="font-medium line-clamp-1">{{ product.title }}</h3>
+            <h3 v-if="props.product.images && props.product.images.length > 0" class="font-medium line-clamp-1">
+               {{ product.title }}
+            </h3>
             <aside class="text-xs my-1">
                <span class="text-(--z-muted-text) inline-flex items-center gap-1">
                   {{ product.district?.name || "Navoiy V." }}

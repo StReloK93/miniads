@@ -3,8 +3,8 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
-               <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-               <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
+               <h3 class="font-extrabold text-xl mb-1">E'lonni tahrirlash</h3>
+               <p class="title text-xs mb-4">E'lon ma'lumotlari</p>
             </main>
 
             <main class="flex gap-1 items-center">
@@ -63,7 +63,7 @@ import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
-import { ICategory, InputConfig } from "@shared/types";
+import { ICategory, InputConfig, IProduct } from "@shared/types";
 import { Component, onMounted, ref, shallowRef } from "vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
@@ -76,11 +76,15 @@ const { hasFocusedInput } = useFocusedInput();
 
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
+const props = defineProps<{
+   product_id: string | number;
+}>();
+
 var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
 const inputConfigs = shallowRef(productInputs());
 
-async function selectCategory(category: ICategory) {
+async function selectCategory(category: ICategory, product: IProduct) {
    if (category.with_price == false) {
       const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
       if (indexPrice !== -1) {
@@ -129,10 +133,18 @@ async function selectCategory(category: ICategory) {
             inputmode: parameter.type === "number" ? "numeric" : undefined,
          },
          schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required),
+         value: product.parameter_values.find((p) => p.parameter_id === parameter.id)?.value || "",
       };
    });
 
+   inputConfigs.value.forEach((input) => {
+      if (product[input.name]) {
+         input.value = product[input.name];
+      }
+   });
+
    fullInputs = [...inputConfigs.value, ...customInputs];
+
    setTimeout(() => {
       selectedCategory.value = category;
    }, 100);
@@ -161,7 +173,7 @@ async function submitForm(values: any) {
       }
    });
 
-   await ProductRepo.store(payload);
+   await ProductRepo.update(props.product_id, payload);
 }
 
 function onSubmit() {
@@ -169,11 +181,14 @@ function onSubmit() {
 }
 
 onMounted(async () => {
-   const categoryId = route.params.categoryId as string;
-   await executeCategory(categoryId);
+   const { data: product } = await ProductRepo.show(props.product_id);
 
-   if (category.value) {
-      selectCategory(category.value);
+   if (product.category_id) {
+      executeCategory(product.category_id).then(() => {
+         if (category.value) {
+            selectCategory(category.value, product);
+         }
+      });
    }
 });
 </script>

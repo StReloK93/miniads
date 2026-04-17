@@ -44,9 +44,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);
+    Route::post('/products/{id}', [App\Http\Controllers\ProductController::class, 'update']);
+
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
-    Route::apiResource('products', App\Http\Controllers\ProductController::class);
+    Route::apiResource('products', App\Http\Controllers\ProductController::class)->except('update');
     Route::post('/user/change-district', [AuthController::class, 'changeDistrict']);
 });
 

@@ -28,11 +28,18 @@
                         </template>
                      </BaseButton>
                   </RouterLink>
-                  <BaseButton size="sm" variant="text" rounded icon-only>
+                  <RouterLink :to="{ name: 'edit-product', params: { product_id: product.id } }">
+                     <BaseButton size="sm" variant="text" rounded icon-only>
+                        <template #icon>
+                           <Pen class="size-4" />
+                        </template>
+                     </BaseButton>
+                  </RouterLink>
+                  <!-- <BaseButton size="sm" variant="text" rounded icon-only>
                      <template #icon>
                         <Pen class="size-4" />
                      </template>
-                  </BaseButton>
+                  </BaseButton> -->
                   <BaseButton size="sm" severity="danger" variant="text" rounded icon-only>
                      <template #icon>
                         <Trash class="size-4" />
@@ -46,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, Pen, Route, Trash } from "lucide-vue-next";
+import { Eye, Pen, Route, Router, Trash } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";

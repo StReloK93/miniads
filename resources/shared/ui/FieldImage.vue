@@ -27,7 +27,7 @@
 
                <div class="w-full">
                   <img
-                     :src="image.url"
+                     :src="`${image.url}`"
                      :class="[index == 0 ? 'col-span-3 aspect-video' : 'aspect-square']"
                      class="rounded-(--z-rounded) grayscale object-cover w-full"
                   />
@@ -98,7 +98,8 @@ async function inputMouted($field: any) {
       if (isArray) {
          images_source.value = $field.value.map((image: any) => ({
             ...image,
-            file: image.file ?? image.url,
+            url: image.file ?? "/storage/" + image.src,
+            file: image.file ?? "/storage/" + image.src,
          }));
       } else {
          images_source.value = [

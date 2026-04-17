@@ -14,10 +14,14 @@ export default {
       });
    },
    show(id: string | number) {
-      return api.get<IProduct[]>(`${baseURL}/${id}`);
+      return api.get<IProduct>(`${baseURL}/${id}`);
    },
    update(id: string | number, formData: IProduct) {
-      return api.put<IProduct>(`${baseURL}/${id}`, formData);
+      return api.post<IProduct>(`${baseURL}/${id}`, formData, {
+         headers: {
+            "Content-Type": "multipart/form-data",
+         },
+      });
    },
    latestTen() {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);

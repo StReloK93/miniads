@@ -77,6 +77,10 @@ export interface IProduct {
    expires_at: string;
    user: IUser;
    user_id: number;
+   days: {
+      current: number;
+      max: number;
+   };
 }
 
 export interface IUser {

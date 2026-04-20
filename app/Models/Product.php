@@ -33,6 +33,28 @@ class Product extends Model
     ];
 
 
+    public function getDaysAttribute()
+    {
+        if (!$this->expires_at)
+            return null;
+
+        $hours = now()->diffInHours($this->expires_at, false);
+
+        $current = $hours <= 0
+            ? 0
+            : intdiv($hours, 24) + (($hours % 24) >= 12 ? 0.5 : 0);
+
+        return [
+            'current' => $current,
+            'max' => $this->category->listing_duration_days,
+        ];
+    }
+
+    // public function getMaxDaysAttribute()
+    // {
+    //     return $this->category->listing_duration_days;
+    // }
+
     protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor'];
 
     protected $hidden = [

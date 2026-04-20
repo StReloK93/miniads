@@ -1,25 +1,65 @@
 <template>
    <main>
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
-         <main class="flex gap-2">
-            <img :src="productImage" @error="handleImageError" class="rounded-[10px] w-30 object-cover aspect-square" />
+         <main class="relative">
+            <img
+               v-if="props.product.images && props.product.images.length > 0"
+               :src="productImage"
+               class="rounded-[10px] w-full object-cover aspect-2/1"
+            />
+            <div
+               v-else
+               :style="{
+                  backgroundImage: product.back_color.gradient,
+               }"
+               class="rounded-[10px] w-full object-cover aspect-2/1 flex items-center"
+            >
+               <h3 class="font-bold text-2xl text-white px-4 pt-5 text-center w-full">
+                  {{ product.title }}
+               </h3>
+            </div>
+            <div
+               v-if="product.price"
+               class="absolute top-2 left-2 text-sm inline-flex items-center gap-1 px-2 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
+               :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
+            >
+               <span class="font-semibold">
+                  {{ formatPrice(product?.price) }}
+               </span>
+               <span>
+                  {{ product.price_type.type }}
+               </span>
+            </div>
+
+            <div
+               v-if="product.days"
+               class="absolute bottom-2 left-2 text-sm inline-flex items-center gap-1.5 px-1 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
+            >
+               <span
+                  v-for="value in product.days.max"
+                  :key="value"
+                  :class="[value <= product.days.current ? 'bg-(--z-primary)' : 'bg-white']"
+                  class="w-1.5 h-1.5 rounded-full inline-block"
+               ></span>
+            </div>
+            <!-- Indicator days -->
+         </main>
+         <main>
             <main class="flex flex-col justify-between grow pr-1">
-               <aside>
-                  <h3 class="font-extrabold line-clamp-1">{{ product.title }}</h3>
-                  <div v-if="product.price">
-                     <span
-                        class="inline-flex items-center gap-1"
-                        :class="{ 'flex-row-reverse': product.price_type.position === 'left' }"
-                     >
+               <main class="px-1.5 mt-2.5">
+                  <h3 v-if="props.product.images && props.product.images.length > 0" class="font-medium line-clamp-1">
+                     {{ product.title }}
+                  </h3>
+                  <aside class="text-xs my-1">
+                     <span class="text-(--z-muted-text) inline-flex items-center gap-1">
+                        {{ product.district?.name || "Navoiy V." }}
+                        <span class="inline-flex w-1 h-1 rounded-full bg-(--z-muted-text)"></span>
                         <span>
-                           {{ formatPrice(product?.price) }}
-                        </span>
-                        <span>
-                           {{ product.price_type.type }}
+                           {{ timeAgo(product.created_at) }}
                         </span>
                      </span>
-                  </div>
-               </aside>
+                  </aside>
+               </main>
                <main class="flex justify-end gap-2">
                   <RouterLink :to="{ name: 'product-id', params: { id: product.id } }">
                      <BaseButton size="sm" variant="text" severity="secondary" rounded icon-only>
@@ -35,11 +75,6 @@
                         </template>
                      </BaseButton>
                   </RouterLink>
-                  <!-- <BaseButton size="sm" variant="text" rounded icon-only>
-                     <template #icon>
-                        <Pen class="size-4" />
-                     </template>
-                  </BaseButton> -->
                   <BaseButton size="sm" severity="danger" variant="text" rounded icon-only>
                      <template #icon>
                         <Trash class="size-4" />
@@ -68,9 +103,4 @@ const productImage = computed(() => {
    }
    return "/images/no-image.png"; // Public papkadagi default rasm yo'li
 });
-
-// 2. Agar rasm serverda topilmasa (404), ushbu funksiya ishlaydi
-const handleImageError = (event) => {
-   event.target.src = "/images/no-image.webp"; // Public papkadagi default rasm yo'li
-};
 </script>

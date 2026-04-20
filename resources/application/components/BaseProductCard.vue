@@ -5,7 +5,6 @@
             <img
                v-if="props.product.images && props.product.images.length > 0"
                :src="productImage"
-               @error="handleImageError"
                class="rounded-[10px] w-full object-cover aspect-2/1"
             />
             <div
@@ -98,9 +97,4 @@ const productImage = computed(() => {
    }
    return "/images/no-image.png"; // Public papkadagi default rasm yo'li
 });
-
-// 2. Agar rasm serverda topilmasa (404), ushbu funksiya ishlaydi
-const handleImageError = (event) => {
-   event.target.src = "/images/no-image.webp"; // Public papkadagi default rasm yo'li
-};
 </script>

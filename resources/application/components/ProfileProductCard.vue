@@ -1,5 +1,5 @@
 <template>
-   <main>
+   <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <main class="relative">
             <img
@@ -30,19 +30,16 @@
                   {{ product.price_type.type }}
                </span>
             </div>
-
+            <!-- Indicator days -->
             <div
                v-if="product.days"
-               class="absolute bottom-2 left-2 text-sm inline-flex items-center gap-1.5 px-1 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
+               class="absolute top-2 right-2 text-sm inline-flex items-center gap-1.5 px-1 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
             >
-               <span
-                  v-for="value in product.days.max"
-                  :key="value"
-                  :class="[value <= product.days.current ? 'bg-(--z-primary)' : 'bg-white']"
-                  class="w-1.5 h-1.5 rounded-full inline-block"
-               ></span>
+               <CircleIndicator :current="product.days.current" :max="product.days.max" />
             </div>
             <!-- Indicator days -->
+
+            <BaseButtonGroup class="absolute bottom-2 right-2" :options="options" />
          </main>
          <main>
             <main class="flex flex-col justify-between grow pr-1">
@@ -60,27 +57,6 @@
                      </span>
                   </aside>
                </main>
-               <main class="flex justify-end gap-2">
-                  <RouterLink :to="{ name: 'product-id', params: { id: product.id } }">
-                     <BaseButton size="sm" variant="text" severity="secondary" rounded icon-only>
-                        <template #icon>
-                           <Eye class="size-4" />
-                        </template>
-                     </BaseButton>
-                  </RouterLink>
-                  <RouterLink :to="{ name: 'edit-product', params: { product_id: product.id } }">
-                     <BaseButton size="sm" variant="text" rounded icon-only>
-                        <template #icon>
-                           <Pen class="size-4" />
-                        </template>
-                     </BaseButton>
-                  </RouterLink>
-                  <BaseButton size="sm" severity="danger" variant="text" rounded icon-only>
-                     <template #icon>
-                        <Trash class="size-4" />
-                     </template>
-                  </BaseButton>
-               </main>
             </main>
          </main>
       </section>
@@ -88,14 +64,48 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, Pen, Route, Router, Trash } from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { Pen, Eye } from "lucide-vue-next";
+import BaseButtonGroup from "@shared/ui/BaseButtonGroup.vue";
+import CircleIndicator from "@shared/ui/CircleIndicator.vue";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";
 import { formatPrice } from "@/modules/Helpers";
+
+const router = useRouter();
+
 const props = defineProps<{
    product: IProduct;
 }>();
+
+const emit = defineEmits<{
+   (e: "deActivate", productId: number): void;
+}>();
+
+const options = ref([
+   {
+      value: "view",
+      icon: Eye,
+      onClick: () => {
+         emit("deActivate", props.product.id);
+      },
+   },
+   {
+      value: "edit",
+      icon: Pen,
+      onClick: () => {
+         router.push({ name: "edit-product", params: { product_id: props.product.id } });
+      },
+   },
+   // {
+   //    value: "delete",
+   //    icon: Trash,
+   //    onClick: () => {
+   //       // O'chirish funksiyasi
+   //    },
+   // },
+]);
 
 const productImage = computed(() => {
    if (props.product.images && props.product.images.length > 0) {

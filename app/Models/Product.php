@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
 
-    use Searchable;
+    use Searchable, SoftDeletes;
 
     public function toSearchableArray()
     {

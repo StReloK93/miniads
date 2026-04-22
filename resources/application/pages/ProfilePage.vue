@@ -1,6 +1,17 @@
 <template>
    <NavigationPageDecorator :auto-scroll="false">
       <template #header="{ isCompact, progress }">
+         {{ isOpen }}
+         <BaseModal
+            :open="isOpen"
+            title="Shaharni tanlang"
+            description="Siz quyida tanlagan shahringizga mos e'lonlarni ko'ra olasiz."
+            confirm-text="Saqlash"
+            cancel-text="Yopish"
+            @close="isOpen = false"
+         >
+            asdsadsa
+         </BaseModal>
          <h3 class="font-bold text-xl transition-all">
             <Transition mode="out-in">
                <span v-if="isCompact"> E'lonlar</span>
@@ -67,7 +78,12 @@
       <template #content>
          <Transition mode="out-in">
             <div v-if="!isLoading" class="flex flex-col gap-4">
-               <ProfileProductCard v-for="product in products" :key="product.id" :product="product" />
+               <ProfileProductCard
+                  v-for="product in products"
+                  :key="product.id"
+                  :product="product"
+                  @deActivate="deActivateProduct"
+               />
             </div>
          </Transition>
       </template>
@@ -86,9 +102,19 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
-
+const isOpen = ref(false);
 function onTabChange(status) {
    fetchProducts(status.item.status);
+}
+
+function deActivateProduct(productId: number) {
+   console.log(productId);
+
+   isOpen.value = true;
+   // ProductRepo.deActivate(productId).then(() => {
+   //    fetchProducts("active");
+   //    isOpen.value = false;
+   // });
 }
 
 const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);

@@ -27,11 +27,19 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
    },
 
+   deActivate(id: string | number) {
+      return api.post(`${baseURL}/${id}/deactivate`, {});
+   },
+
    myAds(status: string) {
       return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`);
    },
 
    search(search: string) {
       return api.get<IProduct[]>(`${baseURL}/custom/search?search=${search}`);
+   },
+
+   delete(id: string | number) {
+      return api.delete(`${baseURL}/${id}`);
    },
 };

@@ -118,4 +118,57 @@ class ProductController extends Controller
             })
             ->get();
     }
+
+
+    public function deActivate(Request $request, int $id)
+    {
+        $product = Product::findOrFail($id);
+
+        if (!$this->productService->isOwner($product, $request->user()->id)) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        try {
+            $product->expires_at = now()->subMinute();
+            $product->save();
+
+            return response()->json([
+                'message' => "E'lon muvaffaqiyatli o'chirildi!",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Xatolik yuz berdi',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+
+    public function destroy(Request $request, int $id)
+    {
+        $product = Product::findOrFail($id);
+
+        if (!$this->productService->isOwner($product, $request->user()->id)) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        try {
+            $product->delete();
+
+            return response()->json([
+                'message' => "E'lon muvaffaqiyatli o'chirildi!",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Xatolik yuz berdi',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

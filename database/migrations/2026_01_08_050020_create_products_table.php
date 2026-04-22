@@ -33,6 +33,7 @@ return new class extends Migration {
 
             $table->timestamp('expires_at')->default(now()); // E'lonning amal qilish muddati
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -41,6 +42,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+
         Schema::dropIfExists('products');
     }
 };

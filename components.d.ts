@@ -12,9 +12,11 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
+    BaseButtonGroup: typeof import('./resources/shared/ui/BaseButtonGroup.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     BaseModal: typeof import('./resources/shared/ui/BaseModal.vue')['default']
     BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
+    CircleIndicator: typeof import('./resources/shared/ui/CircleIndicator.vue')['default']
     FieldColors: typeof import('./resources/shared/ui/FieldColors.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldMask: typeof import('./resources/shared/ui/FieldMask.vue')['default']

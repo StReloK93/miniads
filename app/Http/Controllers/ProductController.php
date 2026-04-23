@@ -120,19 +120,38 @@ class ProductController extends Controller
     }
 
 
+    public function activate(Request $request, int $id)
+    {
+        $product = Product::with('category')->findOrFail($id);
+
+        if (!$this->productService->isOwner($product, $request->user()->id)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        try {
+            $this->productService->activate($product);
+
+            return response()->json([
+                'message' => "E'lon muvaffaqiyatli faollashtirildi!",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Xatolik yuz berdi',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function deActivate(Request $request, int $id)
     {
         $product = Product::findOrFail($id);
 
         if (!$this->productService->isOwner($product, $request->user()->id)) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 403);
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         try {
-            $product->expires_at = now()->subMinute();
-            $product->save();
+            $this->productService->deActivate($product);
 
             return response()->json([
                 'message' => "E'lon muvaffaqiyatli o'chirildi!",
@@ -144,6 +163,7 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
 
 
 

@@ -156,4 +156,21 @@ class ProductService
          File::delete($fullPath);
       }
    }
+
+
+   public function activate(Product $product): Product
+   {
+      $product->expires_at = now()->addDays($product->category->listing_duration_days);
+      $product->save();
+
+      return $product;
+   }
+
+   public function deActivate(Product $product): Product
+   {
+      $product->expires_at = now()->subMinute();
+      $product->save();
+
+      return $product;
+   }
 }

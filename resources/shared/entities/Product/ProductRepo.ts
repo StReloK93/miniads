@@ -27,8 +27,12 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
    },
 
-   deActivate(id: string | number) {
+   deactivate(id: string | number) {
       return api.post(`${baseURL}/${id}/deactivate`, {});
+   },
+
+   activate(id: string | number) {
+      return api.post(`${baseURL}/${id}/activate`, {});
    },
 
    myAds(status: string) {

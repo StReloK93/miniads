@@ -1,17 +1,6 @@
 <template>
    <NavigationPageDecorator :auto-scroll="false">
       <template #header="{ isCompact, progress }">
-         {{ isOpen }}
-         <BaseModal
-            :open="isOpen"
-            title="Shaharni tanlang"
-            description="Siz quyida tanlagan shahringizga mos e'lonlarni ko'ra olasiz."
-            confirm-text="Saqlash"
-            cancel-text="Yopish"
-            @close="isOpen = false"
-         >
-            asdsadsa
-         </BaseModal>
          <h3 class="font-bold text-xl transition-all">
             <Transition mode="out-in">
                <span v-if="isCompact"> E'lonlar</span>
@@ -76,6 +65,16 @@
          />
       </template>
       <template #content>
+         <BaseModal
+            :open="isOpen"
+            :title="modalParams.title"
+            :description="modalParams.description"
+            :confirm-text="modalParams.confirmText"
+            :cancel-text="modalParams.cancelText"
+            @close="closeModal"
+            @confirm="modalParams.confirm"
+         >
+         </BaseModal>
          <Transition mode="out-in">
             <div v-if="!isLoading" class="flex flex-col gap-4">
                <ProfileProductCard
@@ -83,6 +82,7 @@
                   :key="product.id"
                   :product="product"
                   @deActivate="deActivateProduct"
+                  @activate="activateProduct"
                />
             </div>
          </Transition>
@@ -94,12 +94,13 @@
 import ProfileProductCard from "@/components/ProfileProductCard.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { preloadImages } from "@/modules/Helpers";
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, nextTick, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
 import { Camera } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
+import { set } from "zod/v4";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 const isOpen = ref(false);
@@ -107,14 +108,69 @@ function onTabChange(status) {
    fetchProducts(status.item.status);
 }
 
-function deActivateProduct(productId: number) {
-   console.log(productId);
+const modalParams = ref({
+   title: "",
+   description: "",
+   showButtons: false,
+   confirmText: "Saqlash",
+   cancelText: "Yopish",
+   confirm: async () => {},
+});
 
+function deActivateProduct(product: IProduct) {
+   modalParams.value = {
+      title: "E'lonni o'chirish",
+      description: "E'loningizni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+      showButtons: true,
+      confirmText: "O'chirish",
+      cancelText: "Bekor qilish",
+      confirm: async () => {
+         await ProductRepo.deactivate(product.id);
+         await fetchProducts("active");
+         isOpen.value = false;
+      },
+   };
+   nextTick();
    isOpen.value = true;
-   // ProductRepo.deActivate(productId).then(() => {
+
+   // ProductRepo.deActivate(product.id).then(() => {
    //    fetchProducts("active");
    //    isOpen.value = false;
    // });
+}
+
+function activateProduct(product: IProduct) {
+   modalParams.value = {
+      title: "E'lonni faollashtirish",
+      description: "E'loningizni faollashtirmoqchimisiz?",
+      showButtons: true,
+      confirmText: "Faollashtirish",
+      cancelText: "Bekor qilish",
+      confirm: async () => {
+         await ProductRepo.activate(product.id);
+         await fetchProducts("expired");
+         isOpen.value = false;
+      },
+   };
+   isOpen.value = true;
+}
+
+function resetModalParams() {
+   modalParams.value = {
+      title: "",
+      description: "",
+      showButtons: false,
+      confirmText: "Saqlash",
+      cancelText: "Yopish",
+      confirm: async () => {},
+   };
+}
+
+function closeModal() {
+   isOpen.value = false;
+   setTimeout(() => {
+      resetModalParams();
+   }, 500);
 }
 
 const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);

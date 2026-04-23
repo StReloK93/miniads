@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { Pen, Eye } from "lucide-vue-next";
+import { Pen, Eye, EyeOff } from "lucide-vue-next";
 import BaseButtonGroup from "@shared/ui/BaseButtonGroup.vue";
 import CircleIndicator from "@shared/ui/CircleIndicator.vue";
 import { timeAgo } from "@/modules/Helpers";
@@ -80,32 +80,41 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-   (e: "deActivate", productId: number): void;
+   (e: "deActivate", product: IProduct): void;
+   (e: "activate", product: IProduct): void;
 }>();
 
-const options = ref([
-   {
-      value: "view",
-      icon: Eye,
-      onClick: () => {
-         emit("deActivate", props.product.id);
+const options = computed(() => {
+   const items = [
+      {
+         value: "edit",
+         icon: Pen,
+         onClick: () => {
+            router.push({ name: "edit-product", params: { product_id: props.product.id } });
+         },
       },
-   },
-   {
-      value: "edit",
-      icon: Pen,
-      onClick: () => {
-         router.push({ name: "edit-product", params: { product_id: props.product.id } });
-      },
-   },
-   // {
-   //    value: "delete",
-   //    icon: Trash,
-   //    onClick: () => {
-   //       // O'chirish funksiyasi
-   //    },
-   // },
-]);
+   ];
+
+   if (props.product.days.current <= 0) {
+      items.unshift({
+         value: "activate",
+         icon: Eye,
+         onClick: () => {
+            emit("activate", props.product);
+         },
+      });
+   } else {
+      items.unshift({
+         value: "deactivate",
+         icon: EyeOff,
+         onClick: () => {
+            emit("deActivate", props.product);
+         },
+      });
+   }
+
+   return items;
+});
 
 const productImage = computed(() => {
    if (props.product.images && props.product.images.length > 0) {

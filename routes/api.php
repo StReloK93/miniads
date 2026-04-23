@@ -44,7 +44,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);
-    Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deActivate']);
+    Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
+    Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
     Route::post('/products/{id}', [App\Http\Controllers\ProductController::class, 'update']);
 
 

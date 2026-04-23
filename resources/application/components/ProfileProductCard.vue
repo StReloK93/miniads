@@ -1,20 +1,21 @@
 <template>
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
-         <main class="relative">
+         <main class="relative rounded-[10px] overflow-hidden">
+            <div v-if="!isActive" class="absolute inset-0 bg-black/50"></div>
             <img
                v-if="props.product.images && props.product.images.length > 0"
                :src="productImage"
-               class="rounded-[10px] w-full object-cover aspect-2/1"
+               class="w-full object-cover aspect-2/1"
             />
             <div
                v-else
                :style="{
                   backgroundImage: product.back_color.gradient,
                }"
-               class="rounded-[10px] w-full object-cover aspect-2/1 flex items-center"
+               class="w-full object-cover aspect-2/1 flex items-center"
             >
-               <h3 class="font-bold text-2xl text-white px-4 pt-5 text-center w-full">
+               <h3 class="font-bold text-2xl text-white px-4 pt-3 text-center w-full">
                   {{ product.title }}
                </h3>
             </div>
@@ -32,7 +33,7 @@
             </div>
             <!-- Indicator days -->
             <div
-               v-if="product.days"
+               v-if="product.days && isActive"
                class="absolute top-2 right-2 text-sm inline-flex items-center gap-1.5 px-1 py-0.5 z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)"
             >
                <CircleIndicator :current="product.days.current" :max="product.days.max" />
@@ -84,6 +85,10 @@ const emit = defineEmits<{
    (e: "activate", product: IProduct): void;
 }>();
 
+const isActive = computed(() => {
+   return props.product.days.current > 0;
+});
+
 const options = computed(() => {
    const items = [
       {
@@ -120,6 +125,5 @@ const productImage = computed(() => {
    if (props.product.images && props.product.images.length > 0) {
       return `/storage/${props.product.images[0].src}`;
    }
-   return "/images/no-image.png"; // Public papkadagi default rasm yo'li
 });
 </script>

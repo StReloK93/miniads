@@ -43,10 +43,7 @@
                                  {{ title }}
                               </DialogTitle>
 
-                              <DialogDescription
-                                 v-if="description"
-                                 class="mt-1 text-sm leading-5 text-(--z-muted-text)"
-                              >
+                              <DialogDescription v-if="description" class="mt-1 text-sm leading-5 text-gray-600">
                                  {{ description }}
                               </DialogDescription>
                            </div>
@@ -55,9 +52,7 @@
                         <!-- Body -->
                         <div class="mt-4">
                            <slot>
-                              <p class="text-sm leading-6 text-(--z-muted-text)">
-                                 Bu yerga modal ichidagi content yoziladi.
-                              </p>
+                              <p class="text-sm leading-6 text-gray-600">Bu yerga modal ichidagi content yoziladi.</p>
                            </slot>
                         </div>
 

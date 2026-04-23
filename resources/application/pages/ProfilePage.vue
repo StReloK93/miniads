@@ -74,6 +74,14 @@
             @close="closeModal"
             @confirm="modalParams.confirm"
          >
+            <template #icon>
+               <component :is="modalParams.icon" class="size-4" />
+            </template>
+            <div>
+               <h3 class="font-medium text-2xl text-center py-4">
+                  {{ modalParams.product?.title }}
+               </h3>
+            </div>
          </BaseModal>
          <Transition mode="out-in">
             <div v-if="!isLoading" class="flex flex-col gap-4">
@@ -97,10 +105,9 @@ import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
-import { Camera } from "lucide-vue-next";
+import { Camera, EyeOff, Eye } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
-import { set } from "zod/v4";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 const isOpen = ref(false);
@@ -112,18 +119,23 @@ const modalParams = ref({
    title: "",
    description: "",
    showButtons: false,
+   icon: Eye,
    confirmText: "Saqlash",
    cancelText: "Yopish",
+   product: null as IProduct | null,
    confirm: async () => {},
 });
 
 function deActivateProduct(product: IProduct) {
    modalParams.value = {
       title: "E'lonni o'chirish",
-      description: "E'loningizni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.",
+      description: "E'loningiz o'chirilganlar ro'yxatiga o'tadi va uni qayta faollashtirish mumkin",
       showButtons: true,
+      icon: EyeOff,
       confirmText: "O'chirish",
+      product: product,
       cancelText: "Bekor qilish",
+
       confirm: async () => {
          await ProductRepo.deactivate(product.id);
          await fetchProducts("active");
@@ -132,11 +144,6 @@ function deActivateProduct(product: IProduct) {
    };
    nextTick();
    isOpen.value = true;
-
-   // ProductRepo.deActivate(product.id).then(() => {
-   //    fetchProducts("active");
-   //    isOpen.value = false;
-   // });
 }
 
 function activateProduct(product: IProduct) {
@@ -144,6 +151,8 @@ function activateProduct(product: IProduct) {
       title: "E'lonni faollashtirish",
       description: "E'loningizni faollashtirmoqchimisiz?",
       showButtons: true,
+      icon: Eye,
+      product: product,
       confirmText: "Faollashtirish",
       cancelText: "Bekor qilish",
       confirm: async () => {
@@ -152,6 +161,7 @@ function activateProduct(product: IProduct) {
          isOpen.value = false;
       },
    };
+   nextTick();
    isOpen.value = true;
 }
 
@@ -159,6 +169,8 @@ function resetModalParams() {
    modalParams.value = {
       title: "",
       description: "",
+      icon: EyeOff,
+      product: null,
       showButtons: false,
       confirmText: "Saqlash",
       cancelText: "Yopish",
@@ -168,9 +180,7 @@ function resetModalParams() {
 
 function closeModal() {
    isOpen.value = false;
-   setTimeout(() => {
-      resetModalParams();
-   }, 500);
+   setTimeout(() => resetModalParams(), 500);
 }
 
 const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);

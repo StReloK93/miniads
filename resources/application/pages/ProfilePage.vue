@@ -78,7 +78,10 @@
                <component :is="modalParams.icon" class="size-4" />
             </template>
             <div>
-               <h3 class="font-medium text-2xl text-center py-4">
+               <h3
+                  class="font-medium text-2xl text-center py-4 rounded-(--z-rounded) text-(--z-primary)"
+                  :class="{ inactive: modalParams.status === 'deActivate' }"
+               >
                   {{ modalParams.product?.title }}
                </h3>
             </div>
@@ -93,12 +96,16 @@
                   @activate="activateProduct"
                />
             </div>
+            <main v-else class="flex flex-col gap-4">
+               <BaseSkeletonCard v-for="n in 3" />
+            </main>
          </Transition>
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
+import BaseSkeletonCard from "@/components/BaseSkeletonCard.vue";
 import ProfileProductCard from "@/components/ProfileProductCard.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { preloadImages } from "@/modules/Helpers";
@@ -116,6 +123,7 @@ function onTabChange(status) {
 }
 
 const modalParams = ref({
+   status: "deActivate" as "deActivate" | "activate",
    title: "",
    description: "",
    showButtons: false,
@@ -128,6 +136,7 @@ const modalParams = ref({
 
 function deActivateProduct(product: IProduct) {
    modalParams.value = {
+      status: "deActivate",
       title: "E'lonni o'chirish",
       description: "E'loningiz o'chirilganlar ro'yxatiga o'tadi va uni qayta faollashtirish mumkin",
       showButtons: true,
@@ -148,6 +157,7 @@ function deActivateProduct(product: IProduct) {
 
 function activateProduct(product: IProduct) {
    modalParams.value = {
+      status: "activate",
       title: "E'lonni faollashtirish",
       description: "E'loningizni faollashtirmoqchimisiz?",
       showButtons: true,
@@ -167,6 +177,7 @@ function activateProduct(product: IProduct) {
 
 function resetModalParams() {
    modalParams.value = {
+      status: "deActivate",
       title: "",
       description: "",
       icon: EyeOff,

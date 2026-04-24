@@ -2,7 +2,7 @@
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <main class="relative rounded-[10px] overflow-hidden">
-            <div v-if="!isActive" class="absolute inset-0 bg-black/50"></div>
+            <div v-if="!isActive" class="absolute inset-0 inactive"></div>
             <img
                v-if="props.product.images && props.product.images.length > 0"
                :src="productImage"

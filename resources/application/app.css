@@ -177,3 +177,7 @@ input[type="search"]::-webkit-search-results-decoration {
 input:-webkit-autofill {
    -webkit-box-shadow: 0 0 0 1000px white inset !important;
 }
+
+.inactive {
+   background: repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.3) 0 10px, rgba(0, 0, 0, 0.2) 10px 20px);
+}

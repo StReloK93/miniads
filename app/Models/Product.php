@@ -39,14 +39,10 @@ class Product extends Model
         if (!$this->expires_at)
             return null;
 
-        $hours = now()->diffInHours($this->expires_at, false);
-
-        $current = $hours <= 0
-            ? 0
-            : intdiv($hours, 24) + (($hours % 24) >= 12 ? 0.5 : 0);
+        $hours = now()->diffInDays($this->expires_at, false);
 
         return [
-            'current' => $current,
+            'current' => round($hours, 2),
             'max' => $this->category->listing_duration_days,
         ];
     }

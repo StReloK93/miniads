@@ -50,13 +50,20 @@
                {{ product.title }}
             </h3>
             <aside class="text-xs my-1">
-               <span class="text-(--z-muted-text) inline-flex items-center gap-1">
-                  {{ product.district?.name || "Navoiy V." }}
-                  <span class="inline-flex w-1 h-1 rounded-full bg-(--z-muted-text)"></span>
+               <div class="text-(--z-muted-text) inline-flex items-center gap-1">
+                  <span>
+                     {{ product.category.name }}
+                  </span>
+                  <span class="inline-flex w-1 h-1 rounded-full bg-(--z-primary)"></span>
+
+                  <span>
+                     {{ product.district?.name || "Navoiy V." }}
+                  </span>
+                  <span class="inline-flex w-1 h-1 rounded-full bg-(--z-primary)"></span>
                   <span>
                      {{ timeAgo(product.created_at) }}
                   </span>
-               </span>
+               </div>
             </aside>
          </main>
       </section>
@@ -64,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { Heart } from "lucide-vue-next";
+import { Heart, Route } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";

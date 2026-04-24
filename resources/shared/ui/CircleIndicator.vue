@@ -26,8 +26,9 @@
 
       <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
          <span class="mt-1 text-xs font-semibold leading-none text-(--z-primary)">
-            {{ label }}
+            {{ props.current }}
          </span>
+         <span class="text-xs"> Kun </span>
       </div>
    </div>
 </template>
@@ -58,16 +59,5 @@ const percent = computed(() => {
 
 const dashOffset = computed(() => {
    return circumference.value - (percent.value / 100) * circumference.value;
-});
-
-const label = computed(() => {
-   if (props.current <= 0) return props.current;
-   return `${props.current} K`;
-});
-
-const statusClass = computed(() => {
-   if (percent.value <= 15) return "text-red-500";
-   if (percent.value <= 40) return "text-amber-500";
-   return "text-emerald-500";
 });
 </script>

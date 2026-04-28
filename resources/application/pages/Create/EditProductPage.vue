@@ -181,7 +181,7 @@ function onSubmit() {
 }
 
 onMounted(async () => {
-   const { data: product } = await ProductRepo.show(props.product_id);
+   const { data: product } = await ProductRepo.edit(props.product_id);
 
    if (product.category_id) {
       executeCategory(product.category_id).then(() => {

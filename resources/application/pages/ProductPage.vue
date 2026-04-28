@@ -52,7 +52,7 @@
                      {{ timeAgo(product?.created_at!) }}
                   </span>
                   <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
-                  <span class="flex items-center gap-1"> 1.2k ko'rildi </span>
+                  <span class="flex items-center gap-1"> {{ viewCount }} ko'rildi </span>
                   <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
 
                   <span class="flex items-center gap-1">
@@ -162,7 +162,7 @@ import { Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { useRoute } from "vue-router";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
 import { Heart, MapPin, MessageCircle, Phone } from "lucide-vue-next";
@@ -194,6 +194,22 @@ function openSellerChat(product: IProduct) {
       path_full: pathFull,
    });
 }
+
+const viewCount = computed(() => {
+   const count = product.value?.views_count ?? 0;
+
+   if (count >= 1_000_000) {
+      const value = Math.floor(count / 100_000) / 10; // 1.2M
+      return `${Number.isInteger(value) ? value.toFixed(0) : value}M`;
+   }
+
+   if (count >= 1_000) {
+      const value = Math.floor(count / 100) / 10; // 1.5K
+      return `${Number.isInteger(value) ? value.toFixed(0) : value}K`;
+   }
+
+   return count;
+});
 
 const isFavoriteButtonLoading = ref(false);
 

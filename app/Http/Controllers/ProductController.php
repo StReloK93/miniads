@@ -6,7 +6,7 @@ use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
-
+use App\Services\ProductViewService;
 class ProductController extends Controller
 {
     public function __construct(
@@ -64,7 +64,7 @@ class ProductController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id, ProductViewService $viewService)
     {
         $product = Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
@@ -72,15 +72,28 @@ class ProductController extends Controller
             ->with(['user'])
             ->findOrFail($id);
 
+        if (auth()->id() !== $product->user_id) {
+            $viewService->record($product, auth()->id());
+        }
+
         return response()->json($product);
+    }
+
+
+    public function edit(int $id)
+    {
+        return Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])
+            ->with(['user'])
+            ->findOrFail($id);
     }
 
     public function latestTen()
     {
-        return Product::with('category')
-            ->withExists([
-                'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
-            ])
+        return Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])
             ->active()
             ->latest()
             ->take(10)

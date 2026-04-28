@@ -52,7 +52,7 @@ class Product extends Model
     //     return $this->category->listing_duration_days;
     // }
 
-    protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor'];
+    protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor', 'category'];
 
     protected $hidden = [
         'expires_at',

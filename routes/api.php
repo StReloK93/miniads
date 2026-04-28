@@ -47,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
     Route::post('/products/{id}', [App\Http\Controllers\ProductController::class, 'update']);
+    Route::get('/products/{id}/edit', [App\Http\Controllers\ProductController::class, 'edit']);
 
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');

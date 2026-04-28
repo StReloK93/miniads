@@ -16,6 +16,9 @@ export default {
    show(id: string | number) {
       return api.get<IProduct>(`${baseURL}/${id}`);
    },
+   edit(id: string | number) {
+      return api.get<IProduct>(`${baseURL}/${id}/edit`);
+   },
    update(id: string | number, formData: IProduct) {
       return api.post<IProduct>(`${baseURL}/${id}`, formData, {
          headers: {

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 class CategoryController extends Controller
 {
 	//
@@ -20,10 +22,14 @@ class CategoryController extends Controller
 	}
 	public function parents($parent_id = null)
 	{
-		return Category::where('parent_id', $parent_id)
-			->with('children')
-			->get();
+		$key = 'categories:parents:' . ($parent_id ?? 'root');
 
+		return Cache::rememberForever($key, function () use ($parent_id, $key) {
+			Log::info("CATEGORY FROM DB: {$key}");
+			return Category::where('parent_id', $parent_id)
+				->with('children')
+				->get();
+		});
 	}
 
 

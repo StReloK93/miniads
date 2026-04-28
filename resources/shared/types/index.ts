@@ -67,6 +67,7 @@ export interface IProduct {
    price_type: { type: string; name: string; position: "right" | "left" };
    phone: string | null;
    category_id: number;
+   views_count: number;
    category: ICategory;
    parameter_values: IParameterValue[];
    images: { id: number; product_id: number; src: string }[];

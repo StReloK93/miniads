@@ -17,6 +17,7 @@ class FavoriteController extends Controller
                 fn($q) =>
                 $q->where('user_id', $request->user()->id)
             )
+            ->active()
             ->withExists([
                 'favorites as is_favorite' => fn($q) =>
                     $q->where('user_id', $request->user()->id)

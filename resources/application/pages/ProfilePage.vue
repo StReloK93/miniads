@@ -8,10 +8,11 @@
             </Transition>
          </h3>
          <aside
+            ref="header"
             :class="[!isCompact ? 'py-4' : 'pb-4']"
             class="flex flex-col items-center overflow-hidden origin-center transition-[padding]"
             :style="{
-               maxHeight: 240 - (240 / 100) * progress + 'px',
+               maxHeight: 280 - (280 / 100) * progress + 'px',
                scale: 1 - (1 / 100) * progress,
                opacity: 1 - (1 / 100) * progress,
             }"
@@ -30,7 +31,17 @@
             </div>
             <!-- {{ userData.tgWebAppData.user.photo_url }} -->
             <h3 class="font-semibold">{{ user?.first_name }} {{ user?.last_name }}</h3>
-            <div class="text-(--z-muted-text)">@{{ user?.username }}</div>
+            <div v-if="user?.username" class="text-(--z-muted-text)">@{{ user?.username }}</div>
+            <main v-else class="text-center">
+               <div class="text-(--z-muted-text) flex items-center justify-center gap-2">
+                  <Megaphone class="inline size-4 text-(--z-primary)" /> Foydalanuvchi nomi majvud emas
+               </div>
+               <p class="text-(--z-muted-text) text-center text-xs mt-1">
+                  E'lon qoyganizda sizga telegramdan to'g'ridan to'g'ri habar yuborishlarini istasangiz
+                  <span class="font-semibold text-(--z-primary)">Telegram</span>
+                  sozlamalariga o'ting va "Foydalanuvchi nomi" maydonini to'ldiring.
+               </p>
+            </main>
 
             <!-- <main class="flex w-full divide-x divide-(--z-border)">
             <div class="text-center w-1/2">
@@ -112,15 +123,18 @@ import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
-import { Camera, EyeOff, Eye } from "lucide-vue-next";
+import { Camera, EyeOff, Eye, Megaphone } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
 const isImagesReady = ref(false);
 const userData: any = inject("userData");
 const isOpen = ref(false);
+const header = ref<HTMLElement>();
 function onTabChange(status) {
    fetchProducts(status.item.status);
 }
+
+var headerHeight = ref(1000);
 
 const modalParams = ref({
    status: "deActivate" as "deActivate" | "activate",
@@ -221,5 +235,6 @@ onMounted(async () => {
    setTimeout(() => {
       isImagesReady.value = true;
    }, 1000);
+   headerHeight.value = header.value?.clientHeight ?? 0;
 });
 </script>

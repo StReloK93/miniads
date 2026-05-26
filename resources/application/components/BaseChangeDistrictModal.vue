@@ -4,7 +4,7 @@
          :show-buttons="false"
          :open="isOpen"
          title="Shaharni tanlang"
-         description="Siz quyida tanlagan shahringizga mos e'lonlarni ko'ra olasiz."
+         description="Tanlagan shahringiz bo'yicha e'lon joylashingiz mumkin. Agar shahar tanlanmasa, e'lon avtomatik tarzda Navoiy viloyati uchun joylanadi"
          confirm-text="Saqlash"
          cancel-text="Yopish"
          :danger="true"

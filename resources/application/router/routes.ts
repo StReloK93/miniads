@@ -8,7 +8,12 @@ export const routes: RouteRecordRaw[] = [
       meta: { layoutKey: "nav" },
       children: [
          { path: "", component: () => import("@pages/HomePage.vue"), name: "home" },
-
+         {
+            path: "categories",
+            component: () => import("@pages/CategoriesPage.vue"),
+            name: "categories",
+            props: true,
+         },
          { path: "profile", component: () => import("@pages/ProfilePage.vue"), name: "profile" },
          {
             path: "search",
@@ -29,12 +34,6 @@ export const routes: RouteRecordRaw[] = [
       component: () => import("@/layouts/FullPage.vue"),
       meta: { layoutKey: "full" },
       children: [
-         {
-            path: "categories",
-            component: () => import("@pages/CategoriesPage.vue"),
-            name: "categories",
-            props: true,
-         },
          {
             path: "select-category",
             props: true,

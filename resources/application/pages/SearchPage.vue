@@ -2,7 +2,7 @@
    <NavigationPageDecorator>
       <template #header>
          <h3 class="font-bold text-xl">Qidiruv</h3>
-         <article class="flex gap-4 p-4 border-b border-(--z-border) -mx-4">
+         <article class="flex gap-4 py-4">
             <Form @submit="onSubmit" class="grow flex" autocomplete="off">
                <FieldText
                   v-model="searchText"
@@ -36,13 +36,29 @@
                </FieldText>
             </Form>
             <main class="w-12">
-               <BaseButton icon-only severity="secondary">
+               <BaseButton icon-only :severity="hasFilters ? 'primary' : 'secondary'">
                   <template #icon>
                      <SlidersHorizontal class="size-5" @click="isFilterOpen = true" />
                   </template>
                </BaseButton>
             </main>
          </article>
+         <aside v-if="hasFilters">
+            <h3 class="text-(--z-muted-text) text-sm mb-1.5">Filterlar</h3>
+            <div class="pb-4 text-[11px] text-(--z-muted-text) flex flex-wrap gap-3">
+               <span v-if="filters.city_id" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
+                  {{ districts?.find((city) => city.id == filters.city_id)?.name }}
+               </span>
+
+               <span v-if="filters?.price_from" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
+                  {{ filters.price_from }} dan</span
+               >
+               <span v-if="filters?.price_to" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
+                  {{ filters.price_to }} gacha
+               </span>
+            </div>
+         </aside>
+         <div class="border-b border-(--z-border) -mx-4 px-4"></div>
       </template>
       <template #content>
          <BaseModal
@@ -61,7 +77,7 @@
             <Form @submit="submitFilter">
                <div class="mb-4">
                   <p class="mb-1 text-sm tracking-wide">Shaharni tanlang</p>
-                  <FieldSelect name="city" :options="['Uchquduq', 'Zarafshon', 'Navoiy']" />
+                  <FieldSelect name="city_id" :options="districts!" value="name" />
                </div>
                <div class="mb-4">
                   <p class="mb-1 text-sm tracking-wide">Narx</p>
@@ -116,10 +132,16 @@ import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { Search, SlidersHorizontal, X } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
-import { computed, ref } from "vue";
-import { IProduct } from "@shared/types";
+import DistrictRepo from "@shared/entities/District/DistrictRepo";
+import { computed, onMounted, ref } from "vue";
+import { IDistrict, IProduct } from "@shared/types";
 
 const isFilterOpen = ref(false);
+const filters = ref({
+   price_from: null,
+   price_to: null,
+   city_id: null,
+});
 const {
    data: products,
    execute: fetchProducts,
@@ -129,20 +151,32 @@ const {
 const { searches, addSearch, clear, removeSearch } = useRecentSearches();
 const searchText = ref<string>("");
 
-function submitFilter(params) {
-   console.log(params);
+const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
+
+async function submitFilter(params) {
+   filters.value = params;
+   await fetchProducts({ search: searchText.value, ...params });
+   isFilterOpen.value = false;
 }
 
 const showRecent = computed(() => {
    return !products.value?.length && !searchText.value.length && searches.value.length;
 });
 async function onSubmit() {
-   await fetchProducts(searchText.value);
+   await fetchProducts({ search: searchText.value, ...filters.value });
    addSearch(searchText.value);
 }
 
 async function setOldSearch(text) {
    searchText.value = text;
-   await fetchProducts(searchText.value);
+   await fetchProducts({ search: searchText.value });
 }
+
+const hasFilters = computed(() => {
+   return Object.values(filters.value || {}).some(Boolean);
+});
+
+onMounted(() => {
+   executeDistricts();
+});
 </script>

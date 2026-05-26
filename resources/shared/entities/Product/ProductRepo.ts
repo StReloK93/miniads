@@ -42,8 +42,16 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`);
    },
 
-   search(search: string) {
-      return api.get<IProduct[]>(`${baseURL}/custom/search?search=${search}`);
+   search(params: {
+      search: string;
+      city_id?: number | string;
+      category_id?: number | string;
+      price_from?: number | string;
+      price_to?: number | string;
+   }) {
+      return api.get<IProduct[]>(`${baseURL}/custom/search`, {
+         params,
+      });
    },
 
    delete(id: string | number) {

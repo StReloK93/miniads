@@ -124,7 +124,7 @@ class ProductController extends Controller
         return Product::search($request->search)
             ->query(function (Builder $query) use ($request) {
                 $query->active()
-                    ->when($request->city_id, fn($q) => $q->where('city_id', $request->city_id))
+                    ->when($request->city_id, fn($q) => $q->where('district_id', $request->city_id))
                     ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
                     ->when($request->price_from, fn($q) => $q->where('price', '>=', $request->price_from))
                     ->when($request->price_to, fn($q) => $q->where('price', '<=', $request->price_to));

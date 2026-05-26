@@ -1,5 +1,5 @@
 <template>
-   <section>
+   <section class="grid grid-rows-[auto_1fr]">
       <aside class="pb-4 mb-4 border-b border-(--z-border) -mx-4 px-4">
          <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
          <p class="title text-xs">1-qadam: E'lon turi</p>

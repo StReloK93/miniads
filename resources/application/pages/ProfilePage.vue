@@ -60,13 +60,14 @@
 
             <div class="flex gap-2 w-full mt-8">
                <h3 class="text-center text-2xl font-bold w-full overflow-hidden transition-all duration-300 delay-150">
-                  E'lonlar
+                  E'lonlarim
                </h3>
                <!-- <BaseButton size="sm" rounded class="w-full" variant="text"> E'lonlar </BaseButton> -->
                <!-- <BaseButton size="sm" rounded class="w-full" severity="secondary"> Do'kon </BaseButton> -->
             </div>
          </aside>
          <BaseTabs
+            v-model="activeTab"
             :items="[
                { label: `Faol`, status: 'active' },
                { label: `O'chiq`, status: 'expired' },
@@ -99,13 +100,20 @@
          </BaseModal>
          <Transition mode="out-in">
             <div v-if="!isLoading" class="flex flex-col gap-4">
-               <ProfileProductCard
-                  v-for="product in products"
-                  :key="product.id"
-                  :product="product"
-                  @deActivate="deActivateProduct"
-                  @activate="activateProduct"
-               />
+               <template v-if="products?.length">
+                  <ProfileProductCard
+                     v-for="product in products"
+                     :key="product.id"
+                     :product="product"
+                     @deActivate="deActivateProduct"
+                     @activate="activateProduct"
+                  />
+               </template>
+               <div v-else class="flex flex-col justify-center items-center h-52 text-center">
+                  <h3 class="font-bold mb-2">Hech nima topilmadi</h3>
+                  <p class="text-(--z-muted-text)" v-if="activeTab == 0">Sizda faol elonlar yo'q</p>
+                  <p class="text-(--z-muted-text)" v-if="activeTab == 1">Sizda muddati o'tgan elonlar yo'q</p>
+               </div>
             </div>
             <main v-else class="flex flex-col gap-4">
                <BaseSkeletonCard v-for="n in 3" />
@@ -130,6 +138,8 @@ const isImagesReady = ref(false);
 const userData: any = inject("userData");
 const isOpen = ref(false);
 const header = ref<HTMLElement>();
+
+const activeTab = ref(0);
 function onTabChange(status) {
    fetchProducts(status.item.status);
 }

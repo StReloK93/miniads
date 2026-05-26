@@ -11,9 +11,18 @@ class DistrictController extends Controller
     public function index()
     {
         return Cache::rememberForever('districts:all', function () {
-            return District::query()
+            $districts = District::query()
                 ->orderBy('name')
                 ->get();
+
+            $districts->prepend(
+                new District([
+                    'id' => 0,
+                    'name' => 'Barchasi',
+                ])
+            );
+
+            return $districts->values();
         });
     }
 }

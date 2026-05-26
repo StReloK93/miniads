@@ -1,5 +1,5 @@
 <template>
-   <div class="overflow-hidden grid grid-rows-[auto_1fr] h-full select-none">
+   <div class="overflow-hidden grid grid-rows-[auto_1fr] select-none">
       <!-- Breadcrumb -->
       <div class="py-2 text-sm flex flex-wrap items-center gap-1">
          <span class="font-bold" @click="goRoot"> Barchasi </span>
@@ -14,23 +14,20 @@
       </div>
 
       <!-- Category list -->
-      <div class="overflow-hidden relative">
-         <Transition :name="transitionName" mode="out-in">
-            <ul :key="stack.length" class="divide-y divide-(--z-muted)">
-               <li
-                  v-for="cat in currentCategories"
-                  :key="cat.id"
-                  @click="selectCategory(cat)"
-                  class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md"
-               >
-                  <span>
-                     {{ cat.name }}
-                  </span>
+      <div class="relative">
+         <main class="absolute inset-0 overflow-y-scroll pb-4 no-scrollbar">
+            <Transition :name="transitionName" mode="out-in">
+               <ul :key="stack.length" class="divide-y divide-(--z-muted)">
+                  <li v-for="cat in currentCategories" :key="cat.id" @click="selectCategory(cat)" class="">
+                     <div class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md">
+                        <span> {{ cat.name }} </span>
 
-                  <ChevronRight v-if="!cat.is_page" class="size-4" />
-               </li>
-            </ul>
-         </Transition>
+                        <ChevronRight v-if="!cat.is_page" class="size-4" />
+                     </div>
+                  </li>
+               </ul>
+            </Transition>
+         </main>
       </div>
    </div>
 </template>

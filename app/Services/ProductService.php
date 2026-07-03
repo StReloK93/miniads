@@ -23,6 +23,7 @@ class ProductService
    {
       $request->merge([
          'user_id' => $request->user()->id,
+
       ]);
 
       $product = Product::create($request->all());
@@ -50,6 +51,10 @@ class ProductService
 
    public function update(Request $request, Product $product): Product
    {
+      $request->merge([
+         'district_id' => $request->district_id != 0 ? $request->district_id : null,
+      ]);
+
       $product->update($request->all());
 
       $this->syncProductParameters(

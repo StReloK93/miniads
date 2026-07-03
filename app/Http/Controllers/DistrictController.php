@@ -15,12 +15,10 @@ class DistrictController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $districts->prepend(
-                new District([
-                    'id' => 0,
-                    'name' => 'Barchasi',
-                ])
-            );
+            $districts->prepend((object) [
+                'id' => 0,
+                'name' => 'Barcha shaharlar',
+            ]);
 
             return $districts->values();
         });

@@ -46,9 +46,9 @@
             </template>
             E'lonni joylash
          </BaseButton>
-         <p class="text-xs px-4 leading-4.5 text-center text-(--z-muted-text)">
+         <!-- <p class="text-xs px-4 leading-4.5 text-center text-(--z-muted-text)">
             Elon joylashtirish orqali siz foydalanish shartlariga rozilik bildirasiz.
-         </p>
+         </p> -->
          <BaseButton
             :class="[hasFocusedInput ? 'bottom-4' : '-bottom-22']"
             type="button"

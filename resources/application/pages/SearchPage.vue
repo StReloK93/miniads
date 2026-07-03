@@ -2,7 +2,7 @@
    <NavigationPageDecorator>
       <template #header>
          <h3 class="font-bold text-xl">Qidiruv</h3>
-         <article class="flex gap-4 py-4">
+         <article class="flex gap-4 pt-4 pb-4">
             <Form @submit="onSubmit" class="grow flex" autocomplete="off">
                <FieldText
                   v-model="searchText"
@@ -43,19 +43,44 @@
                </BaseButton>
             </main>
          </article>
-         <aside v-if="hasFilters">
-            <h3 class="text-(--z-muted-text) text-sm mb-1.5">Filterlar</h3>
-            <div class="pb-4 text-[11px] text-(--z-muted-text) flex flex-wrap gap-3">
-               <span v-if="filters.city_id" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
-                  {{ districts?.find((city) => city.id == filters.city_id)?.name }}
-               </span>
-
-               <span v-if="filters?.price_from" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
-                  {{ filters.price_from }} dan</span
+         <aside v-if="hasFilters" class="-mt-2">
+            <h3 class="text-(--z-muted-text) text-sm mb-1.5">
+               Filterlar
+               <BaseButton
+                  icon-only
+                  class="h-6!"
+                  size="sm"
+                  rounded
+                  variant="text"
+                  @click="filters = { price_from: null, price_to: null, city_id: null }"
                >
-               <span v-if="filters?.price_to" class="bg-white px-2 py-1 rounded-2xl border border-(--z-border)">
-                  {{ filters.price_to }} gacha
+                  ><template #icon><X class="size-3" /></template
+               ></BaseButton>
+            </h3>
+            <div
+               class="mb-4 text-[11px] inline-flex items-center flex-wrap gap-2 bg-white px-2 py-1 rounded-2xl border border-(--z-border)"
+            >
+               <span v-if="filters.city_id">
+                  <b>
+                     {{ districts?.find((city) => city.id == filters.city_id)?.name }}
+                  </b>
                </span>
+               <span
+                  v-if="(filters?.price_from || filters?.price_to) && filters.city_id"
+                  class="inline-flex w-1 h-1 rounded-full bg-(--z-muted-text)"
+               ></span>
+               <span v-if="filters?.price_from">
+                  <b>{{ filters.price_from }}</b> dan
+               </span>
+               <span v-else> <b>0</b> dan </span>
+               <span> - </span>
+               <span v-if="filters?.price_to">
+                  <b>
+                     {{ filters.price_to }}
+                  </b>
+                  gacha
+               </span>
+               <span v-else class="inline-flex items-center gap-1"> <Infinity class="size-4" /> gacha </span>
             </div>
          </aside>
          <div class="border-b border-(--z-border) -mx-4 px-4"></div>
@@ -129,7 +154,7 @@ import BaseProductCard from "@/components/BaseProductCard.vue";
 import { Form } from "vee-validate";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
-import { Search, SlidersHorizontal, X } from "lucide-vue-next";
+import { Search, SlidersHorizontal, X, Infinity } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
 import DistrictRepo from "@shared/entities/District/DistrictRepo";

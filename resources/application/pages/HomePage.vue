@@ -1,7 +1,7 @@
 <template>
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
-         <BaseChangeDistrictModal />
+         <BaseChangeDistrictModal @district-changed="onDistrictChanged" />
          <CategoriesSlider />
       </template>
 
@@ -34,7 +34,6 @@ import BaseSkeletonCard from "@/components/BaseSkeletonCard.vue";
 import CategoriesSlider from "@/components/CategoriesSlider.vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
-import { Swiper, SwiperSlide } from "swiper/vue";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { preloadImages } from "@/modules/Helpers";
 import BaseProductCard from "@/components/BaseProductCard.vue";
@@ -44,20 +43,10 @@ import { onMounted, ref } from "vue";
 const { data: latest_ten, execute: executeLatest } = useFetchDecorator<IProduct[]>(ProductRepo.latestTen);
 
 const fullLoadingImages = ref<boolean>(false);
-const colorCards = [
-   {
-      name: "Ocean Blue",
-      desc: "Toza va ishonchli, umumiy e'lonlar uchun",
-   },
-   {
-      name: "Warm Peach",
-      desc: "Iliq va premium, uy-joy va mebel uchun",
-   },
-   {
-      name: "Mint Green",
-      desc: "Zamonaviy va yengil, xizmatlar uchun",
-   },
-];
+
+function onDistrictChanged(districtId: number) {
+   executeLatest();
+}
 
 onMounted(async () => {
    await executeLatest();

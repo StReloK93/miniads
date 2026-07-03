@@ -2,8 +2,8 @@
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
          <aside class="mb-4">
-            <h3 class="font-bold text-xl mb-4">Bo'limlar</h3>
-            <p class="text-sm text-(--z-muted-text)">Nimani izlayapsiz? Mos kategoriyani tanlang</p>
+            <h3 class="font-bold text-xl mb-2">Bo'limlar</h3>
+            <p class="text-sm text-(--z-muted-text)">Nima izlayapsiz? Mos kategoriyani tanlang</p>
          </aside>
       </template>
 
@@ -20,10 +20,10 @@
 </template>
 
 <script setup lang="ts">
-import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import NavigationPageDecorator from "@components/NavigationPageDecorator.vue";
 import { useRoute } from "vue-router";
 import { useCategory } from "@shared/entities/Category/useCategory";
-import CategorySelector from "@/components/CategorySelector.vue";
+import CategorySelector from "@components/CategorySelector.vue";
 import { computed } from "vue";
 
 const CategoryStore = useCategory();

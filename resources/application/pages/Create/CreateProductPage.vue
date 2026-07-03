@@ -3,8 +3,15 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
-               <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-               <p class="title text-xs mb-4">2-qadam: E'lon ma'lumotlari</p>
+               <div class="flex gap-2 items-center justify-between">
+                  <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+
+                  <span class="text-xs text-(--z-muted-text) inline-flex items-center underline">
+                     <MapPin class="inline-block size-3 mr-1" />
+                     {{ selectedCity?.name }}
+                  </span>
+               </div>
+               <p class="title text-xs mb-4">3-qadam: E'lon ma'lumotlari</p>
             </main>
 
             <main class="flex gap-1 items-center">
@@ -64,12 +71,27 @@ import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
 import { ICategory, InputConfig } from "@shared/types";
-import { Component, onMounted, ref, shallowRef } from "vue";
+import { Component, computed, onMounted, ref, shallowRef } from "vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import { ChevronRight } from "lucide-vue-next";
+import { ChevronRight, MapPin } from "lucide-vue-next";
+
+//
+import { IDistrict } from "@shared/types";
+import DistrictRepo from "@shared/entities/District/DistrictRepo";
+
+const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
+
+const selectedCity = computed(() => {
+   const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
+
+   const selectedDistrict = districts.value?.find((d) => d.id === cityId);
+   return selectedDistrict ? selectedDistrict : null;
+});
+//
+
 const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
@@ -148,6 +170,7 @@ async function submitForm(values: any) {
       price_type_id: values.price_type_id,
       category_id: route.params.categoryId,
       parameters: [],
+      district_id: route.params.cityId,
       images: values.images,
    };
 
@@ -170,6 +193,7 @@ function onSubmit() {
 
 onMounted(async () => {
    const categoryId = route.params.categoryId as string;
+   executeDistricts();
    await executeCategory(categoryId);
 
    if (category.value) {

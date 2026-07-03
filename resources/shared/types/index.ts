@@ -74,6 +74,7 @@ export interface IProduct {
    is_favorite: boolean;
    created_at: string;
    district: { id: number; name: string };
+   district_id: number;
    updated_at: string;
    expires_at: string;
    user: IUser;

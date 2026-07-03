@@ -23,7 +23,6 @@ class ProductService
    {
       $request->merge([
          'user_id' => $request->user()->id,
-         'district_id' => $request->user()->active_district_id,
       ]);
 
       $product = Product::create($request->all());

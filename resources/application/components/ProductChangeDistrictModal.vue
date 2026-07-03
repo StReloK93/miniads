@@ -1,5 +1,5 @@
 <template>
-   <main v-if="AuthStore.user" class="flex items-center justify-between mb-4">
+   <main>
       <BaseModal
          :show-buttons="false"
          :open="isOpen"
@@ -21,32 +21,35 @@
                   Bekor qilish
                </BaseButton>
 
-               <BaseButton @click="emit('confirm')" :loading="loading" type="submit" class="w-full">
-                  Tasdiqlash
-               </BaseButton>
+               <BaseButton @click="emit('confirm')" type="submit" class="w-full"> Tasdiqlash </BaseButton>
             </div>
          </Form>
       </BaseModal>
-      <aside>
-         <h2 class="mb-0.5 text-(--color-text-secondary)">{{ AuthStore.user?.name }}</h2>
-         <div @click="isOpen = true" class="flex gap-2 items-center text-sm underline">
-            <MapPin class="size-4" />
-            {{ AuthStore.user?.active_district?.name || "Barcha shaharlar" }}
-         </div>
-      </aside>
-      <aside></aside>
+      <Transition>
+         <h3
+            v-if="props.selectedCityId !== null && districts"
+            @click="isOpen = true"
+            class="text-xs text-(--z-muted-text) inline-flex items-center underline"
+         >
+            <MapPin class="inline-block size-3 mr-1" /> {{ selectedCity?.name }}
+         </h3>
+      </Transition>
    </main>
 </template>
 
 <script setup lang="ts">
 import { MapPin } from "lucide-vue-next";
-
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import DistrictRepo from "@shared/entities/District/DistrictRepo";
-import { useAuth } from "@shared/store/useAuth";
 import { IDistrict } from "@shared/types";
 import { Form } from "vee-validate";
-import { ref, Ref } from "vue";
+import { computed, ref, Ref } from "vue";
+
+const props = defineProps<{
+   selectedCityId: number | null;
+}>();
+
+const isOpen: Ref<boolean> = ref(false);
 
 const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
 
@@ -55,27 +58,27 @@ const emit = defineEmits<{
    (e: "confirm"): void;
 }>();
 
-executeDistricts();
-const AuthStore = useAuth();
-const loading = ref(false);
+const selectedCity = computed(() => {
+   const cityId = props.selectedCityId;
 
-const initialValues = ref({
-   city: AuthStore.user?.active_district_id || undefined,
+   const selectedDistrict = districts.value?.find((d) => d.id === cityId);
+   return selectedDistrict ? selectedDistrict : null;
+});
+
+executeDistricts();
+
+const initialValues = ref<Record<string, unknown>>({
+   city: props.selectedCityId,
 });
 
 function changeDistrict(values: Record<string, unknown>) {
-   loading.value = true;
    const district_id = values.city as number;
 
-   AuthStore.changeDistrict(district_id).finally(() => {
-      loading.value = false;
-      isOpen.value = false;
-      emit("district-changed", district_id);
-   });
+   emit("district-changed", district_id);
+   isOpen.value = false;
 }
-const isOpen: Ref<boolean> = ref(false);
 
 function onMountedModal() {
-   initialValues.value.city = AuthStore.user?.active_district_id || undefined;
+   initialValues.value.city = props.selectedCityId;
 }
 </script>

@@ -25,7 +25,7 @@ import { House, Plus, Search, User, Heart } from "lucide-vue-next";
 const items = [
    { name: "home", label: "Asosiy", icon: House },
    { name: "search", label: "Qidiruv", icon: Search },
-   { name: "create-select-category", icon: Plus, iconOnly: true },
+   { name: "create-select-city", icon: Plus, iconOnly: true },
    { name: "favorites", label: "Sevimli", icon: Heart },
    { name: "profile", label: "Profil", icon: User },
 ];

@@ -33,7 +33,7 @@ class AuthController extends Controller
 	public function changeDistrict(Request $request)
 	{
 		$user = $request->user();
-		$user->active_district_id = $request->input('district_id');
+		$user->active_district_id = $request->district_id != 0 ? $request->input('district_id') : null;
 		$user->save();
 
 		return $user->load('activeDistrict');

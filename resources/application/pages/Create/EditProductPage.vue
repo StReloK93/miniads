@@ -3,7 +3,13 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
-               <h3 class="font-extrabold text-xl mb-1">E'lonni tahrirlash</h3>
+               <div class="flex gap-2 items-center justify-between">
+                  <h3 class="font-extrabold text-xl mb-1">E'lonni tahrirlash</h3>
+                  <ProductChangeDistrictModal
+                     @district-changed="onDistrictChanged"
+                     :selected-city-id="selectedCityId"
+                  />
+               </div>
                <p class="title text-xs mb-4">E'lon ma'lumotlari</p>
             </main>
 
@@ -58,6 +64,7 @@
 </template>
 
 <script setup lang="ts">
+import ProductChangeDistrictModal from "@components/ProductChangeDistrictModal.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
@@ -70,6 +77,7 @@ import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductI
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { ChevronRight } from "lucide-vue-next";
+
 const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
@@ -80,11 +88,14 @@ const props = defineProps<{
    product_id: string | number;
 }>();
 
+const selectedCityId = ref<number | null>(null);
+
 var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
 const inputConfigs = shallowRef(productInputs());
 
 async function selectCategory(category: ICategory, product: IProduct) {
+   selectedCityId.value = product.district_id;
    if (category.with_price == false) {
       const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
       if (indexPrice !== -1) {
@@ -150,6 +161,10 @@ async function selectCategory(category: ICategory, product: IProduct) {
    }, 100);
 }
 
+function onDistrictChanged(districtId: number) {
+   selectedCityId.value = districtId;
+}
+
 async function submitForm(values: any) {
    const payload: any = {
       title: values.title,
@@ -161,6 +176,7 @@ async function submitForm(values: any) {
       category_id: route.params.categoryId,
       parameters: [],
       images: values.images,
+      district_id: selectedCityId.value,
    };
 
    Object.keys(values).forEach((key) => {
@@ -182,7 +198,6 @@ function onSubmit() {
 
 onMounted(async () => {
    const { data: product } = await ProductRepo.edit(props.product_id);
-
    if (product.category_id) {
       executeCategory(product.category_id).then(() => {
          if (category.value) {

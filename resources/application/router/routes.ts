@@ -35,13 +35,19 @@ export const routes: RouteRecordRaw[] = [
       meta: { layoutKey: "full" },
       children: [
          {
-            path: "select-category",
+            path: "select-category/:cityId?",
             props: true,
             component: () => import("@pages/Create/SelectCategoryPage.vue"),
             name: "create-select-category",
          },
          {
-            path: "create-product/:categoryId",
+            path: "select-city",
+            props: true,
+            component: () => import("@pages/Create/SelectCityPage.vue"),
+            name: "create-select-city",
+         },
+         {
+            path: "create-product/:categoryId/:cityId?",
             props: true,
             component: () => import("@pages/Create/CreateProductPage.vue"),
             name: "create-product",

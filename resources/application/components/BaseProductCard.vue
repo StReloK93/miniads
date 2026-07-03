@@ -52,7 +52,7 @@
             <aside class="text-xs my-1">
                <div class="text-(--z-muted-text) inline-flex items-center gap-1">
                   <span class="font-semibold">
-                     {{ product.district?.name || "Navoiy V" }}
+                     {{ product.district?.name || "Barcha shaharlar" }}
                   </span>
                   <span class="inline-flex w-1 h-1 rounded-full bg-(--z-primary)"></span>
                   <span>

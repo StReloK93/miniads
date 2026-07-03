@@ -50,7 +50,7 @@
                   </h3>
                   <aside class="text-xs my-1">
                      <span class="text-(--z-muted-text) inline-flex items-center gap-1">
-                        {{ product.district?.name || "Navoiy V." }}
+                        {{ product.district?.name || "Barcha shaharlar" }}
                         <span class="inline-flex w-1 h-1 rounded-full bg-(--z-muted-text)"></span>
                         <span>
                            {{ timeAgo(product.created_at) }}

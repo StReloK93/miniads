@@ -94,7 +94,12 @@ class ProductController extends Controller
         return Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
-            ->when(auth()->user()->active_district_id, fn($q) => $q->where('district_id', auth()->user()->active_district_id))
+            ->when(auth()->user()->active_district_id, function ($q) {
+                $q->where(function ($query) {
+                    $query->where('district_id', auth()->user()->active_district_id)
+                        ->orWhereNull('district_id');
+                });
+            })
             ->active()
             ->latest()
             ->take(25)

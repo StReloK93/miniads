@@ -13,14 +13,14 @@
                >
                   <template #left>
                      <div class="px-2.5">
-                        <Search class="size-4.5 inline" />
+                        <SearchIcon class="size-4.5 inline" />
                      </div>
                   </template>
                   <template #right>
                      <BaseButton
                         tab="0"
                         v-if="searchText.length"
-                        @mousedown.prevent="setOldSearch('')"
+                        @mousedown.prevent="clearSearch"
                         type="button"
                         icon-only
                         rounded
@@ -36,19 +36,27 @@
                </FieldText>
             </Form>
             <main class="w-12">
-               <BaseButton icon-only :severity="hasFilters ? 'primary' : 'secondary'">
+               <BaseButton
+                  @click="isFilterOpen = true"
+                  :disabled="activeSearchText.length == 0"
+                  icon-only
+                  :severity="hasFilters ? 'primary' : 'secondary'"
+               >
                   <template #icon>
-                     <SlidersHorizontal class="size-5" @click="isFilterOpen = true" />
+                     <SlidersHorizontal class="size-5" />
                   </template>
                </BaseButton>
             </main>
          </article>
+         <!-- <aside class="text-(--z-muted-text) text-sm mb-1.5">
+            {{ activeSearchText }}
+         </aside> -->
          <aside v-if="hasFilters" class="-mt-2">
-            <h3 class="text-(--z-muted-text) text-sm mb-1.5">
+            <h3 class="text-(--z-muted-text) text-sm">
                Filterlar
                <BaseButton
                   icon-only
-                  class="h-6!"
+                  class="h-6! relative top-px"
                   size="sm"
                   rounded
                   variant="text"
@@ -57,12 +65,10 @@
                   ><template #icon><X class="size-3" /></template
                ></BaseButton>
             </h3>
-            <div
-               class="mb-4 text-[11px] inline-flex items-center flex-wrap gap-2 bg-white px-2 py-1 rounded-2xl border border-(--z-border)"
-            >
+            <div class="mb-4 text-[11px] inline-flex items-center flex-wrap gap-2">
                <span v-if="filters.city_id">
                   <b>
-                     {{ districts?.find((city) => city.id == filters.city_id)?.name }}
+                     {{ cityStore.cities?.find((city) => city.id == filters.city_id)?.name }}
                   </b>
                </span>
                <span
@@ -102,7 +108,7 @@
             <Form @submit="submitFilter">
                <div class="mb-4">
                   <p class="mb-1 text-sm tracking-wide">Shaharni tanlang</p>
-                  <FieldSelect name="city_id" :options="districts!" value="name" />
+                  <FieldSelect name="city_id" :options="cityStore.cities!" value="name" />
                </div>
                <div class="mb-4">
                   <p class="mb-1 text-sm tracking-wide">Narx</p>
@@ -142,8 +148,16 @@
                </div>
             </main>
          </aside>
-
-         <BaseProductCard v-for="product in products" :product="product" />
+         <div v-if="isLoading" class="h-full flex flex-col items-center justify-center">Qidiruv...</div>
+         <template v-else-if="products?.length">
+            <BaseProductCard v-for="product in products" :product="product" />
+         </template>
+         <template v-else-if="activeSearchText">
+            <div class="h-full flex flex-col items-center justify-center">
+               <p class="font-bold">'{{ activeSearchText }}' so'rovi bo'yicha</p>
+               <h3>Hech nima topilmadi</h3>
+            </div>
+         </template>
          <!--  -->
       </template>
    </NavigationPageDecorator>
@@ -154,12 +168,13 @@ import BaseProductCard from "@/components/BaseProductCard.vue";
 import { Form } from "vee-validate";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
-import { Search, SlidersHorizontal, X, Infinity } from "lucide-vue-next";
+import { Search as SearchIcon, SlidersHorizontal, X, Infinity } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
-import { computed, onMounted, ref } from "vue";
-import { IDistrict, IProduct } from "@shared/types";
+import { computed, ref } from "vue";
+import { IProduct } from "@shared/types";
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 
 const isFilterOpen = ref(false);
 const filters = ref({
@@ -167,16 +182,10 @@ const filters = ref({
    price_to: null,
    city_id: null,
 });
-const {
-   data: products,
-   execute: fetchProducts,
-   isFirstLoading,
-   isLoading,
-} = useFetchDecorator<IProduct[]>(ProductRepo.search);
-const { searches, addSearch, clear, removeSearch } = useRecentSearches();
+const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.search);
+const { searches, addSearch, removeSearch, clear } = useRecentSearches();
 const searchText = ref<string>("");
-
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
+const activeSearchText = ref<string>("");
 
 async function submitFilter(params) {
    filters.value = params;
@@ -190,9 +199,11 @@ const showRecent = computed(() => {
 async function onSubmit() {
    await fetchProducts({ search: searchText.value, ...filters.value });
    addSearch(searchText.value);
+   activeSearchText.value = searchText.value;
 }
 
 async function setOldSearch(text) {
+   activeSearchText.value = text;
    searchText.value = text;
    await fetchProducts({ search: searchText.value });
 }
@@ -201,7 +212,8 @@ const hasFilters = computed(() => {
    return Object.values(filters.value || {}).some(Boolean);
 });
 
-onMounted(() => {
-   executeDistricts();
-});
+function clearSearch() {
+   setOldSearch("");
+   filters.value = { price_from: null, price_to: null, city_id: null };
+}
 </script>

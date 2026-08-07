@@ -24,23 +24,20 @@
 
 <script setup lang="ts">
 import { MapPin } from "lucide-vue-next";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
-import { IDistrict } from "@shared/types";
-
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
 
 import CategorySelector from "@components/CategorySelector.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";
-import { useFetchDecorator } from "@shared/composables/useFetch";
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 
 const route = useRoute();
 
 const selectedCity = computed(() => {
    const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
 
-   const selectedDistrict = districts.value?.find((d) => d.id === cityId);
+   const selectedDistrict = cityStore.cities?.find((d) => d.id === cityId);
    return selectedDistrict ? selectedDistrict.name : null;
 });
 
@@ -50,7 +47,6 @@ const activeCategoryId = computed(() => {
 const CategoryStore = useCategory();
 
 onMounted(() => {
-   executeDistricts();
    import("@pages/Create/CreateProductPage.vue");
 });
 </script>

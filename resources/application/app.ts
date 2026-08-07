@@ -1,6 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { isTMA, retrieveRawInitData, retrieveLaunchParams } from "@tma.js/bridge";
+import { isTMA, retrieveRawInitData, retrieveLaunchParams, postEvent } from "@tma.js/bridge";
 import App from "@/App.vue";
 import router from "@/router";
 import { setupTMAUI } from "@/modules/InitApp";
@@ -10,7 +10,6 @@ import "@shared/css/ui.scss";
 initTheme();
 const app = createApp(App);
 app.use(createPinia());
-
 const authStore = useAuth();
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
@@ -21,10 +20,10 @@ const initApp = async () => {
 
    try {
       if (tma) {
+         postEvent("web_app_request_fullscreen");
          initData = tma ? retrieveRawInitData() : null;
          setupTMAUI();
          userData = retrieveLaunchParams();
-         console.log(userData);
 
          await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
       } else {

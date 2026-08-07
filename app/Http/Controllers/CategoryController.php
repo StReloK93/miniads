@@ -24,7 +24,7 @@ class CategoryController extends Controller
 	{
 		$key = 'categories:parents:' . ($parent_id ?? 'root');
 
-		return Cache::rememberForever($key, function () use ($parent_id, $key) {
+		return Cache::remember('districts:all', now()->addMinutes(15), function () use ($parent_id, $key) {
 			Log::info("CATEGORY FROM DB: {$key}");
 			return Category::where('parent_id', $parent_id)
 				->with('children')

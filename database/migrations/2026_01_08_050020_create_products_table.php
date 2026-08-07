@@ -28,6 +28,7 @@ return new class extends Migration {
             // Holati
             $table->integer('views_count')->default(0); // Ko'rishlar soni
             $table->bigInteger('price')->nullable(); // Narxi
+            $table->boolean('contract_price')->default(false); // Narxi
 
             $table->foreignId('price_type_id')->nullable()->constrained()->onDelete('cascade');
 

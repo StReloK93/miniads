@@ -78,16 +78,13 @@ import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { ChevronRight, MapPin } from "lucide-vue-next";
 
-//
-import { IDistrict } from "@shared/types";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
-
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 
 const selectedCity = computed(() => {
    const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
 
-   const selectedDistrict = districts.value?.find((d) => d.id === cityId);
+   const selectedDistrict = cityStore.cities?.find((d) => d.id === cityId);
    return selectedDistrict ? selectedDistrict : null;
 });
 //
@@ -193,7 +190,6 @@ function onSubmit() {
 
 onMounted(async () => {
    const categoryId = route.params.categoryId as string;
-   executeDistricts();
    await executeCategory(categoryId);
 
    if (category.value) {

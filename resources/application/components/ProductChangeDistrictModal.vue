@@ -14,7 +14,7 @@
             <MapPin class="size-4" />
          </template>
          <Form @submit="changeDistrict" :initial-values="initialValues" @vue:unmounted="onMountedModal">
-            <FieldSelect name="city" :options="districts!" value="name" />
+            <FieldSelect name="city" :options="cityStore.cities!" value="name" />
 
             <div class="mt-6 flex gap-4">
                <BaseButton @click="isOpen = false" type="button" severity="glass" class="w-full">
@@ -27,7 +27,7 @@
       </BaseModal>
       <Transition>
          <h3
-            v-if="props.selectedCityId !== null && districts"
+            v-if="props.selectedCityId !== null && cityStore.cities"
             @click="isOpen = true"
             class="text-xs text-(--z-muted-text) inline-flex items-center underline"
          >
@@ -39,19 +39,15 @@
 
 <script setup lang="ts">
 import { MapPin } from "lucide-vue-next";
-import { useFetchDecorator } from "@shared/composables/useFetch";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
-import { IDistrict } from "@shared/types";
 import { Form } from "vee-validate";
 import { computed, ref, Ref } from "vue";
-
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 const props = defineProps<{
    selectedCityId: number | null;
 }>();
 
 const isOpen: Ref<boolean> = ref(false);
-
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
 
 const emit = defineEmits<{
    (e: "district-changed", districtId: number): void;
@@ -61,11 +57,9 @@ const emit = defineEmits<{
 const selectedCity = computed(() => {
    const cityId = props.selectedCityId;
 
-   const selectedDistrict = districts.value?.find((d) => d.id === cityId);
+   const selectedDistrict = cityStore.cities?.find((d) => d.id === cityId);
    return selectedDistrict ? selectedDistrict : null;
 });
-
-executeDistricts();
 
 const initialValues = ref<Record<string, unknown>>({
    city: props.selectedCityId,

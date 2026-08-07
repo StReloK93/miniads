@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\TelegramAuth;
@@ -12,6 +13,9 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
 Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetAuth']);
+
+
+Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegraph.webhook');
 
 if (app()->environment('local')) {
     Route::post('/test-auth', [AuthController::class, 'testAuth']);

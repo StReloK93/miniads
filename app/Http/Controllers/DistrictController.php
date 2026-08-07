@@ -10,7 +10,7 @@ class DistrictController extends Controller
 
     public function index()
     {
-        return Cache::rememberForever('districts:all', function () {
+        return Cache::remember('districts:all', now()->addMinutes(15), function () {
             $districts = District::query()
                 ->orderBy('name')
                 ->get();

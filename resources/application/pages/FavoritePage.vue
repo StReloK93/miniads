@@ -10,9 +10,12 @@
       </template>
       <template #content>
          <Transition mode="out-in">
-            <main v-if="fullLoadingImages" class="flex flex-col gap-4">
+            <main v-if="fullLoadingImages && favorites?.length" class="flex flex-col gap-4">
                <BaseProductCard v-for="product in favorites" :product="product" :key="product.id" />
             </main>
+            <div v-else-if="favorites?.length == 0" class="font-bold h-full flex items-center justify-center">
+               Hech nima topilmadi
+            </div>
             <main v-else class="flex flex-col gap-4">
                <BaseSkeletonCard v-for="n in 3" />
             </main>

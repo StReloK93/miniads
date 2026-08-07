@@ -7,7 +7,7 @@
       <div class="relative">
          <main class="absolute inset-0 overflow-y-scroll pb-4 no-scrollbar">
             <ul class="divide-y divide-(--z-muted)">
-               <li v-for="cat in districts" :key="cat.id">
+               <li v-for="cat in cityStore.cities" :key="cat.id">
                   <div
                      @click="() => selectDistrict(cat)"
                      class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md"
@@ -24,13 +24,12 @@
 
 <script setup lang="ts">
 import { ChevronRight } from "lucide-vue-next";
-import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
 import { IDistrict } from "@shared/types";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
 const router = useRouter();
 
 function selectDistrict(district: IDistrict) {
@@ -46,7 +45,6 @@ function selectDistrict(district: IDistrict) {
 }
 
 onMounted(() => {
-   executeDistricts();
    import("@pages/Create/CreateProductPage.vue");
 });
 </script>

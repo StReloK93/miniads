@@ -14,7 +14,7 @@
             <MapPin class="size-4" />
          </template>
          <Form @submit="changeDistrict" :initial-values="initialValues" @vue:unmounted="onMountedModal">
-            <FieldSelect name="city" :options="districts!" value="name" />
+            <FieldSelect name="city" :options="cityStore.cities!" value="name" />
 
             <div class="mt-6 flex gap-4">
                <BaseButton @click="isOpen = false" type="button" severity="glass" class="w-full">
@@ -40,22 +40,17 @@
 
 <script setup lang="ts">
 import { MapPin } from "lucide-vue-next";
-
-import { useFetchDecorator } from "@shared/composables/useFetch";
-import DistrictRepo from "@shared/entities/District/DistrictRepo";
 import { useAuth } from "@shared/store/useAuth";
-import { IDistrict } from "@shared/types";
 import { Form } from "vee-validate";
 import { ref, Ref } from "vue";
-
-const { data: districts, execute: executeDistricts } = useFetchDecorator<IDistrict[]>(DistrictRepo.index);
+import { useCity } from "@shared/entities/Category/useCity";
+const cityStore = useCity();
 
 const emit = defineEmits<{
    (e: "district-changed", districtId: number): void;
    (e: "confirm"): void;
 }>();
 
-executeDistricts();
 const AuthStore = useAuth();
 const loading = ref(false);
 

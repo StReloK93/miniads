@@ -14,8 +14,10 @@ import { useRoute, useRouter } from "vue-router";
 
 import { nextTick, onMounted, ref } from "vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
+import { useCity } from "@shared/entities/Category/useCity";
 import { on, postEvent } from "@tma.js/bridge";
 const categoryStore = useCategory();
+const cityStore = useCity();
 const animationName = ref("");
 
 const router = useRouter();
@@ -41,6 +43,7 @@ function canPrefetch(): boolean {
 
 onMounted(async () => {
    await categoryStore.getParentCategories();
+   await cityStore.getCities();
    await nextTick();
    const loader = document.getElementById("loader");
 

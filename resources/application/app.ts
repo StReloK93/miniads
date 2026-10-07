@@ -7,35 +7,68 @@ import { setupTMAUI } from "@/modules/InitApp";
 import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/composables/useTheme";
 import "@shared/css/ui.scss";
+
 initTheme();
+
 const app = createApp(App);
 app.use(createPinia());
 const authStore = useAuth();
 
-// 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {
-   var userData: any = null;
-   var initData: any = null;
-   const tma = isTMA();
+   let userData: ReturnType<typeof retrieveLaunchParams> | null = null;
+   let startRoute: { name: "product-id"; params: { id: string } } | { name: "create-select-category" } | null = null;
 
    try {
+      const tma = isTMA();
+
       if (tma) {
          postEvent("web_app_request_fullscreen");
-         initData = tma ? retrieveRawInitData() : null;
          setupTMAUI();
-         userData = retrieveLaunchParams();
+         const initData = retrieveRawInitData();
+         const launchParams = retrieveLaunchParams();
+         userData = launchParams;
+         const startParam = launchParams.tgWebAppStartParam;
+         const productStartParam = /^product_(\d+)$/.exec(startParam ?? "");
+         if (productStartParam) {
+            startRoute = { name: "product-id", params: { id: productStartParam[1] } };
+         } else if (startParam === "create") {
+            startRoute = { name: "create-select-category" };
+         }
 
-         await authStore.signInTelegram(initData).catch(() => console.warn("TMA Auth failed"));
+         try {
+            await authStore.signInTelegram(initData);
+         } catch (error) {
+            console.error("Telegram Mini App authentication failed.", error);
+         }
       } else {
-         await authStore.getUser().catch(() => console.warn("User fetch failed"));
+         try {
+            await authStore.getUser();
+         } catch (error) {
+            console.error("Unable to restore the signed-in user.", error);
+         }
 
          if (import.meta.env.DEV && !authStore.user) {
-            await authStore.testAuth();
+            try {
+               await authStore.testAuth();
+            } catch (error) {
+               console.error("Development authentication failed.", error);
+            }
          }
       }
    } catch (error) {
+      console.error("Application startup initialization failed.", error);
    } finally {
       app.use(router).provide("userData", userData).mount("#app");
+
+      try {
+         await router.isReady();
+
+         if (startRoute) {
+            await router.replace(startRoute);
+         }
+      } catch (error) {
+         console.error("Application initial navigation failed.", error);
+      }
    }
 };
 

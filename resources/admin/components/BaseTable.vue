@@ -1,65 +1,96 @@
 <template>
-   <DataTable size="small" :value="props.parameters" class="w-full bg-transparent! no-last-border">
-      <Column v-for="column in props.columns" :key="column.field" :field="column.field" :header="column.header">
-         <template #body="slotProps">
-            <template v-if="column.formatter">
-               <main class="flex gap-1">
-                  <Chip
-                     v-for="value in column.formatter(slotProps.data[column.field])"
-                     :label="value"
-                     class="py-0.5! text-gray-600! dark:text-gray-100! rounded! capitalize"
-                  />
-               </main>
-            </template>
+   <div class="admin-table-wrap">
+      <table class="admin-table">
+         <thead>
+            <tr>
+               <th v-for="column in columns" :key="column.field">{{ column.header }}</th>
+               <th class="admin-actions-heading">Amallar</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr v-for="row in parameters" :key="row.id">
+               <td v-for="column in columns" :key="column.field">
+                  <div v-if="column.formatter" class="admin-chip-list">
+                     <span v-for="(value, index) in column.formatter(row[column.field])" :key="`${value}-${index}`" class="admin-chip">
+                        {{ value }}
+                     </span>
+                     <span v-if="!column.formatter(row[column.field])?.length" class="admin-cell-subtitle">—</span>
+                  </div>
+                  <span v-else>{{ row[column.field] ?? "—" }}</span>
+               </td>
+               <td class="admin-actions">
+                  <button class="admin-icon-button" type="button" :aria-label="`${row.id} ni tahrirlash`" title="Tahrirlash" @click="emit('edit', row.id)">
+                     <Pencil class="size-4" />
+                  </button>
+                  <button class="admin-icon-button admin-danger" type="button" :aria-label="`${row.id} ni o‘chirish`" title="O‘chirish" @click="confirmDelete(row)">
+                     <Trash2 class="size-4" />
+                  </button>
+               </td>
+            </tr>
+            <tr v-if="parameters.length === 0">
+               <td :colspan="columns.length + 1" class="admin-empty-cell">Ma’lumot topilmadi.</td>
+            </tr>
+         </tbody>
+      </table>
 
-            <template v-else>
-               {{ slotProps.data[column.field] }}
-            </template>
-         </template>
-      </Column>
-      <Column body-style="text-align:center;width:6rem">
-         <template #body="{ data }">
-            <Button icon="pi pi-pencil" text severity="info" rounded @click="emit('edit', data.id)" />
-            <!-- :loading="props.editButtonLoading == data.id" -->
-            <Button icon="pi pi-trash" text rounded severity="danger" @click="confirmDelete($event, data.id)" />
-            <!-- :loading="props.deleteButtonLoading == data.id" -->
-         </template>
-      </Column>
-   </DataTable>
+      <BaseModal
+         :open="deleteTarget !== null"
+         title="O‘chirishni tasdiqlang"
+         description="O‘chirilgan ma’lumotdan foydalanib bo‘lmaydi."
+         confirm-text="O‘chirish"
+         cancel-text="Bekor qilish"
+         danger
+         @close="deleteTarget = null"
+         @confirm="deleteConfirmed"
+      >
+         <template #icon><TriangleAlert class="size-5 text-(--z-danger)" /></template>
+         <p class="admin-confirm-copy">Ushbu yozuvni o‘chirmoqchimisiz?</p>
+      </BaseModal>
+   </div>
 </template>
 
 <script setup lang="ts">
-import { DataTable, Column, Chip, Button } from "primevue";
-import { useConfirm } from "primevue/useconfirm";
-const confirm = useConfirm();
+import { ref } from "vue";
+import { Pencil, Trash2, TriangleAlert } from "lucide-vue-next";
+import BaseModal from "@shared/ui/BaseModal.vue";
+
 const emit = defineEmits<{
-   (e: "edit", id: string | number): void;
-   (e: "delete", id: string | number): void;
+   (event: "edit", id: string | number): void;
+   (event: "delete", id: string | number): void;
 }>();
-const props = defineProps<{
-   parameters: any[];
+defineProps<{
+   parameters: Record<string, any>[];
    columns: { field: string; header: string; formatter?: (value: any) => any[] }[];
 }>();
+const deleteTarget = ref<Record<string, any> | null>(null);
 
-const confirmDelete = (event, id: number) => {
-   console.log(event);
+function confirmDelete(row: Record<string, any>) {
+   deleteTarget.value = row;
+}
 
-   confirm.require({
-      target: event.currentTarget,
-      message: "Aniq o'chirmoqchimisiz - Malumot qayta tiklanmaydi?",
-      icon: "pi pi-exclamation-triangle",
-      rejectProps: {
-         label: "Bekor qilish",
-         severity: "secondary",
-         outlined: true,
-      },
-      acceptProps: {
-         label: "O'chirish",
-         severity: "danger",
-      },
-      accept: () => {
-         emit("delete", id);
-      },
-   });
-};
+function deleteConfirmed() {
+   if (deleteTarget.value) emit("delete", deleteTarget.value.id);
+   deleteTarget.value = null;
+}
 </script>
+
+<style scoped>
+.admin-chip-list {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px;
+}
+
+.admin-chip {
+   border-radius: 20px;
+   background: var(--z-muted);
+   padding: 3px 7px;
+   color: var(--z-muted-text);
+   font-size: 9px;
+}
+
+.admin-confirm-copy {
+   color: var(--z-muted-text);
+   font-size: 13px;
+}
+</style>

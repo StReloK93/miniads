@@ -2,17 +2,21 @@
    <main @click="$router.push({ name: 'product-id', params: { id: product.id } })">
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <div class="mb-2.5 relative">
-            <img
+            <ProductImageView
                v-if="props.product.images && props.product.images.length > 0"
-               :src="productImage"
-               class="rounded-[10px] w-full object-cover aspect-2/1"
+               :src="`/storage/${product.images[0].src}`"
+               :crop-x="product.images[0].crop_x"
+               :crop-y="product.images[0].crop_y"
+               :crop-scale="product.images[0].crop_scale"
+               class="rounded-[10px] w-full aspect-video"
+               alt="Rasm"
             />
             <div
                v-else
                :style="{
                   backgroundImage: product.back_color.gradient,
                }"
-               class="rounded-[10px] w-full object-cover aspect-2/1 flex items-center"
+               class="rounded-[10px] w-full object-cover aspect-video flex items-center"
             >
                <h3 class="font-bold text-2xl text-white px-4 pt-5 text-center w-full">
                   {{ product.title }}
@@ -61,7 +65,7 @@
 
                   <span class="inline-flex w-1 h-1 rounded-full bg-(--z-primary)"></span>
                   <span>
-                     {{ timeAgo(product.created_at) }}
+                     {{ timeAgo(product.published_at) }}
                   </span>
                </div>
             </aside>
@@ -74,9 +78,10 @@
 import { Heart, Route } from "lucide-vue-next";
 import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
 import { formatPrice } from "@/modules/Helpers";
+import ProductImageView from "@shared/ui/ProductImageView.vue";
 const props = defineProps<{
    product: IProduct;
 }>();
@@ -98,10 +103,4 @@ async function toggleFavorite() {
    props.product.is_favorite = !props.product.is_favorite;
 }
 
-const productImage = computed(() => {
-   if (props.product.images && props.product.images.length > 0) {
-      return `/storage/${props.product.images[0].src}`;
-   }
-   return "/images/no-image.png"; // Public papkadagi default rasm yo'li
-});
 </script>

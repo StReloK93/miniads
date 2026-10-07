@@ -1,116 +1,46 @@
 <template>
-   <Form @submit="submit" class="mt-4">
-      <template v-if="isLoadingData == false" class="">
-         <main
-            v-for="(value, index) in formData"
-            :key="index"
-            class="flex items-center gap-2 mb-1 select-none bg-tertiary p-0.5 rounded-md border border-secondary"
-         >
-            <main class="w-2/5 flex items-center gap-5">
-               <ToggleButton
-                  size="small"
-                  v-model="value.select"
-                  onLabel="On"
-                  offLabel="Off"
-                  onIcon="pi pi-lock"
-                  offIcon="pi pi-lock-open"
-                  class="w-20"
-               />
-               <div class="w-1/2 text-tertiary">{{ index + 1 }} - {{ value.parameter.title }}</div>
-            </main>
-            <main class="flex w-3/5 items-center" :class="{ 'opacity-40 dark:opacity-25': !value.select }">
-               <div class="w-1/2">
-                  <div class="flex items-center gap-2">
-                     <Checkbox
-                        binary
-                        :disabled="!value.select"
-                        v-model="value.is_required"
-                        :inputId="`${value.parameter.id + value.parameter.type}`"
-                        :name="`${value.parameter.id + value.parameter.type}`"
-                     />
-                     <label :for="`${value.parameter.id + value.parameter.type}`"> Majrubiy </label>
-                  </div>
-               </div>
-               <div class="w-1/2">
-                  <InputNumber
-                     size="small"
-                     :disabled="!value.select"
-                     v-model="value.sort_order"
-                     inputId="horizontal-buttons"
-                     showButtons
-                     buttonLayout="horizontal"
-                     :step="1"
-                     :max="20"
-                     :min="0"
-                     fluid
-                  >
-                     <template #incrementbuttonicon>
-                        <span class="pi pi-plus" />
-                     </template>
-                     <template #decrementbuttonicon>
-                        <span class="pi pi-minus" />
-                     </template>
-                  </InputNumber>
-               </div>
-            </main>
-         </main>
+   <form class="category-parameters" @submit.prevent="submit">
+      <div v-if="error" class="category-parameters-error">{{ error }}</div>
+      <div v-if="isLoadingData" class="category-parameters-loading">Parametrlar yuklanmoqda…</div>
+      <template v-else>
+         <div v-if="formData.length === 0" class="category-parameters-empty">Avval parametr yarating.</div>
+         <article v-for="(item, index) in formData" :key="item.parameter_id" class="category-parameter-row">
+            <label class="category-parameter-enabled">
+               <input v-model="item.select" type="checkbox" />
+               <span class="category-switch" aria-hidden="true"></span>
+               <span class="category-parameter-title">{{ index + 1 }}. {{ item.parameter.title || item.parameter.placeholder }}</span>
+            </label>
+            <label class="category-parameter-required">
+               <input v-model="item.is_required" type="checkbox" :disabled="!item.select" />
+               <span>Majburiy</span>
+            </label>
+            <label class="category-order">
+               <span>Tartib</span>
+               <input v-model.number="item.sort_order" type="number" min="0" max="20" :disabled="!item.select" />
+            </label>
+         </article>
       </template>
-      <Skeleton v-else class="w-full" width="100%" height="300px" border-radius="8px" />
-      <main class="flex justify-end mt-5">
-         <Button
-            type="button"
-            size="small"
-            severity="secondary"
-            class="mr-3"
-            label="Bekor qilish"
-            @click="emit('close')"
-         />
-         <Button
-            type="submit"
-            size="small"
-            severity="contrast"
-            class="w-26"
-            :loading="isLoading"
-            label="Saqlash"
-            icon="pi pi-circle"
-         />
-      </main>
-   </Form>
+      <footer class="category-parameters-footer">
+         <BaseButton type="button" severity="secondary" variant="text" :disabled="isLoading" @click="emit('close')">
+            Bekor qilish
+         </BaseButton>
+         <BaseButton type="submit" :loading="isLoading" :disabled="isLoadingData || Boolean(error)">Saqlash</BaseButton>
+      </footer>
+   </form>
 </template>
 
 <script setup lang="ts">
-import { Form } from "@primevue/forms";
-import { Button, Checkbox, InputNumber, Skeleton, ToggleButton } from "primevue";
+import { onMounted, ref } from "vue";
+import BaseButton from "@shared/ui/BaseButton.vue";
 import CategoryParameterRepo from "@shared/entities/CategoryParameter/CategoryParameterRepo";
 import ParameterRepo from "@shared/entities/Parameter/ParameterRepo";
 import { IParameter } from "@shared/types";
-import { TreeNode } from "primevue/treenode";
-import { ref, onMounted } from "vue";
 
-const emit = defineEmits(["close"]);
-
+const emit = defineEmits<{ (event: "close"): void }>();
+const props = defineProps<{ category: { key: number | string; label: string } }>();
 const isLoading = ref(false);
 const isLoadingData = ref(false);
-async function submit() {
-   isLoading.value = true;
-   const submitData = formData.value
-      .filter((value) => value.select)
-      .map((value) => ({
-         parameter_id: value.parameter_id,
-         is_required: value.is_required,
-         sort_order: value.sort_order,
-      }));
-
-   await CategoryParameterRepo.store(props.category.key, submitData).then(() => {
-      isLoading.value = false;
-      emit("close");
-   });
-}
-
-const props = defineProps<{
-   category: TreeNode;
-}>();
-
+const error = ref("");
 const formData = ref<
    {
       parameter: IParameter;
@@ -120,41 +50,149 @@ const formData = ref<
       select: boolean;
    }[]
 >([]);
-const paramaters = ref<IParameter[]>([]);
 
-async function getData() {
-   const { data } = await ParameterRepo.index();
-   paramaters.value = data;
-
-   const formatting = data.map((parameter) => ({
-      select: false,
-
-      parameter: parameter,
-      parameter_id: parameter.id,
-      is_required: false,
-      sort_order: 0,
-   }));
-
-   formData.value = formatting;
+async function submit() {
+   isLoading.value = true;
+   error.value = "";
+   try {
+      const submitData = formData.value
+         .filter((value) => value.select)
+         .map((value) => ({
+            parameter_id: value.parameter_id,
+            is_required: value.is_required,
+            sort_order: value.sort_order,
+         }));
+      await CategoryParameterRepo.store(props.category.key, submitData);
+      emit("close");
+   } catch (exception) {
+      console.error("Kategoriya parametrlari saqlanmadi.", exception);
+      error.value = "Parametrlarni saqlab bo‘lmadi. Qayta urinib ko‘ring.";
+   } finally {
+      isLoading.value = false;
+   }
 }
 
 onMounted(async () => {
    isLoadingData.value = true;
-
-   await getData();
-
-   const { data } = await CategoryParameterRepo.index(props.category.key);
-
-   data.forEach((categoryParameter) => {
-      const pivot = categoryParameter.pivot;
-
-      const target = formData.value.findIndex((item) => item.parameter_id === pivot.parameter_id);
-      if (target !== -1) {
-         formData.value[target].select = true;
-         formData.value[target].is_required = pivot.is_required;
-         formData.value[target].sort_order = pivot.sort_order;
-      }
-   });
-   isLoadingData.value = false;
+   error.value = "";
+   try {
+      const [{ data: parameters }, { data: categoryParameters }] = await Promise.all([
+         ParameterRepo.index(),
+         CategoryParameterRepo.index(props.category.key),
+      ]);
+      formData.value = parameters.map((parameter: IParameter) => {
+         const current = categoryParameters.find((item: IParameter) => item.id === parameter.id);
+         return {
+            parameter,
+            parameter_id: parameter.id,
+            is_required: Boolean(current?.pivot?.is_required),
+            sort_order: current?.pivot?.sort_order ?? 0,
+            select: Boolean(current),
+         };
+      });
+   } catch (exception) {
+      console.error("Kategoriya parametrlari yuklanmadi.", exception);
+      error.value = "Parametrlarni yuklab bo‘lmadi. Qayta urinib ko‘ring.";
+   } finally {
+      isLoadingData.value = false;
+   }
 });
 </script>
+
+<style scoped>
+.category-parameters {
+   display: grid;
+   gap: 8px;
+}
+
+.category-parameter-row {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr) 90px 90px;
+   align-items: center;
+   gap: 10px;
+   border: 1px solid var(--z-border);
+   border-radius: 10px;
+   background: var(--z-card);
+   padding: 10px;
+}
+
+.category-parameter-enabled,
+.category-parameter-required,
+.category-order {
+   display: flex;
+   align-items: center;
+   gap: 7px;
+   color: var(--z-foreground);
+   font-size: 11px;
+}
+
+.category-parameter-enabled input,
+.category-parameter-required input {
+   accent-color: var(--z-primary);
+}
+
+.category-switch {
+   display: none;
+}
+
+.category-parameter-title {
+   overflow: hidden;
+   font-weight: 600;
+   text-overflow: ellipsis;
+}
+
+.category-order {
+   flex-direction: column;
+   align-items: flex-start;
+   color: var(--z-muted-text);
+   font-size: 9px;
+}
+
+.category-order input {
+   width: 100%;
+   height: 31px;
+   border: 1px solid var(--z-border);
+   border-radius: 7px;
+   background: var(--z-field-background);
+   padding: 4px 7px;
+   color: var(--z-foreground);
+   font-size: 11px;
+}
+
+.category-parameters-footer {
+   position: sticky;
+   bottom: -20px;
+   display: flex;
+   justify-content: flex-end;
+   gap: 8px;
+   border-top: 1px solid var(--z-border);
+   background: var(--z-card);
+   padding: 13px 0 0;
+}
+
+.category-parameters-error {
+   border-radius: 8px;
+   background: color-mix(in srgb, var(--z-danger) 10%, transparent);
+   padding: 10px;
+   color: var(--z-danger);
+   font-size: 11px;
+}
+
+.category-parameters-loading,
+.category-parameters-empty {
+   padding: 25px 10px;
+   color: var(--z-muted-text);
+   font-size: 12px;
+   text-align: center;
+}
+
+@media (max-width: 520px) {
+   .category-parameter-row {
+      grid-template-columns: minmax(0, 1fr) 75px;
+   }
+
+   .category-order {
+      grid-column: 2;
+   }
+}
+</style>

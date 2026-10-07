@@ -17,7 +17,7 @@
                Hech nima topilmadi
             </div>
             <main v-else class="flex flex-col gap-4">
-               <BaseSkeletonCard v-for="n in 3" />
+               <BaseSkeletonCard v-for="n in 3" :key="n" />
             </main>
          </Transition>
       </template>

@@ -16,6 +16,12 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
    const isActive = ref(false);
    const isTouching = ref(false);
 
+   let velocity = 0;
+   let animationFrame: number | null = null;
+
+   const friction = 0.8;
+   const wheelPower = 0.5;
+
    watch(isActive, (newVal) => {
       if (!isTMA()) return;
       postEvent("web_app_trigger_haptic_feedback", {
@@ -55,6 +61,69 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
       startY = y;
       lastY = y;
       isTouching.value = true;
+   };
+
+   const animateScroll = () => {
+      const el = containerRef.value;
+
+      if (!el) {
+         animationFrame = null;
+         return;
+      }
+
+      // Inertsiya bilan harakat
+      el.scrollTop += velocity;
+
+      // Sekin-asta tezlikni kamaytirish
+      velocity *= friction;
+
+      // Chegaraga yetdik
+      if (el.scrollTop <= 0 || el.scrollTop >= el.scrollHeight - el.clientHeight) {
+         velocity = 0;
+      }
+
+      // Juda kichik bo'lsa to'xtatamiz
+      if (Math.abs(velocity) < 0.1) {
+         velocity = 0;
+         animationFrame = null;
+         return;
+      }
+
+      animationFrame = requestAnimationFrame(animateScroll);
+   };
+
+   const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      const el = containerRef.value;
+      if (!el) return;
+
+      // Wheel yo'nalishi va kuchi
+      velocity += e.deltaY * wheelPower;
+
+      // Juda katta tezlikka chiqib ketmasin
+      velocity = Math.max(-40, Math.min(40, velocity));
+
+      // Animation hali ishlamayotgan bo'lsa boshlaymiz
+      if (!animationFrame) {
+         animationFrame = requestAnimationFrame(animateScroll);
+      }
+
+      // Sizning progress logikangiz
+      if (e.deltaY < 0) {
+         progress.value = 100;
+         isActive.value = true;
+
+         if (el.scrollTop <= 0) {
+            progress.value = 0;
+            isActive.value = false;
+         }
+      }
+
+      if (e.deltaY > 0) {
+         progress.value = 100;
+         isActive.value = true;
+      }
    };
 
    const onTouchMove = (e: TouchEvent) => {
@@ -119,6 +188,8 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
       const el = containerRef.value;
       if (!el || options.autoScroll) return;
 
+      el.addEventListener("wheel", onWheel, { passive: false });
+
       el.addEventListener("touchstart", onTouchStart, { passive: true });
       el.addEventListener("touchmove", onTouchMove, { passive: true });
       el.addEventListener("touchend", onTouchEnd, { passive: true });
@@ -130,6 +201,8 @@ export function useTouchToggleProgress(containerRef: Ref<HTMLElement | null>, op
    onBeforeUnmount(() => {
       const el = containerRef.value;
       if (el) {
+         el.removeEventListener("wheel", onWheel);
+
          el.removeEventListener("touchstart", onTouchStart);
          el.removeEventListener("touchmove", onTouchMove);
          el.removeEventListener("touchend", onTouchEnd);

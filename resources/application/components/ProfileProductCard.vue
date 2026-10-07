@@ -3,17 +3,21 @@
       <section class="bg-(--z-card) p-1.5 rounded-(--z-rounded) select-none border border-(--z-border)">
          <main class="relative rounded-[10px] overflow-hidden">
             <div v-if="!isActive" class="absolute inset-0 inactive"></div>
-            <img
+            <ProductImageView
                v-if="props.product.images && props.product.images.length > 0"
-               :src="productImage"
-               class="w-full object-cover aspect-2/1"
+               :src="`/storage/${product.images[0].src}`"
+               :crop-x="product.images[0].crop_x"
+               :crop-y="product.images[0].crop_y"
+               :crop-scale="product.images[0].crop_scale"
+               class="w-full aspect-video"
+               alt="E’lon rasmi"
             />
             <div
                v-else
                :style="{
                   backgroundImage: product.back_color.gradient,
                }"
-               class="w-full object-cover aspect-2/1 flex items-center"
+               class="w-full object-cover aspect-video flex items-center"
             >
                <h3 class="font-bold text-2xl text-white px-4 pt-3 text-center w-full">
                   {{ product.title }}
@@ -73,6 +77,7 @@ import { timeAgo } from "@/modules/Helpers";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";
 import { formatPrice } from "@/modules/Helpers";
+import ProductImageView from "@shared/ui/ProductImageView.vue";
 
 const router = useRouter();
 
@@ -121,9 +126,4 @@ const options = computed(() => {
    return items;
 });
 
-const productImage = computed(() => {
-   if (props.product.images && props.product.images.length > 0) {
-      return `/storage/${props.product.images[0].src}`;
-   }
-});
 </script>

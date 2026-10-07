@@ -27,6 +27,19 @@
    --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html.dark {
+   --z-background: #0f172a;
+   --z-card: #111827;
+   --z-foreground: #f1f5f9;
+   --z-border: #334155;
+   --z-muted: #1e293b;
+   --z-danger: #f87171;
+   --z-primary: #f1f5f9;
+   --z-secondary: #334155;
+   --z-muted-text: #94a3b8;
+   --z-field-background: #0f172a;
+}
+
 body {
    margin: 0;
    background: var(--z-background);

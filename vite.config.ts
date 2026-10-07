@@ -8,20 +8,6 @@ import Components from "unplugin-vue-components/vite";
 import Icons from "unplugin-icons/vite";
 
 export default defineConfig({
-   // build: {
-   //    chunkSizeWarningLimit: 1000,
-   //    rollupOptions: {
-   //       output: {
-   //          manualChunks(id) {
-   //             if (id.includes("node_modules/primevue")) {
-   //                // Faqat adminApp'dan kelayotgan bo'lsa ham,
-   //                // Vite uni shared deb o'ylamasligi uchun nomini aniq qilamiz
-   //                return "admin-primevue";
-   //             }
-   //          },
-   //       },
-   //    },
-   // },
    plugins: [
       Icons({
          compiler: "vue3",

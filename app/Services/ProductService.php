@@ -7,174 +7,243 @@ use App\Models\ProductImage;
 use App\Models\ProductParameterValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 
 class ProductService
 {
+    private const MAX_IMAGE_DIMENSION = 1024;
 
-   public function isOwner(Product $product, int $userId): bool
-   {
-      return (int) $product->user_id === (int) $userId;
-   }
-   public function store(Request $request): Product
-   {
-      $request->merge([
-         'user_id' => $request->user()->id,
+    public function isOwner(Product $product, int $userId): bool
+    {
+        return (int) $product->user_id === (int) $userId;
+    }
 
-      ]);
+    public function store(Request $request): Product
+    {
+        $product = Product::create([
+            ...$request->only([
+                'title',
+                'description',
+                'category_id',
+                'district_id',
+                'phone',
+                'price',
+                'price_type_id',
+                'back_color_id',
+            ]),
+            'user_id' => $request->user()->id,
+        ]);
 
-      $product = Product::create($request->all());
+        $product->expires_at = now()->addDays($product->category->listing_duration_days);
+        $product->save();
 
-      $product->expires_at = now()->addDays($product->category->listing_duration_days);
-      $product->save();
+        if ($request->has('parameters')) {
+            $this->syncProductParameters($product->id, $request->parameters);
+        }
 
-      if ($request->has('parameters')) {
-         $this->syncProductParameters($product->id, $request->parameters);
-      }
+        foreach ($request->file('images', []) as $index => $image) {
+            $uploadedFile = is_array($image) ? ($image['file'] ?? null) : $image;
 
-      $manager = ImageManager::usingDriver(Driver::class);
+            if (!$uploadedFile instanceof UploadedFile) {
+                continue;
+            }
 
-      if ($request->has('images')) {
-         foreach ($request->file('images') as $image) {
+            $crop = $this->normalizeCrop($request->input("images.{$index}", []));
+            $src = $this->storeProductImage($uploadedFile);
+
             ProductImage::create([
-               'product_id' => $product->id,
-               'src' => $this->storeProductImage($image['file'], $manager),
+                'product_id' => $product->id,
+                'src' => $src,
+                ...$crop,
             ]);
-         }
-      }
+        }
 
-      return $product;
-   }
+        return $product;
+    }
 
-   public function update(Request $request, Product $product): Product
-   {
-      $request->merge([
-         'district_id' => $request->district_id != 0 ? $request->district_id : null,
-      ]);
+    public function update(Request $request, Product $product): Product
+    {
+        $productAttributes = $request->only([
+            'title',
+            'description',
+            'category_id',
+            'district_id',
+            'phone',
+            'price',
+            'price_type_id',
+            'back_color_id',
+        ]);
+        $productAttributes['district_id'] = ($productAttributes['district_id'] ?? null) != 0
+            ? ($productAttributes['district_id'] ?? null)
+            : null;
 
-      $product->update($request->all());
+        $product->update($productAttributes);
 
-      $this->syncProductParameters(
-         $product->id,
-         $request->input('parameters', [])
-      );
+        $this->syncProductParameters(
+            $product->id,
+            $request->input('parameters', [])
+        );
 
-      $this->syncProductImages(
-         $product,
-         $request->all()['images'] ?? []
-      );
+        $this->syncProductImages(
+            $product,
+            $request->all()['images'] ?? []
+        );
 
-      return $product;
-   }
+        return $product;
+    }
 
-   private function syncProductParameters(int $productId, array $parameters): void
-   {
-      foreach ($parameters as $param) {
-         $parameterId = $param['id'] ?? null;
+    private function syncProductParameters(int $productId, array $parameters): void
+    {
+        foreach ($parameters as $param) {
+            $parameterId = $param['id'] ?? null;
 
-         if (!$parameterId) {
-            continue;
-         }
+            if (!$parameterId) {
+                continue;
+            }
 
-         ProductParameterValue::updateOrCreate(
-            [
-               'product_id' => $productId,
-               'parameter_id' => $parameterId,
-            ],
-            [
-               'value' => $param['value'] ?? null,
-            ]
-         );
-      }
-   }
+            ProductParameterValue::updateOrCreate(
+                [
+                    'product_id' => $productId,
+                    'parameter_id' => $parameterId,
+                ],
+                [
+                    'value' => $param['value'] ?? null,
+                ]
+            );
+        }
+    }
 
-   private function syncProductImages(Product $product, array $images): void
-   {
-      $manager = ImageManager::usingDriver(Driver::class);
+    private function syncProductImages(Product $product, array $images): void
+    {
+        $existingImageIds = collect($images)
+            ->pluck('id')
+            ->filter()
+            ->map(fn($id) => (int) $id)
+            ->values();
 
-      $existingImageIds = collect($images)
-         ->pluck('id')
-         ->filter()
-         ->map(fn($id) => (int) $id)
-         ->values();
+        $validKeptImageIds = $product->images()
+            ->whereIn('id', $existingImageIds)
+            ->pluck('id');
 
-      $validKeptImageIds = $product->images()
-         ->whereIn('id', $existingImageIds)
-         ->pluck('id');
+        $imagesToDelete = $product->images()
+            ->whereNotIn('id', $validKeptImageIds)
+            ->get();
 
-      $imagesToDelete = $product->images()
-         ->whereNotIn('id', $validKeptImageIds)
-         ->get();
+        foreach ($imagesToDelete as $image) {
+            $this->deleteProductImageFile($image->src);
+            $this->deleteProductImageFile($image->crop_src);
+            $image->delete();
+        }
 
-      foreach ($imagesToDelete as $image) {
-         $this->deleteProductImageFile($image->src);
-         $image->delete();
-      }
+        foreach ($images as $image) {
+            if (!empty($image['id'])) {
+                $existingImage = $product->images()->find($image['id']);
 
-      foreach ($images as $image) {
-         if (!empty($image['id'])) {
-            continue;
-         }
+                if ($existingImage && $this->hasCropData($image)) {
+                    $crop = $this->normalizeCrop($image);
 
-         $uploadedFile = $image['file'] ?? null;
+                    if (
+                        !empty($image['crop_changed'])
+                        || $existingImage->crop_x !== $crop['crop_x']
+                        || $existingImage->crop_y !== $crop['crop_y']
+                        || (float) $existingImage->crop_scale !== $crop['crop_scale']
+                    ) {
+                        $this->deleteProductImageFile($existingImage->crop_src);
+                        $existingImage->update([
+                            'crop_src' => null,
+                            ...$crop,
+                        ]);
+                    }
+                }
 
-         if (!$uploadedFile instanceof UploadedFile) {
-            continue;
-         }
+                continue;
+            }
 
-         $path = $this->storeProductImage($uploadedFile, $manager);
+            $uploadedFile = $image['file'] ?? null;
 
-         ProductImage::create([
-            'product_id' => $product->id,
-            'src' => $path,
-         ]);
-      }
-   }
+            if (!$uploadedFile instanceof UploadedFile) {
+                continue;
+            }
 
-   private function storeProductImage(UploadedFile $file, ImageManager $manager): string
-   {
-      $filename = Str::uuid() . '.webp';
-      $path = 'products/' . $filename;
+            $crop = $this->normalizeCrop($image);
+            $path = $this->storeProductImage($uploadedFile);
 
-      $encoded = $manager
-         ->decode($file)
-         ->scaleDown(width: 800);
+            ProductImage::create([
+                'product_id' => $product->id,
+                'src' => $path,
+                ...$crop,
+            ]);
+        }
+    }
 
-      $encoded->save(public_path('storage/' . $path), 80, 'webp');
+    private function hasCropData(array $image): bool
+    {
+        return array_key_exists('crop_x', $image)
+            || array_key_exists('crop_y', $image)
+            || array_key_exists('crop_scale', $image);
+    }
 
-      return $path;
-   }
+    private function normalizeCrop(array $crop): array
+    {
+        return [
+            'crop_x' => max(0, min(100, (int) ($crop['crop_x'] ?? 50))),
+            'crop_y' => max(0, min(100, (int) ($crop['crop_y'] ?? 50))),
+            'crop_scale' => max(1, min(3, (float) ($crop['crop_scale'] ?? 1))),
+        ];
+    }
 
-   private function deleteProductImageFile(?string $src): void
-   {
-      if (!$src) {
-         return;
-      }
+    private function storeProductImage(UploadedFile $file): string
+    {
+        if (!in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            throw new \InvalidArgumentException('Rasm formati qo‘llab-quvvatlanmaydi.');
+        }
 
-      $fullPath = public_path('storage/' . ltrim($src, '/'));
+        $filename = Str::uuid() . '.webp';
+        $path = 'products/' . $filename;
+        $destination = public_path('storage/' . $path);
 
-      if (File::exists($fullPath)) {
-         File::delete($fullPath);
-      }
-   }
+        File::ensureDirectoryExists(dirname($destination));
 
+        ImageManager::usingDriver(Driver::class)
+            ->decode($file->getRealPath())
+            ->scaleDown(self::MAX_IMAGE_DIMENSION, self::MAX_IMAGE_DIMENSION)
+            ->encode(new WebpEncoder(quality: 82, strip: true))
+            ->save($destination);
 
-   public function activate(Product $product): Product
-   {
-      $product->expires_at = now()->addDays($product->category->listing_duration_days);
-      $product->save();
+        return $path;
+    }
 
-      return $product;
-   }
+    private function deleteProductImageFile(?string $src): void
+    {
+        if (!$src) {
+            return;
+        }
 
-   public function deActivate(Product $product): Product
-   {
-      $product->expires_at = now()->subMinute();
-      $product->save();
+        $fullPath = public_path('storage/' . ltrim($src, '/'));
 
-      return $product;
-   }
+        if (File::exists($fullPath)) {
+            File::delete($fullPath);
+        }
+    }
+
+    public function activate(Product $product): Product
+    {
+        $product->expires_at = now()->addDays($product->category->listing_duration_days);
+        $product->published_at = now();
+        $product->save();
+
+        return $product;
+    }
+
+    public function deActivate(Product $product): Product
+    {
+        $product->expires_at = now()->subMinute();
+        $product->save();
+
+        return $product;
+    }
 }

@@ -1,76 +1,61 @@
-import { PrimeVueInputs } from "@admin/modules/PrimeVueInputs";
+import AdminField from "@shared/ui/AdminField.vue";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
-const globalProps = { size: "small", fluid: true };
 export const categoryInputs: InputConfig[] = [
    {
-      component: PrimeVueInputs["InputText"],
+      component: AdminField,
       name: "name",
       placeholder: "Nomi",
-      props: globalProps,
+      props: { adminKind: "text" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["ToggleButton"],
+      component: AdminField,
       name: "is_page",
       props: {
-         ...globalProps,
+         adminKind: "toggle",
          onLabel: "Sahifa",
          offLabel: "Sahifa emas",
-         onIcon: "pi pi-circle",
-         offIcon: "pi pi-circle-fill",
       },
       schema: z.boolean().optional(),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["ToggleButton"],
+      component: AdminField,
       name: "with_price",
       props: {
-         ...globalProps,
+         adminKind: "toggle",
          onLabel: "Narx ko'rsatiladi",
          offLabel: "Narx ko'rsatilmaydi",
-         onIcon: "pi pi-circle",
-         offIcon: "pi pi-circle-fill",
       },
       schema: z.boolean().optional(),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["ToggleButton"],
+      component: AdminField,
       name: "with_image",
       props: {
-         ...globalProps,
+         adminKind: "toggle",
          onLabel: "Rasm ko'rsatiladi",
          offLabel: "Rasm ko'rsatilmaydi",
-         onIcon: "pi pi-circle",
-         offIcon: "pi pi-circle-fill",
       },
       schema: z.boolean().optional(),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["InputNumber"],
+      component: AdminField,
       name: "listing_duration_days",
       placeholder: "E'lon davomiyligi 5-20 kun",
-      props: { ...globalProps, min: 5, max: 20 },
+      props: { adminKind: "number", min: 5, max: 20 },
       schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Davomiyligi 1 dan katta bo'lishi kerak!"),
       class: ["mb-4"],
    },
-   // {
-   //    component: PrimeVueInputs["FieldNumber"],
-   //    name: "listing_duration_days",
-   //    props: { title: "E'lon davomiyligi (kun)", placeholder: "Masalan: 7", min: 1, max: 365 },
-   //    schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Davomiyligi 1 dan katta bo'lishi kerak!"),
-   //    class: ["mb-3"],
-   // },
-
    {
-      component: PrimeVueInputs["ImageUpload"],
+      component: AdminField,
       name: "image",
-      props: {},
+      props: { adminKind: "file" },
       schema: z
          .union([
             z.instanceof(File, { message: "Fayl bo'lishi shart" }),

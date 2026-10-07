@@ -7,10 +7,12 @@ use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
+use App\Services\TelegramProductService;
 class ProductController extends Controller
 {
     public function __construct(
-        protected ProductService $productService
+        protected ProductService $productService,
+        protected TelegramProductService $telegramProductService
     ) {
     }
 
@@ -25,19 +27,13 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $product = $this->productService->store($request);
+        $product = $this->productService->store($request);
+        $this->telegramProductService->publish($product);
 
-            return response()->json([
-                'message' => "E'lon joylandi!",
-                'product_id' => $product->id,
-            ], 201);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Xatolik yuz berdi',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "E'lon joylandi!",
+            'product_id' => $product->id,
+        ], 201);
     }
 
     public function update(Request $request, int $id)
@@ -50,18 +46,13 @@ class ProductController extends Controller
             ], 403);
         }
 
-        try {
-            $this->productService->update($request, $product);
+        $previouslyHadImage = $product->images->isNotEmpty();
+        $this->productService->update($request, $product);
+        $this->telegramProductService->synchronize($product, $previouslyHadImage);
 
-            return response()->json([
-                'message' => "E'lon muvaffaqiyatli yangilandi!",
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Xatolik yuz berdi',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "E'lon muvaffaqiyatli yangilandi!",
+        ]);
     }
 
     public function show($id, ProductViewService $viewService)
@@ -101,7 +92,7 @@ class ProductController extends Controller
                 });
             })
             ->active()
-            ->latest()
+            ->latest('published_at')
             ->take(25)
             ->get();
     }
@@ -135,6 +126,7 @@ class ProductController extends Controller
                     ->when($request->price_from, fn($q) => $q->where('price', '>=', $request->price_from))
                     ->when($request->price_to, fn($q) => $q->where('price', '<=', $request->price_to));
             })
+            ->latest('published_at')
             ->get();
     }
 
@@ -147,18 +139,11 @@ class ProductController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        try {
-            $this->productService->activate($product);
+        $this->productService->activate($product);
 
-            return response()->json([
-                'message' => "E'lon muvaffaqiyatli faollashtirildi!",
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Xatolik yuz berdi',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "E'lon muvaffaqiyatli faollashtirildi!",
+        ]);
     }
 
     public function deActivate(Request $request, int $id)
@@ -169,18 +154,11 @@ class ProductController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        try {
-            $this->productService->deActivate($product);
+        $this->productService->deActivate($product);
 
-            return response()->json([
-                'message' => "E'lon muvaffaqiyatli o'chirildi!",
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Xatolik yuz berdi',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "E'lon muvaffaqiyatli o'chirildi!",
+        ]);
     }
 
 
@@ -197,17 +175,10 @@ class ProductController extends Controller
             ], 403);
         }
 
-        try {
-            $product->delete();
+        $product->delete();
 
-            return response()->json([
-                'message' => "E'lon muvaffaqiyatli o'chirildi!",
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'Xatolik yuz berdi',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "E'lon muvaffaqiyatli o'chirildi!",
+        ]);
     }
 }

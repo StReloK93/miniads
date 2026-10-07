@@ -6,11 +6,7 @@
       <main class="relative w-full grow">
          <aside
             ref="scrollEl"
-            :class="[
-               props.contentClass,
-               isActive ? 'overflow-y-auto' : 'overflow-hidden',
-               { 'overflow-y-auto': props.autoScroll },
-            ]"
+            :class="[props.contentClass, { 'overflow-y-auto': isActive }, { 'overflow-y-auto': props.autoScroll }]"
             class="absolute px-4 inset-0 no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
             <slot name="content" :is-compact="isActive" :progress="displayProgress"></slot>

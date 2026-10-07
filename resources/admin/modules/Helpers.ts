@@ -1,6 +1,6 @@
-import { TreeNode } from "primevue/treenode";
+import type { TreeNodeData } from "@shared/ui/BaseTree.vue";
 
-export function findParentId(tree: TreeNode[], dragNodeKey: string): TreeNode | null {
+export function findParentId(tree: TreeNodeData[], dragNodeKey: string | number): TreeNodeData | null {
    for (let index = 0; index < tree.length; index++) {
       if (tree[index].key === dragNodeKey) return null;
    }
@@ -9,7 +9,7 @@ export function findParentId(tree: TreeNode[], dragNodeKey: string): TreeNode | 
    return searchInside(tree, dragNodeKey);
 }
 
-function searchInside(list: TreeNode[], targetKey: string): TreeNode | null {
+function searchInside(list: TreeNodeData[], targetKey: string | number): TreeNodeData | null {
    for (let index = 0; index < list.length; index++) {
       const parentNode = list[index];
 
@@ -27,11 +27,11 @@ function searchInside(list: TreeNode[], targetKey: string): TreeNode | null {
    return null;
 }
 
-export function formatCategories(categories): TreeNode[] {
+export function formatCategories(categories: any[]): TreeNodeData[] {
    if (!categories || categories.length === 0) return [];
 
    return categories.map((item) => {
-      const node: TreeNode = {
+      const node: TreeNodeData = {
          key: item.id, // Key doim String bo'lishi kerak
          label: item.name, // Sizdagi 'name' yoki 'title'
          parent_id: item.parent_id, // Ob'ektning hamma ma'lumotini saqlab qo'yish foydali

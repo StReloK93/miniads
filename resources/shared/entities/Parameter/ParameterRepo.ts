@@ -15,4 +15,7 @@ export default {
    update(id: string | number, formData: IParameter) {
       return api.put<IParameter>(`${baseURL}/${id}`, formData);
    },
+   delete(id: string | number) {
+      return api.delete(`${baseURL}/${id}`);
+   },
 };

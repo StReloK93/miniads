@@ -1,55 +1,54 @@
-import { PrimeVueInputs } from "@admin/modules/PrimeVueInputs";
+import AdminField from "@shared/ui/AdminField.vue";
 import { Inputs } from "@/modules/Inputs";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
-const globalProps = { size: "small", fluid: true };
 export const parameterInputs: InputConfig[] = [
    {
-      component: PrimeVueInputs["InputText"],
+      component: AdminField,
       name: "title",
       placeholder: "Title",
-      props: globalProps,
+      props: { adminKind: "text" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["InputText"],
+      component: AdminField,
       name: "placeholder",
       placeholder: "Placeholder",
-      props: globalProps,
+      props: { adminKind: "text" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["InputText"],
+      component: AdminField,
       name: "unit",
       placeholder: "O'lchov birligi",
-      props: globalProps,
+      props: { adminKind: "text" },
       schema: z.string({ message: "Majburiy maydon!" }).optional().nullable(),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["Select"],
+      component: AdminField,
       name: "component",
       placeholder: "Input turi",
-      props: { ...globalProps, options: Object.keys(Inputs) },
+      props: { adminKind: "select", options: Object.keys(Inputs) },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["Select"],
+      component: AdminField,
       name: "type",
       placeholder: "Malumot turi",
-      props: { ...globalProps, options: ["string", "number", "boolean", "array"] },
+      props: { adminKind: "select", options: ["string", "number", "boolean", "array"] },
       schema: z.string({ message: "Majburiy maydon!" }),
       class: ["mb-4"],
    },
    {
-      component: PrimeVueInputs["AutoComplete"],
+      component: AdminField,
       name: "options",
       placeholder: "Variantlar",
-      props: { ...globalProps, multiple: true, typeahead: false },
+      props: { adminKind: "tags" },
       schema: z.array(z.string()).optional().nullable(),
       class: ["mb-4"],
    },
@@ -69,15 +68,14 @@ export const parameterColumns = [
    },
 ];
 
-export const superRefine = (data, ctx) => {
-   // Agar turi Select yoki SelectButton bo'lsa va options bo'sh bo'lsa
-   const isSelect = ["Select", "SelectButton"].includes(data.type?.value || data.type);
-   const options = data.options as any[];
-   if (isSelect && (!options || options.length === 0)) {
+export const superRefine = (data: Record<string, unknown>, ctx: z.RefinementCtx) => {
+   const isSelect = data.component === "FieldSelect";
+   const options = Array.isArray(data.options) ? data.options : [];
+   if (isSelect && options.length === 0) {
       ctx.addIssue({
          code: z.ZodIssueCode.custom,
          message: "Select turi uchun variantlar majburiy!",
-         path: ["options"], // Xatolik 'options' inputida chiqadi
+         path: ["options"],
       });
    }
 };

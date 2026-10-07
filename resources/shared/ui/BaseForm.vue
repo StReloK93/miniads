@@ -44,7 +44,7 @@
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
             </template>
-            E'lonni joylash
+            {{ submitLabel }}
          </BaseButton>
          <!-- <p class="text-xs px-4 leading-4.5 text-center text-(--z-muted-text)">
             Elon joylashtirish orqali siz foydalanish shartlariga rozilik bildirasiz.
@@ -84,9 +84,11 @@ const parentScroll = ref<HTMLElement>();
 const props = defineProps<{
    inputConfigs: InputConfig[];
    submit: (values: unknown) => Promise<void>;
+   submitLabel?: string;
    superRefine?: (values: Record<string, unknown>, ctx: z.RefinementCtx) => void;
 }>();
 
+const submitLabel = computed(() => props.submitLabel ?? "E'lonni joylash");
 const buttonLoader = ref(false);
 const initialValues = computed(() => Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value])));
 

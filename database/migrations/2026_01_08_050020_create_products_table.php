@@ -32,7 +32,8 @@ return new class extends Migration {
 
             $table->foreignId('price_type_id')->nullable()->constrained()->onDelete('cascade');
 
-            $table->timestamp('expires_at')->default(now()); // E'lonning amal qilish muddati
+            $table->timestamp('expires_at')->useCurrent(); // E'lonning amal qilish muddati
+            $table->timestamp('published_at')->useCurrent();
             $table->timestamps();
             $table->softDeletes();
         });

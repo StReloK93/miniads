@@ -1,1 +1,0 @@
-import{a4 as i,a3 as a,h as n}from"./index-CUcUUhdk.js";const c="districts",o={index(){return i.get(`${c}`)}},u=a("useCity",()=>{const t=n();async function s(){const{data:e}=await o.index();t.value=e}return{cities:t,getCities:s}});export{u};

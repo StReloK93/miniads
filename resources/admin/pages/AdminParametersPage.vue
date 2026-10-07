@@ -1,116 +1,112 @@
 <template>
-   <div>
-      <div class="flex justify-center flex-col">
-         <Drawer
-            class="headless-drawer"
-            @hide="closeDrawer"
-            v-model:visible="pageData.drawerToggle"
-            :show-close-icon="false"
-         >
-            <template #header>
-               <h3 class="px-5 py-1.5 text-center font-semibold w-full border border-secondary mb-2">
-                  {{ pageData.title }}
-               </h3>
-            </template>
-            <main class="h-full -mx-5">
-               <BaseForm
-                  @close="pageData.drawerToggle = false"
-                  :submit="submit"
-                  :superRefine
-                  :inputConfigs="inputConfigs"
-               />
-            </main>
-         </Drawer>
-         <div class="flex justify-between items-center w-full px-3 py-2">
-            <h3>Kategoriyalar</h3>
-            <Button icon="pi pi-plus" variant="text" size="small" rounded @click="openCreateForm()" />
+   <section class="admin-page">
+      <BaseDrawer :open="drawerOpen" :title="title" @close="drawerOpen = false">
+         <BaseForm
+            :key="formKey"
+            :submit="submit"
+            :super-refine="superRefine"
+            :input-configs="inputConfigs"
+            @close="drawerOpen = false"
+         />
+      </BaseDrawer>
+
+      <header class="admin-page-heading">
+         <div>
+            <p class="admin-eyebrow">KATALOG</p>
+            <h1>Parametrlar</h1>
+            <p class="admin-muted">Kategoriyalarga biriktiriladigan e’lon maydonlarini boshqaring.</p>
          </div>
-         <main class="p-6 rounded-xl bg-tertiary border-secondary border">
-            <BaseTable :parameters="parameters || []" :columns="parameterColumns" @edit="openEditForm" />
-         </main>
+         <BaseButton @click="openCreateForm">
+            <template #icon><Plus class="size-4" /></template>
+            Parametr qo‘shish
+         </BaseButton>
+      </header>
+
+      <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
+      <div class="admin-panel admin-table-panel">
+         <p v-if="loading" class="admin-loading">Parametrlar yuklanmoqda…</p>
+         <BaseTable
+            v-else
+            :parameters="parameters || []"
+            :columns="parameterColumns"
+            @edit="openEditForm"
+            @delete="deleteParameter"
+         />
       </div>
-   </div>
+   </section>
 </template>
 
 <script setup lang="ts">
-import { Button, Drawer } from "primevue";
-import BaseTable from "@admin/components/BaseTable.vue";
+import { onMounted, ref, shallowRef } from "vue";
+import { Plus } from "lucide-vue-next";
+import BaseButton from "@shared/ui/BaseButton.vue";
+import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseForm from "@admin/components/BaseForm.vue";
+import BaseTable from "@admin/components/BaseTable.vue";
 import ParameterRepo from "@shared/entities/Parameter/ParameterRepo";
-import { onMounted, reactive, shallowRef } from "vue";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { parameterInputs, superRefine, parameterColumns } from "@shared/entities/Parameter/ParameterInputs";
-import { TreeNode } from "primevue/treenode";
 import { IParameter } from "@shared/types";
-var submit: (values: any) => Promise<void>;
 
-const pageData = reactive<{
-   drawerToggle: boolean;
-   updateLoading: string | null;
-   title: string;
-   selectedForUpdate: string | null;
-   selectedParent: TreeNode | null;
-}>({
-   drawerToggle: false,
-   updateLoading: null,
-   title: "",
-   selectedForUpdate: null,
-   selectedParent: null,
+const { data: parameters, execute: executeParameters, isLoading: loading } =
+   useFetchDecorator<IParameter[]>(ParameterRepo.index);
+const inputConfigs = shallowRef(parameterInputs);
+const drawerOpen = ref(false);
+const title = ref("");
+const error = ref("");
+const formKey = ref(0);
+const submit = ref<(values: Record<string, unknown>) => Promise<void>>(async () => {
+   throw new Error("Parametr formasi saqlashga tayyor emas.");
 });
 
-const { data: parameters, execute: executeParameters } = useFetchDecorator<IParameter[]>(ParameterRepo.index);
-
-const inputConfigs = shallowRef(parameterInputs);
-
 async function openCreateForm() {
-   submit = async (values: IParameter) => {
-      await ParameterRepo.store(values);
-      executeParameters();
+   error.value = "";
+   title.value = "Yangi parametr qo‘shish";
+   inputConfigs.value.forEach((input) => (input.value = undefined));
+   formKey.value += 1;
+   submit.value = async (values) => {
+      await ParameterRepo.store(values as unknown as IParameter);
+      await executeParameters();
    };
-   pageData.title = text.add;
-
-   await Promise.all(
-      inputConfigs.value.map(async (input) => {
-         if (input.generateProps) await input.generateProps();
-         input.value = undefined;
-         return input;
-      }),
-   ).finally(() => {
-      pageData.drawerToggle = true;
-   });
+   drawerOpen.value = true;
 }
 
 async function openEditForm(id: string | number) {
-   submit = async (values) => {
-      await ParameterRepo.update(id, values);
-      executeParameters();
-   };
-   pageData.title = text.edit;
-
-   const { data: parameter } = await ParameterRepo.show(id);
-
-   await Promise.all(
-      inputConfigs.value.map(async (input) => {
-         if (input.generateProps) await input.generateProps();
+   error.value = "";
+   title.value = "Parametrni tahrirlash";
+   try {
+      const { data: parameter } = await ParameterRepo.show(id);
+      inputConfigs.value.forEach((input) => {
          input.value = parameter ? parameter[input.name] : undefined;
-         return input;
-      }),
-   ).finally(() => {
-      pageData.drawerToggle = true;
-   });
+      });
+      formKey.value += 1;
+      submit.value = async (values) => {
+         await ParameterRepo.update(id, values as unknown as IParameter);
+         await executeParameters();
+      };
+      drawerOpen.value = true;
+   } catch (exception) {
+      console.error("Parametr ma’lumotini yuklab bo‘lmadi.", exception);
+      error.value = "Parametrni tahrirlash uchun ma’lumotni yuklab bo‘lmadi.";
+   }
 }
 
-const text = {
-   add: "Yangi parameter qo'shish",
-   edit: "Parameterni tahrirlash",
-};
-
-function closeDrawer() {
-   pageData.selectedForUpdate = null;
-   pageData.selectedParent = null;
+async function deleteParameter(id: string | number) {
+   try {
+      await ParameterRepo.delete(id);
+      await executeParameters();
+   } catch (exception) {
+      console.error("Parametrni o‘chirib bo‘lmadi.", exception);
+      error.value = "Parametrni o‘chirib bo‘lmadi.";
+   }
 }
 
-onMounted(() => {
-   executeParameters();
+onMounted(async () => {
+   try {
+      await executeParameters();
+   } catch (exception) {
+      console.error("Parametrlarni yuklab bo‘lmadi.", exception);
+      error.value = "Parametrlarni yuklab bo‘lmadi. Sahifani yangilab ko‘ring.";
+   }
 });
 </script>

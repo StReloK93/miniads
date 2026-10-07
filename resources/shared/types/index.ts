@@ -70,13 +70,22 @@ export interface IProduct {
    views_count: number;
    category: ICategory;
    parameter_values: IParameterValue[];
-   images: { id: number; product_id: number; src: string }[];
+   images: {
+      id: number;
+      product_id: number;
+      src: string;
+      crop_src: string | null;
+      crop_x: number;
+      crop_y: number;
+      crop_scale: number;
+   }[];
    is_favorite: boolean;
    created_at: string;
    district: { id: number; name: string };
    district_id: number;
    updated_at: string;
    expires_at: string;
+   published_at: string;
    user: IUser;
    user_id: number;
    days: {

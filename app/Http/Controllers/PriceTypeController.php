@@ -32,7 +32,12 @@ class PriceTypeController extends Controller
     public function update(Request $request, $id)
     {
         $parameter = PriceType::findOrFail($id);
-        $parameter->update($request->all());
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'type' => ['required', 'string', 'max:40'],
+            'position' => ['required', 'in:right,left'],
+        ]);
+        $parameter->update($validated);
         return response()->json($parameter);
     }
 

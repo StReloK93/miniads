@@ -11,11 +11,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AdminField: typeof import('./resources/shared/ui/AdminField.vue')['default']
     BaseButton: typeof import('./resources/shared/ui/BaseButton.vue')['default']
     BaseButtonGroup: typeof import('./resources/shared/ui/BaseButtonGroup.vue')['default']
+    BaseDrawer: typeof import('./resources/shared/ui/BaseDrawer.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     BaseModal: typeof import('./resources/shared/ui/BaseModal.vue')['default']
     BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
+    BaseTree: typeof import('./resources/shared/ui/BaseTree.vue')['default']
+    BaseTreeNode: typeof import('./resources/shared/ui/BaseTreeNode.vue')['default']
     CircleIndicator: typeof import('./resources/shared/ui/CircleIndicator.vue')['default']
     FieldColors: typeof import('./resources/shared/ui/FieldColors.vue')['default']
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
@@ -24,6 +28,7 @@ declare module 'vue' {
     FieldSelect: typeof import('./resources/shared/ui/FieldSelect.vue')['default']
     FieldText: typeof import('./resources/shared/ui/FieldText.vue')['default']
     FieldTextarea: typeof import('./resources/shared/ui/FieldTextarea.vue')['default']
+    ProductImageView: typeof import('./resources/shared/ui/ProductImageView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ThemeSwitcher: typeof import('./resources/shared/ui/ThemeSwitcher.vue')['default']

@@ -13,7 +13,7 @@ export default {
    index() {
       return api.get<ICategory[]>(`${baseURL}`);
    },
-   async store(parent_id: number | string | null, formData: { name: string; file?: File }) {
+   async store(parent_id: number | string | null, formData: { name: string; image?: File | string }) {
       const loading = ref(true);
       await api.post(`${baseURL}`, { parent_id, ...formData }, headerMultipart).finally(() => {
          loading.value = false;
@@ -26,7 +26,7 @@ export default {
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);
    },
-   update(id: string, formData: { name: string; file?: File }) {
+   update(id: string, formData: { name: string; image?: File | string }) {
       return api.post(`${baseURL}/${id}`, formData, headerMultipart);
    },
    show(id: number | string) {
@@ -34,5 +34,8 @@ export default {
    },
    changeParent(id: number, parent_id: number | string | null) {
       return api.post(`${baseURL}/change_parent/${id}`, { parent_id });
+   },
+   delete(id: number | string) {
+      return api.delete(`${baseURL}/${id}`);
    },
 };

@@ -6,17 +6,10 @@ const router = createRouter({
    routes,
 });
 
-router.beforeEach((to, from, next) => {
-   const AuthStore = useAuth();
-   console.log(AuthStore.user);
-   if (AuthStore.user && AuthStore.user.role == "admin") {
-      return next();
-   } else {
-      // shu yerda redirect qilish kerak lekin admin sahifamda "/" bu yoq
-      window.location.href = "/";
-   }
-
-   return next();
+router.beforeEach((to) => {
+   const auth = useAuth();
+   if (auth.user?.role === "admin") return true;
+   return { path: "/", replace: true };
 });
 
 export default router;

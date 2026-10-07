@@ -1,111 +1,149 @@
 <template>
-   <Form
-      v-slot="$form"
-      ref="instance"
-      :initial-values
-      :resolver
-      @submit="onFormSubmit"
-      class="flex flex-col w-full h-full"
-   >
-      <slot name="header"></slot>
-
-      <div class="flex flex-col grow relative">
-         <main class="absolute inset-0 overflow-y-auto py-3 px-5">
-            <slot name="inputs"></slot>
-            <template v-for="(input, index) in inputConfigs" :key="index">
-               <main :class="input.class">
-                  <FloatLabel v-if="input.placeholder" variant="on">
-                     <component
-                        :input="input"
-                        :is="input.component"
-                        :name="input.name"
-                        :id="input.name"
-                        v-bind="input.props"
-                     />
-                     <label :for="input.name">{{ input.placeholder }}</label>
-                  </FloatLabel>
-
-                  <component v-else :is="input.component" :input="input" :name="input.name" v-bind="input.props" />
-
-                  <Message v-if="$form[input.name]?.invalid" severity="error" size="small" variant="simple">
-                     {{ $form[input.name].error.message }}
-                  </Message>
-               </main>
-            </template>
-         </main>
-      </div>
-
-      <footer class="flex gap-3 py-4 border-t border-secondary px-5">
-         <Button
-            type="button"
-            size="small"
-            variant="text"
-            @click="emit('close')"
-            severity="secondary"
-            label="Bekor qilish"
-            :fluid="true"
+   <form class="admin-form" @submit.prevent="onSubmit">
+      <slot name="header" />
+      <div class="admin-form-body">
+         <p v-if="formError" class="admin-form-error">{{ formError }}</p>
+         <slot name="inputs" />
+         <AdminField
+            v-for="input in inputConfigs"
+            :key="input.name"
+            :id="input.name"
+            :label="input.placeholder"
+            :kind="fieldKind(input)"
+            :options="fieldOptions(input)"
+            :min="fieldNumber(input, 'min')"
+            :max="fieldNumber(input, 'max')"
+            :on-label="fieldText(input, 'onLabel')"
+            :off-label="fieldText(input, 'offLabel')"
+            :placeholder="fieldText(input, 'placeholder')"
+            :model-value="values[input.name]"
+            :error="errors[input.name]"
+            @update:model-value="setValue(input.name, $event)"
          />
-         <Button type="submit" size="small" label="Saqlash" severity="contrast" :fluid="true" :loading="buttonLoader" />
+      </div>
+      <footer class="admin-form-footer">
+         <BaseButton type="button" severity="secondary" variant="text" :disabled="loading" @click="emit('close')">
+            Bekor qilish
+         </BaseButton>
+         <BaseButton type="submit" :loading="loading">Saqlash</BaseButton>
       </footer>
-   </Form>
+   </form>
 </template>
 
 <script setup lang="ts">
-import { Form } from "@primevue/forms";
-import Button from "primevue/button";
-import Message from "primevue/message";
-import FloatLabel from "primevue/floatlabel";
-import type { FormSubmitEvent } from "@primevue/forms";
 import { reactive, ref } from "vue";
-import { zodResolver } from "@primevue/forms/resolvers/zod";
 import { z } from "zod";
 import type { InputConfig } from "@shared/types";
-const instance = ref();
+import AdminField from "@shared/ui/AdminField.vue";
 
-const emit = defineEmits(["close"]);
-
-const buttonLoader = ref(false);
+type AdminFieldKind = "text" | "number" | "select" | "toggle" | "tags" | "file";
 
 const props = defineProps<{
    inputConfigs: InputConfig[];
-   submit: (values: unknown) => Promise<void>;
-   superRefine?: (values: unknown, ctx: z.RefinementCtx) => void;
+   submit: (values: Record<string, unknown>) => Promise<void>;
+   superRefine?: (values: Record<string, unknown>, ctx: z.RefinementCtx) => void;
 }>();
+const emit = defineEmits<{ (event: "close"): void }>();
+const loading = ref(false);
+const formError = ref("");
+const values = reactive<Record<string, unknown>>(
+   Object.fromEntries(props.inputConfigs.map((input) => [input.name, input.value])),
+);
+const errors = reactive<Record<string, string>>({});
 
-const onFormSubmit = async (formEvent: FormSubmitEvent) => {
-   if (formEvent.valid) {
-      buttonLoader.value = true;
-      await props.submit(formEvent.values).finally(() => {
-         buttonLoader.value = false;
-      });
+function fieldKind(input: InputConfig): AdminFieldKind {
+   const kind = input.props?.adminKind;
 
-      emit("close");
+   return kind === "number" || kind === "select" || kind === "toggle" || kind === "tags" || kind === "file"
+      ? kind
+      : "text";
+}
+
+function fieldOptions(input: InputConfig): (string | number)[] {
+   const options = input.props?.options;
+
+   return Array.isArray(options) && options.every((option) => typeof option === "string" || typeof option === "number")
+      ? options
+      : [];
+}
+
+function fieldNumber(input: InputConfig, key: "min" | "max"): number | undefined {
+   const value = input.props?.[key];
+
+   return typeof value === "number" ? value : undefined;
+}
+
+function fieldText(input: InputConfig, key: "onLabel" | "offLabel" | "placeholder"): string | undefined {
+   const value = input.props?.[key];
+
+   return typeof value === "string" ? value : undefined;
+}
+
+function setValue(name: string, value: unknown) {
+   values[name] = value;
+   delete errors[name];
+}
+
+async function onSubmit() {
+   formError.value = "";
+   Object.keys(errors).forEach((key) => delete errors[key]);
+   const shape = Object.fromEntries(
+      props.inputConfigs.filter((input) => input.schema).map((input) => [input.name, input.schema]),
+   ) as Record<string, z.ZodTypeAny>;
+   const result = z.object(shape).superRefine(props.superRefine ?? (() => {})).safeParse({ ...values });
+
+   if (!result.success) {
+      for (const issue of result.error.issues) {
+         const key = String(issue.path[0] ?? "");
+         if (key && !errors[key]) errors[key] = issue.message;
+      }
+      return;
    }
-};
 
-const initialValues = reactive(
-   props.inputConfigs.reduce(
-      (acc, curr) => {
-         acc[curr.name] = curr.value;
-         return acc;
-      },
-      {} as Record<string, unknown>,
-   ),
-);
-
-const resolver = zodResolver(
-   z
-      .object(
-         props.inputConfigs.reduce(
-            (acc, curr) => {
-               if (curr.schema) acc[curr.name] = curr.schema;
-               return acc;
-            },
-            {} as Record<string, z.ZodTypeAny>,
-         ),
-      )
-      .superRefine((props.superRefine || function () {}) as any),
-);
-
-defineExpose({ instance });
+   loading.value = true;
+   try {
+      await props.submit(result.data);
+      emit("close");
+   } catch (error) {
+      console.error("Admin forma saqlanmadi.", error);
+      formError.value = "Ma’lumotni saqlab bo‘lmadi. Kiritilgan ma’lumotlarni tekshirib, qayta urinib ko‘ring.";
+   } finally {
+      loading.value = false;
+   }
+}
 </script>
+
+<style scoped>
+.admin-form {
+   display: flex;
+   min-height: 100%;
+   flex-direction: column;
+   gap: 17px;
+}
+
+.admin-form-body {
+   display: grid;
+   gap: 17px;
+}
+
+.admin-form-footer {
+   position: sticky;
+   bottom: 0;
+   display: flex;
+   justify-content: flex-end;
+   gap: 9px;
+   margin-top: auto;
+   border-top: 1px solid var(--z-border);
+   background: var(--z-card);
+   padding-top: 14px;
+}
+
+.admin-form-error {
+   margin: 0;
+   border-radius: 9px;
+   background: color-mix(in srgb, var(--z-danger) 10%, transparent);
+   padding: 10px 12px;
+   color: var(--z-danger);
+   font-size: 11px;
+}
+</style>

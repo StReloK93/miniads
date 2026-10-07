@@ -43,7 +43,7 @@
                                  {{ title }}
                               </DialogTitle>
 
-                              <DialogDescription v-if="description" class="mt-1 text-sm leading-5 text-gray-600">
+                              <DialogDescription v-if="description" class="mt-1 text-sm leading-5 text-(--z-muted-text)">
                                  {{ description }}
                               </DialogDescription>
                            </div>
@@ -52,17 +52,28 @@
                         <!-- Body -->
                         <div class="mt-4">
                            <slot>
-                              <p class="text-sm leading-6 text-gray-600">Bu yerga modal ichidagi content yoziladi.</p>
+                              <p class="text-sm leading-6 text-(--z-muted-text)">Bu yerga modal ichidagi content yoziladi.</p>
                            </slot>
                         </div>
 
                         <!-- Footer -->
                         <div v-if="showButtons" class="mt-6 flex gap-4">
-                           <BaseButton @click="close" type="button" severity="glass" class="w-full">
+                           <BaseButton
+                              v-if="showCancel"
+                              @click="close"
+                              type="button"
+                              severity="glass"
+                              class="w-full"
+                           >
                               {{ cancelText }}
                            </BaseButton>
 
-                           <BaseButton @click="$emit('confirm')" type="button" class="w-full">
+                           <BaseButton
+                              @click="$emit('confirm')"
+                              type="button"
+                              :severity="danger ? 'danger' : 'primary'"
+                              class="w-full"
+                           >
                               {{ confirmText }}
                            </BaseButton>
                         </div>

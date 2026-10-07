@@ -1,0 +1,1 @@
+import{Y as i,W as n,h as a}from"./ui-DkJ5Ue3T.js";const c="districts",o={index(){return i.get(`${c}`)}},u=n("useCity",()=>{const t=a();async function s(){const{data:e}=await o.index();t.value=e}return{cities:t,getCities:s}});export{u};

@@ -42,12 +42,20 @@ function canPrefetch(): boolean {
 }
 
 onMounted(async () => {
-   await categoryStore.getParentCategories();
-   await cityStore.getCities();
-   await nextTick();
-   const loader = document.getElementById("loader");
+   const startupTasks = await Promise.allSettled([categoryStore.getParentCategories(), cityStore.getCities()]);
 
-   loader?.remove();
+   startupTasks.forEach((result, index) => {
+      if (result.status === "rejected") {
+         const taskName = index === 0 ? "parent categories" : "cities";
+         console.error(`Unable to load ${taskName} during startup.`, result.reason);
+      }
+   });
+
+   try {
+      await nextTick();
+   } finally {
+      document.getElementById("loader")?.remove();
+   }
 
    setTimeout(() => {
       if (canPrefetch()) {

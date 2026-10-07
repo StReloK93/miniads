@@ -3,9 +3,28 @@
       <aside v-if="product" class="grow relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
          <article class="absolute inset-0 overflow-y-auto no-scrollbar">
             <main class="relative">
-               <swiper v-if="product?.images.length" :modules="[Pagination]" pagination class="h-64">
-                  <swiper-slide v-for="image in product?.images" :key="image.id">
-                     <img :src="`/storage/${image.src}`" class="h-full w-full object-cover" />
+               <swiper
+                  v-if="product?.images.length"
+                  :modules="[Pagination]"
+                  :pagination="product.images.length > 1"
+                  class="aspect-video w-full"
+               >
+                  <swiper-slide v-for="(image, index) in product.images" :key="image.id">
+                     <button
+                        type="button"
+                        class="h-full w-full cursor-zoom-in"
+                        aria-label="To‘liq rasmni ko‘rish"
+                        @click="openImagePreview(index)"
+                     >
+                        <ProductImageView
+                           :src="`/storage/${image.src}`"
+                           :crop-x="image.crop_x"
+                           :crop-y="image.crop_y"
+                           :crop-scale="image.crop_scale"
+                           class="h-full w-full"
+                           alt="E’lon rasmi"
+                        />
+                     </button>
                   </swiper-slide>
                </swiper>
                <div
@@ -13,14 +32,14 @@
                   :style="{
                      backgroundImage: product.back_color.gradient,
                   }"
-                  class="h-64 w-full flex justify-center items-center"
+                  class="aspect-video w-full flex justify-center items-center"
                >
                   <span class="text-white text-2xl font-semibold text-center px-5">
                      {{ product?.title }}
                   </span>
                </div>
                <!-- <img
-                  
+
                   class="h-64 w-full bg-(--z-border) rounded-tl-[10px] rounded-tr-[10px]"
                   :src="'/images/no-image.webp'"
                   alt="No Image"
@@ -103,7 +122,7 @@
       </aside>
       <aside v-else class="grow">
          <main class="relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
-            <div class="skeleton h-64 rounded-none!"></div>
+            <div class="skeleton aspect-video rounded-none!"></div>
          </main>
          <main class="py-5.5 px-4">
             <div class="skeleton h-5.5 mb-6 w-24"></div>
@@ -150,6 +169,44 @@
          <div class="skeleton h-12 grow"></div>
          <div class="skeleton size-12"></div>
       </aside>
+
+      <div
+         v-if="previewIndex !== null && product?.images.length"
+         class="fixed inset-0 z-500 flex items-center justify-center overflow-hidden bg-black/75"
+         @click.self="closeImagePreview"
+      >
+         <BaseButton
+            class="absolute right-4 top-4 z-20"
+            severity="secondary"
+            rounded
+            iconOnly
+            aria-label="Rasmni yopish"
+            @click="closeImagePreview"
+         >
+            <template #icon>
+               <X class="size-5" />
+            </template>
+         </BaseButton>
+         <swiper
+            :key="previewIndex"
+            :modules="[Pagination]"
+            :initial-slide="previewIndex"
+            :pagination="product.images.length > 1"
+            class="absolute inset-0 h-full w-full"
+         >
+            <swiper-slide
+               v-for="image in product.images"
+               :key="`preview-${image.id}`"
+               class="flex! h-full items-center justify-center"
+            >
+               <img
+                  :src="`/storage/${image.src}`"
+                  class="max-h-full w-full object-contain"
+                  alt="E’lonning original rasmi"
+               />
+            </swiper-slide>
+         </swiper>
+      </div>
    </section>
 </template>
 
@@ -158,6 +215,8 @@ import { timeAgo } from "@/modules/Helpers";
 import { isTMA } from "@tma.js/bridge";
 import { formatPrice } from "@/modules/Helpers";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
+import ProductImageView from "@shared/ui/ProductImageView.vue";
+import BaseButton from "@shared/ui/BaseButton.vue";
 import { Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
 import { useRoute } from "vue-router";
@@ -165,7 +224,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { computed, onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { Heart, MapPin, MessageCircle, Phone } from "lucide-vue-next";
+import { Heart, MapPin, MessageCircle, Phone, X } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
 import { postEvent } from "@tma.js/bridge";
 
@@ -174,6 +233,15 @@ const route = useRoute();
 const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);
 
 const isImagesReady = ref(false);
+const previewIndex = ref<number | null>(null);
+
+function openImagePreview(index: number) {
+   previewIndex.value = index;
+}
+
+function closeImagePreview() {
+   previewIndex.value = null;
+}
 
 function callPhone(phone: string) {
    if (isTMA()) {
@@ -232,7 +300,9 @@ async function toggleFavorite() {
 onMounted(async () => {
    await executeProduct(route.params.id);
    if (product.value?.images?.length) {
-      const imageUrls = product.value.images.map((img) => `/storage/${img.src}`);
+      const imageUrls = product.value.images.flatMap((img) => [
+         `/storage/${img.src}`,
+      ]);
       await preloadImages(imageUrls);
    }
 

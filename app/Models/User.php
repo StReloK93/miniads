@@ -25,5 +25,9 @@ class User extends Authenticatable
         return $this->belongsTo(District::class, 'active_district_id');
     }
 
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 
 }

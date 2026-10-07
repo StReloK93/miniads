@@ -23,7 +23,13 @@
                </span>
             </main>
          </aside>
-         <BaseForm v-if="selectedCategory" :submit="submitForm" @submit="onSubmit" :input-configs="fullInputs" />
+         <BaseForm
+            v-if="selectedCategory"
+            :submit="submitForm"
+            @submit="onSubmit"
+            :input-configs="fullInputs"
+            submit-label="E'lonni yangilash"
+         />
       </main>
       <main v-else class="h-full grid grid-rows-[auto_1fr]]">
          <aside class="flex flex-col justify-between">

@@ -172,40 +172,54 @@
 
       <div
          v-if="previewIndex !== null && product?.images.length"
-         class="fixed inset-0 z-500 flex items-center justify-center overflow-hidden bg-black/75"
-         @click.self="closeImagePreview"
+         class="fixed inset-0 z-500 flex items-center justify-center overflow-hidden bg-black/85 select-none"
+         @click="onPreviewBackdropClick"
       >
-         <BaseButton
-            class="absolute right-4 top-4 z-20"
-            severity="secondary"
-            rounded
-            iconOnly
-            aria-label="Rasmni yopish"
-            @click="closeImagePreview"
-         >
-            <template #icon>
-               <X class="size-5" />
-            </template>
-         </BaseButton>
          <swiper
             :key="previewIndex"
             :modules="[Pagination]"
             :initial-slide="previewIndex"
-            :pagination="product.images.length > 1"
+            :pagination="previewPaginationConfig"
             class="absolute inset-0 h-full w-full"
+            @click="onPreviewBackdropClick"
          >
             <swiper-slide
                v-for="image in product.images"
                :key="`preview-${image.id}`"
-               class="flex! h-full items-center justify-center"
+               class="flex! h-full items-center justify-center cursor-pointer"
             >
                <img
                   :src="`/storage/${image.src}`"
-                  class="max-h-full w-full object-contain"
+                  class="max-h-full w-full object-contain pointer-events-auto cursor-default"
                   alt="E'lonning original rasmi"
+                  @click.stop
                />
             </swiper-slide>
          </swiper>
+
+         <!-- Mobile-first bottom bar: perfectly aligned items-center row with safe margins -->
+         <div class="absolute inset-x-0 bottom-0 z-20 flex items-center justify-between px-6 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-3 pointer-events-none">
+            <!-- Left: Dot indicators wrapped in a sleek glass pill (never stuck to corner) -->
+            <div
+               v-show="product.images.length > 1"
+               class="preview-pagination-dots pointer-events-auto flex items-center gap-1.5 bg-black/60 border border-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-2xl min-h-[36px]"
+            ></div>
+            <div v-if="product.images.length <= 1"></div>
+
+            <!-- Right: Close button on the exact same line/height as the dots -->
+            <BaseButton
+               severity="secondary"
+               rounded
+               class="pointer-events-auto shadow-2xl bg-black/70 hover:bg-black/90 text-white border border-white/25 backdrop-blur-md px-4 py-2 flex items-center gap-1.5 active:scale-95 transition-transform text-sm h-[36px]"
+               aria-label="Rasmni yopish"
+               @click="closeImagePreview"
+            >
+               <template #icon>
+                  <X class="size-4" />
+               </template>
+               Yopish
+            </BaseButton>
+         </div>
       </div>
    </section>
 </template>
@@ -234,12 +248,30 @@ const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(P
 const isImagesReady = ref(false);
 const previewIndex = ref<number | null>(null);
 
+const previewPaginationConfig = computed(() => {
+   if (!product.value?.images || product.value.images.length <= 1) return false;
+   return {
+      el: ".preview-pagination-dots",
+      clickable: true,
+   };
+});
+
 function openImagePreview(index: number) {
    previewIndex.value = index;
 }
 
 function closeImagePreview() {
    previewIndex.value = null;
+}
+
+function onPreviewBackdropClick(event: MouseEvent) {
+   const target = event.target as HTMLElement | null;
+   if (!target) return;
+   // Don't close if user clicked the image itself
+   if (target.tagName === "IMG") return;
+   // Don't close if user clicked swiper pagination dots or close button
+   if (target.closest(".swiper-pagination") || target.closest("button")) return;
+   closeImagePreview();
 }
 
 function callPhone(phone: string) {
@@ -310,3 +342,29 @@ onMounted(async () => {
    }, 350);
 });
 </script>
+
+<style scoped>
+:deep(.preview-pagination-dots) {
+   display: inline-flex !important;
+   align-items: center !important;
+   gap: 6px !important;
+}
+
+:deep(.preview-pagination-dots .swiper-pagination-bullet) {
+   background: rgba(255, 255, 255, 0.45) !important;
+   margin: 0 !important;
+   width: 6px !important;
+   height: 6px !important;
+   border-radius: 9999px !important;
+   cursor: pointer !important;
+   transition: all 0.25s ease !important;
+   display: inline-block !important;
+   opacity: 1 !important;
+}
+
+:deep(.preview-pagination-dots .swiper-pagination-bullet-active) {
+   background: #ffffff !important;
+   width: 18px !important;
+   border-radius: 9999px !important;
+}
+</style>

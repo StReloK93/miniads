@@ -114,7 +114,7 @@
 }
 
 .admin-nav-link:hover,
-.admin-nav-link.router-link-active {
+.admin-nav-link.router-link-exact-active {
    background: var(--z-muted);
    color: var(--admin-accent);
 }
@@ -499,7 +499,7 @@
 }
 
 .admin-button-secondary:hover:not(:disabled) {
-   border-color: #b7c7d7;
+   border-color: color-mix(in srgb, var(--admin-border) 60%, var(--admin-ink));
    background: var(--z-muted);
 }
 
@@ -550,21 +550,24 @@
    border: 1px solid var(--admin-border);
    border-radius: 7px;
    background: transparent;
-   color: #687990;
+   color: var(--admin-muted);
    cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-icon-button:hover {
-   background: #f2f6f9;
+   background: var(--z-muted);
+   color: var(--admin-ink);
 }
 
 .admin-icon-button.admin-danger {
    margin-left: 5px;
-   color: #c54646;
+   color: var(--z-danger);
 }
 
 .admin-icon-button.admin-danger:hover {
-   background: #fff0f0;
+   background: color-mix(in srgb, var(--z-danger) 15%, transparent);
+   color: var(--z-danger);
 }
 
 .admin-pagination {
@@ -768,8 +771,318 @@
    }
 }
 
-@media (prefers-color-scheme: dark) {
-   .admin-shell {
-      color-scheme: dark;
+/* ==========================================================================
+   DARK THEME REFINEMENTS
+   Soft, eye-friendly, comfortable dark theme aesthetics (Linear/GitHub inspired)
+   ========================================================================== */
+
+html.dark .admin-shell {
+   color-scheme: dark;
+   --admin-accent: #60a5fa;
+   --admin-ink: var(--z-foreground);
+   --admin-muted: var(--z-muted-text);
+   --admin-border: var(--z-border);
+}
+
+/* Badges in dark mode - translucent, soft glow, no blinding neon glare */
+html.dark .admin-badge-success {
+   background: rgba(34, 197, 94, 0.14);
+   color: #4ade80;
+   border: 1px solid rgba(34, 197, 94, 0.22);
+}
+
+html.dark .admin-badge-warning {
+   background: rgba(245, 158, 11, 0.14);
+   color: #fbbf24;
+   border: 1px solid rgba(245, 158, 11, 0.22);
+}
+
+html.dark .admin-badge-danger {
+   background: rgba(239, 68, 68, 0.14);
+   color: #f87171;
+   border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+html.dark .admin-badge-info {
+   background: rgba(59, 130, 246, 0.14);
+   color: #60a5fa;
+   border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+html.dark .admin-badge-muted {
+   background: rgba(148, 163, 184, 0.12);
+   color: #94a3b8;
+   border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+/* Alerts in dark mode */
+html.dark .admin-alert-error {
+   border-color: rgba(239, 68, 68, 0.35);
+   background: rgba(239, 68, 68, 0.12);
+   color: #fca5a5;
+}
+
+html.dark .admin-alert-success {
+   border-color: rgba(34, 197, 94, 0.35);
+   background: rgba(34, 197, 94, 0.12);
+   color: #86efac;
+}
+
+/* Tables and cards */
+html.dark .admin-panel {
+   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .admin-table th {
+   color: var(--z-muted-text);
+}
+
+html.dark .admin-table tbody tr {
+   transition: background-color 0.15s ease;
+}
+
+html.dark .admin-table tbody tr:hover td {
+   background: color-mix(in srgb, var(--z-muted) 60%, transparent);
+}
+
+html.dark .admin-product-cell img {
+   background: var(--z-muted);
+}
+
+html.dark .admin-stat-card {
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .admin-stat-detail,
+html.dark .admin-topbar-label {
+   color: var(--z-muted-text);
+}
+
+html.dark .admin-brand-mark {
+   background: color-mix(in srgb, var(--admin-accent) 15%, var(--z-muted));
+   color: var(--admin-accent);
+}
+
+html.dark .admin-search {
+   color: var(--z-muted-text);
+}
+
+html.dark .admin-search input::placeholder {
+   color: color-mix(in srgb, var(--z-muted-text) 70%, transparent);
+}
+
+/* Dark mode smooth scrollbars */
+html.dark ::-webkit-scrollbar {
+   width: 8px;
+   height: 8px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+   background: var(--z-background);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+   background: var(--z-muted);
+   border-radius: 4px;
+   border: 2px solid var(--z-background);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+   background: color-mix(in srgb, var(--z-muted-text) 50%, var(--z-muted));
+}
+
+/* ==========================================================================
+   UNIFIED TABLE CARD & INTEGRATED TOOLBAR
+   ========================================================================== */
+.admin-table-panel {
+   border: 1px solid var(--admin-border);
+   border-radius: 12px;
+   background: var(--z-card);
+   overflow: hidden;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.admin-table-panel > .admin-toolbar {
+   border-bottom: 1px solid var(--admin-border);
+   background: var(--z-card);
+   padding: 12px 16px;
+   gap: 12px;
+   display: flex;
+   align-items: center;
+   flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   DASHBOARD ANALYTICS & WIDGETS
+   ========================================================================== */
+.admin-dashboard-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 16px;
+   margin-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+   .admin-dashboard-grid {
+      grid-template-columns: 1fr;
    }
 }
+
+.admin-chart-card {
+   display: flex;
+   flex-direction: column;
+   border: 1px solid var(--admin-border);
+   border-radius: 12px;
+   background: var(--z-card);
+   padding: 20px;
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.admin-card-header {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-between;
+   margin-bottom: 16px;
+   gap: 12px;
+}
+
+.admin-card-title {
+   margin: 0;
+   font-size: 15px;
+   font-weight: 700;
+   color: var(--admin-ink);
+}
+
+.admin-card-subtitle {
+   margin: 3px 0 0;
+   font-size: 11px;
+   color: var(--admin-muted);
+}
+
+/* Progress List (Districts & Categories) */
+.admin-rank-list {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.admin-rank-item {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+}
+
+.admin-rank-header {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   font-size: 12px;
+}
+
+.admin-rank-name {
+   font-weight: 600;
+   color: var(--admin-ink);
+}
+
+.admin-rank-count {
+   color: var(--admin-muted);
+   font-size: 11px;
+}
+
+.admin-rank-track {
+   height: 6px;
+   width: 100%;
+   background: var(--z-muted);
+   border-radius: 999px;
+   overflow: hidden;
+}
+
+.admin-rank-fill {
+   height: 100%;
+   border-radius: 999px;
+   background: var(--admin-accent);
+   transition: width 0.4s ease;
+}
+
+/* Daily Ads Bar Chart */
+.admin-bar-chart {
+   display: flex;
+   align-items: flex-end;
+   gap: 8px;
+   height: 160px;
+   padding-top: 24px;
+   padding-bottom: 24px;
+   border-bottom: 1px solid var(--admin-border);
+   position: relative;
+}
+
+.admin-bar-col {
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   height: 100%;
+   justify-content: flex-end;
+   position: relative;
+}
+
+.admin-bar-pill {
+   width: 100%;
+   max-width: 24px;
+   min-height: 4px;
+   border-radius: 4px 4px 0 0;
+   background: color-mix(in srgb, var(--admin-accent) 25%, var(--z-muted));
+   transition: height 0.3s ease, background-color 0.2s ease;
+}
+
+.admin-bar-col:hover .admin-bar-pill,
+.admin-bar-col.is-peak .admin-bar-pill {
+   background: var(--admin-accent);
+}
+
+.admin-bar-label {
+   position: absolute;
+   bottom: -20px;
+   font-size: 9px;
+   font-weight: 600;
+   color: var(--admin-muted);
+   white-space: nowrap;
+}
+
+.admin-bar-tooltip {
+   position: absolute;
+   top: -20px;
+   font-size: 10px;
+   font-weight: 700;
+   color: var(--admin-ink);
+   white-space: nowrap;
+   opacity: 0;
+   transition: opacity 0.15s ease;
+}
+
+.admin-bar-col:hover .admin-bar-tooltip,
+.admin-bar-col.is-peak .admin-bar-tooltip {
+   opacity: 1;
+}
+
+/* User Activity List */
+.admin-user-activity-list {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+}
+
+.admin-user-activity-item {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   padding: 8px 10px;
+   border-radius: 8px;
+   background: color-mix(in srgb, var(--z-muted) 50%, transparent);
+   transition: background 0.15s ease;
+}
+
+.admin-user-activity-item:hover {
+   background: var(--z-muted);
+}
+

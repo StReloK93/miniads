@@ -26,7 +26,7 @@ class TelegramAuth
             return response()->json(['error' => 'Invalid Telegram hash'], 403);
         }
 
-        // requestga user ma'lumotini qo‘shamiz
+        // requestga user ma'lumotini qo'shamiz
         $request->merge([
             'telegram_user' => $telegramData['user'] ?? null,
             'telegram_data' => $telegramData,

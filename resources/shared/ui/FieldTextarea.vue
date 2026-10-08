@@ -8,7 +8,7 @@
             :style="{
                maxHeight: maxHeight ? maxHeight + 'px' : undefined,
             }"
-            class="ui-textarea__field w-full resize-none transition focus:outline-none"
+            class="block w-full resize-none bg-transparent text-sm leading-[1.4] text-(--z-foreground) placeholder:text-sm placeholder:text-(--z-muted-text) focus:outline-none"
             @input="onInput($event, handleChange)"
          />
       </div>
@@ -45,28 +45,8 @@ function resize() {
    el.value.style.height = el.value.scrollHeight + "px";
 }
 
-function onInput(event, callback: (event) => void) {
+function onInput(event: Event, callback: (event: Event) => void) {
    callback?.(event);
    resize();
 }
 </script>
-<style scoped lang="scss">
-.ui-textarea__field {
-   font-size: 14px;
-   display: block;
-   width: 100%;
-
-   padding-inline: var(--input-px);
-
-   color: var(--color-text-primary);
-
-   line-height: 1.4;
-
-   transition: box-shadow var(--duration-fast);
-
-   &::placeholder {
-      font-size: 14px;
-      color: var(--z-muted-text);
-   }
-}
-</style>

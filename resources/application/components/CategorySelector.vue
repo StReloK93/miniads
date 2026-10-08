@@ -105,7 +105,7 @@ function openCategoryById(categoryId: number) {
 
    /**
     * 🔴 YETISHMAYOTGAN QISM
-    * Agar tanlangan category sahifa bo‘lmasa — uni ham ochamiz
+    * Agar tanlangan category sahifa bo'lmasa — uni ham ochamiz
     */
    const active = path[path.length - 1];
 

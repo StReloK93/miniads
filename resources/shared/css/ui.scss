@@ -6,6 +6,7 @@
    --z-foreground: #0f172a;
    --z-border: #e2e8f0;
    --z-muted: #f1f5f9;
+
    /* SPACING */
    --space-sm: 8px;
    --space-md: 12px;
@@ -15,91 +16,42 @@
    --z-rounded: 1rem;
 
    /* COLORS */
-   --z-danger: #ff3b30;
+   --z-danger: #ef4444;
 
    --z-primary: #0f172a;
-   --z-secondary: #e2e8f0;
+   --z-primary-hover: #1e293b;
+   --z-primary-foreground: #ffffff;
+   --z-secondary: #f1f5f9;
+   --z-secondary-foreground: #0f172a;
    --z-muted-text: #64748b;
    --z-field-background: #ffffff;
 
    /* ANIMATION */
    --duration: 150ms;
+   --duration-fast: 150ms;
    --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark {
-   --z-background: #0f172a;
-   --z-card: #111827;
-   --z-foreground: #f1f5f9;
-   --z-border: #334155;
-   --z-muted: #1e293b;
+   /* Ko'zga yoqimli, yumshoq slate-charcoal quyuq tema */
+   --z-background: #0b0f19;
+   --z-card: #131926;
+   --z-foreground: #e6edf3;
+   --z-border: #20293a;
+   --z-muted: #192233;
    --z-danger: #f87171;
    --z-primary: #f1f5f9;
-   --z-secondary: #334155;
-   --z-muted-text: #94a3b8;
-   --z-field-background: #0f172a;
+   --z-primary-hover: #ffffff;
+   --z-primary-foreground: #0b0f19;
+   --z-secondary: #1a2233;
+   --z-secondary-foreground: #e2e8f0;
+   --z-muted-text: #8b9bb0;
+   --z-field-background: #0e1320;
 }
 
 body {
    margin: 0;
    background: var(--z-background);
    color: var(--z-foreground);
+   transition: background-color var(--duration) var(--ease-soft), color var(--duration) var(--ease-soft);
 }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-// html.dark {
-//    --color-primary: #3b82f6;
-//    --color-primary-hover: #60a5fa;
-//    --color-danger: #f87171;
-
-//    --color-surface: #1a1a1a;
-//    --color-surface-muted: #2d2d2d;
-//    --color-border: #404040;
-
-//    --color-text-primary: #f8fafc;
-//    --color-text-secondary: #94a3b8;
-
-//    --drop-stripe-light: rgba(255, 255, 255, 0.08);
-//    --drop-stripe-dark: rgba(255, 255, 255, 0.02);
-// }

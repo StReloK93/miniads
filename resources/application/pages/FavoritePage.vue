@@ -2,9 +2,11 @@
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
          <aside class="mb-4">
-            <h3 class="font-bold text-xl mb-4">Sevimlilar</h3>
+            <div class="flex items-center justify-between mb-2">
+               <h3 class="font-bold text-xl">Sevimlilar</h3>
+            </div>
             <p class="text-sm text-(--z-muted-text)">
-               Sizda sevimlilar ro'yhatida {{ favorites?.length }} ta e'lon mavjud.
+               Sizda sevimlilar ro'yhatida {{ favorites?.length ?? 0 }} ta e'lon mavjud.
             </p>
          </aside>
       </template>
@@ -30,7 +32,7 @@ import BaseProductCard from "@/components/BaseProductCard.vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { preloadImages } from "@/modules/Helpers";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
+import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { IProduct } from "@shared/types";
 import { onMounted, ref } from "vue";
 

@@ -24,47 +24,14 @@
                </span>
             </main>
          </aside>
-         <BaseForm v-if="selectedCategory" :submit="submitForm" @submit="onSubmit" :input-configs="fullInputs" />
+         <BaseForm v-if="formInputs.length" :submit="submitForm" @submit="onSubmit" :input-configs="formInputs" />
       </main>
-      <main v-else class="h-full grid grid-rows-[auto_1fr]]">
-         <aside class="flex flex-col justify-between">
-            <main class="pb-4 border-b border-(--z-border) -mx-4 px-4">
-               <div class="skeleton w-22 h-5 mb-4"></div>
-               <div class="skeleton w-44 h-3 mb-4"></div>
-               <div class="flex gap-2 mb-1">
-                  <span class="skeleton w-18 h-4 inline-block"></span>
-                  <span class="skeleton w-18 h-4 inline-block"></span>
-               </div>
-            </main>
-            <main class="relative grow">
-               <article class="absolute inset-0 overflow-y-auto no-scrollbar py-3">
-                  <div class="skeleton w-16 h-3 mb-2"></div>
-                  <div class="skeleton aspect-video mb-4"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4.5"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4.5"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-17 mb-4"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4"></div>
-               </article>
-            </main>
-            <main class="border-t border-(--z-border) h-28 p-4 pb-0 flex flex-col items-center -mx-4">
-               <div class="skeleton h-12 rounded-2xl! mb-3 w-full"></div>
-               <p class="skeleton h-3 w-4/5 mb-1"></p>
-               <p class="skeleton h-3 w-2/5 mb-1"></p>
-            </main>
-         </aside>
-      </main>
+      <ProductFormSkeleton v-else />
    </section>
 </template>
 
 <script setup lang="ts">
+import ProductFormSkeleton from "@/components/ProductFormSkeleton.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
@@ -74,73 +41,51 @@ import { ICategory, InputConfig } from "@shared/types";
 import { Component, computed, onMounted, ref, shallowRef } from "vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
-import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
+import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { ChevronRight, MapPin } from "lucide-vue-next";
+import { useCity } from "@shared/entities/District/useCity";
 
-import { useCity } from "@shared/entities/Category/useCity";
 const cityStore = useCity();
-
-const selectedCity = computed(() => {
-   const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
-
-   const selectedDistrict = cityStore.cities?.find((d) => d.id === cityId);
-   return selectedDistrict ? selectedDistrict : null;
-});
-//
-
 const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
 
+const selectedCity = computed(() => {
+   const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
+   return cityStore.cities?.find((d) => d.id === cityId) ?? null;
+});
+
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
-var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
-const inputConfigs = shallowRef(productInputs());
+const formInputs = shallowRef<InputConfig[]>([]);
 
 async function selectCategory(category: ICategory) {
-   if (category.with_price == false) {
-      const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
-      if (indexPrice !== -1) {
-         inputConfigs.value.splice(indexPrice, 1);
-      }
-      const indexPriceTypeId = inputConfigs.value.findIndex((input) => input.name === "price_type_id");
-      if (indexPriceTypeId !== -1) {
-         inputConfigs.value.splice(indexPriceTypeId, 1);
-      }
-   }
-
-   if (category.with_image == false) {
-      const indexImages = inputConfigs.value.findIndex((input) => input.name === "images");
-      if (indexImages !== -1) {
-         inputConfigs.value.splice(indexImages, 1);
-      }
-   }
+   const baseInputs = productInputs({
+      withPrice: category.with_price !== false,
+      withImage: category.with_image !== false,
+   });
 
    await Promise.all(
-      inputConfigs.value.map(async (input) => {
+      baseInputs.map(async (input) => {
          if (input.generateProps) await input.generateProps();
          return input;
       }),
    );
 
-   const parameters = category.parameters;
-
-   const phoneInput = inputConfigs.value.at(-1);
-   if (parameters.length) {
-      phoneInput!.class = ["mb-3"];
-   } else {
-      phoneInput!.class = [];
+   const parameters = category.parameters || [];
+   const phoneInput = baseInputs.find((i) => i.name === "phone");
+   if (phoneInput) {
+      phoneInput.class = parameters.length ? ["mb-3"] : [];
    }
-   const customInputs = parameters.map((parameter, index) => {
-      const latest = parameters.length - 1 === index;
 
+   const customInputs: InputConfig[] = parameters.map((parameter, index) => {
+      const latest = parameters.length - 1 === index;
       return {
          component: Inputs[parameter.component] as Component,
          name: `parameter_${parameter.id}`,
          class: latest ? [] : ["mb-3"],
-
          props: {
             title: parameter.title,
             placeholder: parameter.placeholder,
@@ -151,10 +96,8 @@ async function selectCategory(category: ICategory) {
       };
    });
 
-   fullInputs = [...inputConfigs.value, ...customInputs];
-   setTimeout(() => {
-      selectedCategory.value = category;
-   }, 100);
+   formInputs.value = [...baseInputs, ...customInputs];
+   selectedCategory.value = category;
 }
 
 async function submitForm(values: any) {

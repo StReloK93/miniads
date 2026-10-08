@@ -41,7 +41,7 @@
 import { MapPin } from "lucide-vue-next";
 import { Form } from "vee-validate";
 import { computed, ref, Ref } from "vue";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 const cityStore = useCity();
 const props = defineProps<{
    selectedCityId: number | null;

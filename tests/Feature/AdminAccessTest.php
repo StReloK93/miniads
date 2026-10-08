@@ -58,7 +58,7 @@ test('admin can activate and archive an advertisement', function () {
 
     $category = Category::create(['name' => 'Uy-joy', 'listing_duration_days' => 14]);
     $product = Product::create([
-        'title' => 'Sinov e’loni',
+        'title' => "Sinov e'loni",
         'category_id' => $category->id,
         'user_id' => $admin->id,
         'expires_at' => now()->subDay(),

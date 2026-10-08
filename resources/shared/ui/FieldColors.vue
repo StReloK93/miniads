@@ -6,7 +6,7 @@
             v-for="item in items"
             :key="item.id"
             @click="handleChange(item.id)"
-            class="w-11 h-11 border-2 border-(--z-border) rounded-full p-0.5 transition-colors duration-200"
+            class="size-11 border-2 border-(--z-border) rounded-full p-0.5 transition-all duration-200 cursor-pointer active:scale-95"
             :style="{ borderColor: value === item.id ? item.border : '' }"
          >
             <span

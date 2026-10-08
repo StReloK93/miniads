@@ -15,7 +15,7 @@ const initApp = async () => {
    try {
       await authStore.getUser();
    } catch (error) {
-      console.error("Admin sessionini tiklab bo‘lmadi.", error);
+      console.error("Admin sessionini tiklab bo'lmadi.", error);
       window.location.replace("/");
       return;
    }

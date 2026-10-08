@@ -21,10 +21,10 @@
          </article>
       </template>
       <footer class="category-parameters-footer">
-         <BaseButton type="button" severity="secondary" variant="text" :disabled="isLoading" @click="emit('close')">
+         <BaseButton type="button" severity="secondary" variant="text" size="sm" :disabled="isLoading" @click="emit('close')">
             Bekor qilish
          </BaseButton>
-         <BaseButton type="submit" :loading="isLoading" :disabled="isLoadingData || Boolean(error)">Saqlash</BaseButton>
+         <BaseButton type="submit" size="sm" :loading="isLoading" :disabled="isLoadingData || Boolean(error)">Saqlash</BaseButton>
       </footer>
    </form>
 </template>
@@ -66,7 +66,7 @@ async function submit() {
       emit("close");
    } catch (exception) {
       console.error("Kategoriya parametrlari saqlanmadi.", exception);
-      error.value = "Parametrlarni saqlab bo‘lmadi. Qayta urinib ko‘ring.";
+      error.value = "Parametrlarni saqlab bo'lmadi. Qayta urinib ko'ring.";
    } finally {
       isLoading.value = false;
    }
@@ -92,7 +92,7 @@ onMounted(async () => {
       });
    } catch (exception) {
       console.error("Kategoriya parametrlari yuklanmadi.", exception);
-      error.value = "Parametrlarni yuklab bo‘lmadi. Qayta urinib ko‘ring.";
+      error.value = "Parametrlarni yuklab bo'lmadi. Qayta urinib ko'ring.";
    } finally {
       isLoadingData.value = false;
    }

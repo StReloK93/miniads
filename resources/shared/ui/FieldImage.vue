@@ -17,35 +17,35 @@
                   :crop-y="image.crop_y"
                   :crop-scale="image.crop_scale"
                   class="h-full w-full"
-                  alt="Tanlangan e’lon rasmi"
+                  alt="Tanlangan e'lon rasmi"
                />
-               <BaseButton
-                  @click="deleteImage(index, field)"
-                  class="absolute! top-1 right-1 z-10"
-                  rounded
-                  severity="danger"
-                  icon-only
-                  variant="text"
-                  size="sm"
-                  aria-label="Rasmni o‘chirish"
-               >
-                  <template #icon>
-                     <Trash class="size-5" />
-                  </template>
-               </BaseButton>
-               <BaseButton
-                  @click="openCropEditor(image, field)"
-                  class="absolute! bottom-1 right-1 z-10 shadow-lg"
-                  rounded
-                  severity="primary"
-                  icon-only
-                  size="sm"
-                  aria-label="Rasmni kesish"
-               >
-                  <template #icon>
-                     <Crop class="size-5 text-white" />
-                  </template>
-               </BaseButton>
+               <div class="absolute! bottom-1 right-1 z-10 flex gap-2">
+                  <BaseButton
+                     @click="deleteImage(index, field)"
+                     rounded
+                     severity="danger"
+                     icon-only
+                     size="sm"
+                     aria-label="Rasmni o'chirish"
+                  >
+                     <template #icon>
+                        <Trash class="size-5" />
+                     </template>
+                  </BaseButton>
+                  <BaseButton
+                     @click="openCropEditor(image, field)"
+                     rounded
+                     severity="glass"
+                     
+                     icon-only
+                     size="sm"
+                     aria-label="Rasmni kesish"
+                  >
+                     <template #icon>
+                        <Crop class="size-5 " />
+                     </template>
+                  </BaseButton>
+               </div>
             </main>
 
             <label
@@ -94,23 +94,33 @@
                :src="activeImage.originalUrl"
                class="absolute max-w-none select-none"
                :style="editorImageStyle"
-               alt="Kesish ko‘rinishi"
+               alt="Kesish ko'rinishi"
                draggable="false"
                @load="measureCropStage"
             />
             <div
                v-if="cropRectStyle"
-               class="crop-frame absolute cursor-move"
+               class="absolute cursor-move border border-white shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]"
                :style="cropRectStyle"
                @pointerdown.stop="startCropDrag($event, 'move')"
             >
-               <span class="crop-grid crop-grid--vertical" />
-               <span class="crop-grid crop-grid--horizontal" />
+               <!-- Rule-of-thirds grid -->
+               <div class="pointer-events-none absolute inset-0 grid grid-cols-3 grid-rows-3">
+                  <div class="border-r border-b border-white/40" />
+                  <div class="border-r border-b border-white/40" />
+                  <div class="border-b border-white/40" />
+                  <div class="border-r border-b border-white/40" />
+                  <div class="border-r border-b border-white/40" />
+                  <div class="border-b border-white/40" />
+                  <div class="border-r border-b border-white/40" />
+                  <div class="border-r border-b border-white/40" />
+                  <div />
+               </div>
                <span
                   v-for="handle in cropHandles"
                   :key="handle"
-                  class="crop-handle"
-                  :class="`crop-handle--${handle}`"
+                  class="absolute z-1 block touch-none"
+                  :class="getHandleClass(handle)"
                   @pointerdown.stop="startCropDrag($event, handle)"
                />
             </div>
@@ -125,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { Field } from "vee-validate";
+import { Field, FieldBindingObject } from "vee-validate";
 import { Camera, Crop, Trash } from "lucide-vue-next";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
@@ -240,7 +250,7 @@ function normalizedImage(image: Record<string, any>): IImage {
    };
 }
 
-async function inputMounted(field: { value: unknown; onInput: (value: unknown) => void }) {
+async function inputMounted(field: FieldBindingObject<any>) {
    const nullable = attrs.multiple ? [] : null;
    await field.onInput(field.value || nullable);
 
@@ -312,9 +322,6 @@ function deleteImage(index: number, field: { onInput: (value: IImage[] | null) =
 
 function fieldImageValue(image: IImage) {
    const value = { ...image };
-   delete value.url;
-   delete value.originalUrl;
-
    return value;
 }
 
@@ -454,108 +461,27 @@ function closeCropEditor() {
    originalCrop.value = null;
    dragState.value = null;
 }
+
+function getHandleClass(handle: string): string {
+   switch (handle) {
+      case "north":
+         return "left-1/2 -top-[3px] -translate-x-1/2 w-[34px] h-[5px] cursor-ns-resize rounded-full bg-white";
+      case "south":
+         return "left-1/2 -bottom-[3px] -translate-x-1/2 w-[34px] h-[5px] cursor-ns-resize rounded-full bg-white";
+      case "east":
+         return "top-1/2 -right-[3px] -translate-y-1/2 w-[5px] h-[34px] cursor-ew-resize rounded-full bg-white";
+      case "west":
+         return "top-1/2 -left-[3px] -translate-y-1/2 w-[5px] h-[34px] cursor-ew-resize rounded-full bg-white";
+      case "north-east":
+         return "-top-1.5 -right-1.5 size-3.5 border-2 border-white bg-(--z-primary) rounded-full cursor-nesw-resize";
+      case "south-east":
+         return "-bottom-1.5 -right-1.5 size-3.5 border-2 border-white bg-(--z-primary) rounded-full cursor-nwse-resize";
+      case "south-west":
+         return "-bottom-1.5 -left-1.5 size-3.5 border-2 border-white bg-(--z-primary) rounded-full cursor-nesw-resize";
+      case "north-west":
+         return "-top-1.5 -left-1.5 size-3.5 border-2 border-white bg-(--z-primary) rounded-full cursor-nwse-resize";
+      default:
+         return "";
+   }
+}
 </script>
-
-<style scoped>
-.crop-frame {
-   border: 1px solid white;
-   box-shadow: 0 0 0 9999px rgb(0 0 0 / 55%);
-}
-
-.crop-grid {
-   position: absolute;
-   pointer-events: none;
-   background: rgb(255 255 255 / 50%);
-}
-
-.crop-grid--vertical {
-   inset: 0;
-   background:
-      linear-gradient(to right, transparent calc(33.333% - 0.5px), rgb(255 255 255 / 55%) 33.333%, transparent calc(33.333% + 0.5px)),
-      linear-gradient(to right, transparent calc(66.666% - 0.5px), rgb(255 255 255 / 55%) 66.666%, transparent calc(66.666% + 0.5px));
-}
-
-.crop-grid--horizontal {
-   inset: 0;
-   background:
-      linear-gradient(to bottom, transparent calc(33.333% - 0.5px), rgb(255 255 255 / 55%) 33.333%, transparent calc(33.333% + 0.5px)),
-      linear-gradient(to bottom, transparent calc(66.666% - 0.5px), rgb(255 255 255 / 55%) 66.666%, transparent calc(66.666% + 0.5px));
-}
-
-.crop-handle {
-   position: absolute;
-   z-index: 1;
-   display: block;
-   border-radius: 999px;
-   background: white;
-   touch-action: none;
-}
-
-.crop-handle--north,
-.crop-handle--south {
-   left: 50%;
-   width: 34px;
-   height: 5px;
-   transform: translateX(-50%);
-   cursor: ns-resize;
-}
-
-.crop-handle--north {
-   top: -3px;
-}
-
-.crop-handle--south {
-   bottom: -3px;
-}
-
-.crop-handle--east,
-.crop-handle--west {
-   top: 50%;
-   width: 5px;
-   height: 34px;
-   transform: translateY(-50%);
-   cursor: ew-resize;
-}
-
-.crop-handle--east {
-   right: -3px;
-}
-
-.crop-handle--west {
-   left: -3px;
-}
-
-.crop-handle--north-east,
-.crop-handle--south-east,
-.crop-handle--south-west,
-.crop-handle--north-west {
-   width: 13px;
-   height: 13px;
-   border: 2px solid white;
-   background: var(--z-primary);
-}
-
-.crop-handle--north-east {
-   top: -6px;
-   right: -6px;
-   cursor: nesw-resize;
-}
-
-.crop-handle--south-east {
-   right: -6px;
-   bottom: -6px;
-   cursor: nwse-resize;
-}
-
-.crop-handle--south-west {
-   bottom: -6px;
-   left: -6px;
-   cursor: nesw-resize;
-}
-
-.crop-handle--north-west {
-   top: -6px;
-   left: -6px;
-   cursor: nwse-resize;
-}
-</style>

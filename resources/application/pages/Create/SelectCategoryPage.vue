@@ -29,7 +29,7 @@ import CategorySelector from "@components/CategorySelector.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 const cityStore = useCity();
 
 const route = useRoute();

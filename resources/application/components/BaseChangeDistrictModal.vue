@@ -1,5 +1,5 @@
 <template>
-   <main v-if="AuthStore.user" class="flex items-center justify-between mb-4">
+   <main class="flex items-center justify-between mb-4">
       <BaseModal
          :show-buttons="false"
          :open="isOpen"
@@ -27,14 +27,16 @@
             </div>
          </Form>
       </BaseModal>
-      <aside>
-         <h2 class="mb-0.5 text-(--color-text-secondary)">{{ AuthStore.user?.name }}</h2>
-         <div @click="isOpen = true" class="flex gap-2 items-center text-sm underline">
-            <MapPin class="size-4" />
-            {{ AuthStore.user?.active_district?.name || "Barcha shaharlar" }}
+      <aside v-if="AuthStore.user">
+         <h2 class="mb-0.5 text-(--z-muted-text) text-xs font-medium">{{ AuthStore.user?.name }}</h2>
+         <div @click="isOpen = true" class="flex gap-1.5 items-center text-sm font-semibold cursor-pointer">
+            <MapPin class="size-4 text-(--z-primary)" />
+            <span>{{ AuthStore.user?.active_district?.name || "Barcha shaharlar" }}</span>
          </div>
       </aside>
-      <aside></aside>
+      <aside v-else>
+         <h2 class="text-base font-bold">MiniAds</h2>
+      </aside>
    </main>
 </template>
 
@@ -43,7 +45,7 @@ import { MapPin } from "lucide-vue-next";
 import { useAuth } from "@shared/store/useAuth";
 import { Form } from "vee-validate";
 import { ref, Ref } from "vue";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 const cityStore = useCity();
 
 const emit = defineEmits<{

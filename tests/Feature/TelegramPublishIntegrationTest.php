@@ -30,7 +30,7 @@ test('telegram publish integration sends a message to the dedicated test chat', 
     try {
         $product = new Product([
             'title' => 'TELEGRAM INTEGRATION TEST',
-            'description' => 'Telegram e’lon yuborish integratsiya testi.',
+            'description' => "Telegram e'lon yuborish integratsiya testi.",
             'price' => 1000,
             'phone' => '0000000000',
         ]);

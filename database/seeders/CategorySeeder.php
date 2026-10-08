@@ -26,13 +26,13 @@ class CategorySeeder extends Seeder
 
 		// 🪑 Mebel
 
-		// 🎓 Ta’lim
+		// 🎓 Ta'lim
 
 		// 🐄 Chorva va hayvonlar
 
 		// 🎁 Bepul beriladi
 
-		// 🔎 Topildi / Yo‘qotildi
+		// 🔎 Topildi / Yo'qotildi
 
 		// 📦 Boshqa
 
@@ -129,7 +129,7 @@ class CategorySeeder extends Seeder
 				]
 			],
 
-			// 🎓 Ta’lim
+			// 🎓 Ta'lim
 			[
 				'name' => "Talim",
 				'image' => 'GraduationCap',
@@ -164,7 +164,7 @@ class CategorySeeder extends Seeder
 				]
 			],
 
-			// 🔎 Topildi / Yo‘qotildi
+			// 🔎 Topildi / Yo'qotildi
 			[
 				'name' => "Topilmalar",
 				'image' => 'Megaphone',
@@ -211,7 +211,7 @@ class CategorySeeder extends Seeder
 				'parent_id' => $parentId,
 			]);
 
-			// Agar ichki sub-kategoriyalar bo‘lsa — recursive chaqiramiz
+			// Agar ichki sub-kategoriyalar bo'lsa — recursive chaqiramiz
 			if (!empty($item['subs']) && is_array($item['subs'])) {
 				$this->createCategories($item['subs'], $category->id);
 			}

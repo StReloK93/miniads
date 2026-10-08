@@ -23,8 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->shouldRenderJsonWhen(function ($request, \Throwable $e) {
+            return $request->is('api/*') || $request->expectsJson();
+        });
+
         $exceptions->respond(function (Response $response) {
-            if (request()->is('api/*') && $response->getStatusCode() >= 500) {
+            if (request()->is('api/*') && $response->getStatusCode() >= 500 && !config('app.debug')) {
                 return response()->json([
                     'message' => 'Xatolik yuz berdi',
                     'code' => 'INTERNAL_SERVER_ERROR',

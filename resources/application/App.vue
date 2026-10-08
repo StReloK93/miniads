@@ -14,7 +14,7 @@ import { useRoute, useRouter } from "vue-router";
 
 import { nextTick, onMounted, ref } from "vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 import { on, postEvent } from "@tma.js/bridge";
 const categoryStore = useCategory();
 const cityStore = useCity();

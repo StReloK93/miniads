@@ -12,13 +12,12 @@
 
       <header class="admin-page-heading">
          <div>
-            <p class="admin-eyebrow">KATALOG</p>
             <h1>Parametrlar</h1>
-            <p class="admin-muted">Kategoriyalarga biriktiriladigan e’lon maydonlarini boshqaring.</p>
+            <p class="admin-muted">Kategoriyalarga biriktiriladigan e'lon maydonlarini boshqaring.</p>
          </div>
-         <BaseButton @click="openCreateForm">
+         <BaseButton size="sm" @click="openCreateForm">
             <template #icon><Plus class="size-4" /></template>
-            Parametr qo‘shish
+            Parametr qo'shish
          </BaseButton>
       </header>
 
@@ -61,7 +60,7 @@ const submit = ref<(values: Record<string, unknown>) => Promise<void>>(async () 
 
 async function openCreateForm() {
    error.value = "";
-   title.value = "Yangi parametr qo‘shish";
+   title.value = "Yangi parametr qo'shish";
    inputConfigs.value.forEach((input) => (input.value = undefined));
    formKey.value += 1;
    submit.value = async (values) => {
@@ -86,8 +85,8 @@ async function openEditForm(id: string | number) {
       };
       drawerOpen.value = true;
    } catch (exception) {
-      console.error("Parametr ma’lumotini yuklab bo‘lmadi.", exception);
-      error.value = "Parametrni tahrirlash uchun ma’lumotni yuklab bo‘lmadi.";
+      console.error("Parametr ma'lumotini yuklab bo'lmadi.", exception);
+      error.value = "Parametrni tahrirlash uchun ma'lumotni yuklab bo'lmadi.";
    }
 }
 
@@ -96,8 +95,8 @@ async function deleteParameter(id: string | number) {
       await ParameterRepo.delete(id);
       await executeParameters();
    } catch (exception) {
-      console.error("Parametrni o‘chirib bo‘lmadi.", exception);
-      error.value = "Parametrni o‘chirib bo‘lmadi.";
+      console.error("Parametrni o'chirib bo'lmadi.", exception);
+      error.value = "Parametrni o'chirib bo'lmadi.";
    }
 }
 
@@ -105,8 +104,8 @@ onMounted(async () => {
    try {
       await executeParameters();
    } catch (exception) {
-      console.error("Parametrlarni yuklab bo‘lmadi.", exception);
-      error.value = "Parametrlarni yuklab bo‘lmadi. Sahifani yangilab ko‘ring.";
+      console.error("Parametrlarni yuklab bo'lmadi.", exception);
+      error.value = "Parametrlarni yuklab bo'lmadi. Sahifani yangilab ko'ring.";
    }
 });
 </script>

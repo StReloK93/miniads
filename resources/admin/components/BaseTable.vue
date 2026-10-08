@@ -19,32 +19,48 @@
                   <span v-else>{{ row[column.field] ?? "—" }}</span>
                </td>
                <td class="admin-actions">
-                  <button class="admin-icon-button" type="button" :aria-label="`${row.id} ni tahrirlash`" title="Tahrirlash" @click="emit('edit', row.id)">
-                     <Pencil class="size-4" />
-                  </button>
-                  <button class="admin-icon-button admin-danger" type="button" :aria-label="`${row.id} ni o‘chirish`" title="O‘chirish" @click="confirmDelete(row)">
-                     <Trash2 class="size-4" />
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                     <BaseButton
+                        size="xs"
+                        severity="secondary"
+                        icon-only
+                        title="Tahrirlash"
+                        :aria-label="`${row.id} ni tahrirlash`"
+                        @click="emit('edit', row.id)"
+                     >
+                        <template #icon><Pencil class="size-3.5" /></template>
+                     </BaseButton>
+                     <BaseButton
+                        size="xs"
+                        severity="danger"
+                        icon-only
+                        title="O'chirish"
+                        :aria-label="`${row.id} ni o'chirish`"
+                        @click="confirmDelete(row)"
+                     >
+                        <template #icon><Trash2 class="size-3.5" /></template>
+                     </BaseButton>
+                  </div>
                </td>
             </tr>
             <tr v-if="parameters.length === 0">
-               <td :colspan="columns.length + 1" class="admin-empty-cell">Ma’lumot topilmadi.</td>
+               <td :colspan="columns.length + 1" class="admin-empty-cell">Ma'lumot topilmadi.</td>
             </tr>
          </tbody>
       </table>
 
       <BaseModal
          :open="deleteTarget !== null"
-         title="O‘chirishni tasdiqlang"
-         description="O‘chirilgan ma’lumotdan foydalanib bo‘lmaydi."
-         confirm-text="O‘chirish"
+         title="O'chirishni tasdiqlang"
+         description="O'chirilgan ma'lumotdan foydalanib bo'lmaydi."
+         confirm-text="O'chirish"
          cancel-text="Bekor qilish"
          danger
          @close="deleteTarget = null"
          @confirm="deleteConfirmed"
       >
          <template #icon><TriangleAlert class="size-5 text-(--z-danger)" /></template>
-         <p class="admin-confirm-copy">Ushbu yozuvni o‘chirmoqchimisiz?</p>
+         <p class="admin-confirm-copy">Ushbu yozuvni o'chirmoqchimisiz?</p>
       </BaseModal>
    </div>
 </template>

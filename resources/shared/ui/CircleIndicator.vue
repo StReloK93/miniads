@@ -7,7 +7,7 @@
             :r="radius"
             fill="none"
             stroke="currentColor"
-            class="text-zinc-200 dark:text-zinc-800 stroke-white"
+            class="text-zinc-200 dark:text-zinc-800 stroke-current"
             :stroke-width="strokeWidth"
          />
 

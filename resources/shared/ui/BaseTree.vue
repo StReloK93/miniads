@@ -1,7 +1,15 @@
 <template>
-   <div class="ui-tree" @dragover.prevent @drop.prevent="dropAtRoot($event)">
-      <p v-if="nodes.length === 0" class="ui-tree-empty">Kategoriyalar hali qo‘shilmagan.</p>
-      <TreeNode
+   <div
+      class="grid gap-1.5 rounded-2xl border border-(--z-border) bg-(--z-card) p-3.5"
+      @dragover.prevent
+      @drop.prevent="dropAtRoot($event)"
+   >
+      <div v-if="nodes.length === 0" class="flex flex-col items-center justify-center py-10 px-5 text-center">
+         <FolderTree class="size-8 text-(--z-muted-text) mb-2" />
+         <p class="font-medium text-sm text-(--z-foreground)">Kategoriyalar hali mavjud emas</p>
+         <span class="text-xs text-(--z-muted-text)">Yangi kategoriya qo'shish uchun yuqoridagi tugmani bosing</span>
+      </div>
+      <BaseTreeNode
          v-for="node in nodes"
          :key="String(node.key)"
          :node="node"
@@ -18,7 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import TreeNode from "@shared/ui/BaseTreeNode.vue";
+import BaseTreeNode from "@shared/ui/BaseTreeNode.vue";
+import { FolderTree } from "lucide-vue-next";
 
 export type TreeNodeData = {
    key: string | number;
@@ -34,6 +43,7 @@ defineProps<{
    selectedKey?: string | number | null;
    selectedParentKey?: string | number | null;
 }>();
+
 const emit = defineEmits<{
    (event: "create", node: TreeNodeData): void;
    (event: "parameters", node: TreeNodeData): void;
@@ -49,22 +59,3 @@ function dropAtRoot(event: DragEvent) {
    }
 }
 </script>
-
-<style scoped>
-.ui-tree {
-   display: grid;
-   gap: 5px;
-   border: 1px solid var(--z-border);
-   border-radius: 14px;
-   background: var(--z-card);
-   padding: 12px;
-}
-
-.ui-tree-empty {
-   margin: 0;
-   padding: 25px;
-   color: var(--z-muted-text);
-   font-size: 13px;
-   text-align: center;
-}
-</style>

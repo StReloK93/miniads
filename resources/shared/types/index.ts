@@ -125,7 +125,7 @@ export interface ITreeNode {
    parent_id?: number | null;
    image?: string;
    is_page?: boolean;
-   draggable?: boolean; // o‘zi ko‘chiriladimi
+   draggable?: boolean; // o'zi ko'chiriladimi
    droppable?: boolean; // ichiga tashlash mumkinmi
 }
 

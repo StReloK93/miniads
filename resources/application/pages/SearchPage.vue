@@ -1,7 +1,9 @@
 <template>
    <NavigationPageDecorator>
       <template #header>
-         <h3 class="font-bold text-xl">Qidiruv</h3>
+         <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xl">Qidiruv</h3>
+         </div>
          <article class="flex gap-4 pt-4 pb-4">
             <Form @submit="onSubmit" class="grow flex" autocomplete="off">
                <FieldText
@@ -173,7 +175,7 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
 import { computed, ref } from "vue";
 import { IProduct } from "@shared/types";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 const cityStore = useCity();
 
 const isFilterOpen = ref(false);

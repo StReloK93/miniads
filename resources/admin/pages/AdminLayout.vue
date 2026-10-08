@@ -26,7 +26,6 @@
                <span class="admin-avatar">{{ initials }}</span>
                <span class="admin-user-label"><strong>{{ auth.user?.name || "Administrator" }}</strong><small>Administrator</small></span>
             </div>
-            <a class="admin-site-link" href="/">Saytga qaytish <ArrowUpRight class="size-3.5" aria-hidden="true" /></a>
          </div>
       </aside>
 
@@ -36,7 +35,10 @@
                <span class="admin-topbar-label">MINIADS BOSHQARUV TIZIMI</span>
                <span class="admin-topbar-user">{{ auth.user?.name || "Administrator" }}</span>
             </div>
-            <a class="admin-topbar-link" href="/">Saytni ochish <ArrowUpRight class="size-3.5" aria-hidden="true" /></a>
+            <div class="flex items-center gap-3">
+               <ThemeSwitcher variant="toggle" />
+               <a class="admin-topbar-link" href="/">Saytni ochish <ArrowUpRight class="size-3.5" aria-hidden="true" /></a>
+            </div>
          </header>
          <div class="admin-content"><RouterView /></div>
       </main>
@@ -58,8 +60,8 @@ const initials = computed(() =>
 );
 
 const mainLinks = [
-   { name: "admin-home", label: "Umumiy ko‘rinish", icon: ChartPie },
-   { name: "admin-products", label: "E’lonlar", icon: FileText },
+   { name: "admin-home", label: "Umumiy ko'rinish", icon: ChartPie },
+   { name: "admin-products", label: "E'lonlar", icon: FileText },
    { name: "admin-users", label: "Foydalanuvchilar", icon: Users },
 ];
 const catalogLinks = [

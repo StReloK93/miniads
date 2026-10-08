@@ -24,52 +24,19 @@
             </main>
          </aside>
          <BaseForm
-            v-if="selectedCategory"
+            v-if="formInputs.length"
             :submit="submitForm"
             @submit="onSubmit"
-            :input-configs="fullInputs"
+            :input-configs="formInputs"
             submit-label="E'lonni yangilash"
          />
       </main>
-      <main v-else class="h-full grid grid-rows-[auto_1fr]]">
-         <aside class="flex flex-col justify-between">
-            <main class="pb-4 border-b border-(--z-border) -mx-4 px-4">
-               <div class="skeleton w-22 h-5 mb-4"></div>
-               <div class="skeleton w-44 h-3 mb-4"></div>
-               <div class="flex gap-2 mb-1">
-                  <span class="skeleton w-18 h-4 inline-block"></span>
-                  <span class="skeleton w-18 h-4 inline-block"></span>
-               </div>
-            </main>
-            <main class="relative grow">
-               <article class="absolute inset-0 overflow-y-auto no-scrollbar py-3">
-                  <div class="skeleton w-16 h-3 mb-2"></div>
-                  <div class="skeleton aspect-video mb-4"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4.5"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4.5"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-17 mb-4"></div>
-
-                  <div class="skeleton w-16 h-3 mb-1"></div>
-                  <div class="skeleton h-12 mb-4"></div>
-               </article>
-            </main>
-            <main class="border-t border-(--z-border) h-28 p-4 pb-0 flex flex-col items-center -mx-4">
-               <div class="skeleton h-12 rounded-2xl! mb-3 w-full"></div>
-               <p class="skeleton h-3 w-4/5 mb-1"></p>
-               <p class="skeleton h-3 w-2/5 mb-1"></p>
-            </main>
-         </aside>
-      </main>
+      <ProductFormSkeleton v-else />
    </section>
 </template>
 
 <script setup lang="ts">
+import ProductFormSkeleton from "@/components/ProductFormSkeleton.vue";
 import ProductChangeDistrictModal from "@components/ProductChangeDistrictModal.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
@@ -95,54 +62,36 @@ const props = defineProps<{
 }>();
 
 const selectedCityId = ref<number | null>(null);
-
-var fullInputs: InputConfig[] = [];
 const selectedCategory = ref<ICategory | null>(null);
-const inputConfigs = shallowRef(productInputs());
+const formInputs = shallowRef<InputConfig[]>([]);
 
 async function selectCategory(category: ICategory, product: IProduct) {
    selectedCityId.value = product.district_id;
-   if (category.with_price == false) {
-      const indexPrice = inputConfigs.value.findIndex((input) => input.name === "price");
-      if (indexPrice !== -1) {
-         inputConfigs.value.splice(indexPrice, 1);
-      }
-      const indexPriceTypeId = inputConfigs.value.findIndex((input) => input.name === "price_type_id");
-      if (indexPriceTypeId !== -1) {
-         inputConfigs.value.splice(indexPriceTypeId, 1);
-      }
-   }
 
-   if (category.with_image == false) {
-      const indexImages = inputConfigs.value.findIndex((input) => input.name === "images");
-      if (indexImages !== -1) {
-         inputConfigs.value.splice(indexImages, 1);
-      }
-   }
+   const baseInputs = productInputs({
+      withPrice: category.with_price !== false,
+      withImage: category.with_image !== false,
+   });
 
    await Promise.all(
-      inputConfigs.value.map(async (input) => {
+      baseInputs.map(async (input) => {
          if (input.generateProps) await input.generateProps();
          return input;
       }),
    );
 
-   const parameters = category.parameters;
-
-   const phoneInput = inputConfigs.value.at(-1);
-   if (parameters.length) {
-      phoneInput!.class = ["mb-3"];
-   } else {
-      phoneInput!.class = [];
+   const parameters = category.parameters || [];
+   const phoneInput = baseInputs.find((i) => i.name === "phone");
+   if (phoneInput) {
+      phoneInput.class = parameters.length ? ["mb-3"] : [];
    }
-   const customInputs = parameters.map((parameter, index) => {
-      const latest = parameters.length - 1 === index;
 
+   const customInputs: InputConfig[] = parameters.map((parameter, index) => {
+      const latest = parameters.length - 1 === index;
       return {
          component: Inputs[parameter.component] as Component,
          name: `parameter_${parameter.id}`,
          class: latest ? [] : ["mb-3"],
-
          props: {
             title: parameter.title,
             placeholder: parameter.placeholder,
@@ -150,21 +99,18 @@ async function selectCategory(category: ICategory, product: IProduct) {
             inputmode: parameter.type === "number" ? "numeric" : undefined,
          },
          schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required),
-         value: product.parameter_values.find((p) => p.parameter_id === parameter.id)?.value || "",
+         value: product.parameter_values?.find((p: any) => p.parameter_id === parameter.id)?.value || "",
       };
    });
 
-   inputConfigs.value.forEach((input) => {
-      if (product[input.name]) {
-         input.value = product[input.name];
+   baseInputs.forEach((input) => {
+      if ((product as any)[input.name] !== undefined) {
+         input.value = (product as any)[input.name];
       }
    });
 
-   fullInputs = [...inputConfigs.value, ...customInputs];
-
-   setTimeout(() => {
-      selectedCategory.value = category;
-   }, 100);
+   formInputs.value = [...baseInputs, ...customInputs];
+   selectedCategory.value = category;
 }
 
 function onDistrictChanged(districtId: number) {
@@ -179,7 +125,7 @@ async function submitForm(values: any) {
       description: values.description,
       price: values.price,
       price_type_id: values.price_type_id,
-      category_id: route.params.categoryId,
+      category_id: selectedCategory.value?.id,
       parameters: [],
       images: values.images,
       district_id: selectedCityId.value,

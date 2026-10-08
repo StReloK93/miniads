@@ -13,7 +13,7 @@
          </aside>
       </main>
       <div
-         class="absolute inset-0 top-auto pointer-events-none h-12 bg-linear-to-t from-white/90 via-white/60 to-transparent z-50"
+         class="absolute inset-0 top-auto pointer-events-none h-12 bg-linear-to-t from-(--z-background) via-(--z-background)/60 to-transparent z-50"
       />
    </section>
 </template>

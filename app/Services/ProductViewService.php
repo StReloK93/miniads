@@ -23,7 +23,7 @@ class ProductViewService
 
       Cache::put($seenKey, true, now()->addDay());
 
-      // Product bo‘yicha yig‘ilgan view soni
+      // Product bo'yicha yig'ilgan view soni
       Cache::increment("product:views:{$product->id}");
 
       // Qaysi productlarda view borligini eslab qolamiz

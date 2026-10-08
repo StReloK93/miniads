@@ -29,19 +29,28 @@
 			width: 100vw;
 			height: 100vh;
 			z-index: 1000;
-			background-color: #fff;
+			background-color: #f8fafc;
+			transition: opacity 0.2s ease;
+		}
+
+		html.dark #loader {
+			background-color: #0b0f19;
 		}
 
 		.dot {
 			width: 10px;
 			height: 10px;
-			border: 2px solid #333;
+			border: 2px solid #0f172a;
 			border-radius: 50%;
 			float: left;
 			margin: 0 5px;
 			transform: scale(0);
 			-webkit-animation: fx 1000ms ease infinite 0ms;
 			animation: fx 1000ms ease infinite 0ms;
+		}
+
+		html.dark .dot {
+			border-color: #f8fafc;
 		}
 
 		.dot:nth-child(2) {
@@ -79,6 +88,12 @@
 	@vite(['resources/application/app.css', 'resources/application/app.ts'])
 
 	<script>
+		try {
+			var theme = localStorage.getItem('theme-mode');
+			if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.documentElement.classList.add('dark');
+			}
+		} catch (e) {}
 		var ENV = {
 			TELEGRAM_BOT_NAME: "{{ env('TELEGRAM_BOT_NAME') }}"
 		}

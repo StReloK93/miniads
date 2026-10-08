@@ -23,7 +23,7 @@
       <BaseModal
          :open="pageData.selectedCategory !== null"
          :title="`${pageData.selectedCategory?.label || 'Kategoriya'} parametrlari`"
-         description="E’lon formasida ishlatiladigan parametrlarni tanlang va tartiblang."
+         description="E'lon formasida ishlatiladigan parametrlarni tanlang va tartiblang."
          :show-buttons="false"
          @close="pageData.selectedCategory = null"
       >
@@ -38,26 +38,25 @@
 
       <BaseModal
          :open="categoryToDelete !== null"
-         title="Kategoriyani o‘chirish"
+         title="Kategoriyani o'chirish"
          description="Ushbu kategoriya katalogdan olib tashlanadi."
-         confirm-text="O‘chirish"
+         confirm-text="O'chirish"
          danger
          @close="categoryToDelete = null"
          @confirm="deleteCategory"
       >
          <template #icon><TriangleAlert class="size-5 text-(--z-danger)" /></template>
-         <p class="admin-confirm-copy">“{{ categoryToDelete?.label }}” kategoriyasini o‘chirmoqchimisiz?</p>
+         <p class="admin-confirm-copy">“{{ categoryToDelete?.label }}” kategoriyasini o'chirmoqchimisiz?</p>
       </BaseModal>
 
       <header class="admin-page-heading">
          <div>
-            <p class="admin-eyebrow">KATALOG</p>
             <h1>Kategoriyalar</h1>
-            <p class="admin-muted">Ichki bo‘limlar, e’lon sahifalari va ularning parametrlarini boshqaring.</p>
+            <p class="admin-muted">Ichki bo'limlar, e'lon sahifalari va ularning parametrlarini boshqaring.</p>
          </div>
-         <BaseButton @click="openCreateForm()">
+         <BaseButton @click="openCreateForm()" size="sm">
             <template #icon><Plus class="size-4" /></template>
-            Kategoriya qo‘shish
+            Kategoriya qo'shish
          </BaseButton>
       </header>
 
@@ -132,7 +131,7 @@ function resetInputs() {
 
 async function openCreateForm(parent: TreeNodeData | null = null) {
    error.value = "";
-   pageData.title = parent ? "Ichki kategoriya qo‘shish" : "Yangi kategoriya qo‘shish";
+   pageData.title = parent ? "Ichki kategoriya qo'shish" : "Yangi kategoriya qo'shish";
    pageData.selectedParent = parent;
    pageData.selectedForUpdate = null;
    resetInputs();
@@ -160,8 +159,8 @@ async function openEditForm(node: TreeNodeData) {
       };
       pageData.drawerToggle = true;
    } catch (exception) {
-      console.error("Kategoriya ma’lumotini yuklab bo‘lmadi.", exception);
-      error.value = "Kategoriyani tahrirlash uchun ma’lumotni yuklab bo‘lmadi.";
+      console.error("Kategoriya ma'lumotini yuklab bo'lmadi.", exception);
+      error.value = "Kategoriyani tahrirlash uchun ma'lumotni yuklab bo'lmadi.";
    }
 }
 
@@ -169,7 +168,7 @@ async function onNodeDrop(payload: { node: TreeNodeData; parent: TreeNodeData | 
    const newParentId = payload.parent?.key ?? null;
    if (payload.node.key === newParentId) return;
    if (payload.parent && containsCategory(payload.node, payload.parent.key)) {
-      error.value = "Kategoriyani uning ichki bo‘limi ichiga ko‘chirib bo‘lmaydi.";
+      error.value = "Kategoriyani uning ichki bo'limi ichiga ko'chirib bo'lmaydi.";
       return;
    }
 
@@ -181,8 +180,8 @@ async function onNodeDrop(payload: { node: TreeNodeData; parent: TreeNodeData | 
       await CategoryRepo.changeParent(Number(payload.node.key), newParentId);
       await fetchCategories();
    } catch (exception) {
-      console.error("Kategoriya joylashuvini yangilab bo‘lmadi.", exception);
-      error.value = "Kategoriya joylashuvini o‘zgartirib bo‘lmadi.";
+      console.error("Kategoriya joylashuvini yangilab bo'lmadi.", exception);
+      error.value = "Kategoriya joylashuvini o'zgartirib bo'lmadi.";
       await fetchCategories();
    }
 }
@@ -199,8 +198,8 @@ async function deleteCategory() {
       await CategoryRepo.delete(id);
       await fetchCategories();
    } catch (exception) {
-      console.error("Kategoriyani o‘chirib bo‘lmadi.", exception);
-      error.value = "Kategoriyani o‘chirib bo‘lmadi.";
+      console.error("Kategoriyani o'chirib bo'lmadi.", exception);
+      error.value = "Kategoriyani o'chirib bo'lmadi.";
    }
 }
 
@@ -212,8 +211,8 @@ onMounted(async () => {
    try {
       await fetchCategories();
    } catch (exception) {
-      console.error("Kategoriyalarni yuklab bo‘lmadi.", exception);
-      error.value = "Kategoriyalarni yuklab bo‘lmadi. Sahifani yangilab ko‘ring.";
+      console.error("Kategoriyalarni yuklab bo'lmadi.", exception);
+      error.value = "Kategoriyalarni yuklab bo'lmadi. Sahifani yangilab ko'ring.";
    }
 });
 </script>

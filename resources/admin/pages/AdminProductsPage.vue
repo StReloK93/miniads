@@ -1,35 +1,70 @@
 <template>
    <section class="admin-page">
+      <!-- Archive Confirmation Modal -->
+      <BaseModal
+         :open="productToArchive !== null"
+         title="E'lonni arxivga ko'chirish"
+         :description="`“${productToArchive?.title}” e'lonini arxivga ko'chirmoqchimisiz?`"
+         confirm-text="Arxivlash"
+         cancel-text="Bekor qilish"
+         danger
+         @close="productToArchive = null"
+         @confirm="confirmArchive"
+      >
+         <template #icon>
+            <TriangleAlert class="size-5 text-(--z-danger)" />
+         </template>
+         <p class="text-sm text-(--z-muted-text)">
+            Ushbu e'lon foydalanuvchilar qidiruvidan olib tashlanadi. Keyinchalik uni qayta tiklash imkoni mavjud.
+         </p>
+      </BaseModal>
+
       <header class="admin-page-heading">
          <div>
-            <p class="admin-eyebrow">MODERATSIYA</p>
-            <h1>E’lonlar</h1>
-            <p class="admin-muted">E’lonlarni qidiring, holatini boshqaring yoki arxivdan tiklang.</p>
+            <h1>E'lonlar</h1>
+            <p class="admin-muted">E'lonlarni qidiring, holatini boshqaring yoki arxivdan tiklang.</p>
          </div>
       </header>
 
-      <div class="admin-toolbar admin-panel">
-         <label class="admin-search">
-            <Search class="size-4" aria-hidden="true" />
-            <input v-model="searchInput" type="search" placeholder="Sarlavha, telefon yoki muallif" @keyup.enter="search" />
-         </label>
-         <select v-model="status" class="admin-select" @change="load(1)">
-            <option value="all">Barcha holatlar</option>
-            <option value="active">Faol</option>
-            <option value="expired">Muddati tugagan</option>
-            <option value="deleted">Arxivlangan</option>
-         </select>
-         <button class="admin-button admin-button-secondary" type="button" @click="search">Qidirish</button>
-      </div>
-
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
+
       <section class="admin-panel admin-table-panel">
-         <div v-if="loading" class="admin-loading">E’lonlar yuklanmoqda…</div>
+         <!-- Integrated Toolbar directly connected to Table -->
+         <div class="admin-toolbar">
+            <label class="admin-search">
+               <Search class="size-4" aria-hidden="true" />
+               <input
+                  v-model="searchInput"
+                  type="search"
+                  placeholder="Sarlavha, telefon yoki muallif"
+                  @keyup.enter="search"
+               />
+            </label>
+            <div class="w-48">
+               <FieldSelect
+                  v-model="status"
+                  size="sm"
+                  :options="[
+                     { label: 'Barcha holatlar', value: 'all' },
+                     { label: 'Faol', value: 'active' },
+                     { label: 'Muddati tugagan', value: 'expired' },
+                     { label: 'Arxivlangan', value: 'deleted' },
+                  ]"
+                  @change="load(1)"
+               />
+            </div>
+            <BaseButton severity="secondary" size="sm" @click="search">
+               <template #icon><Search class="size-3.5" /></template>
+               Qidirish
+            </BaseButton>
+         </div>
+
+         <div v-if="loading" class="admin-loading">E'lonlar yuklanmoqda…</div>
          <div v-else class="admin-table-wrap">
             <table class="admin-table">
                <thead>
                   <tr>
-                     <th>E’lon</th>
+                     <th>E'lon</th>
                      <th>Muallif</th>
                      <th>Hudud</th>
                      <th>Narx</th>
@@ -46,45 +81,82 @@
                            <small>#{{ product.id }} · {{ product.category?.name || "Kategoriyasiz" }}</small>
                         </span>
                      </td>
-                     <td>{{ product.user?.name || "—" }}<small class="admin-cell-subtitle">{{ product.user?.username ? `@${product.user.username}` : "" }}</small></td>
+                     <td>
+                        {{ product.user?.name || "—" }}
+                        <small class="admin-cell-subtitle">
+                           {{ product.user?.username ? `@${product.user.username}` : "" }}
+                        </small>
+                     </td>
                      <td>{{ product.district?.name || "Navoiy viloyati" }}</td>
                      <td>{{ formatPrice(product.price) }}</td>
-                     <td><span class="admin-badge" :class="badgeClass(product)">{{ statusLabel(product) }}</span></td>
+                     <td>
+                        <span class="admin-badge" :class="badgeClass(product)">
+                           {{ statusLabel(product) }}
+                        </span>
+                     </td>
                      <td class="admin-actions">
-                        <button
-                           v-if="product.deleted_at"
-                           class="admin-button admin-button-small admin-button-secondary"
-                           type="button"
-                           @click="restore(product)"
-                        >Tiklash</button>
-                        <template v-else>
-                           <button
-                              class="admin-button admin-button-small admin-button-secondary"
-                              type="button"
-                              @click="changeStatus(product)"
-                           >{{ product.is_active ? "To‘xtatish" : "Faollashtirish" }}</button>
-                           <button
-                              class="admin-icon-button admin-danger"
-                              type="button"
-                              :aria-label="`${product.title} e’lonini arxivlash`"
-                              title="Arxivga ko‘chirish"
-                              @click="archive(product)"
-                           ><Trash2 class="size-4" aria-hidden="true" /></button>
-                        </template>
+                        <div class="flex items-center justify-end gap-1.5">
+                           <BaseButton
+                              v-if="product.deleted_at"
+                              size="xs"
+                              severity="secondary"
+                              title="Tiklash"
+                              @click="restore(product)"
+                           >
+                              <template #icon><RotateCcw class="size-3.5" /></template>
+                              Tiklash
+                           </BaseButton>
+                           <template v-else>
+                              <BaseButton
+                                 size="xs"
+                                 severity="secondary"
+                                 :title="product.is_active ? 'To\'xtatish' : 'Faollashtirish'"
+                                 @click="changeStatus(product)"
+                              >
+                                 {{ product.is_active ? "To'xtatish" : "Faollashtirish" }}
+                              </BaseButton>
+                              <BaseButton
+                                 size="xs"
+                                 severity="danger"
+                                 icon-only
+                                 title="Arxivga ko'chirish"
+                                 :aria-label="`${product.title} e'lonini arxivlash`"
+                                 @click="productToArchive = product"
+                              >
+                                 <template #icon><Trash2 class="size-3.5" /></template>
+                              </BaseButton>
+                           </template>
+                        </div>
                      </td>
                   </tr>
                   <tr v-if="products.length === 0">
-                     <td colspan="6" class="admin-empty-cell">Qidiruvga mos e’lon topilmadi.</td>
+                     <td colspan="6" class="admin-empty-cell">Qidiruvga mos e'lon topilmadi.</td>
                   </tr>
                </tbody>
             </table>
          </div>
+
+         <!-- Pagination -->
          <footer v-if="pagination" class="admin-pagination">
             <span>{{ pagination.from || 0 }}–{{ pagination.to || 0 }} / {{ pagination.total }}</span>
-            <div>
-               <button class="admin-button admin-button-secondary admin-button-small" :disabled="pagination.current_page <= 1 || loading" @click="load(pagination.current_page - 1)">Oldingi</button>
+            <div class="flex items-center gap-2">
+               <BaseButton
+                  size="xs"
+                  severity="secondary"
+                  :disabled="pagination.current_page <= 1 || loading"
+                  @click="load(pagination.current_page - 1)"
+               >
+                  Oldingi
+               </BaseButton>
                <span class="admin-page-number">{{ pagination.current_page }} / {{ pagination.last_page || 1 }}</span>
-               <button class="admin-button admin-button-secondary admin-button-small" :disabled="pagination.current_page >= pagination.last_page || loading" @click="load(pagination.current_page + 1)">Keyingi</button>
+               <BaseButton
+                  size="xs"
+                  severity="secondary"
+                  :disabled="pagination.current_page >= pagination.last_page || loading"
+                  @click="load(pagination.current_page + 1)"
+               >
+                  Keyingi
+               </BaseButton>
             </div>
          </footer>
       </section>
@@ -93,11 +165,26 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Search, Trash2 } from "lucide-vue-next";
+import { RotateCcw, Search, Trash2, TriangleAlert } from "lucide-vue-next";
 import AdminRepo from "@admin/entities/AdminRepo";
+import BaseButton from "@shared/ui/BaseButton.vue";
+import BaseModal from "@shared/ui/BaseModal.vue";
+import FieldSelect from "@shared/ui/FieldSelect.vue";
+import { formatPrice as formatPriceUtil } from "@shared/modules/formatters";
 
-type AdminProduct = Record<string, any> & { id: number; title: string; is_active: boolean; deleted_at: string | null };
-type Pagination = { current_page: number; last_page: number; from: number | null; to: number | null; total: number };
+type AdminProduct = Record<string, any> & {
+   id: number;
+   title: string;
+   is_active: boolean;
+   deleted_at: string | null;
+};
+type Pagination = {
+   current_page: number;
+   last_page: number;
+   from: number | null;
+   to: number | null;
+   total: number;
+};
 
 const products = ref<AdminProduct[]>([]);
 const pagination = ref<Pagination | null>(null);
@@ -106,22 +193,28 @@ const searchValue = ref("");
 const status = ref("all");
 const loading = ref(false);
 const error = ref("");
+const productToArchive = ref<AdminProduct | null>(null);
 
 async function load(page = 1) {
    loading.value = true;
    error.value = "";
    try {
       const { data } = await AdminRepo.products({
-         search: searchValue.value,
-         status: status.value,
          page,
-         per_page: 20,
+         status: status.value,
+         search: searchValue.value || undefined,
       });
       products.value = data.data;
-      pagination.value = data;
+      pagination.value = {
+         current_page: data.current_page,
+         last_page: data.last_page,
+         from: data.from,
+         to: data.to,
+         total: data.total,
+      };
    } catch (exception) {
-      console.error("Admin e’lonlari yuklanmadi.", exception);
-      error.value = "E’lonlarni yuklab bo‘lmadi. Qayta urinib ko‘ring.";
+      console.error("Admin e'lonlari yuklanmadi.", exception);
+      error.value = "E'lonlar ro'yxatini yuklab bo'lmadi.";
    } finally {
       loading.value = false;
    }
@@ -133,24 +226,27 @@ function search() {
 }
 
 async function changeStatus(product: AdminProduct) {
-   const status = product.is_active ? "inactive" : "active";
+   const newStatus = product.is_active ? "inactive" : "active";
    try {
-      await AdminRepo.updateProductStatus(product.id, status);
+      await AdminRepo.updateProductStatus(product.id, newStatus);
       await load(pagination.value?.current_page || 1);
    } catch (exception) {
-      console.error("E’lon holatini yangilab bo‘lmadi.", exception);
-      error.value = "E’lon holatini o‘zgartirib bo‘lmadi.";
+      console.error("E'lon holatini yangilab bo'lmadi.", exception);
+      error.value = "E'lon holatini o'zgartirib bo'lmadi.";
    }
 }
 
-async function archive(product: AdminProduct) {
-   if (!window.confirm(`“${product.title}” e’lonini arxivga ko‘chirasizmi?`)) return;
+async function confirmArchive() {
+   if (!productToArchive.value) return;
+   const target = productToArchive.value;
+   productToArchive.value = null;
+
    try {
-      await AdminRepo.deleteProduct(product.id);
+      await AdminRepo.deleteProduct(target.id);
       await load(pagination.value?.current_page || 1);
    } catch (exception) {
-      console.error("E’lonni arxivlab bo‘lmadi.", exception);
-      error.value = "E’lonni arxivga ko‘chirib bo‘lmadi.";
+      console.error("E'lonni arxivlab bo'lmadi.", exception);
+      error.value = "E'lonni arxivga ko'chirib bo'lmadi.";
    }
 }
 
@@ -159,8 +255,8 @@ async function restore(product: AdminProduct) {
       await AdminRepo.restoreProduct(product.id);
       await load(pagination.value?.current_page || 1);
    } catch (exception) {
-      console.error("E’lonni tiklab bo‘lmadi.", exception);
-      error.value = "E’lonni tiklab bo‘lmadi.";
+      console.error("E'lonni tiklab bo'lmadi.", exception);
+      error.value = "E'lonni tiklab bo'lmadi.";
    }
 }
 
@@ -169,7 +265,7 @@ function imageUrl(src: string) {
 }
 
 function formatPrice(value: number | null) {
-   return value === null ? "Kelishiladi" : `${new Intl.NumberFormat("uz-UZ").format(value)} so‘m`;
+   return formatPriceUtil(value, { fallback: "Kelishiladi", unit: "so'm" });
 }
 
 function statusLabel(product: AdminProduct) {
@@ -177,7 +273,11 @@ function statusLabel(product: AdminProduct) {
 }
 
 function badgeClass(product: AdminProduct) {
-   return product.deleted_at ? "admin-badge-muted" : product.is_active ? "admin-badge-success" : "admin-badge-warning";
+   return product.deleted_at
+      ? "admin-badge-muted"
+      : product.is_active
+        ? "admin-badge-success"
+        : "admin-badge-warning";
 }
 
 onMounted(() => load());

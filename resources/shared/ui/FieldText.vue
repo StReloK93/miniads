@@ -4,7 +4,7 @@
          <slot name="left"></slot>
          <input
             :type="props.type || 'text'"
-            class="w-full outline-none"
+            class="w-full bg-transparent outline-none text-(--z-foreground) placeholder:text-(--z-muted-text)"
             @input="handleChange"
             v-bind="{ ...field, ...$attrs }"
             :placeholder="placeholder"

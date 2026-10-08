@@ -40,14 +40,14 @@ function onInput(e: Event, currentValue: number | undefined, setValue: (v: numbe
 
    const parsed = parse(raw);
 
-   // NaN yoki bo‘sh holat
+   // NaN yoki bo'sh holat
    if (raw.trim() === "" || isNaN(parsed)) {
       setValue(minValue);
       input.value = format(minValue);
       return;
    }
 
-   // min dan past bo‘lsa — tuzatamiz
+   // min dan past bo'lsa — tuzatamiz
    if (parsed < minValue) {
       setValue(minValue);
       input.value = format(minValue);

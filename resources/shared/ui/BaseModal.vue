@@ -27,7 +27,7 @@
                   leave-to="opacity-0 translate-y-4 scale-[0.98]"
                >
                   <DialogPanel
-                     class="w-full max-w-md transform rounded-(--z-rounded) z-bg-gradient backdrop-blur-sm text-left align-middle shadow-sm transition-all border border-(--z-border)"
+                     class="w-full max-w-md transform rounded-(--z-rounded) bg-(--z-card) text-left align-middle shadow-2xl transition-all border border-(--z-border)"
                   >
                      <div class="p-(--space-lg)">
                         <!-- Header -->

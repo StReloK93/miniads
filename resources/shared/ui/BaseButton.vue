@@ -2,27 +2,28 @@
    <button
       :type="type"
       :disabled="disabled || loading"
-      :class="{ 'rounded-full!': props.rounded }"
-      class="ui-button inline-flex items-center justify-center gap-2 transition active:scale-[0.95] active:opacity-75 disabled:opacity-60 disabled:cursor-not-allowed"
-      :data-size="size"
-      :data-severity="severity"
-      :data-variant="variant"
-      :data-icon-only="iconOnly || undefined"
+      class="inline-flex items-center justify-center gap-2 font-medium transition cursor-pointer select-none active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none"
+      :class="[
+         sizeClasses,
+         variantClasses,
+         { 'rounded-full!': rounded },
+      ]"
    >
       <!-- LOADING -->
-      <LoaderCircle v-if="loading" class="ui-button__spinner size-4 animate-spin" />
+      <LoaderCircle v-if="loading" class="size-4 shrink-0 animate-spin" />
 
       <!-- ICON -->
-      <component v-else-if="$slots.icon" :is="$slots.icon" class="" />
+      <component v-else-if="$slots.icon" :is="$slots.icon" class="shrink-0" />
 
       <!-- LABEL -->
-      <span v-if="!iconOnly" class="ui-button__label inline-flex items-center gap-2">
+      <span v-if="!iconOnly" class="inline-flex items-center gap-2">
          <slot />
       </span>
    </button>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { LoaderCircle } from "lucide-vue-next";
 
 type Size = "xs" | "sm" | "md" | "lg";
@@ -51,118 +52,62 @@ const props = withDefaults(
       type: "button",
    },
 );
-</script>
-<style scoped lang="scss">
-.ui-button {
-   /* ===== default tokens (md) ===== */
-   --btn-px: var(--space-md);
-   --btn-py: var(--space-md);
-   --btn-radius: var(--z-rounded);
-   --btn-bg: var(--z-primary);
-   --btn-bg-hover: var(--z-primary-hover);
-   --btn-text: #fff;
 
-   border-radius: var(--btn-radius);
-   background: var(--btn-bg);
-   color: var(--btn-text);
-   font-weight: 500;
-
-   padding-inline: var(--btn-px);
-   height: 45px;
-   // &:hover:not(:disabled) {
-   //    background: var(--btn-bg-hover);
-   // }
-}
-
-/* ================= SIZE ================= */
-.ui-button[data-size="xs"] {
-   --btn-px: var(10px);
-   --btn-py: var(10px);
-   font-size: 0.875rem;
-}
-
-.ui-button[data-size="sm"] {
-   --btn-px: var(--space-sm);
-   --btn-py: var(--space-sm);
-   font-size: 0.875rem;
-}
-
-.ui-button[data-size="lg"] {
-   --btn-px: var(--space-lg);
-   --btn-py: var(--space-lg);
-   font-size: 1rem;
-}
-
-/* ================= ICON ONLY ================= */
-.ui-button[data-icon-only] {
-   padding-inline: var(--btn-py);
-   aspect-ratio: 1 / 1;
-
-   .ui-button__label {
-      display: none;
+const sizeClasses = computed(() => {
+   if (props.iconOnly) {
+      switch (props.size) {
+         case "xs":
+            return "size-7 p-0 rounded-md";
+         case "sm":
+            return "size-9 p-0 rounded-lg";
+         case "lg":
+            return "size-12.5 p-0 rounded-(--z-rounded)";
+         default:
+            return "size-11 p-0 rounded-(--z-rounded)";
+      }
    }
-}
+   switch (props.size) {
+      case "xs":
+         return "h-7 px-2 text-xs rounded-md";
+      case "sm":
+         return "h-9 px-3 text-xs rounded-lg";
+      case "lg":
+         return "h-12.5 px-5 text-base rounded-(--z-rounded)";
+      default:
+         return "h-11 px-4 text-sm rounded-(--z-rounded)";
+   }
+});
 
-/* ================= SEVERITY ================= */
-.ui-button[data-severity="primary"] {
-   --btn-bg: var(--z-primary);
-   --btn-bg-hover: var(--z-primary-hover);
-   --btn-text: #fff;
-}
-
-.ui-button[data-severity="secondary"] {
-   --btn-bg: var(--z-secondary);
-   --btn-bg-hover: var(--z-border);
-   --btn-text: var(--z-primary);
-}
-
-.ui-button[data-severity="glass"] {
-   --btn-bg: color-mix(in oklab, var(--color-stone-100) 60%, transparent);
-   --btn-bg-hover: var(--z-border);
-   --btn-text: var(--z-primary);
-   backdrop-filter: blur(var(--blur-sm));
-}
-
-.ui-button[data-severity="success"] {
-   --btn-bg: #16a34a;
-   --btn-bg-hover: #15803d;
-   --btn-text: #fff;
-}
-
-.ui-button[data-severity="danger"] {
-   --btn-bg: var(--z-danger);
-   --btn-bg-hover: #b91c1c;
-   --btn-text: #fff;
-}
-
-.ui-button[data-severity="light"] {
-   --btn-bg: #fff;
-   --btn-bg-hover: var(--color-surface-muted);
-   --btn-text: #333;
-}
-
-.ui-button[data-variant="text"] {
-   --btn-bg: transparent;
-   --btn-bg-hover: var(--color-border);
-}
-
-.ui-button[data-variant="text"][data-severity="primary"] {
-   --btn-text: var(--z-primary);
-   --btn-bg-hover: color-mix(in srgb, var(--z-primary) 12%, transparent);
-}
-
-.ui-button[data-variant="text"][data-severity="danger"] {
-   --btn-text: var(--z-danger);
-   --btn-bg-hover: color-mix(in srgb, var(--z-danger) 12%, transparent);
-}
-
-.ui-button[data-variant="text"][data-severity="success"] {
-   --btn-text: #16a34a;
-   --btn-bg-hover: color-mix(in srgb, #16a34a 12%, transparent);
-}
-/* ================= ICON / SPINNER ================= */
-.ui-button__icon,
-.ui-button__spinner {
-   flex-shrink: 0;
-}
-</style>
+const variantClasses = computed(() => {
+   if (props.variant === "text") {
+      switch (props.severity) {
+         case "primary":
+            return "bg-transparent text-(--z-primary) hover:bg-(--z-primary)/12";
+         case "danger":
+            return "bg-transparent text-(--z-danger) hover:bg-(--z-danger)/12";
+         case "success":
+            return "bg-transparent text-emerald-600 hover:bg-emerald-600/12";
+         case "light":
+            return "bg-transparent text-slate-800 hover:bg-slate-100";
+         case "glass":
+            return "bg-transparent text-(--z-foreground) hover:bg-white/10";
+         default:
+            return "bg-transparent text-(--z-foreground) hover:bg-(--z-muted)";
+      }
+   }
+   switch (props.severity) {
+      case "secondary":
+         return "bg-(--z-secondary) text-(--z-foreground) hover:bg-(--z-border)";
+      case "success":
+         return "bg-emerald-600 text-white hover:bg-emerald-700";
+      case "danger":
+         return "bg-(--z-danger) text-white hover:bg-red-700";
+      case "glass":
+         return "bg-(--z-card)/70 text-(--z-foreground) backdrop-blur-md hover:bg-(--z-muted)";
+      case "light":
+         return "bg-white text-slate-800 hover:bg-slate-100";
+      default:
+         return "bg-(--z-primary) text-(--z-primary-foreground) hover:bg-(--z-primary-hover)";
+   }
+});
+</script>

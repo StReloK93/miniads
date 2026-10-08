@@ -27,7 +27,7 @@ import { ChevronRight } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
 import { IDistrict } from "@shared/types";
-import { useCity } from "@shared/entities/Category/useCity";
+import { useCity } from "@shared/entities/District/useCity";
 const cityStore = useCity();
 
 const router = useRouter();

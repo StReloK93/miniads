@@ -1,6 +1,5 @@
 import { api } from "@shared/composables/useFetch";
 import { ICategory } from "@shared/types";
-import { ref } from "vue";
 const baseURL = "categories";
 
 const headerMultipart = {
@@ -13,12 +12,8 @@ export default {
    index() {
       return api.get<ICategory[]>(`${baseURL}`);
    },
-   async store(parent_id: number | string | null, formData: { name: string; image?: File | string }) {
-      const loading = ref(true);
-      await api.post(`${baseURL}`, { parent_id, ...formData }, headerMultipart).finally(() => {
-         loading.value = false;
-      });
-      return { loading };
+   store(parent_id: number | string | null, formData: { name: string; image?: File | string }) {
+      return api.post<ICategory>(`${baseURL}`, { parent_id, ...formData }, headerMultipart);
    },
    async parents() {
       return await api.get<ICategory[]>(`${baseURL}/parents`);

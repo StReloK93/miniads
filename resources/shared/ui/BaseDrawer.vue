@@ -1,7 +1,7 @@
 <template>
    <Teleport to="body">
       <TransitionRoot appear :show="open" as="template">
-         <Dialog as="div" class="ui-drawer-overlay" @close="close">
+         <Dialog as="div" class="fixed inset-0 z-50 overflow-hidden" @close="close">
             <TransitionChild
                as="template"
                enter="transition-opacity duration-200 ease-out"
@@ -11,33 +11,45 @@
                leave-from="opacity-100"
                leave-to="opacity-0"
             >
-               <div class="ui-drawer-backdrop" />
+               <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs" />
             </TransitionChild>
-            <div class="ui-drawer-shell">
+
+            <div class="fixed inset-0 z-1 flex justify-end overflow-hidden pointer-events-none">
                <TransitionChild
                   as="template"
                   enter="transition duration-200 ease-out"
-                  enter-from="translate-x-5 opacity-0"
+                  enter-from="translate-x-full opacity-0 sm:translate-x-6"
                   enter-to="translate-x-0 opacity-100"
                   leave="transition duration-150 ease-in"
                   leave-from="translate-x-0 opacity-100"
-                  leave-to="translate-x-5 opacity-0"
+                  leave-to="translate-x-full opacity-0 sm:translate-x-6"
                >
-                  <DialogPanel class="ui-drawer-panel">
-                     <header class="ui-drawer-header">
+                  <DialogPanel
+                     class="pointer-events-auto flex h-full w-full max-w-130 flex-col border-l border-(--z-border) bg-(--z-card) text-(--z-foreground) shadow-2xl transition-all max-sm:max-w-full max-sm:border-l-0"
+                  >
+                     <header class="flex min-h-17 items-center justify-between gap-4 border-b border-(--z-border) px-5 py-3.5">
                         <div class="min-w-0">
                            <slot name="header">
-                              <DialogTitle class="ui-drawer-title">{{ title }}</DialogTitle>
-                              <DialogDescription v-if="description" class="ui-drawer-description">
+                              <DialogTitle class="m-0 text-base font-semibold text-(--z-foreground)">
+                                 {{ title }}
+                              </DialogTitle>
+                              <DialogDescription v-if="description" class="mt-1 text-xs text-(--z-muted-text)">
                                  {{ description }}
                               </DialogDescription>
                            </slot>
                         </div>
-                        <button class="ui-drawer-close" type="button" aria-label="Yopish" @click="close">
+                        <button
+                           class="grid size-9 shrink-0 place-items-center rounded-full bg-(--z-muted) text-(--z-foreground) transition hover:opacity-80 active:scale-95 cursor-pointer"
+                           type="button"
+                           aria-label="Yopish"
+                           @click="close"
+                        >
                            <X class="size-5" />
                         </button>
                      </header>
-                     <div class="ui-drawer-content"><slot /></div>
+                     <div class="min-h-0 flex-1 overflow-y-auto p-5 max-sm:p-4">
+                        <slot />
+                     </div>
                   </DialogPanel>
                </TransitionChild>
             </div>
@@ -64,120 +76,12 @@ function close() {
 watch(
    () => props.open,
    (open) => {
-      document.body.classList.toggle("ui-drawer-open", open);
+      document.body.classList.toggle("overflow-hidden", open);
    },
    { immediate: true },
 );
 
 onBeforeUnmount(() => {
-   document.body.classList.remove("ui-drawer-open");
+   document.body.classList.remove("overflow-hidden");
 });
 </script>
-
-<style>
-.ui-drawer-overlay {
-   position: fixed;
-   z-index: 1000;
-   inset: 0;
-}
-
-.ui-drawer-backdrop {
-   position: fixed;
-   inset: 0;
-   background: rgb(15 23 42 / 42%);
-   backdrop-filter: blur(2px);
-}
-
-.ui-drawer-shell {
-   position: fixed;
-   z-index: 1;
-   inset: 0;
-   display: flex;
-   justify-content: flex-end;
-   overflow: hidden;
-   pointer-events: none;
-}
-
-.ui-drawer-panel {
-   display: flex;
-   width: min(520px, 100%);
-   height: 100%;
-   flex-direction: column;
-   pointer-events: auto;
-   border-left: 1px solid var(--z-border);
-   background: var(--z-card);
-   color: var(--z-foreground);
-   box-shadow: -20px 0 60px rgb(15 23 42 / 12%);
-}
-
-.ui-drawer-header {
-   display: flex;
-   min-height: 68px;
-   align-items: center;
-   justify-content: space-between;
-   gap: 16px;
-   border-bottom: 1px solid var(--z-border);
-   padding: 14px 20px;
-}
-
-.ui-drawer-title {
-   margin: 0;
-   font-size: 16px;
-   font-weight: 650;
-}
-
-.ui-drawer-description {
-   margin: 4px 0 0;
-   color: var(--z-muted-text);
-   font-size: 12px;
-}
-
-.ui-drawer-close {
-   display: grid;
-   width: 36px;
-   height: 36px;
-   flex: 0 0 auto;
-   place-items: center;
-   border: 0;
-   border-radius: 50%;
-   background: var(--z-muted);
-   color: var(--z-foreground);
-   cursor: pointer;
-}
-
-.ui-drawer-content {
-   min-height: 0;
-   flex: 1;
-   overflow: auto;
-   padding: 20px;
-}
-
-.ui-drawer-fade-enter-active,
-.ui-drawer-fade-leave-active,
-.ui-drawer-slide-enter-active,
-.ui-drawer-slide-leave-active {
-   transition: all 180ms ease;
-}
-
-.ui-drawer-fade-enter-from,
-.ui-drawer-fade-leave-to {
-   opacity: 0;
-}
-
-.ui-drawer-slide-enter-from,
-.ui-drawer-slide-leave-to {
-   transform: translateX(24px);
-   opacity: 0;
-}
-
-@media (max-width: 640px) {
-   .ui-drawer-panel {
-      width: 100%;
-      border-left: 0;
-   }
-
-   .ui-drawer-content {
-      padding: 15px;
-   }
-}
-</style>

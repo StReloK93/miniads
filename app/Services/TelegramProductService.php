@@ -70,7 +70,10 @@ class TelegramProductService
                     ->send();
 
                 if (! $response->telegraphOk()) {
-                    $this->throwTelegramError($response, $product, $channelId, 'o‘chirish');
+                    $description = mb_strtolower((string) $response->json('description'));
+                    if (! str_contains($description, 'message to delete not found')) {
+                        $this->throwTelegramError($response, $product, $channelId, "o'chirish");
+                    }
                 }
 
                 continue;
@@ -90,7 +93,7 @@ class TelegramProductService
         $hashtags = [$this->makeHashtag($product->district?->name, 'Navoiy')];
 
         if (filled($product->category?->name)) {
-            $hashtags[] = $this->makeHashtag($product->category->name, 'E’lon');
+            $hashtags[] = $this->makeHashtag($product->category->name, "E'lon");
         }
 
         $title = mb_strtoupper(Str::limit($product->title, 120), 'UTF-8');
@@ -114,7 +117,7 @@ class TelegramProductService
                 return $title.' - <b>'.$value.$unit.'</b>';
             });
 
-        $footer = "\n\n📱 <code>".e($product->phone ?: 'Raqam ko‘rsatilmagan').'</code>';
+        $footer = "\n\n📱 <code>".e($product->phone ?: "Raqam ko'rsatilmagan").'</code>';
 
         if ($parameterLines->isNotEmpty()) {
             $visibleLines = [];
@@ -163,7 +166,7 @@ class TelegramProductService
             $imageUrl = $this->getMainImage($product);
 
             if ($imageUrl === null) {
-                throw new RuntimeException('Telegram uchun e’lon rasmi topilmadi.');
+                throw new RuntimeException("Telegram uchun e'lon rasmi topilmadi.");
             }
 
             $media = $message->editMedia($messageId)->photo($imageUrl);
@@ -184,7 +187,16 @@ class TelegramProductService
         }
 
         if (! $response->telegraphOk()) {
-            if (str_contains(mb_strtolower((string) $response->json('description')), 'message is not modified')) {
+            $description = mb_strtolower((string) $response->json('description'));
+
+            if (str_contains($description, 'message is not modified')) {
+                return;
+            }
+
+            if (str_contains($description, 'message to edit not found')) {
+                $newMessageId = $this->sendToChannel($product, $channelId);
+                $telegramId->update(['message_id' => $newMessageId]);
+
                 return;
             }
 
@@ -224,9 +236,9 @@ class TelegramProductService
         string $action,
     ): never
     {
-        $description = $response->json('description') ?? 'Telegram javobida xato sababi ko‘rsatilmagan.';
+        $description = $response->json('description') ?? "Telegram javobida xato sababi ko'rsatilmagan.";
 
-        Log::error("Telegram e’lonni {$action}ni rad etdi.", [
+        Log::error("Telegram e'lonni {$action}ni rad etdi.", [
             'product_id' => $product->id,
             'channel_id' => $channelId,
             'http_status' => $response->status(),
@@ -234,7 +246,7 @@ class TelegramProductService
             'description' => $description,
         ]);
 
-        throw new RuntimeException("Telegram e’lonni {$action}ni rad etdi: {$description}");
+        throw new RuntimeException("Telegram e'lonni {$action}ni rad etdi: {$description}");
     }
 
     private function loadProductRelations(Product $product): void
@@ -262,7 +274,7 @@ class TelegramProductService
             ->buttons([
                 Button::make('Batafsil')
                     ->url($this->makeMiniAppUrl($product)),
-                Button::make('E’lon berish')
+                Button::make("E'lon berish")
                     ->url(self::MINI_APP_URL.'?startapp=create'),
             ])
             ->chunk(2);

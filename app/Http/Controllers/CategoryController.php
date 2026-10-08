@@ -118,7 +118,7 @@ class CategoryController extends Controller
 		if ($newParentId) {
 			// O'zini o'ziga parent qilib qo'yishni oldini olamiz
 			if ($id == $newParentId) {
-				return response()->json(['message' => 'Kategoriyani o‘zini o‘ziga ota qilib bo‘lmaydi.'], 422);
+				return response()->json(['message' => "Kategoriyani o'zini o'ziga ota qilib bo'lmaydi."], 422);
 			}
 
 			$parent = Category::findOrFail($newParentId);
@@ -126,7 +126,7 @@ class CategoryController extends Controller
 			// 3. TANQIDIY TEKSHIRUV: Yangi parent "is_page" bo'lmasligi kerak
 			if ($parent->is_page) {
 				return response()->json([
-					'message' => "Siz tanlagan '{$parent->name}' kategoriyasi sahifa (leaf node) hisoblanadi. Uning ichiga boshqa kategoriya qo‘shib bo‘lmaydi."
+					'message' => "Siz tanlagan '{$parent->name}' kategoriyasi sahifa (leaf node) hisoblanadi. Uning ichiga boshqa kategoriya qo'shib bo'lmaydi."
 				], 422);
 			}
 		}
@@ -136,7 +136,7 @@ class CategoryController extends Controller
 		$category->save();
 
 		return response()->json([
-			'message' => 'Kategoriya joylashuvi muvaffaqiyatli o‘zgartirildi',
+			'message' => "Kategoriya joylashuvi muvaffaqiyatli o'zgartirildi",
 			'category' => $category
 		], 200);
 	}

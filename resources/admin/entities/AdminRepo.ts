@@ -4,7 +4,7 @@ export default {
    dashboard() {
       return api.get("admin/dashboard");
    },
-   products(params: Record<string, string | number>) {
+   products(params?: Record<string, any>) {
       return api.get("admin/products", { params });
    },
    updateProductStatus(id: number, status: "active" | "inactive") {
@@ -16,7 +16,7 @@ export default {
    restoreProduct(id: number) {
       return api.post(`admin/products/${id}/restore`);
    },
-   users(params: Record<string, string | number>) {
+   users(params?: Record<string, any>) {
       return api.get("admin/users", { params });
    },
    updateUserRole(id: number, role: "admin" | "user") {
@@ -25,10 +25,10 @@ export default {
    reference(kind: "districts" | "price-types") {
       return api.get(kind);
    },
-   storeReference(kind: "districts" | "price-types", values: Record<string, string>) {
+   storeReference(kind: "districts" | "price-types", values: Record<string, any>) {
       return api.post(kind, values);
    },
-   updateReference(kind: "districts" | "price-types", id: number, values: Record<string, string>) {
+   updateReference(kind: "districts" | "price-types", id: number, values: Record<string, any>) {
       return api.put(`${kind}/${id}`, values);
    },
    deleteReference(kind: "districts" | "price-types", id: number) {

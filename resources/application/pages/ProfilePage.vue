@@ -1,12 +1,14 @@
 <template>
    <NavigationPageDecorator :auto-scroll="false">
       <template #header="{ isCompact, progress }">
-         <h3 class="font-bold text-xl transition-all">
-            <Transition mode="out-in">
-               <span v-if="isCompact"> E'lonlar</span>
-               <span v-else> Profil </span>
-            </Transition>
-         </h3>
+         <div class="flex items-center justify-between">
+            <h3 class="font-bold text-xl transition-all">
+               <Transition mode="out-in">
+                  <span v-if="isCompact"> E'lonlar</span>
+                  <span v-else> Profil </span>
+               </Transition>
+            </h3>
+         </div>
          <aside
             ref="header"
             :class="[!isCompact ? 'py-4' : 'pb-4']"
@@ -25,7 +27,7 @@
                />
                <span v-else-if="user.photo_url && !isImagesReady" class="rounded-full! w-18 h-18 skeleton inline-block">
                </span>
-               <span v-else class="rounded-full w-18 h-18 bg-slate-100 inline-flex justify-center items-center">
+               <span v-else class="rounded-full w-18 h-18 bg-(--z-muted) text-(--z-primary) inline-flex justify-center items-center">
                   <Camera class="size-5" stroke-width="2" stroke="currentColor" />
                </span>
             </div>
@@ -42,6 +44,10 @@
                   sozlamalariga o'ting va "Foydalanuvchi nomi" maydonini to'ldiring.
                </p>
             </main>
+
+            <div class="mt-3">
+               <ThemeSwitcher variant="segmented" />
+            </div>
 
             <!-- <main class="flex w-full divide-x divide-(--z-border)">
             <div class="text-center w-1/2">

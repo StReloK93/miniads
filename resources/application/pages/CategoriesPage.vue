@@ -2,7 +2,9 @@
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
          <aside class="mb-4">
-            <h3 class="font-bold text-xl mb-2">Bo'limlar</h3>
+            <div class="flex items-center justify-between mb-2">
+               <h3 class="font-bold text-xl">Bo'limlar</h3>
+            </div>
             <p class="text-sm text-(--z-muted-text)">Nima izlayapsiz? Mos kategoriyani tanlang</p>
          </aside>
       </template>

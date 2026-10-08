@@ -22,10 +22,10 @@
          />
       </div>
       <footer class="admin-form-footer">
-         <BaseButton type="button" severity="secondary" variant="text" :disabled="loading" @click="emit('close')">
+         <BaseButton type="button" severity="secondary" variant="text" size="sm" :disabled="loading" @click="emit('close')">
             Bekor qilish
          </BaseButton>
-         <BaseButton type="submit" :loading="loading">Saqlash</BaseButton>
+         <BaseButton type="submit" size="sm" :loading="loading">Saqlash</BaseButton>
       </footer>
    </form>
 </template>
@@ -106,7 +106,7 @@ async function onSubmit() {
       emit("close");
    } catch (error) {
       console.error("Admin forma saqlanmadi.", error);
-      formError.value = "Ma’lumotni saqlab bo‘lmadi. Kiritilgan ma’lumotlarni tekshirib, qayta urinib ko‘ring.";
+      formError.value = "Ma'lumotni saqlab bo'lmadi. Kiritilgan ma'lumotlarni tekshirib, qayta urinib ko'ring.";
    } finally {
       loading.value = false;
    }

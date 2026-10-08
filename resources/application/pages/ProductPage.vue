@@ -13,7 +13,7 @@
                      <button
                         type="button"
                         class="h-full w-full cursor-zoom-in"
-                        aria-label="To‘liq rasmni ko‘rish"
+                        aria-label="To'liq rasmni ko'rish"
                         @click="openImagePreview(index)"
                      >
                         <ProductImageView
@@ -22,7 +22,7 @@
                            :crop-y="image.crop_y"
                            :crop-scale="image.crop_scale"
                            class="h-full w-full"
-                           alt="E’lon rasmi"
+                           alt="E'lon rasmi"
                         />
                      </button>
                   </swiper-slide>
@@ -88,7 +88,7 @@
                </div>
 
                <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">Qo'shimcha ma'lumot</h3>
-               <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-gray-50">
+               <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-(--z-border)">
                   <div v-for="v in product.parameter_values" :key="v.id" class="flex justify-between py-2">
                      <span class="text-(--z-muted-text)">
                         {{ v.parameter.title }}
@@ -161,7 +161,7 @@
             :loading="isFavoriteButtonLoading"
          >
             <template #icon>
-               <Heart class="size-5 inline" :class="{ 'fill-(--z-primary)': product.is_favorite }" />
+               <Heart class="size-5 inline" :class="product.is_favorite ? 'fill-red-500 text-red-500' : 'text-(--z-foreground)'" />
             </template>
          </BaseButton>
       </aside>
@@ -202,7 +202,7 @@
                <img
                   :src="`/storage/${image.src}`"
                   class="max-h-full w-full object-contain"
-                  alt="E’lonning original rasmi"
+                  alt="E'lonning original rasmi"
                />
             </swiper-slide>
          </swiper>
@@ -211,9 +211,8 @@
 </template>
 
 <script setup lang="ts">
-import { timeAgo } from "@/modules/Helpers";
+import { formatPrice, timeAgo } from "@shared/modules/formatters";
 import { isTMA } from "@tma.js/bridge";
-import { formatPrice } from "@/modules/Helpers";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
@@ -225,7 +224,7 @@ import { computed, onMounted, ref } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
 import { Heart, MapPin, MessageCircle, Phone, X } from "lucide-vue-next";
-import FavoriteRepo from "@shared/entities/Favotire/FavoriteRepo";
+import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { postEvent } from "@tma.js/bridge";
 
 const route = useRoute();

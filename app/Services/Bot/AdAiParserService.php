@@ -36,24 +36,27 @@ class AdAiParserService
             return null;
         }
 
-        // Try AI first if provider & key configured
+        // Faqat AI orqali yozilsin - agar API key bo'lmasa yoki AI xato bersa, e'lon yozilmaydi
         $aiResult = null;
         $apiKey = $setting->ai_api_key ?: env('GEMINI_API_KEY') ?: env('OPENAI_API_KEY');
 
-        if (!empty($apiKey)) {
-            if ($setting->ai_provider === 'gemini' || empty($setting->ai_provider)) {
-                $aiResult = $this->callGemini($rawText, $apiKey, $channel);
-            } elseif ($setting->ai_provider === 'openai') {
-                $aiResult = $this->callOpenAi($rawText, $apiKey, $channel);
-            }
+        if (empty($apiKey)) {
+            Log::warning("AI parser: API key mavjud emas (BotSetting yoki .env). E'lon o'tkazib yuborildi.");
+            return null;
+        }
+
+        if ($setting->ai_provider === 'openai') {
+            $aiResult = $this->callOpenAi($rawText, $apiKey, $channel);
+        } else {
+            $aiResult = $this->callGemini($rawText, $apiKey, $channel);
         }
 
         if ($aiResult && !empty($aiResult['is_valid'])) {
             return $this->normalizeParsedData($aiResult, $rawText, $channel);
         }
 
-        // Fallback to rule-based regex parsing
-        return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel);
+        // Agar AI tahlil qila olmasa yoki e'lon yaroqsiz bo'lsa, hech narsa yozilmaydi
+        return null;
     }
 
     /**
@@ -154,12 +157,12 @@ E'lon matni:
 {$rawText}
 PROMPT;
 
-            // Use ultra-economical gemini-flash-lite-latest (5-10x cheaper), fallback to gemini-flash-latest
-            $models = ['models/gemini-flash-lite-latest', 'models/gemini-flash-latest'];
+            // Use reliable Google Gemini models (Gemini 2.5 Flash, 2.0 Flash, 1.5 Flash)
+            $models = ['models/gemini-2.5-flash', 'models/gemini-2.0-flash', 'models/gemini-1.5-flash'];
             foreach ($models as $model) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/{$model}:generateContent?key={$apiKey}";
 
-                $response = Http::timeout(12)
+                $response = Http::timeout(25)
                     ->post($url, [
                         'contents' => [
                             [
@@ -177,7 +180,14 @@ PROMPT;
                 if ($response->successful()) {
                     $content = $response->json('candidates.0.content.parts.0.text');
                     if ($content) {
-                        return json_decode($content, true);
+                        $cleanJson = trim($content);
+                        if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
+                            $cleanJson = trim($matches[1]);
+                        }
+                        $decoded = json_decode($cleanJson, true);
+                        if (is_array($decoded)) {
+                            return $decoded;
+                        }
                     }
                 } else {
                     Log::warning("Gemini API ({$model}) xatoligi: " . $response->body());
@@ -201,7 +211,7 @@ PROMPT;
 
             $systemPrompt = "Sen e'lonlarni tahlil qiluvchi professional muharrir assistentsan. Javobing FAQAT toza JSON bo'lishi shart. Barcha matnlarni (title va description) FAQAT toza O'zbek lotin alifbosida, user-friendly tartibli qilib yoz, hech qachon kirill harflarini aralashtirma.\nKategoriyalar: {$categoriesContext}\nTumanlar: {$districtsContext}";
 
-            $response = Http::timeout(10)
+            $response = Http::timeout(25)
                 ->withToken($apiKey)
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model' => 'gpt-4o-mini',
@@ -216,7 +226,14 @@ PROMPT;
             if ($response->successful()) {
                 $content = $response->json('choices.0.message.content');
                 if ($content) {
-                    return json_decode($content, true);
+                    $cleanJson = trim($content);
+                    if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
+                        $cleanJson = trim($matches[1]);
+                    }
+                    $decoded = json_decode($cleanJson, true);
+                    if (is_array($decoded)) {
+                        return $decoded;
+                    }
                 }
             }
         } catch (\Throwable $e) {

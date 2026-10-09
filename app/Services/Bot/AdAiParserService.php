@@ -157,8 +157,8 @@ E'lon matni:
 {$rawText}
 PROMPT;
 
-            // Use reliable Google Gemini models (Gemini 2.5 Flash, 2.0 Flash, 1.5 Flash)
-            $models = ['models/gemini-2.5-flash', 'models/gemini-2.0-flash', 'models/gemini-1.5-flash'];
+            // Use current Google Gemini models (Gemini 3.8 Flash recommended by Google API)
+            $models = ['models/gemini-3.8-flash', 'models/gemini-3.8-flash-lite', 'models/gemini-3.5-flash', 'models/gemini-2.5-flash'];
             foreach ($models as $model) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/{$model}:generateContent?key={$apiKey}";
 

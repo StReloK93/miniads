@@ -26,7 +26,19 @@ class TelegramChannelScraperService
         $url = "https://t.me/s/{$cleanChannel}";
 
         try {
-            $response = Http::timeout(15)
+            $options = [
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
+            ];
+
+            $proxy = env('TELEGRAM_PROXY') ?: env('HTTPS_PROXY') ?: env('HTTP_PROXY');
+            if (!empty($proxy)) {
+                $options['proxy'] = $proxy;
+            }
+
+            $response = Http::timeout(20)
+                ->withOptions($options)
                 ->withHeaders([
                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Accept-Language' => 'uz,ru;q=0.9,en;q=0.8',

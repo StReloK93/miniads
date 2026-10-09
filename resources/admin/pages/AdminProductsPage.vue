@@ -40,7 +40,7 @@
                   @keyup.enter="search"
                />
             </label>
-            <div class="w-48">
+            <div class="w-44">
                <FieldSelect
                   v-model="status"
                   size="sm"
@@ -49,6 +49,18 @@
                      { label: 'Faol', value: 'active' },
                      { label: 'Muddati tugagan', value: 'expired' },
                      { label: 'Arxivlangan', value: 'deleted' },
+                  ]"
+                  @change="load(1)"
+               />
+            </div>
+            <div class="w-40">
+               <FieldSelect
+                  v-model="isBot"
+                  size="sm"
+                  :options="[
+                     { label: 'Barcha manbalar', value: 'all' },
+                     { label: 'Faqat odamlar', value: 'user' },
+                     { label: 'Faqat bot', value: 'bot' },
                   ]"
                   @change="load(1)"
                />
@@ -77,7 +89,16 @@
                      <td class="admin-product-cell">
                         <img v-if="product.images?.[0]?.src" :src="imageUrl(product.images[0].src)" alt="" />
                         <span class="admin-product-copy">
-                           <strong>{{ product.title }}</strong>
+                           <span class="flex items-center gap-1.5 flex-wrap">
+                              <strong>{{ product.title }}</strong>
+                              <span
+                                 v-if="product.is_bot"
+                                 class="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-full"
+                                 title="Telegramdan avtomatik yuklangan"
+                              >
+                                 <Bot class="size-2.5" /> Bot
+                              </span>
+                           </span>
                            <small>#{{ product.id }} · {{ product.category?.name || "Kategoriyasiz" }}</small>
                         </span>
                      </td>
@@ -165,7 +186,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { RotateCcw, Search, Trash2, TriangleAlert } from "lucide-vue-next";
+import { Bot, RotateCcw, Search, Trash2, TriangleAlert } from "lucide-vue-next";
 import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
@@ -191,6 +212,7 @@ const pagination = ref<Pagination | null>(null);
 const searchInput = ref("");
 const searchValue = ref("");
 const status = ref("all");
+const isBot = ref("all");
 const loading = ref(false);
 const error = ref("");
 const productToArchive = ref<AdminProduct | null>(null);
@@ -202,6 +224,7 @@ async function load(page = 1) {
       const { data } = await AdminRepo.products({
          page,
          status: status.value,
+         is_bot: isBot.value !== "all" ? isBot.value : undefined,
          search: searchValue.value || undefined,
       });
       products.value = data.data;

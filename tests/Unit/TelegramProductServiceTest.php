@@ -110,6 +110,41 @@ test('telegram photo post is edited in place with the refreshed caption', functi
     });
 });
 
+test('telegram post is republished when original message was deleted (MESSAGE_ID_INVALID)', function () {
+    Http::fake([
+        'api.telegram.org/*/editMessageMedia' => Http::response([
+            'ok' => false,
+            'error_code' => 400,
+            'description' => 'Bad Request: MESSAGE_ID_INVALID',
+        ], 400),
+        'api.telegram.org/*/sendPhoto' => Http::response([
+            'ok' => true,
+            'result' => [
+                'message_id' => 999,
+            ],
+        ], 200),
+    ]);
+    config()->set('telegraph.bot_token', 'test-token');
+
+    $product = makeTelegramTestProduct();
+    $product->setRelation('images', new Collection([
+        new ProductImage(['src' => 'products/telegram-test.webp']),
+    ]));
+    $telegramId = new class extends ProductTelegramId {
+        public $updatedMessageId = null;
+        public function update(array $attributes = [], array $options = []): bool {
+            $this->updatedMessageId = $attributes['message_id'];
+            return true;
+        }
+    };
+    $telegramId->setAttribute('message_id', 789);
+    $method = new ReflectionMethod(TelegramProductService::class, 'editChannelMessage');
+
+    $method->invoke(new TelegramProductService, $product, $telegramId, '-1001234567890', true);
+
+    expect($telegramId->updatedMessageId)->toBe(999);
+});
+
 function makeTelegramTestProduct(): Product
 {
     $product = new Product([

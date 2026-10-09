@@ -1,27 +1,29 @@
 <template>
-   <div ref="container" class="relative block overflow-hidden bg-black/40">
+   <div ref="container" class="relative block overflow-hidden bg-black/40 select-none [-webkit-touch-callout:none]" @contextmenu.prevent @dragstart.prevent>
       <!-- Blurred backdrop for portrait images -->
       <img
          v-if="isPortrait"
          :src="src"
          :style="backdropStyle"
-         class="absolute max-w-none object-cover scale-105 blur-[6px] opacity-75 brightness-85 pointer-events-none select-none"
+         class="absolute max-w-none object-cover scale-105 blur-[6px] opacity-75 brightness-85 pointer-events-none select-none [-webkit-touch-callout:none]"
          alt=""
          aria-hidden="true"
          decoding="async"
          draggable="false"
+         @contextmenu.prevent
       />
       <!-- Sharp foreground image -->
       <img
          ref="imageRef"
          :src="src"
          :style="imageStyle"
-         class="absolute max-w-none"
+         class="absolute max-w-none pointer-events-none select-none [-webkit-touch-callout:none]"
          :class="{ 'shadow-2xl': isPortrait }"
          :alt="alt"
          decoding="async"
          draggable="false"
          @load="measureImage"
+         @contextmenu.prevent
       />
    </div>
 </template>
@@ -79,10 +81,13 @@ const backdropStyle = computed<CSSProperties>(() => {
    const cropH = cHeight / scale;
    const cropWindowX = (cWidth - cropW) * cropX;
    const cropWindowY = (cHeight - cropH) * cropY;
-   const viewScale = frameWidth / cropW;
 
-   const left = -cropWindowX * viewScale;
-   const top = -cropWindowY * viewScale;
+   const viewScale = Math.max(frameWidth / cropW, frameHeight / cropH);
+   const extraX = (frameWidth - cropW * viewScale) / 2;
+   const extraY = (frameHeight - cropH * viewScale) / 2;
+
+   const left = extraX - cropWindowX * viewScale;
+   const top = extraY - cropWindowY * viewScale;
    const width = cWidth * viewScale;
    const height = cHeight * viewScale;
 
@@ -112,21 +117,25 @@ const imageStyle = computed<CSSProperties>(() => {
    const scale = Math.max(1, Math.min(3, props.cropScale));
    const cropX = Math.max(0, Math.min(100, props.cropX)) / 100;
    const cropY = Math.max(0, Math.min(100, props.cropY)) / 100;
+   const CROP_RATIO = 16 / 9;
 
    if (isPortrait.value) {
       // Treat the 16:9 composite (blur + photo) as one unified image
-      const cWidth = naturalHeight * (16 / 9);
+      const cWidth = naturalHeight * CROP_RATIO;
       const cHeight = naturalHeight;
 
       const cropW = cWidth / scale;
       const cropH = cHeight / scale;
       const cropWindowX = (cWidth - cropW) * cropX;
       const cropWindowY = (cHeight - cropH) * cropY;
-      const viewScale = frameWidth / cropW;
+
+      const viewScale = Math.max(frameWidth / cropW, frameHeight / cropH);
+      const extraX = (frameWidth - cropW * viewScale) / 2;
+      const extraY = (frameHeight - cropH * viewScale) / 2;
 
       const photoXInComposite = (cWidth - naturalWidth) / 2;
-      const left = (photoXInComposite - cropWindowX) * viewScale;
-      const top = -cropWindowY * viewScale;
+      const left = extraX + (photoXInComposite - cropWindowX) * viewScale;
+      const top = extraY - cropWindowY * viewScale;
       const width = naturalWidth * viewScale;
       const height = naturalHeight * viewScale;
 
@@ -139,18 +148,28 @@ const imageStyle = computed<CSSProperties>(() => {
    }
 
    // Landscape (albomniy) image:
-   const frameRatio = frameWidth / frameHeight;
-   const baseWidth = Math.min(naturalWidth, naturalHeight * frameRatio);
-   const baseHeight = baseWidth / frameRatio;
-   const imageScale = (frameWidth / baseWidth) * scale;
+   // Crop was performed against fixed 16:9 ratio
+   const baseWidth = Math.min(naturalWidth, naturalHeight * CROP_RATIO);
+   const baseHeight = baseWidth / CROP_RATIO;
    const cropWidth = baseWidth / scale;
    const cropHeight = baseHeight / scale;
+   const cropWindowX = (naturalWidth - cropWidth) * cropX;
+   const cropWindowY = (naturalHeight - cropHeight) * cropY;
+
+   const viewScale = Math.max(frameWidth / cropWidth, frameHeight / cropHeight);
+   const extraX = (frameWidth - cropWidth * viewScale) / 2;
+   const extraY = (frameHeight - cropHeight * viewScale) / 2;
+
+   const left = extraX - cropWindowX * viewScale;
+   const top = extraY - cropWindowY * viewScale;
+   const width = naturalWidth * viewScale;
+   const height = naturalHeight * viewScale;
 
    return {
-      width: `${naturalWidth * imageScale}px`,
-      height: `${naturalHeight * imageScale}px`,
-      left: `${-((naturalWidth - cropWidth) * cropX * imageScale)}px`,
-      top: `${-((naturalHeight - cropHeight) * cropY * imageScale)}px`,
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${width}px`,
+      height: `${height}px`,
    };
 });
 

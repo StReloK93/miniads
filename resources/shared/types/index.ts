@@ -92,6 +92,7 @@ export interface IProduct {
       current: number;
       max: number;
    };
+   similar_products?: IProduct[];
 }
 
 export interface IUser {

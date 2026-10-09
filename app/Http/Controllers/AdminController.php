@@ -185,6 +185,7 @@ class AdminController extends Controller
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::in(['active', 'expired', 'deleted', 'all'])],
+            'is_bot' => ['nullable', Rule::in(['all', 'bot', 'user'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -195,6 +196,8 @@ class AdminController extends Controller
             ->when(($filters['status'] ?? 'all') === 'active', fn ($query) => $query->whereNull('deleted_at')->active())
             ->when(($filters['status'] ?? 'all') === 'expired', fn ($query) => $query->whereNull('deleted_at')->passive())
             ->when(($filters['status'] ?? 'all') !== 'deleted', fn ($query) => $query->orderByRaw('deleted_at IS NULL DESC'))
+            ->when(($filters['is_bot'] ?? 'all') === 'bot', fn ($query) => $query->where('is_bot', true))
+            ->when(($filters['is_bot'] ?? 'all') === 'user', fn ($query) => $query->where('is_bot', false))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
                 $search = $filters['search'];
                 $query->where(function ($query) use ($search): void {
@@ -308,6 +311,58 @@ class AdminController extends Controller
         });
 
         return response()->json(['message' => 'Foydalanuvchi roli yangilandi.']);
+    }
+
+    public function getBotSettings()
+    {
+        $setting = \App\Models\BotSetting::current();
+        $totalBotProducts = Product::where('is_bot', true)->count();
+        $totalUserProducts = Product::where('is_bot', false)->count();
+
+        return response()->json([
+            'setting' => $setting,
+            'stats' => [
+                'total_bot_products' => $totalBotProducts,
+                'total_user_products' => $totalUserProducts,
+                'today_imported_count' => $setting->today_imported_count,
+                'daily_limit' => $setting->daily_limit,
+                'hourly_limit' => $setting->hourly_limit,
+                'last_run_at' => $setting->last_run_at?->diffForHumans() ?: 'Hali ishga tushmagan',
+            ],
+        ]);
+    }
+
+    public function updateBotSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'is_enabled' => ['required', 'boolean'],
+            'hourly_limit' => ['required', 'integer', 'min:1', 'max:50'],
+            'daily_limit' => ['required', 'integer', 'min:1', 'max:1000'],
+            'channels' => ['nullable', 'string', 'max:2000'],
+            'telegram_post_enabled' => ['required', 'boolean'],
+            'telegram_start_hour' => ['required', 'integer', 'min:0', 'max:23'],
+            'telegram_end_hour' => ['required', 'integer', 'min:0', 'max:23'],
+            'ai_provider' => ['required', 'string', Rule::in(['gemini', 'openai', 'regex'])],
+            'ai_api_key' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $setting = \App\Models\BotSetting::current();
+        $setting->update($validated);
+
+        return response()->json([
+            'message' => "Bot sozlamalari muvaffaqiyatli saqlandi.",
+            'setting' => $setting->fresh(),
+        ]);
+    }
+
+    public function runBotImport(\App\Services\Bot\BotAdImportService $service)
+    {
+        $result = $service->importBatch();
+
+        return response()->json([
+            'message' => $result['message'] ?? 'Import bajarildi.',
+            'result' => $result,
+        ]);
     }
 
     private function isActive(Product $product): bool

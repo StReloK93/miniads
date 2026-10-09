@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
 use App\Services\TelegramProductService;
+use App\Services\ProductSearchService;
 class ProductController extends Controller
 {
     public function __construct(
@@ -48,7 +50,15 @@ class ProductController extends Controller
 
         $previouslyHadImage = $product->images->isNotEmpty();
         $this->productService->update($request, $product);
-        $this->telegramProductService->synchronize($product, $previouslyHadImage);
+
+        try {
+            $this->telegramProductService->synchronize($product, $previouslyHadImage);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Telegram sinxronizatsiya xatosi: " . $e->getMessage(), [
+                'product_id' => $product->id,
+                'exception' => $e,
+            ]);
+        }
 
         return response()->json([
             'message' => "E'lon muvaffaqiyatli yangilandi!",
@@ -60,12 +70,47 @@ class ProductController extends Controller
         $product = Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
-            ->with(['user'])
-            ->findOrFail($id);
+            ->with(['user', 'category.parent.parent'])
+            ->find($id);
+
+        if (!$product) {
+            return response()->json([
+                'message' => "Ushbu e'lon mavjud emas yoki muddati tugagan.",
+            ], 404);
+        }
+
+        $user = auth()->user();
+        $isOwnerOrAdmin = $user && ($user->id === $product->user_id || $user->role === 'admin');
+        if ($product->expires_at && $product->expires_at < now() && !$isOwnerOrAdmin) {
+            return response()->json([
+                'message' => "Ushbu e'lon mavjud emas yoki muddati tugagan.",
+                'is_expired' => true,
+            ], 404);
+        }
 
         if (auth()->id() !== $product->user_id) {
             $viewService->record($product, auth()->id());
         }
+
+        // Shunga yaqin (o'xshash) faol e'lonlarni yuklash
+        $categoryIds = [$product->category_id];
+        if ($product->category && $product->category->parent_id) {
+            $siblingIds = Category::where('parent_id', $product->category->parent_id)->pluck('id')->toArray();
+            $categoryIds = array_unique(array_merge($categoryIds, $siblingIds));
+        }
+
+        $similarProducts = Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])
+            ->active()
+            ->where('id', '!=', $product->id)
+            ->whereIn('category_id', $categoryIds)
+            ->latest('published_at')
+            ->latest('id')
+            ->take(3)
+            ->get();
+
+        $product->setRelation('similar_products', $similarProducts);
 
         return response()->json($product);
     }
@@ -112,22 +157,9 @@ class ProductController extends Controller
             ->append('days');
     }
 
-    public function search(Request $request)
+    public function search(Request $request, ProductSearchService $searchService)
     {
-        if (!$request->filled('search')) {
-            return response()->json([]);
-        }
-
-        return Product::search($request->search)
-            ->query(function (Builder $query) use ($request) {
-                $query->active()
-                    ->when($request->city_id, fn($q) => $q->where('district_id', $request->city_id))
-                    ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
-                    ->when($request->price_from, fn($q) => $q->where('price', '>=', $request->price_from))
-                    ->when($request->price_to, fn($q) => $q->where('price', '<=', $request->price_to));
-            })
-            ->latest('published_at')
-            ->get();
+        return $searchService->search($request);
     }
 
 

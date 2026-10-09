@@ -139,7 +139,7 @@
                   </span>
                </div>
 
-               <div class="admin-rank-list overflow-y-auto max-h-[220px] pr-1">
+               <div class="admin-rank-list overflow-y-auto max-h-55 pr-1">
                   <div
                      v-for="(district, index) in dashboard.districts_breakdown"
                      :key="district.name"
@@ -189,7 +189,7 @@
                   </RouterLink>
                </div>
 
-               <div class="admin-rank-list overflow-y-auto max-h-[260px] pr-1">
+               <div class="admin-rank-list overflow-y-auto max-h-65 pr-1">
                   <div
                      v-for="(cat, index) in dashboard.categories_breakdown"
                      :key="cat.id"
@@ -251,7 +251,7 @@
                   </div>
                </div>
 
-               <div class="admin-user-activity-list overflow-y-auto max-h-[190px] pr-1">
+               <div class="admin-user-activity-list overflow-y-auto max-h-47.5 pr-1">
                   <div
                      v-for="user in dashboard.recent_users"
                      :key="user.id"

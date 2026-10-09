@@ -51,7 +51,7 @@
                   severity="glass"
                >
                   <template #icon>
-                     <Heart class="size-4" :class="product.is_favorite ? 'fill-red-500 text-red-500' : 'text-(--z-foreground)'" />
+                     <Heart class="size-4" :class="product.is_favorite ? 'fill-white text-white' : 'text-white'" />
                   </template>
                </BaseButton>
             </slot>
@@ -108,15 +108,15 @@ const props = withDefaults(
       showFavorite: true,
       showCategory: true,
       inactive: false,
-      timeField: "published_at",
+      timeField: "created_at",
    }
 );
 
 const timeValue = computed(() => {
-   if (props.timeField === "created_at") {
-      return props.product.created_at || props.product.published_at;
+   if (props.timeField === "published_at") {
+      return props.product.published_at || props.product.created_at;
    }
-   return props.product.published_at || props.product.created_at;
+   return props.product.created_at || props.product.published_at;
 });
 
 const isFavoriteButtonLoading = ref(false);

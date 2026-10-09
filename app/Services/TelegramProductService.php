@@ -71,7 +71,11 @@ class TelegramProductService
 
                 if (! $response->telegraphOk()) {
                     $description = mb_strtolower((string) $response->json('description'));
-                    if (! str_contains($description, 'message to delete not found')) {
+                    if (
+                        ! str_contains($description, 'message to delete not found')
+                        && ! str_contains($description, 'message_id_invalid')
+                        && ! str_contains($description, 'message not found')
+                    ) {
                         $this->throwTelegramError($response, $product, $channelId, "o'chirish");
                     }
                 }
@@ -117,7 +121,11 @@ class TelegramProductService
                 return $title.' - <b>'.$value.$unit.'</b>';
             });
 
-        $footer = "\n\n📱 <code>".e($product->phone ?: "Raqam ko'rsatilmagan").'</code>';
+        $contactText = filled($product->phone)
+            ? '📱 <code>'.e($product->phone).'</code>'
+            : (filled($product->user?->username) ? '💬 @'.e(ltrim($product->user->username, '@')) : "📱 <code>Raqam ko'rsatilmagan</code>");
+
+        $footer = "\n\n".$contactText;
 
         if ($parameterLines->isNotEmpty()) {
             $visibleLines = [];
@@ -193,7 +201,12 @@ class TelegramProductService
                 return;
             }
 
-            if (str_contains($description, 'message to edit not found')) {
+            if (
+                str_contains($description, 'message to edit not found')
+                || str_contains($description, 'message_id_invalid')
+                || str_contains($description, 'message not found')
+                || str_contains($description, "message can't be edited")
+            ) {
                 $newMessageId = $this->sendToChannel($product, $channelId);
                 $telegramId->update(['message_id' => $newMessageId]);
 
@@ -253,6 +266,7 @@ class TelegramProductService
     {
         $product->unsetRelation('images');
         $product->load([
+            'user',
             'images',
             'price_type',
             'district',

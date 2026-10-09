@@ -3,6 +3,8 @@
       <input
          ref="inputRef"
          type="text"
+         :name="name"
+         :id="name"
          class="field"
          :value="formatValue(value)"
          :placeholder="placeholder"

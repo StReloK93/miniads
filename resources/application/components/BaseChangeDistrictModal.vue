@@ -57,7 +57,7 @@ const AuthStore = useAuth();
 const loading = ref(false);
 
 const initialValues = ref({
-   city: AuthStore.user?.active_district_id || undefined,
+   city: AuthStore.user?.active_district_id ?? 0,
 });
 
 function changeDistrict(values: Record<string, unknown>) {
@@ -73,6 +73,6 @@ function changeDistrict(values: Record<string, unknown>) {
 const isOpen: Ref<boolean> = ref(false);
 
 function onMountedModal() {
-   initialValues.value.city = AuthStore.user?.active_district_id || undefined;
+   initialValues.value.city = AuthStore.user?.active_district_id ?? 0;
 }
 </script>

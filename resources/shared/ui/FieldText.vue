@@ -3,6 +3,7 @@
       <div class="field">
          <slot name="left"></slot>
          <input
+            :id="props.name"
             :type="props.type || 'text'"
             class="w-full bg-transparent outline-none text-(--z-foreground) placeholder:text-(--z-muted-text)"
             @input="handleChange"

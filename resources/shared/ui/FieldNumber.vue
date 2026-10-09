@@ -2,6 +2,8 @@
    <Field :name="name" v-slot="{ value, setValue, field }">
       <input
          type="text"
+         :name="name"
+         :id="name"
          class="field"
          v-bind="{ ...$attrs }"
          :value="format(value)"

@@ -49,8 +49,10 @@ import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
+import { useAuth } from "@shared/store/useAuth";
 import { ChevronRight } from "lucide-vue-next";
 
+const authStore = useAuth();
 const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
@@ -71,6 +73,8 @@ async function selectCategory(category: ICategory, product: IProduct) {
    const baseInputs = productInputs({
       withPrice: category.with_price !== false,
       withImage: category.with_image !== false,
+      hasTelegramUsername: Boolean(authStore.user?.username),
+      telegramUsername: authStore.user?.username,
    });
 
    await Promise.all(

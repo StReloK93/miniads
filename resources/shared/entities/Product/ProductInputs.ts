@@ -1,6 +1,7 @@
 import { Inputs } from "@/modules/Inputs";
 import { api } from "@shared/composables/useFetch";
 import { InputConfig } from "@shared/types";
+import { useAuth } from "@shared/store/useAuth";
 import z from "zod";
 
 let cachedPriceTypes: any[] | null = null;
@@ -17,6 +18,8 @@ export interface ProductInputOptions {
    withPrice?: boolean;
    withImage?: boolean;
    priceTypes?: any[];
+   hasTelegramUsername?: boolean;
+   telegramUsername?: string | null;
 }
 
 export function productInputs(options: ProductInputOptions = {}): InputConfig[] {
@@ -100,12 +103,53 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       class: ["mb-3"],
    });
 
-   // Telefon
+   // Telefon / Aloqa
+   let hasTelegram = options.hasTelegramUsername;
+   let telegramUsername = options.telegramUsername;
+
+   try {
+      const auth = useAuth();
+      if (hasTelegram === undefined) {
+         hasTelegram = Boolean(auth.user?.username);
+      }
+      if (telegramUsername === undefined) {
+         telegramUsername = auth.user?.username;
+      }
+   } catch {
+      // Pinia might not be ready yet in tests or SSR
+   }
+
    inputs.push({
-      component: Inputs["FieldMask"],
+      component: Inputs["FieldPhone"],
       name: "phone",
-      props: { title: "Telefon raqam", placeholder: "93-123-45-67", mask: "99-999-99-99", inputmode: "tel" },
-      schema: z.string({ message: "Majburiy maydon!" }).trim().min(9, "To'liq telefon raqamini kiriting!"),
+      props: {
+         title: "Bog'lanish uchun",
+         placeholder: "93-123-45-67",
+         mask: "99-999-99-99",
+         inputmode: "tel",
+         telegramUsername,
+      },
+      schema: z
+         .string()
+         .trim()
+         .optional()
+         .nullable()
+         .superRefine((val, ctx) => {
+            const raw = val ? val.trim() : "";
+            if (!hasTelegram && !raw) {
+               ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: "Telefon raqamini to'liq kiriting!",
+               });
+               return;
+            }
+            if (raw && raw.length < 9) {
+               ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: "To'liq telefon raqamini kiriting!",
+               });
+            }
+         }),
    });
 
    return inputs;

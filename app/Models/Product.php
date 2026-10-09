@@ -30,7 +30,15 @@ class Product extends Model
         'price_type_id',
         'views_count',
         'back_color_id',
-        'expires_at'
+        'expires_at',
+        'is_bot',
+        'source_channel',
+        'source_message_id',
+        'source_hash',
+    ];
+
+    protected $casts = [
+        'is_bot' => 'boolean',
     ];
 
 

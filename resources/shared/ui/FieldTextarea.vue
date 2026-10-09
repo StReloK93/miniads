@@ -3,6 +3,7 @@
       <div class="field py-3!" :data-size="size">
          <textarea
             ref="el"
+            :id="props.name"
             v-bind="{ ...field, ...$attrs }"
             :rows="rows"
             :style="{

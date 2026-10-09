@@ -14,3 +14,7 @@ Artisan::command('inspire', function () {
 Schedule::command('products:flush-views')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+Schedule::command('ads:import-telegram')
+    ->hourly()
+    ->withoutOverlapping();

@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAuth } from "@shared/store/useAuth";
-import { ArrowUpRight, ChartPie, FileText, MapPin, SlidersHorizontal, Tags, Users, Workflow } from "lucide-vue-next";
+import { ArrowUpRight, Bot, ChartPie, FileText, MapPin, SlidersHorizontal, Tags, Users, Workflow } from "lucide-vue-next";
 
 const auth = useAuth();
 const initials = computed(() =>
@@ -63,6 +63,7 @@ const mainLinks = [
    { name: "admin-home", label: "Umumiy ko'rinish", icon: ChartPie },
    { name: "admin-products", label: "E'lonlar", icon: FileText },
    { name: "admin-users", label: "Foydalanuvchilar", icon: Users },
+   { name: "admin-bot", label: "Avto-e'lonlar (Bot)", icon: Bot },
 ];
 const catalogLinks = [
    { name: "admin-categories", label: "Kategoriyalar", icon: Workflow },

@@ -25,6 +25,7 @@ declare module 'vue' {
     FieldImage: typeof import('./resources/shared/ui/FieldImage.vue')['default']
     FieldMask: typeof import('./resources/shared/ui/FieldMask.vue')['default']
     FieldNumber: typeof import('./resources/shared/ui/FieldNumber.vue')['default']
+    FieldPhone: typeof import('./resources/shared/ui/FieldPhone.vue')['default']
     FieldSelect: typeof import('./resources/shared/ui/FieldSelect.vue')['default']
     FieldText: typeof import('./resources/shared/ui/FieldText.vue')['default']
     FieldTextarea: typeof import('./resources/shared/ui/FieldTextarea.vue')['default']

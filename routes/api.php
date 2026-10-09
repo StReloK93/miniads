@@ -62,6 +62,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('products/{id}/restore', 'restoreProduct');
         Route::get('users', 'users');
         Route::patch('users/{id}/role', 'updateUserRole');
+        Route::get('bot-settings', 'getBotSettings');
+        Route::post('bot-settings', 'updateBotSettings');
+        Route::post('bot-settings/run-now', 'runBotImport');
     });
 
     Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {

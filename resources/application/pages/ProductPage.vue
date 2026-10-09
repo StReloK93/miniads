@@ -1,7 +1,7 @@
 <template>
    <section class="full-page flex flex-col">
       <aside v-if="product" class="grow relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
-         <article class="absolute inset-0 overflow-y-auto no-scrollbar">
+         <article ref="scrollContainer" class="absolute inset-0 overflow-y-auto no-scrollbar">
             <main class="relative">
                <swiper
                   v-if="product?.images.length"
@@ -46,7 +46,18 @@
                /> -->
             </main>
             <main class="pt-5 px-4">
-               <!--  -->
+               <!-- Kategoriya (faqat eng oxirgi tegishli bo'lgan kategoriya) -->
+               <div v-if="product?.category" class="mb-3">
+                  <button
+                     type="button"
+                     @click="router.push({ name: 'category', params: { id: product.category.id } })"
+                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-(--z-card) border border-(--z-border) hover:border-primary text-(--z-foreground) font-medium active:scale-95 transition-all text-xs cursor-pointer shadow-2xs"
+                  >
+                     <Layers class="size-3.5 text-primary shrink-0" />
+                     <span>{{ product.category.name }}</span>
+                     <ChevronRight class="size-3 text-(--z-muted-text) shrink-0" />
+                  </button>
+               </div>
 
                <div
                   v-if="product?.price"
@@ -117,10 +128,52 @@
                      <span class="text-(--z-muted-text) text-xs">@{{ product.user.username }}</span>
                   </main>
                </div>
+
+               <!-- Shunga yaqin (O'xshash) e'lonlar - bitta qator karusel -->
+               <section v-if="product?.similar_products?.length" class="mt-8 mb-6">
+                  <div class="flex items-center justify-between mb-3.5">
+                     <div class="flex items-center gap-2">
+                        <Sparkles class="size-4 text-amber-500" />
+                        <h3 class="font-bold text-base">O'xshash e'lonlar</h3>
+                     </div>
+                     <button
+                        v-if="product.category_id"
+                        type="button"
+                        @click="router.push({ name: 'category', params: { id: product.category_id } })"
+                        class="text-xs text-primary font-medium flex items-center gap-0.5 active:opacity-70 cursor-pointer"
+                     >
+                        Barchasi
+                        <ChevronRight class="size-3 inline" />
+                     </button>
+                  </div>
+
+                  <swiper
+                     :slides-per-view="1.25"
+                     :space-between="12"
+                     :modules="[FreeMode]"
+                     :breakpoints="{
+                        '480': { slidesPerView: 1.6, spaceBetween: 12 },
+                        '640': { slidesPerView: 2.2, spaceBetween: 14 }
+                     }"
+                     class="w-full -mx-4 px-4! overflow-visible!"
+                  >
+                     <swiper-slide
+                        v-for="similar in product.similar_products.slice(0, 3)"
+                        :key="similar.id"
+                        class="h-auto"
+                     >
+                        <BaseProductCard
+                           :product="similar"
+                           class="h-full"
+                        />
+                     </swiper-slide>
+                  </swiper>
+               </section>
             </main>
          </article>
       </aside>
-      <aside v-else class="grow">
+      <!-- Agar e'lon yuklanayotgan bo'lsa -->
+      <aside v-else-if="isFirstLoading" class="grow">
          <main class="relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
             <div class="skeleton aspect-video rounded-none!"></div>
          </main>
@@ -134,24 +187,77 @@
             <div class="skeleton h-2 w-2/3"></div>
          </main>
       </aside>
+
+      <!-- Agar e'lon topilmasa yoki muddati tugagan bo'lsa -->
+      <aside v-else class="grow flex flex-col justify-between p-6">
+         <div class="flex items-center justify-between">
+            <button
+               type="button"
+               @click="goBackOrHome"
+               class="p-2 -ml-2 rounded-full text-(--z-muted-text) hover:text-(--z-foreground) active:bg-(--z-card)"
+               aria-label="Orqaga"
+            >
+               <ArrowLeft class="size-6" />
+            </button>
+            <span class="text-xs text-(--z-muted-text) font-medium">Mini Ads</span>
+         </div>
+
+         <div class="flex flex-col items-center text-center my-auto px-2">
+            <div class="w-20 h-20 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-5 border border-amber-500/20 shadow-inner">
+               <AlertCircle class="size-10" />
+            </div>
+            <h2 class="text-xl font-bold mb-2">Ushbu e'lon mavjud emas</h2>
+            <p class="text-sm text-(--z-muted-text) max-w-xs leading-relaxed mb-8">
+               E'lon egasi tomonidan o'chirilgan yoki uning amal qilish muddati tugagan bo'lishi mumkin.
+            </p>
+
+            <div class="w-full flex flex-col gap-3">
+               <BaseButton @click="router.push({ name: 'home' })" severity="primary" class="w-full py-3">
+                  <template #icon>
+                     <Home class="size-4" />
+                  </template>
+                  Bosh sahifaga qaytish
+               </BaseButton>
+               <BaseButton @click="router.push({ name: 'search' })" severity="secondary" class="w-full py-3">
+                  <template #icon>
+                     <Search class="size-4" />
+                  </template>
+                  Boshqa e'lonlarni qidirish
+               </BaseButton>
+            </div>
+         </div>
+
+         <div class="py-2"></div>
+      </aside>
+
       <aside v-if="product" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
-         <BaseButton
-            v-if="product.user.username"
-            severity="secondary"
-            @click="openSellerChat(product)"
-            iconOnly
-            class="aspect-square"
-         >
-            <template #icon>
-               <MessageCircle class="size-5 inline" />
-            </template>
-         </BaseButton>
-         <BaseButton @click="callPhone(product?.phone!)" severity="primary" class="grow">
-            <template #icon>
-               <Phone class="size-4 inline" />
-            </template>
-            Qo'ng'iroq qilish
-         </BaseButton>
+         <template v-if="product.phone">
+            <BaseButton
+               v-if="product.user.username"
+               severity="secondary"
+               @click="openSellerChat(product)"
+               iconOnly
+               class="aspect-square"
+            >
+               <template #icon>
+                  <MessageCircle class="size-5 inline" />
+               </template>
+            </BaseButton>
+            <BaseButton @click="callPhone(product.phone)" severity="primary" class="grow">
+               <template #icon>
+                  <Phone class="size-4 inline" />
+               </template>
+               Qo'ng'iroq qilish
+            </BaseButton>
+         </template>
+         <template v-else-if="product.user.username">
+            <BaseButton @click="openSellerChat(product)" severity="primary" class="grow">
+               <template #icon>
+                  <MessageCircle class="size-4 inline" />
+               </template>
+               Telegram orqali bog'lanish
+            </BaseButton>
+         </template>
 
          <BaseButton
             severity="secondary"
@@ -161,11 +267,11 @@
             :loading="isFavoriteButtonLoading"
          >
             <template #icon>
-               <Heart class="size-5 inline" :class="product.is_favorite ? 'fill-red-500 text-red-500' : 'text-(--z-foreground)'" />
+               <Heart class="size-5 inline" :class="product.is_favorite ? 'fill-white text-white' : 'text-(--z-foreground)'" />
             </template>
          </BaseButton>
       </aside>
-      <aside v-else class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
+      <aside v-else-if="isFirstLoading" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
          <div class="skeleton h-12 grow"></div>
          <div class="skeleton size-12"></div>
       </aside>
@@ -181,7 +287,7 @@
             :initial-slide="previewIndex"
             :pagination="previewPaginationConfig"
             class="absolute inset-0 h-full w-full"
-            @click="onPreviewBackdropClick"
+            @click="onSwiperClick"
          >
             <swiper-slide
                v-for="image in product.images"
@@ -202,7 +308,7 @@
             <!-- Left: Dot indicators wrapped in a sleek glass pill (never stuck to corner) -->
             <div
                v-show="product.images.length > 1"
-               class="preview-pagination-dots pointer-events-auto flex items-center gap-1.5 bg-black/60 border border-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-2xl min-h-[36px]"
+               class="preview-pagination-dots pointer-events-auto flex items-center gap-1.5 bg-black/60 border border-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-2xl min-h-9"
             ></div>
             <div v-if="product.images.length <= 1"></div>
 
@@ -210,7 +316,7 @@
             <BaseButton
                severity="secondary"
                rounded
-               class="pointer-events-auto shadow-2xl bg-black/70 hover:bg-black/90 text-white border border-white/25 backdrop-blur-md px-4 py-2 flex items-center gap-1.5 active:scale-95 transition-transform text-sm h-[36px]"
+               class="pointer-events-auto shadow-2xl bg-black/70 hover:bg-black/90 text-white border border-white/25 backdrop-blur-md px-4 py-2 flex items-center gap-1.5 active:scale-95 transition-transform text-sm h-9"
                aria-label="Rasmni yopish"
                @click="closeImagePreview"
             >
@@ -230,20 +336,31 @@ import { isTMA } from "@tma.js/bridge";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
-import { Pagination } from "swiper/modules";
+import BaseProductCard from "@/components/BaseProductCard.vue";
+import { FreeMode, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
-import { Heart, MapPin, MessageCircle, Phone, X } from "lucide-vue-next";
+import { AlertCircle, ArrowLeft, ChevronRight, Heart, Home, Layers, MapPin, MessageCircle, Phone, Search, Sparkles, X } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { postEvent } from "@tma.js/bridge";
 
 const route = useRoute();
+const router = useRouter();
+const scrollContainer = ref<HTMLElement | null>(null);
 
-const { data: product, execute: executeProduct } = useFetchDecorator<IProduct>(ProductRepo.show);
+const { data: product, execute: executeProduct, isFirstLoading } = useFetchDecorator<IProduct>(ProductRepo.show);
+
+function goBackOrHome() {
+   if (window.history.length > 1) {
+      router.back();
+   } else {
+      router.push({ name: "home" });
+   }
+}
 
 const isImagesReady = ref(false);
 const previewIndex = ref<number | null>(null);
@@ -264,14 +381,18 @@ function closeImagePreview() {
    previewIndex.value = null;
 }
 
-function onPreviewBackdropClick(event: MouseEvent) {
-   const target = event.target as HTMLElement | null;
+function onPreviewBackdropClick(event: MouseEvent | PointerEvent | TouchEvent) {
+   const target = (event as MouseEvent)?.target as HTMLElement | null;
    if (!target) return;
    // Don't close if user clicked the image itself
    if (target.tagName === "IMG") return;
    // Don't close if user clicked swiper pagination dots or close button
-   if (target.closest(".swiper-pagination") || target.closest("button")) return;
+   if (target.closest(".swiper-pagination") || target.closest("button") || target.closest(".preview-pagination-dots")) return;
    closeImagePreview();
+}
+
+function onSwiperClick(_swiper: unknown, event: MouseEvent | PointerEvent | TouchEvent) {
+   onPreviewBackdropClick(event);
 }
 
 function callPhone(phone: string) {
@@ -328,18 +449,39 @@ async function toggleFavorite() {
    product.value.is_favorite = !product.value.is_favorite;
 }
 
-onMounted(async () => {
-   await executeProduct(route.params.id);
-   if (product.value?.images?.length) {
-      const imageUrls = product.value.images.flatMap((img) => [
-         `/storage/${img.src}`,
-      ]);
-      await preloadImages(imageUrls);
-   }
+async function loadProduct(id: string | number | string[]) {
+   try {
+      isImagesReady.value = false;
+      await executeProduct(id);
+      if (product.value?.images?.length) {
+         const imageUrls = product.value.images.flatMap((img) => [
+            `/storage/${img.src}`,
+         ]);
+         await preloadImages(imageUrls);
+      }
 
-   setTimeout(() => {
-      isImagesReady.value = true;
-   }, 350);
+      setTimeout(() => {
+         isImagesReady.value = true;
+      }, 350);
+   } catch (error) {
+      console.warn("E'lon topilmadi yoki yuklanmadi:", error);
+   }
+}
+
+watch(
+   () => route.params.id,
+   (newId) => {
+      if (newId) {
+         loadProduct(newId);
+         scrollContainer.value?.scrollTo({ top: 0, behavior: "smooth" });
+      }
+   }
+);
+
+onMounted(async () => {
+   if (route.params.id) {
+      await loadProduct(route.params.id);
+   }
 });
 </script>
 

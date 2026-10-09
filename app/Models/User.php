@@ -30,4 +30,28 @@ class User extends Authenticatable
         return $this->hasMany(Product::class);
     }
 
+    public static function getBotUser(): self
+    {
+        $botUser = self::where('username', 'telegramAssistent')
+            ->orWhere('username', 'telegram_bot')
+            ->first();
+
+        if ($botUser) {
+            if ($botUser->username !== 'telegramAssistent' || $botUser->name !== 'Telegram Assistent') {
+                $botUser->update([
+                    'username' => 'telegramAssistent',
+                    'name' => 'Telegram Assistent',
+                ]);
+            }
+            return $botUser;
+        }
+
+        return self::create([
+            'username' => 'telegramAssistent',
+            'name' => 'Telegram Assistent',
+            'telegram_user_id' => 999999999,
+            'role' => 'user',
+            'active_district_id' => null,
+        ]);
+    }
 }

@@ -143,7 +143,18 @@ class CategoryController extends Controller
 
 	public function products($categoryId)
 	{
-		$Category = Category::with('products', 'parent')->findOrFail($categoryId);
+		$Category = Category::with([
+			'parent',
+			'products' => function ($query) {
+				$query->withExists([
+					'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+				])
+					->active()
+					->latest('published_at')
+					->latest('id');
+			}
+		])->findOrFail($categoryId);
+
 		return $Category;
 	}
 

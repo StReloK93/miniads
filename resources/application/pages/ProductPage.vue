@@ -95,7 +95,9 @@
                <!--  -->
                <div v-if="product?.description">
                   <h3 class="title text-sm">Izoh</h3>
-                  <div class="py-1 leading-5 text-sm mb-6">{{ product?.description }}</div>
+                  <div class="py-1 leading-relaxed text-sm mb-6 whitespace-pre-line text-(--z-foreground) wrap-break-word select-text">
+                     {{ product?.description }}
+                  </div>
                </div>
 
                <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">Qo'shimcha ma'lumot</h3>
@@ -125,7 +127,8 @@
                   </div>
                   <main class="leading-4">
                      <h3 class="font-medium">{{ product.user.name }}</h3>
-                     <span class="text-(--z-muted-text) text-xs">@{{ product.user.username }}</span>
+                     <span v-if="!isBotProduct && product.user.username" class="text-(--z-muted-text) text-xs">@{{ product.user.username }}</span>
+                     <span v-else class="text-(--z-muted-text) text-xs">Telefon orqali bog'laning</span>
                   </main>
                </div>
 
@@ -155,7 +158,7 @@
                         '480': { slidesPerView: 1.6, spaceBetween: 12 },
                         '640': { slidesPerView: 2.2, spaceBetween: 14 }
                      }"
-                     class="w-full -mx-4 px-4! overflow-visible!"
+                     class="w-full -mx-4 "
                   >
                      <swiper-slide
                         v-for="similar in product.similar_products.slice(0, 3)"
@@ -233,7 +236,7 @@
       <aside v-if="product" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
          <template v-if="product.phone">
             <BaseButton
-               v-if="product.user.username"
+               v-if="!isBotProduct && product.user.username"
                severity="secondary"
                @click="openSellerChat(product)"
                iconOnly
@@ -250,7 +253,7 @@
                Qo'ng'iroq qilish
             </BaseButton>
          </template>
-         <template v-else-if="product.user.username">
+         <template v-else-if="!isBotProduct && product.user.username">
             <BaseButton @click="openSellerChat(product)" severity="primary" class="grow">
                <template #icon>
                   <MessageCircle class="size-4 inline" />
@@ -401,7 +404,13 @@ function callPhone(phone: string) {
    }
 }
 
+const isBotProduct = computed(() => {
+   const username = product.value?.user?.username?.toLowerCase();
+   return username === "telegramassistent" || username === "telegram_bot";
+});
+
 function openSellerChat(product: IProduct) {
+   if (isBotProduct.value) return;
    const username = product.user.username?.trim().replace(/^@/, "");
 
    if (!username) return;

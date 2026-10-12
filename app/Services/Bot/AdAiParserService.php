@@ -9,6 +9,7 @@ use App\Models\PriceType;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class AdAiParserService
 {
@@ -36,17 +37,24 @@ class AdAiParserService
             return null;
         }
 
-        // Faqat AI orqali yozilsin - agar API key bo'lmasa yoki AI xato bersa, e'lon yozilmaydi
-        $aiResult = null;
-        $apiKey = $setting->ai_api_key ?: env('GEMINI_API_KEY') ?: env('OPENAI_API_KEY');
+        // Agar maxsus qoidali regex parser tanlangan bo'lsa:
+        if ($setting->ai_provider === 'regex') {
+            return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel);
+        }
+
+        // AI orqali tahlil qilish (Gemini yoki OpenAI)
+        $provider = $setting->ai_provider ?: 'gemini';
+        $apiKey = $setting->ai_api_key ?: ($provider === 'openai' ? env('OPENAI_API_KEY') : env('GEMINI_API_KEY'));
 
         if (empty($apiKey)) {
-            Log::warning("AI parser: API key mavjud emas (BotSetting yoki .env). E'lon o'tkazib yuborildi.");
+            $this->notifyTelegramFailure(strtoupper($provider), "API kalit topilmadi (.env yoki bot sozlamalarida {$provider} kaliti kiritilmagan).");
+            // AI ishlamasa hech narsa yozilmasin:
             return null;
         }
 
-        if ($setting->ai_provider === 'openai') {
-            $aiResult = $this->callOpenAi($rawText, $apiKey, $channel);
+        $aiResult = null;
+        if ($provider === 'openai') {
+            $aiResult = $this->callOpenAi($rawText, $apiKey);
         } else {
             $aiResult = $this->callGemini($rawText, $apiKey, $channel);
         }
@@ -55,7 +63,7 @@ class AdAiParserService
             return $this->normalizeParsedData($aiResult, $rawText, $channel);
         }
 
-        // Agar AI tahlil qila olmasa yoki e'lon yaroqsiz bo'lsa, hech narsa yozilmaydi
+        // Agar AI ishlamasa yoki xato bo'lsa - e'lon yozilmaydi!
         return null;
     }
 
@@ -117,19 +125,16 @@ QAT'IY TALABLAR (BU TALABLARNI BUZISH TAQIQLANADI):
      * Masalan: "3 xonali burchak kottedj sotiladi", "2 xonali kvartira sotiladi", "Spark 2019 mexanika oq rang", "Oziq-ovqat do'koniga sotuvchi kerak", "Yer uchastkasi sotiladi, 4 sotix".
    - "AKSIYA!", "DIQQAT!", "SHOSHILING!", kanal nomlari, telefon raqamlari yoki ma'nosiz belgilarni sarlavhaga QO'YMA.
 
-3. "description" (Tavsif - User-Friendly):
-   - Foydalanuvchi ko'zi bilan qaraganda o'qishga juda qulay, chiroyli va tartibli tuz:
-     * 1-2 gapda narsa/xizmat haqida asosiy ma'lumot;
-     * Asosiy qulayliklar va parametrlar (agar bor bo'lsa punktlar bilan):
-       • Maydoni: ...
-       • Xonalar soni: ...
-       • Holati: ...
-       • Jihozlari: ...
-     * 📍 Manzil va mo'ljal (agar matnda bo'lsa);
-     * 💵 Narxi va to'lov shartlari (agar matnda bo'lsa);
-     * 📞 Bog'lanish: telefon raqami va telegram kontakt;
+3. "description" (Tavsif - User-Friendly, faqat nuqtachalar bilan):
+   - QAT'IY TALAB: HECH QANDAY EMOJI YOKI IKONKA (📍, 💵, 📞, 🚗, 📱, ✨ va boshqalar) ISHLATILMASIN! Ikonkalar yoqmaydi, faqat oddiy nuqtachalar (•) ishlatilsin.
+   - Foydalanuvchi o'qishi uchun juda qulay, chiroyli abzaslar va yangi qatorlar bilan formatla:
+     * 1-bo'lim: Mahsulot/xizmat haqida 1-2 gaplik aniq ma'lumot;
+     * 2-bo'lim (bo'sh qator tashlab): Asosiy parametrlar va xususiyatlar (oddiy nuqtachalar bilan, masalan: "• Holati: a'lo\n• Xotirasi: 128 GB\n• Rangi: qora");
+     * 3-bo'lim (bo'sh qator tashlab): • Manzil: ... (agar matnda bo'lsa);
+     * 4-bo'lim (bo'sh qator tashlab): • Narxi: ... (agar matnda bo'lsa);
+     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i! Hech qanday telegram username (@...) yozma, faqat telefon raqam yozilsin!
    - SPAM VA BEGONA REKLAMALARNI MUTLAQO O'CHIR:
-     Kanal nomlari (@..., t.me/...), "Obuna bo'ling", "Kanalimizga ulaning", "Admin ga murojaat", "Do'stlarga ulashing", instagram, boshqa kanallar reklamasini BUTUNLAY tozalab tashla!
+     Kanal nomlari (@..., t.me/...), "Obuna bo'ling", "Kanalimizga ulaning", "Admin ga murojaat", "Do'stlarga ulashing", boshqa kanallar reklamasini BUTUNLAY tozalab tashla! Matnda hech qanday @username qolmasin!
 
 4. "category_id":
    - Agar bir nechta har xil tovarlar (masalan: bir e'londa telefon, televizor, changyutgich aralash) ko'rsatilgan bo'lsa yoki bitta aniq toifaga to'g'ri kelmasa, kategoriya sifatida majburiy tartibda "Boshqa" (ID {$boshqaId}) ni tanla!
@@ -157,44 +162,45 @@ E'lon matni:
 {$rawText}
 PROMPT;
 
-            // Use current Google Gemini models (Gemini 3.8 Flash recommended by Google API)
-            $models = ['models/gemini-3.8-flash', 'models/gemini-3.8-flash-lite', 'models/gemini-3.5-flash', 'models/gemini-2.5-flash'];
-            foreach ($models as $model) {
-                $url = "https://generativelanguage.googleapis.com/v1beta/{$model}:generateContent?key={$apiKey}";
+            $model = 'gemini-flash-latest';
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
-                $response = Http::timeout(25)
-                    ->post($url, [
-                        'contents' => [
-                            [
-                                'parts' => [
-                                    ['text' => $prompt]
-                                ]
+            $response = Http::timeout(15)
+                ->post($url, [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                ['text' => $prompt]
                             ]
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                            'temperature' => 0.1,
                         ]
-                    ]);
+                    ],
+                    'generationConfig' => [
+                        'responseMimeType' => 'application/json',
+                        'temperature' => 0.2,
+                    ]
+                ]);
 
-                if ($response->successful()) {
-                    $content = $response->json('candidates.0.content.parts.0.text');
-                    if ($content) {
-                        $cleanJson = trim($content);
-                        if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
-                            $cleanJson = trim($matches[1]);
-                        }
-                        $decoded = json_decode($cleanJson, true);
-                        if (is_array($decoded)) {
-                            return $decoded;
-                        }
+            if ($response->successful()) {
+                $content = $response->json('candidates.0.content.parts.0.text');
+                if ($content) {
+                    $cleanJson = trim($content);
+                    if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
+                        $cleanJson = trim($matches[1]);
                     }
-                } else {
-                    Log::warning("Gemini API ({$model}) xatoligi: " . $response->body());
+                    $decoded = json_decode($cleanJson, true);
+                    if (is_array($decoded)) {
+                        return $decoded;
+                    }
                 }
+            } else {
+                $errorData = $response->json('error');
+                $errorMsg = is_array($errorData) ? ($errorData['message'] ?? $response->body()) : $response->body();
+                Log::warning("Gemini API ({$model}) xatoligi: " . $errorMsg);
+                $this->notifyTelegramFailure("Gemini ({$model})", $errorMsg);
             }
         } catch (\Throwable $e) {
             Log::error("Gemini API chaqirishda xatolik: " . $e->getMessage());
+            $this->notifyTelegramFailure("Gemini", $e->getMessage());
         }
 
         return null;
@@ -211,7 +217,7 @@ PROMPT;
 
             $systemPrompt = "Sen e'lonlarni tahlil qiluvchi professional muharrir assistentsan. Javobing FAQAT toza JSON bo'lishi shart. Barcha matnlarni (title va description) FAQAT toza O'zbek lotin alifbosida, user-friendly tartibli qilib yoz, hech qachon kirill harflarini aralashtirma.\nKategoriyalar: {$categoriesContext}\nTumanlar: {$districtsContext}";
 
-            $response = Http::timeout(25)
+            $response = Http::timeout(15)
                 ->withToken($apiKey)
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model' => 'gpt-4o-mini',
@@ -235,12 +241,57 @@ PROMPT;
                         return $decoded;
                     }
                 }
+            } else {
+                $errorMsg = $response->json('error.message') ?: $response->body();
+                Log::warning("OpenAI API xatolik: " . $errorMsg);
+                $this->notifyTelegramFailure("OpenAI (gpt-4o-mini)", $errorMsg);
             }
         } catch (\Throwable $e) {
             Log::error("OpenAI API xatolik: " . $e->getMessage());
+            $this->notifyTelegramFailure("OpenAI", $e->getMessage());
         }
 
         return null;
+    }
+
+    /**
+     * Send an alert message to Telegram when AI service fails.
+     */
+    private function notifyTelegramFailure(string $provider, string $errorMessage): void
+    {
+        // Don't spam Telegram: send only once every 15 minutes per unique error
+        $cacheKey = 'ai_error_alert_' . md5($provider . $errorMessage);
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+        Cache::put($cacheKey, true, now()->addMinutes(15));
+
+        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $chatId = env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL');
+
+        if (empty($botToken) || empty($chatId)) {
+            Log::warning("Telegramga ogohlantirish yuborilmadi: TELEGRAM_BOT_TOKEN yoki TELEGRAM_ADMIN_CHAT_ID bo'sh.");
+            return;
+        }
+
+        try {
+            $shortError = Str::limit(strip_tags($errorMessage), 350);
+            $timeNow = now()->format('Y-m-d H:i:s');
+
+            $message = "⚠️ <b>AI E'lon Tahlilida Xatolik!</b>\n\n"
+                . "🤖 <b>Provayder:</b> " . htmlspecialchars($provider, ENT_QUOTES, 'UTF-8') . "\n"
+                . "❌ <b>Xatolik sababi:</b>\n<code>" . htmlspecialchars($shortError, ENT_QUOTES, 'UTF-8') . "</code>\n\n"
+                . "⏰ <b>Vaqt:</b> {$timeNow}\n\n"
+                . "⛔ <b>Eslatma:</b> AI ishlamay qolgani sababli bu e'lonlar platformaga kiritilmadi (xunuk/buzilgan matnlar chiqmasligi uchun).";
+
+            Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $message,
+                'parse_mode' => 'HTML',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Telegramga AI ogohlantirishini yuborishda xatolik: " . $e->getMessage());
+        }
     }
 
     /**
@@ -583,6 +634,9 @@ PROMPT;
             '/\bso[\'’`]?tix\b/ui' => "sotix",
         ];
         $text = preg_replace(array_keys($replacements), array_values($replacements), $text);
+
+        // Remove all emojis / icons, preserve bullet point (•) and clean punctuation
+        $text = preg_replace('/[\x{1F000}-\x{1FAFF}\x{2600}-\x{27BF}\x{FE00}-\x{FE0F}]/u', '', $text);
 
         // Collapse multiple blank lines
         $text = preg_replace("/\n{3,}/", "\n\n", $text);

@@ -8,7 +8,7 @@
                class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none"
                :class="[
                   mode === 'phone'
-                     ? 'bg-(--z-primary) text-white shadow-sm'
+                     ? 'bg-(--z-primary) text-(--z-primary-foreground) shadow-sm'
                      : 'text-(--z-muted-text) hover:text-(--z-foreground) hover:bg-(--z-muted)/40',
                ]"
                @click="setMode('phone', value, setValue)"
@@ -22,7 +22,7 @@
                class="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer select-none"
                :class="[
                   mode === 'telegram'
-                     ? 'bg-(--z-primary) text-white shadow-sm'
+                     ? 'bg-(--z-primary) text-(--z-primary-foreground) shadow-sm'
                      : 'text-(--z-muted-text) hover:text-(--z-foreground) hover:bg-(--z-muted)/40',
                ]"
                @click="setMode('telegram', value, setValue)"

@@ -1,17 +1,28 @@
 <template>
    <section class="h-full">
       <main v-if="selectedCategory" class="h-full flex flex-col">
-         <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
+         <aside class="-mx-4 px-4 pb-3 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
                <div class="flex gap-2 items-center justify-between">
-                  <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+                  <div class="flex items-center gap-2">
+                     <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+                     <span class="text-xs text-(--z-muted-text) font-medium">2 / 2</span>
+                  </div>
 
-                  <span class="text-xs text-(--z-muted-text) inline-flex items-center underline">
-                     <MapPin class="inline-block size-3 mr-1" />
-                     {{ selectedCity?.name }}
-                  </span>
+                  <ProductChangeDistrictModal
+                     @district-changed="onDistrictChanged"
+                     :selected-city-id="selectedCityId"
+                  />
                </div>
-               <p class="title text-xs mb-4">3-qadam: E'lon ma'lumotlari</p>
+
+               <!-- Segmented progress bar (ikkala etap ham to'lgan) -->
+               <div class="mt-2.5 mb-2.5 flex flex-col gap-1.5">
+                  <div class="grid grid-cols-2 gap-1.5 w-full">
+                     <div class="h-1 bg-(--z-primary) rounded-full"></div>
+                     <div class="h-1 bg-(--z-primary) rounded-full"></div>
+                  </div>
+                  <p class="text-xs text-(--z-muted-text) font-medium">E'lon ma'lumotlari</p>
+               </div>
             </main>
 
             <main class="flex gap-1 items-center">
@@ -26,12 +37,13 @@
          </aside>
          <BaseForm v-if="formInputs.length" :submit="submitForm" @submit="onSubmit" :input-configs="formInputs" />
       </main>
-      <ProductFormSkeleton v-else />
+      <ProductFormSkeleton v-else class="h-full" />
    </section>
 </template>
 
 <script setup lang="ts">
 import ProductFormSkeleton from "@/components/ProductFormSkeleton.vue";
+import ProductChangeDistrictModal from "@components/ProductChangeDistrictModal.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
@@ -43,7 +55,7 @@ import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { ChevronRight, MapPin } from "lucide-vue-next";
+import { ChevronRight } from "lucide-vue-next";
 import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
 
@@ -53,10 +65,14 @@ const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
 
-const selectedCity = computed(() => {
-   const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
-   return cityStore.cities?.find((d) => d.id === cityId) ?? null;
-});
+const selectedCityId = ref<number | null>(null);
+
+function onDistrictChanged(districtId: number) {
+   selectedCityId.value = districtId;
+   try {
+      localStorage.setItem("last_selected_city", String(districtId));
+   } catch (e) {}
+}
 
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
@@ -114,7 +130,7 @@ async function submitForm(values: any) {
       price_type_id: values.price_type_id,
       category_id: route.params.categoryId,
       parameters: [],
-      district_id: route.params.cityId,
+      district_id: selectedCityId.value,
       images: values.images,
    };
 
@@ -142,5 +158,10 @@ onMounted(async () => {
    if (category.value) {
       selectCategory(category.value);
    }
+
+   const routeCity = route.params.cityId ? Number(route.params.cityId) : null;
+   const storedCity = localStorage.getItem("last_selected_city");
+   selectedCityId.value =
+      routeCity || (authStore.user as any)?.active_district_id || (storedCity ? Number(storedCity) : 1);
 });
 </script>

@@ -31,7 +31,7 @@
             submit-label="E'lonni yangilash"
          />
       </main>
-      <ProductFormSkeleton v-else />
+      <ProductFormSkeleton v-else class="h-full" />
    </section>
 </template>
 

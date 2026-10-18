@@ -1,45 +1,39 @@
 <template>
    <section class="grid grid-rows-[auto_1fr]">
-      <aside class="pb-4 mb-4 border-b border-(--z-border) -mx-4 px-4">
+      <aside class="pb-3 mb-4 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex gap-2 items-center justify-between">
-            <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-
-            <span class="text-xs text-(--z-muted-text) inline-flex items-center underline">
-               <MapPin class="inline-block size-3 mr-1" />
-               {{ selectedCity }}
-            </span>
+            <h3 class="font-extrabold text-xl">E'lon joylash</h3>
+            <span class="text-xs text-(--z-muted-text) font-medium">1 / 2</span>
          </div>
-         <p class="title text-xs">2-qadam: E'lon turi</p>
+
+         <!-- Segmented progress bar (etaplar alohida line, orasi ochiq) -->
+         <div class="mt-2.5 flex flex-col gap-1.5">
+            <div class="grid grid-cols-2 gap-1.5 w-full">
+               <div class="h-1 bg-(--z-primary) rounded-full"></div>
+               <div class="h-1 bg-(--z-border) rounded-full"></div>
+            </div>
+            <p class="text-xs text-(--z-muted-text) font-medium">Kategoriya tanlang</p>
+         </div>
       </aside>
+
       <CategorySelector
          v-if="CategoryStore.parentCategories"
          :activeCategoryId="activeCategoryId"
          :categories="CategoryStore.parentCategories"
          @select-category="
-            $router.push({ name: 'create-product', params: { categoryId: $event.id, cityId: route.params.cityId } })
+            $router.push({ name: 'create-product', params: { categoryId: $event.id } })
          "
       />
    </section>
 </template>
 
 <script setup lang="ts">
-import { MapPin } from "lucide-vue-next";
-
 import CategorySelector from "@components/CategorySelector.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";
-import { useCity } from "@shared/entities/District/useCity";
-const cityStore = useCity();
 
 const route = useRoute();
-
-const selectedCity = computed(() => {
-   const cityId = route.params.cityId ? Number(route.params.cityId) : 0;
-
-   const selectedDistrict = cityStore.cities?.find((d) => d.id === cityId);
-   return selectedDistrict ? selectedDistrict.name : null;
-});
 
 const activeCategoryId = computed(() => {
    return route.query.category_id ? Number(route.query.category_id) : null;

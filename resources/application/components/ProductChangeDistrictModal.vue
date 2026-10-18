@@ -26,13 +26,15 @@
          </Form>
       </BaseModal>
       <Transition>
-         <h3
-            v-if="props.selectedCityId !== null && cityStore.cities"
+         <button
+            type="button"
+            v-if="cityStore.cities?.length"
             @click="isOpen = true"
-            class="text-xs text-(--z-muted-text) inline-flex items-center underline"
+            class="text-xs text-(--z-muted-text) hover:text-(--z-foreground) inline-flex items-center gap-1 underline underline-offset-2 cursor-pointer transition-colors"
          >
-            <MapPin class="inline-block size-3 mr-1" /> {{ selectedCity?.name }}
-         </h3>
+            <MapPin class="inline-block size-3" />
+            <span>{{ selectedCity?.name ?? "Shaharni tanlang" }}</span>
+         </button>
       </Transition>
    </main>
 </template>

@@ -4,7 +4,7 @@
          <div class="flex items-center justify-between">
             <h3 class="font-bold text-xl">Qidiruv</h3>
          </div>
-         <article class="flex gap-4 pt-4 pb-4">
+         <article class="flex gap-3 pt-3 pb-3">
             <Form @submit="onSubmit" class="grow flex" autocomplete="off">
                <FieldText
                   v-model="searchText"
@@ -15,7 +15,7 @@
                >
                   <template #left>
                      <div class="px-2.5">
-                        <SearchIcon class="size-4.5 inline" />
+                        <SearchIcon class="size-4.5 inline text-(--z-muted-text)" />
                      </div>
                   </template>
                   <template #right>
@@ -37,60 +37,77 @@
                   </template>
                </FieldText>
             </Form>
-            <main class="w-12">
+            <main class="w-11 shrink-0">
                <BaseButton
                   @click="isFilterOpen = true"
                   icon-only
                   :severity="hasFilters ? 'primary' : 'secondary'"
+                  class="relative w-full h-full"
                >
                   <template #icon>
-                     <SlidersHorizontal class="size-5" />
+                     <SlidersHorizontal class="size-4.5" />
                   </template>
+                  <span
+                     v-if="hasFilters"
+                     class="absolute top-1.5 right-1.5 size-2 bg-sky-500 rounded-full"
+                  ></span>
                </BaseButton>
             </main>
          </article>
 
-         <aside v-if="hasFilters" class="-mt-2">
-            <h3 class="text-(--z-muted-text) text-sm flex items-center justify-between">
-               <span>Filterlar</span>
-               <BaseButton
-                  icon-only
-                  class="h-6! relative top-px"
-                  size="sm"
-                  rounded
-                  variant="text"
-                  @click="resetFilters"
+         <!-- Tanlangan filtrlar nishonlari -->
+         <div v-if="hasFilters" class="flex items-center gap-1.5 flex-wrap pb-3 text-xs">
+            <span
+               v-if="filters.city_id"
+               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-(--z-card) border border-(--z-border) text-(--z-foreground)"
+            >
+               <MapPin class="size-3 text-(--z-muted-text)" />
+               {{ cityStore.cities?.find((city) => city.id == filters.city_id)?.name }}
+               <button
+                  type="button"
+                  @click="filters.city_id = null; applyFilters()"
+                  class="hover:text-red-500 ml-0.5 cursor-pointer"
                >
-                  <template #icon><X class="size-3" /></template>
-               </BaseButton>
-            </h3>
-            <div class="mb-4 text-[11px] inline-flex items-center flex-wrap gap-2">
-               <span v-if="filters.city_id">
-                  <b>
-                     {{ cityStore.cities?.find((city) => city.id == filters.city_id)?.name }}
-                  </b>
+                  <X class="size-3" />
+               </button>
+            </span>
+
+            <span
+               v-if="filters.price_from || filters.price_to"
+               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-(--z-card) border border-(--z-border) text-(--z-foreground)"
+            >
+               <span v-if="filters.price_from && filters.price_to">
+                  {{ filters.price_from }} - {{ filters.price_to }} so'm
                </span>
-               <span
-                  v-if="(filters?.price_from || filters?.price_to) && filters.city_id"
-                  class="inline-flex w-1 h-1 rounded-full bg-(--z-muted-text)"
-               ></span>
-               <span v-if="filters?.price_from">
-                  <b>{{ filters.price_from }}</b> dan
+               <span v-else-if="filters.price_from">
+                  {{ filters.price_from }} dan
                </span>
-               <span v-else> <b>0</b> dan </span>
-               <span> - </span>
-               <span v-if="filters?.price_to">
-                  <b>
-                     {{ filters.price_to }}
-                  </b>
-                  gacha
+               <span v-else>
+                  {{ filters.price_to }} gacha
                </span>
-               <span v-else class="inline-flex items-center gap-1"> <Infinity class="size-4" /> gacha </span>
-            </div>
-         </aside>
+               <button
+                  type="button"
+                  @click="filters.price_from = null; filters.price_to = null; applyFilters()"
+                  class="hover:text-red-500 ml-0.5 cursor-pointer"
+               >
+                  <X class="size-3" />
+               </button>
+            </span>
+
+            <button
+               type="button"
+               @click="resetFilters"
+               class="text-xs text-(--z-muted-text) hover:text-red-500 underline ml-1 cursor-pointer"
+            >
+               Tozalash
+            </button>
+         </div>
+
          <div class="border-b border-(--z-border) -mx-4 px-4"></div>
       </template>
+
       <template #content>
+         <!-- Filtr modali -->
          <BaseModal
             :open="isFilterOpen"
             title="Filterlash"
@@ -121,14 +138,16 @@
                      Bekor qilish
                   </BaseButton>
 
-                  <BaseButton type="submit" class="w-full"> Tasdiqlash </BaseButton>
+                  <BaseButton type="submit" class="w-full">
+                     Tasdiqlash
+                  </BaseButton>
                </div>
             </Form>
          </BaseModal>
 
          <!-- 1. Qidiruv jarayoni -->
          <div v-if="isLoading" class="py-16 flex flex-col items-center justify-center gap-3">
-            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div class="w-8 h-8 border-2 border-(--z-primary) border-t-transparent rounded-full animate-spin"></div>
             <span class="text-sm text-(--z-muted-text)">E'lonlar qidirilmoqda...</span>
          </div>
 
@@ -142,140 +161,100 @@
             </div>
          </template>
 
-         <!-- 3. So'rov bo'yicha hech narsa topilmagan holat -->
+         <!-- 3. Natija topilmagan holat -->
          <template v-else-if="activeSearchText">
-            <div class="py-10 flex flex-col items-center justify-center text-center px-2">
-               <div class="w-16 h-16 rounded-full bg-(--z-card) border border-(--z-border) flex items-center justify-center mb-4 text-(--z-muted-text)">
-                  <SearchX class="size-8" />
+            <div class="py-12 flex flex-col items-center justify-center text-center px-4">
+               <div class="w-14 h-14 rounded-full bg-(--z-card) border border-(--z-border) flex items-center justify-center mb-3 text-(--z-muted-text)">
+                  <SearchX class="size-6" />
                </div>
-               <h3 class="text-base font-bold mb-1">Hech nima topilmadi</h3>
-               <p class="text-xs text-(--z-muted-text) max-w-xs mb-5">
-                  "<b>{{ activeSearchText }}</b>" so'rovi bo'yicha e'lon topilmadi. So'zni to'g'ri yozganingizni tekshiring yoki quyidagi ommabop so'rovlarni sinab ko'ring.
+               <h3 class="text-base font-bold mb-1">Hech narsa topilmadi</h3>
+               <p class="text-xs text-(--z-muted-text) max-w-xs mb-4">
+                  "<b>{{ activeSearchText }}</b>" bo'yicha e'lon topilmadi.
                </p>
 
                <BaseButton v-if="hasFilters" @click="resetFilters" severity="secondary" size="sm" class="mb-5">
                   Filtrlarni tozalash
                </BaseButton>
 
-               <div class="w-full text-left mt-2 border-t border-(--z-border) pt-4">
-                  <div class="flex items-center gap-1.5 text-xs font-semibold text-(--z-muted-text) mb-3">
-                     <Flame class="size-3.5 text-amber-500 inline" />
-                     <span>Ommabop so'rovlar</span>
-                  </div>
-                  <div class="flex gap-2 flex-wrap">
+               <div class="w-full text-left pt-4 border-t border-(--z-border)">
+                  <p class="text-xs font-semibold text-(--z-muted-text) mb-2.5 flex items-center gap-1.5">
+                     <Sparkles class="size-3.5 text-amber-500" />
+                     Ommabop so'rovlar
+                  </p>
+                  <div class="flex flex-wrap gap-2">
                      <button
                         v-for="tag in popularTags"
                         :key="tag"
-                        @click="setOldSearch(tag)"
                         type="button"
-                        class="px-3.5 py-1.5 bg-(--z-card) border border-(--z-border) hover:border-amber-500/40 rounded-full text-xs font-medium active:scale-95 transition flex items-center gap-1.5 shadow-xs"
+                        @click="setOldSearch(tag)"
+                        class="px-3.5 py-1.5 bg-(--z-card) border border-(--z-border) hover:border-(--z-primary)/30 hover:bg-(--z-muted) rounded-full text-xs font-medium active:scale-95 transition cursor-pointer"
                      >
-                        <Sparkles class="size-3 text-amber-500/70 inline" />
-                        {{ tag }}
+                       {{ tag }}
                      </button>
                   </div>
                </div>
             </div>
          </template>
 
-         <!-- 4. Qidiruv boshlang'ich holati (bo'sh turganida yordamchi bo'limlar) -->
-         <div v-else class="flex flex-col gap-6 pt-1">
+         <!-- 4. Oddiy va toza boshlang'ich holat -->
+         <div v-else class="flex flex-col gap-6 pt-2">
             <!-- Oxirgi qidiruvlar -->
-            <aside v-if="searches.length">
-               <article class="flex justify-between items-center mb-2.5">
-                  <div class="flex items-center gap-1.5 text-xs font-semibold text-(--z-muted-text)">
-                     <History class="size-3.5 inline" />
-                     <span>Oxirgi qidiruvlar</span>
-                  </div>
-                  <button @click="clear" class="text-xs text-red-500 font-medium active:opacity-70">Tozalash</button>
-               </article>
-               <main class="flex gap-2 flex-wrap">
+            <div v-if="searches.length" class="flex flex-col gap-2.5">
+               <div class="flex justify-between items-center text-xs">
+                  <span class="flex items-center gap-1.5 font-medium text-(--z-muted-text)">
+                     <History class="size-3.5" />
+                     Oxirgi qidiruvlar
+                  </span>
+                  <button
+                     type="button"
+                     @click="clear"
+                     class="text-(--z-muted-text) hover:text-red-500 transition active:opacity-70 text-xs cursor-pointer"
+                  >
+                     Tozalash
+                  </button>
+               </div>
+               <div class="flex flex-wrap gap-2">
                   <div
                      v-for="search in searches"
-                     @click="setOldSearch(search)"
                      :key="search"
-                     class="bg-(--z-card) border border-(--z-border) text-(--z-foreground) rounded-full text-xs font-medium inline-flex gap-1.5 items-center pl-3 pr-1 py-1 cursor-pointer active:scale-95 transition shadow-xs"
+                     @click="setOldSearch(search)"
+                     class="bg-(--z-card) border border-(--z-border) text-(--z-foreground) rounded-full text-xs font-medium inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 cursor-pointer active:scale-95 transition hover:bg-(--z-muted)"
                   >
                      <span>{{ search }}</span>
                      <button
+                        type="button"
                         @click.stop="removeSearch(search)"
-                        class="size-5 rounded-full hover:bg-(--z-muted) inline-flex items-center justify-center text-(--z-muted-text)"
+                        class="size-4.5 rounded-full hover:bg-(--z-muted-text)/20 inline-flex items-center justify-center text-(--z-muted-text)"
                         aria-label="O'chirish"
                      >
                         <X class="size-3" />
                      </button>
                   </div>
-               </main>
-            </aside>
+               </div>
+            </div>
 
             <!-- Ommabop qidiruvlar -->
-            <aside>
-               <div class="flex items-center gap-1.5 text-xs font-semibold text-(--z-muted-text) mb-2.5">
-                  <Flame class="size-3.5 text-amber-500 inline" />
+            <div class="flex flex-col gap-2.5">
+               <div class="flex items-center gap-1.5 text-xs font-medium text-(--z-muted-text)">
+                  <Sparkles class="size-3.5 text-amber-500" />
                   <span>Ommabop qidiruvlar</span>
                </div>
-               <div class="flex gap-2 flex-wrap">
+               <div class="flex flex-wrap gap-2">
                   <button
                      v-for="tag in popularTags"
                      :key="tag"
-                     @click="setOldSearch(tag)"
                      type="button"
-                     class="px-3.5 py-1.5 bg-(--z-card) border border-(--z-border) hover:border-amber-500/40 rounded-full text-xs font-medium active:scale-95 transition flex items-center gap-1.5 shadow-xs"
+                     @click="setOldSearch(tag)"
+                     class="px-3.5 py-1.5 bg-(--z-card) border border-(--z-border) hover:border-(--z-primary)/30 hover:bg-(--z-muted) rounded-full text-xs font-medium active:scale-95 transition cursor-pointer"
                   >
-                     <Sparkles class="size-3 text-amber-500/70 inline" />
                      {{ tag }}
                   </button>
                </div>
-            </aside>
+            </div>
 
-            <!-- Bo'limlar / Kategoriyalar -->
-            <aside v-if="categoryStore.parentCategories?.length">
-               <div class="flex items-center justify-between mb-2.5">
-                  <div class="flex items-center gap-1.5 text-xs font-semibold text-(--z-muted-text)">
-                     <Layers class="size-3.5 inline" />
-                     <span>Bo'limlar</span>
-                  </div>
-                  <button
-                     type="button"
-                     @click="router.push({ name: 'categories' })"
-                     class="text-xs text-primary font-medium flex items-center gap-0.5 active:opacity-70"
-                  >
-                     Barchasi
-                     <ChevronRight class="size-3 inline" />
-                  </button>
-               </div>
-               <div class="grid grid-cols-2 gap-2">
-                  <div
-                     v-for="cat in categoryStore.parentCategories.slice(0, 6)"
-                     :key="cat.id"
-                     @click="quickSearchByCategory(cat)"
-                     class="p-2.5 bg-(--z-card) border border-(--z-border) hover:border-primary/40 rounded-xl flex items-center justify-between cursor-pointer active:scale-[0.98] transition shadow-xs"
-                  >
-                     <span class="text-xs font-medium truncate">{{ cat.name }}</span>
-                     <ArrowUpRight class="size-3.5 text-(--z-muted-text) shrink-0" />
-                  </div>
-               </div>
-            </aside>
-
-            <!-- Shaharlar bo'yicha tezkor filter -->
-            <aside v-if="cityStore.cities?.length">
-               <div class="flex items-center gap-1.5 text-xs font-semibold text-(--z-muted-text) mb-2.5">
-                  <MapPin class="size-3.5 inline" />
-                  <span>Hududlar bo'yicha</span>
-               </div>
-               <div class="flex gap-2 flex-wrap">
-                  <button
-                     v-for="city in cityStore.cities"
-                     :key="city.id"
-                     @click="quickFilterCity(city.id)"
-                     type="button"
-                     :class="filters.city_id === city.id ? 'bg-primary text-white border-primary' : 'bg-(--z-card) border-(--z-border) text-(--z-foreground)'"
-                     class="px-3 py-1.5 border rounded-full text-xs font-medium active:scale-95 transition shadow-xs"
-                  >
-                     {{ city.name }}
-                  </button>
-               </div>
-            </aside>
+            <div v-if="!searches.length" class="text-center py-8 text-xs text-(--z-muted-text)">
+               Kerakli mahsulot yoki xizmat nomini yozing
+            </div>
          </div>
       </template>
    </NavigationPageDecorator>
@@ -290,27 +269,18 @@ import {
    Search as SearchIcon,
    SlidersHorizontal,
    X,
-   Infinity,
-   Flame,
    Sparkles,
    History,
-   Layers,
    MapPin,
    SearchX,
-   ChevronRight,
-   ArrowUpRight,
 } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
-import { computed, ref } from "vue";
-import { ICategory, IProduct } from "@shared/types";
+import { computed, ref, watch } from "vue";
+import { IProduct } from "@shared/types";
 import { useCity } from "@shared/entities/District/useCity";
-import { useCategory } from "@shared/entities/Category/useCategory";
-import { useRouter } from "vue-router";
 
-const router = useRouter();
 const cityStore = useCity();
-const categoryStore = useCategory();
 
 const isFilterOpen = ref(false);
 const filters = ref<{
@@ -328,25 +298,42 @@ const { searches, addSearch, removeSearch, clear } = useRecentSearches();
 const searchText = ref<string>("");
 const activeSearchText = ref<string>("");
 
-const popularTags = [
-   "Kvartira",
-   "Ish",
-   "Cobalt",
-   "Gentra",
-   "Ijara",
-   "Telefon",
-   "Hovli",
-   "Damas",
-   "Xizmatlar",
-   "Mebel",
-];
+const popularTags = ["Kvartira", "Telefon", "Cobalt", "Gentra", "Ish", "Mebel"];
+
+let debounceTimer: any = null;
+
+// Foydalanuvchi yozayotganda qulay avto-qidiruv (debounce 350ms)
+watch(searchText, (newVal) => {
+   const trimmed = newVal.trim();
+   if (!trimmed) {
+      if (activeSearchText.value) {
+         clearSearch();
+      }
+      return;
+   }
+
+   clearTimeout(debounceTimer);
+   debounceTimer = setTimeout(async () => {
+      if (trimmed.length >= 2) {
+         activeSearchText.value = trimmed;
+         await fetchProducts({ search: trimmed, ...filters.value });
+      }
+   }, 350);
+});
 
 async function submitFilter(params: any) {
    filters.value = { ...filters.value, ...params };
-   if (searchText.value) {
-      await fetchProducts({ search: searchText.value, ...filters.value });
-   }
+   await applyFilters();
    isFilterOpen.value = false;
+}
+
+async function applyFilters() {
+   if (activeSearchText.value) {
+      await fetchProducts({ search: activeSearchText.value, ...filters.value });
+   } else if (searchText.value.trim()) {
+      activeSearchText.value = searchText.value.trim();
+      await fetchProducts({ search: searchText.value.trim(), ...filters.value });
+   }
 }
 
 function resetFilters() {
@@ -357,38 +344,22 @@ function resetFilters() {
 }
 
 async function onSubmit() {
-   if (!searchText.value.trim()) return;
-   await fetchProducts({ search: searchText.value.trim(), ...filters.value });
-   addSearch(searchText.value.trim());
-   activeSearchText.value = searchText.value.trim();
+   clearTimeout(debounceTimer);
+   const trimmed = searchText.value.trim();
+   if (!trimmed) return;
+   activeSearchText.value = trimmed;
+   addSearch(trimmed);
+   await fetchProducts({ search: trimmed, ...filters.value });
 }
 
 async function setOldSearch(text: string) {
-   if (!text.trim()) return;
-   activeSearchText.value = text.trim();
-   searchText.value = text.trim();
-   addSearch(text.trim());
-   await fetchProducts({ search: text.trim(), ...filters.value });
-}
-
-function quickSearchByCategory(cat: ICategory) {
-   if (cat.is_page) {
-      router.push({ name: "category", params: { id: cat.id } });
-   } else {
-      setOldSearch(cat.name);
-   }
-}
-
-async function quickFilterCity(cityId: number) {
-   if (filters.value.city_id === cityId) {
-      filters.value.city_id = null;
-   } else {
-      filters.value.city_id = cityId;
-   }
-
-   if (activeSearchText.value) {
-      await fetchProducts({ search: activeSearchText.value, ...filters.value });
-   }
+   clearTimeout(debounceTimer);
+   const trimmed = text.trim();
+   if (!trimmed) return;
+   searchText.value = trimmed;
+   activeSearchText.value = trimmed;
+   addSearch(trimmed);
+   await fetchProducts({ search: trimmed, ...filters.value });
 }
 
 const hasFilters = computed(() => {
@@ -396,9 +367,9 @@ const hasFilters = computed(() => {
 });
 
 function clearSearch() {
+   clearTimeout(debounceTimer);
    searchText.value = "";
    activeSearchText.value = "";
-   filters.value = { price_from: null, price_to: null, city_id: null };
    if (products.value) {
       products.value = [];
    }

@@ -47,7 +47,9 @@ const initApp = async () => {
             console.error("Unable to restore the signed-in user.", error);
          }
 
-         if (import.meta.env.DEV && !authStore.user) {
+         const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
+         if (isLocalhost && !authStore.user) {
             try {
                await authStore.testAuth();
             } catch (error) {

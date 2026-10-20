@@ -111,13 +111,20 @@ class AuthService
 
 
 
-   public function testAuth()
+   public function testAuth(Request $request)
    {
-      if (!app()->environment('local')) {
+      if (
+         !app()->environment('local')
+         || !in_array($request->getHost(), ['localhost', '127.0.0.1', '::1'], true)
+         || !in_array($request->ip(), ['127.0.0.1', '::1'], true)
+      ) {
          abort(403, 'Forbidden');
       }
 
-      $user = User::find(1);
+      $user = User::firstOrCreate(
+         ['username' => 'local-dev'],
+         ['name' => 'Local Developer', 'role' => 'admin'],
+      );
 
       if (Auth::loginUsingId($user->id)) {
          $user->tokens()->delete();

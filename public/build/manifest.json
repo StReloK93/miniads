@@ -114,8 +114,12 @@
       "_ui-bsSaLdCV.js"
     ]
   },
-  "_ParameterRepo-Bbgc3Omv.js": {
-    "file": "assets/ParameterRepo-Bbgc3Omv.js",
+  "_ParameterRepo-B8YZGv-J.css": {
+    "file": "assets/ParameterRepo-B8YZGv-J.css",
+    "src": "_ParameterRepo-B8YZGv-J.css"
+  },
+  "_ParameterRepo-XNXXhHSs.js": {
+    "file": "assets/ParameterRepo-XNXXhHSs.js",
     "name": "ParameterRepo",
     "imports": [
       "_BaseButton.vue_vue_type_script_setup_true_lang-cOghRis5.js",
@@ -125,12 +129,8 @@
       "__plugin-vue_export-helper-DlAUqK2U.js"
     ],
     "css": [
-      "assets/ParameterRepo-f7gZz80n.css"
+      "assets/ParameterRepo-B8YZGv-J.css"
     ]
-  },
-  "_ParameterRepo-f7gZz80n.css": {
-    "file": "assets/ParameterRepo-f7gZz80n.css",
-    "src": "_ParameterRepo-f7gZz80n.css"
   },
   "_ProductImageView.vue_vue_type_script_setup_true_lang-DJDa5ica.js": {
     "file": "assets/ProductImageView.vue_vue_type_script_setup_true_lang-DJDa5ica.js",
@@ -368,7 +368,7 @@
     ]
   },
   "resources/admin/adminApp.css": {
-    "file": "assets/adminApp-C7kb8uFc.css",
+    "file": "assets/adminApp-CPQFZgle.css",
     "src": "resources/admin/adminApp.css",
     "isEntry": true,
     "name": "adminApp",
@@ -377,7 +377,7 @@
     ]
   },
   "resources/admin/adminApp.ts": {
-    "file": "assets/adminApp-BLGvWG6-.js",
+    "file": "assets/adminApp-8D1EjK6B.js",
     "name": "adminApp",
     "src": "resources/admin/adminApp.ts",
     "isEntry": true,
@@ -401,7 +401,7 @@
     ]
   },
   "resources/admin/pages/AdminBotPage.vue": {
-    "file": "assets/AdminBotPage-DPu9mRKE.js",
+    "file": "assets/AdminBotPage-5cngT22k.js",
     "name": "AdminBotPage",
     "src": "resources/admin/pages/AdminBotPage.vue",
     "isDynamicEntry": true,
@@ -423,7 +423,7 @@
     ]
   },
   "resources/admin/pages/AdminCategoriesPage.vue": {
-    "file": "assets/AdminCategoriesPage-DHXh8OSf.js",
+    "file": "assets/AdminCategoriesPage-CfyEH0QA.js",
     "name": "AdminCategoriesPage",
     "src": "resources/admin/pages/AdminCategoriesPage.vue",
     "isDynamicEntry": true,
@@ -439,7 +439,7 @@
       "_plus-C0Tkdf9I.js",
       "_triangle-alert-_fhlKhE_.js",
       "_folder-tree-C1gGC2Yl.js",
-      "_ParameterRepo-Bbgc3Omv.js",
+      "_ParameterRepo-XNXXhHSs.js",
       "_CategoryRepo-nRbRh0mr.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_external-Tywusqty.js",
@@ -450,11 +450,11 @@
       "_map-pin-BzZAcj99.js"
     ],
     "css": [
-      "assets/AdminCategoriesPage-CpP9A6pS.css"
+      "assets/AdminCategoriesPage-00eE6Xhk.css"
     ]
   },
   "resources/admin/pages/AdminHomePage.vue": {
-    "file": "assets/AdminHomePage-CpmPRV4E.js",
+    "file": "assets/AdminHomePage-De1276Sk.js",
     "name": "AdminHomePage",
     "src": "resources/admin/pages/AdminHomePage.vue",
     "isDynamicEntry": true,
@@ -475,14 +475,14 @@
     ]
   },
   "resources/admin/pages/AdminParametersPage.vue": {
-    "file": "assets/AdminParametersPage-DfjnuEI3.js",
+    "file": "assets/AdminParametersPage-BG1w1hdC.js",
     "name": "AdminParametersPage",
     "src": "resources/admin/pages/AdminParametersPage.vue",
     "isDynamicEntry": true,
     "imports": [
       "_BaseButton.vue_vue_type_script_setup_true_lang-cOghRis5.js",
       "_AdminField.vue_vue_type_script_setup_true_lang-BsLZI56z.js",
-      "_ParameterRepo-Bbgc3Omv.js",
+      "_ParameterRepo-XNXXhHSs.js",
       "_BaseModal.vue_vue_type_script_setup_true_lang-GCoQSJYB.js",
       "_triangle-alert-_fhlKhE_.js",
       "_ui-bsSaLdCV.js",
@@ -502,11 +502,11 @@
       "_phone-BmTsAF5t.js"
     ],
     "css": [
-      "assets/AdminParametersPage-BhS05kka.css"
+      "assets/AdminParametersPage-DNQu9ObF.css"
     ]
   },
   "resources/admin/pages/AdminProductsPage.vue": {
-    "file": "assets/AdminProductsPage-C7RBGi2t.js",
+    "file": "assets/AdminProductsPage-Bf2PFf57.js",
     "name": "AdminProductsPage",
     "src": "resources/admin/pages/AdminProductsPage.vue",
     "isDynamicEntry": true,
@@ -564,7 +564,7 @@
     ]
   },
   "resources/application/app.css": {
-    "file": "assets/app-EY6gnyoe.css",
+    "file": "assets/app-B0V8Apxp.css",
     "src": "resources/application/app.css",
     "isEntry": true,
     "name": "app",
@@ -573,7 +573,7 @@
     ]
   },
   "resources/application/app.ts": {
-    "file": "assets/app-BhNrGYgZ.js",
+    "file": "assets/app-D2vRmhc1.js",
     "name": "app",
     "src": "resources/application/app.ts",
     "isEntry": true,

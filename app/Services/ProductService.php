@@ -265,4 +265,15 @@ class ProductService
 
         return $product;
     }
+
+    public function delete(Product $product): void
+    {
+        foreach ($product->images as $image) {
+            $this->deleteProductImageFile($image->src);
+            $this->deleteProductImageFile($image->crop_src);
+            $image->delete();
+        }
+
+        $product->delete();
+    }
 }

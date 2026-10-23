@@ -131,8 +131,8 @@ class TelegramProductService
             $visibleLines = [];
 
             foreach ($parameterLines as $line) {
-                $candidate = $caption."\n\n("
-                    .implode(', ', [...$visibleLines, $line]).')'
+                $candidate = $caption."\n\n"
+                    .implode("\n", [...$visibleLines, $line])
                     .$footer;
 
                 if ($this->captionLength($candidate) > self::MAX_CAPTION_LENGTH) {
@@ -143,11 +143,11 @@ class TelegramProductService
             }
 
             if ($visibleLines !== []) {
-                $caption .= "\n\n(".implode(', ', $visibleLines).')';
+                $caption .= "\n\n".implode("\n", $visibleLines);
             }
         }
 
-        $caption .= "\n\n".$footer;
+        $caption .= $footer;
 
         return $caption;
     }

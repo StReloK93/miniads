@@ -43,6 +43,7 @@ class ProductController extends Controller
         return response()->json([
             'message' => "E'lon joylandi!",
             'product_id' => $product->id,
+            'id' => $product->id,
         ], 201);
     }
 
@@ -207,7 +208,7 @@ class ProductController extends Controller
 
     public function destroy(Request $request, int $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('images')->findOrFail($id);
 
         if (!$this->productService->isOwner($product, $request->user()->id)) {
             return response()->json([
@@ -215,7 +216,7 @@ class ProductController extends Controller
             ], 403);
         }
 
-        $product->delete();
+        $this->productService->delete($product);
 
         return response()->json([
             'message' => "E'lon muvaffaqiyatli o'chirildi!",

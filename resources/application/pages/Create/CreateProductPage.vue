@@ -29,29 +29,10 @@
             </main>
          </aside>
 
-         <!-- Draft restored notice -->
-         <div
-            v-if="hasDraft"
-            class="flex items-center justify-between px-3 py-2 bg-(--z-primary)/10 border border-(--z-primary)/20 rounded-xl mt-3 text-xs"
-         >
-            <div class="flex items-center gap-1.5 text-(--z-primary) font-medium">
-               <FileText class="size-3.5" />
-               <span>Saqlangan qoralama ma'lumotlari tiklandi</span>
-            </div>
-            <button
-               @click="clearDraft"
-               type="button"
-               class="text-(--z-muted-text) hover:text-(--z-danger) text-[11px] font-medium underline cursor-pointer transition-colors"
-            >
-               Tozalash
-            </button>
-         </div>
-
          <BaseForm
             v-if="formInputs.length"
             :submit="submitForm"
             @submit="onSubmit"
-            @values-change="onValuesChange"
             :input-configs="formInputs"
          />
       </main>
@@ -127,7 +108,7 @@ import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { ChevronRight, CheckCircle2, Eye, Plus, User, FileText } from "lucide-vue-next";
+import { ChevronRight, CheckCircle2, Eye, Plus, User } from "lucide-vue-next";
 import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
 
@@ -144,76 +125,23 @@ const { data: category, execute: executeCategory } = useFetchDecorator<ICategory
 const selectedCategory = ref<ICategory | null>(null);
 const formInputs = shallowRef<InputConfig[]>([]);
 
-const hasDraft = ref(false);
 const showSuccessModal = ref(false);
 const createdProduct = ref<{ id?: number | string; title?: string } | null>(null);
 
-const draftStorageKey = computed(() => `miniads_draft_${route.params.categoryId}`);
-
-function loadDraft(): Record<string, any> | null {
-   try {
-      const saved = localStorage.getItem(draftStorageKey.value);
-      if (!saved) return null;
-      return JSON.parse(saved);
-   } catch {
-      return null;
-   }
-}
-
-function onValuesChange(values: any) {
-   if (!values || !selectedCategory.value) return;
-   const toSave: Record<string, any> = {};
-   for (const [key, val] of Object.entries(values)) {
-      if (key === "images") continue;
-      if (val !== undefined && val !== null && val !== "") {
-         toSave[key] = val;
-      }
-   }
-   if (Object.keys(toSave).length > 0) {
-      try {
-         localStorage.setItem(draftStorageKey.value, JSON.stringify(toSave));
-         hasDraft.value = true;
-      } catch {
-         // Quota or disabled storage
-      }
-   }
-}
-
-function clearDraft() {
-   try {
-      localStorage.removeItem(draftStorageKey.value);
-   } catch {
-      // ignore
-   }
-   hasDraft.value = false;
-   if (selectedCategory.value) {
-      selectCategory(selectedCategory.value, false);
-   }
-}
-
-async function selectCategory(category: ICategory, applyDraft: boolean = true) {
-   const draft = applyDraft ? loadDraft() : null;
-   if (draft && Object.keys(draft).length > 0) {
-      hasDraft.value = true;
-   }
-
+async function selectCategory(category: ICategory) {
    const baseInputs = productInputs({
       withPrice: category.with_price !== false,
       withImage: category.with_image !== false,
       hasTelegramUsername: Boolean(authStore.user?.username),
       telegramUsername: authStore.user?.username,
       districts: cityStore.cities || undefined,
-      defaultDistrictId:
-         draft?.district_id !== undefined ? Number(draft.district_id) : selectedCityId.value,
+      defaultDistrictId: selectedCityId.value,
       categoryName: category.name,
    });
 
    await Promise.all(
       baseInputs.map(async (input) => {
          if (input.generateProps) await input.generateProps();
-         if (draft && draft[input.name] !== undefined) {
-            input.value = draft[input.name];
-         }
          return input;
       }),
    );
@@ -233,7 +161,7 @@ async function selectCategory(category: ICategory, applyDraft: boolean = true) {
          class: latest ? [] : ["mb-3"],
          required: false,
          optional: true,
-         value: draft?.[paramName] !== undefined ? draft[paramName] : undefined,
+         value: undefined,
          props: {
             title: parameter.title,
             placeholder: parameter.placeholder,
@@ -280,17 +208,9 @@ async function submitForm(values: any) {
 
    const res = await ProductRepo.store(payload);
    createdProduct.value = {
-      id: res.data?.id,
+      id: res.data?.id || res.data?.product_id,
       title: values.title,
    };
-
-   // Clean up draft after successful submission
-   try {
-      localStorage.removeItem(draftStorageKey.value);
-   } catch {
-      // ignore
-   }
-   hasDraft.value = false;
 }
 
 function onSubmit() {
@@ -317,6 +237,14 @@ function goToProfile() {
 }
 
 onMounted(async () => {
+   try {
+      Object.keys(localStorage)
+         .filter((k) => k.startsWith("miniads_draft_"))
+         .forEach((k) => localStorage.removeItem(k));
+   } catch {
+      // ignore
+   }
+
    const routeCity = route.params.cityId ? Number(route.params.cityId) : null;
    const storedCity = localStorage.getItem("last_selected_city");
    selectedCityId.value =

@@ -23,8 +23,8 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { Pen, Eye, EyeOff } from "lucide-vue-next";
-import BaseButtonGroup from "@shared/ui/BaseButtonGroup.vue";
+import { Pen, Eye, EyeOff, Trash2 } from "lucide-vue-next";
+import BaseButtonGroup, { ButtonOption } from "@shared/ui/BaseButtonGroup.vue";
 import CircleIndicator from "@shared/ui/CircleIndicator.vue";
 import BaseProductCard from "@/components/BaseProductCard.vue";
 import { IProduct } from "@shared/types";
@@ -39,6 +39,7 @@ const props = defineProps<{
 const emit = defineEmits<{
    (e: "deActivate", product: IProduct): void;
    (e: "activate", product: IProduct): void;
+   (e: "delete", product: IProduct): void;
 }>();
 
 const isActive = computed(() => {
@@ -46,12 +47,20 @@ const isActive = computed(() => {
 });
 
 const options = computed(() => {
-   const items = [
+   const items: ButtonOption[] = [
       {
          value: "edit",
          icon: Pen,
          onClick: () => {
             router.push({ name: "edit-product", params: { product_id: props.product.id } });
+         },
+      },
+      {
+         value: "delete",
+         icon: Trash2,
+         class: "text-rose-500 hover:text-rose-600 focus:bg-rose-500/10",
+         onClick: () => {
+            emit("delete", props.product);
          },
       },
    ];

@@ -51,7 +51,7 @@
                   severity="glass"
                >
                   <template #icon>
-                     <Heart class="size-4" :class="product.is_favorite ? 'fill-white text-white' : 'text-white'" />
+                     <Heart class="size-4" :class="product.is_favorite ? 'fill-black text-black' : 'text-black'" />
                   </template>
                </BaseButton>
             </slot>

@@ -49,7 +49,7 @@ test('telegram caption includes product parameters and units', function () {
     expect($caption)
         ->toStartWith("#Navoiy #Uy_joy\n\n<b>UY SOTILADI</b>\n<b>250 000 000</b>")
         ->toContain('<i>Shinam va keng uy</i>')
-        ->toContain('(Xonalar soni - <b>3 ta</b>)')
+        ->toContain("Xonalar soni - <b>3 ta</b>")
         ->toContain('Xonalar soni')
         ->toContain('3 ta')
         ->toContain('📱 <code>901234567</code>')

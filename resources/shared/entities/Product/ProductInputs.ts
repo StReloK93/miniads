@@ -149,7 +149,8 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       optional: true,
       props: {
          title: "Izoh",
-         maxHeight: 120,
+         rows: 4,
+         maxHeight: 150,
          placeholder: "Mahsulot holati, xususiyatlari, yetkazib berish yoki boshqa muhim ma'lumotlar",
       },
       schema: z.string({ message: "Majburiy maydon!" }).trim().optional().nullable(),

@@ -5,7 +5,10 @@
          :key="option.value"
          @click.stop="option.onClick?.()"
          type="button"
-         class="inline-flex items-center gap-2 w-11 h-11 justify-center text-xs font-medium text-(--z-primary) first:rounded-l-full active:scale-95 last:rounded-r-full focus:bg-(--z-primary)/10"
+         :class="[
+            'inline-flex items-center gap-2 w-11 h-11 justify-center text-xs font-medium first:rounded-l-full active:scale-95 last:rounded-r-full transition-colors',
+            option.class || 'text-(--z-primary) focus:bg-(--z-primary)/10',
+         ]"
       >
          <component v-if="option.icon" :is="option.icon" class="size-4 shrink-0" />
 
@@ -23,6 +26,7 @@ export interface ButtonOption {
    label?: string;
    value: string | number;
    icon?: Component;
+   class?: string;
    onClick?: () => void;
 }
 

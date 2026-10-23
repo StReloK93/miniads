@@ -67,3 +67,63 @@ test('product update ignores client supplied system fields', function () {
         Schema::dropIfExists('products');
     }
 });
+
+test('product deletion removes images from disk and database while soft deleting product', function () {
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();
+        $table->string('title');
+        $table->timestamps();
+        $table->softDeletes();
+    });
+    Schema::create('product_images', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('product_id');
+        $table->string('src');
+        $table->string('crop_src')->nullable();
+    });
+
+    $fakeImageName = 'test_delete_img_'.uniqid().'.webp';
+    $fakeImagePath = public_path('storage/products/'.$fakeImageName);
+    if (!File::isDirectory(dirname($fakeImagePath))) {
+        File::makeDirectory(dirname($fakeImagePath), 0755, true);
+    }
+    File::put($fakeImagePath, 'dummy-image-content');
+
+    try {
+        $productId = DB::table('products')->insertGetId([
+            'title' => 'Product to be deleted',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $imageId = DB::table('product_images')->insertGetId([
+            'product_id' => $productId,
+            'src' => 'products/'.$fakeImageName,
+            'crop_src' => null,
+        ]);
+
+        $product = Product::withOnly('images')->find($productId);
+
+        expect(File::exists($fakeImagePath))->toBeTrue();
+
+        app(ProductService::class)->delete($product);
+
+        // Product row should still exist in DB for stats, but soft-deleted (deleted_at is set)
+        $rawProduct = DB::table('products')->where('id', $productId)->first();
+        expect($rawProduct)->not->toBeNull()
+            ->and($rawProduct->deleted_at)->not->toBeNull();
+
+        // ProductImage row is deleted
+        $rawImage = DB::table('product_images')->where('id', $imageId)->first();
+        expect($rawImage)->toBeNull();
+
+        // Physical file is deleted from disk
+        expect(File::exists($fakeImagePath))->toBeFalse();
+    } finally {
+        if (File::exists($fakeImagePath)) {
+            File::delete($fakeImagePath);
+        }
+        Schema::dropIfExists('product_images');
+        Schema::dropIfExists('products');
+    }
+});

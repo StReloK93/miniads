@@ -89,16 +89,27 @@
             :description="modalParams.description"
             :confirm-text="modalParams.confirmText"
             :cancel-text="modalParams.cancelText"
+            :danger="modalParams.status === 'delete'"
             @close="closeModal"
             @confirm="modalParams.confirm"
          >
             <template #icon>
-               <component :is="modalParams.icon" class="size-4" />
+               <component
+                  :is="modalParams.icon"
+                  class="size-5"
+                  :class="{ 'text-rose-500': modalParams.status === 'delete' }"
+               />
             </template>
             <div>
                <h3
-                  class="font-medium text-2xl text-center py-4 rounded-(--z-rounded) text-(--z-primary)"
-                  :class="{ inactive: modalParams.status === 'deActivate' }"
+                  class="font-medium text-2xl text-center py-4 rounded-(--z-rounded)"
+                  :class="[
+                     modalParams.status === 'delete'
+                        ? 'text-rose-500'
+                        : modalParams.status === 'deActivate'
+                        ? 'inactive'
+                        : 'text-(--z-primary)',
+                  ]"
                >
                   {{ modalParams.product?.title }}
                </h3>
@@ -113,6 +124,7 @@
                      :product="product"
                      @deActivate="deActivateProduct"
                      @activate="activateProduct"
+                     @delete="deleteProduct"
                   />
                </template>
                <div v-else class="flex flex-col justify-center items-center h-52 text-center">
@@ -137,7 +149,7 @@ import { preloadImages } from "@/modules/Helpers";
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
 import { isTMA } from "@tma.js/bridge";
-import { Camera, EyeOff, Eye, Megaphone } from "lucide-vue-next";
+import { Camera, EyeOff, Eye, Megaphone, Trash2 } from "lucide-vue-next";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
 const isImagesReady = ref(false);
@@ -153,7 +165,7 @@ function onTabChange(status) {
 var headerHeight = ref(1000);
 
 const modalParams = ref({
-   status: "deActivate" as "deActivate" | "activate",
+   status: "deActivate" as "deActivate" | "activate" | "delete",
    title: "",
    description: "",
    showButtons: false,
@@ -198,6 +210,26 @@ function activateProduct(product: IProduct) {
       confirm: async () => {
          await ProductRepo.activate(product.id);
          await fetchProducts("expired");
+         isOpen.value = false;
+      },
+   };
+   nextTick();
+   isOpen.value = true;
+}
+
+function deleteProduct(product: IProduct) {
+   modalParams.value = {
+      status: "delete",
+      title: "E'lonni butunlay o'chirish",
+      description: "E'lon butunlay o'chiriladi va uning barcha rasmlari o'chiriladi. Ushbu amalni ortga qaytarib bo'lmaydi. Rozimisiz?",
+      showButtons: true,
+      icon: Trash2,
+      product: product,
+      confirmText: "Butunlay o'chirish",
+      cancelText: "Bekor qilish",
+      confirm: async () => {
+         await ProductRepo.delete(product.id);
+         await fetchProducts(activeTab.value === 0 ? "active" : "expired");
          isOpen.value = false;
       },
    };

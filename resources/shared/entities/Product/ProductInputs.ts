@@ -32,6 +32,34 @@ export interface ProductInputOptions {
    telegramUsername?: string | null;
    districts?: any[];
    defaultDistrictId?: number | null;
+   categoryName?: string;
+}
+
+export function getDynamicTitlePlaceholder(categoryName?: string): string {
+   if (!categoryName) return "Masalan: Mahsulot yoki xizmat nomi (holati, modeli)";
+   const name = categoryName.toLowerCase();
+   if (name.includes("telefon") || name.includes("smartfon") || name.includes("gadjet") || name.includes("elektronika")) {
+      return "Masalan: iPhone 13 128GB Midnight ideal holatda";
+   }
+   if (name.includes("avto") || name.includes("mashina") || name.includes("transport")) {
+      return "Masalan: Chevrolet Cobalt 2022 2-pozitsiya, oq rang";
+   }
+   if (name.includes("uy") || name.includes("ko'chmas") || name.includes("kvartira") || name.includes("yer") || name.includes("ijara")) {
+      return "Masalan: 2 xonali kvartira, 3-qavat, ta'mirlangan";
+   }
+   if (name.includes("ish") || name.includes("vakansiya") || name.includes("xodim")) {
+      return "Masalan: Tajribali sotuvchi-maslahatchi kerak";
+   }
+   if (name.includes("xizmat") || name.includes("ta'mir") || name.includes("usta")) {
+      return "Masalan: Muzlatgich va konditsioner ta'mirlash";
+   }
+   if (name.includes("kiyim") || name.includes("poyabzal") || name.includes("moda")) {
+      return "Masalan: Qishki kurtka yangi (L razmer, qora)";
+   }
+   if (name.includes("mebel") || name.includes("jihoz")) {
+      return "Masalan: Yumshoq mebel garnituri (kam ishlatilgan)";
+   }
+   return "Masalan: Mahsulot yoki xizmat nomi (holati, modeli)";
 }
 
 export function productInputs(options: ProductInputOptions = {}): InputConfig[] {
@@ -57,7 +85,10 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       component: Inputs["FieldText"],
       name: "title",
       required: true,
-      props: { title: "Sarlavha", placeholder: "Eloningiz sarlavhasi" },
+      props: {
+         title: "Sarlavha",
+         placeholder: getDynamicTitlePlaceholder(options.categoryName),
+      },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
    });
@@ -116,7 +147,11 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       name: "description",
       required: false,
       optional: true,
-      props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz haqida qo'shimcha ma'lumot" },
+      props: {
+         title: "Izoh",
+         maxHeight: 120,
+         placeholder: "Mahsulot holati, xususiyatlari, yetkazib berish yoki boshqa muhim ma'lumotlar",
+      },
       schema: z.string({ message: "Majburiy maydon!" }).trim().optional().nullable(),
       class: ["mb-3"],
    });

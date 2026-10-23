@@ -1,6 +1,9 @@
 <template>
    <Form
+      ref="formRef"
       @submit="onSubmit"
+      @input="onValuesUpdate"
+      @change="onValuesUpdate"
       :validation-schema="validationSchema"
       :initialValues="initialValues"
       class="grid-rows-[1fr_auto] h-full grid -mx-4"
@@ -85,9 +88,16 @@ import { CheckCircle, ChevronRight } from "lucide-vue-next";
 
 const { hasFocusedInput } = useFocusedInput();
 
-const emit = defineEmits(["submit"]);
+const emit = defineEmits(["submit", "values-change"]);
 
+const formRef = ref<any>(null);
 const parentScroll = ref<HTMLElement>();
+
+function onValuesUpdate() {
+   if (formRef.value?.values) {
+      emit("values-change", formRef.value.values);
+   }
+}
 
 const props = defineProps<{
    inputConfigs: InputConfig[];

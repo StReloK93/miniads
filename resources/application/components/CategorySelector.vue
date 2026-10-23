@@ -21,70 +21,72 @@
          </div>
       </div>
 
-      <!-- Breadcrumb (shown only when not searching) -->
-      <div v-if="!searchQuery" class="shrink-0 py-2 text-sm flex flex-wrap items-center gap-1">
-         <span class="font-bold cursor-pointer hover:text-(--z-primary) transition-colors" @click="goRoot"> Barchasi </span>
-         <template v-for="(bc, i) in breadcrumb" :key="bc.id">
-            <span class="font-bold text-(--z-muted-text)">
-               <ChevronRight class="size-3 font-bold" />
-            </span>
-            <span class="font-bold cursor-pointer hover:text-(--z-primary) transition-colors" @click="goBack(i)">
-               {{ bc.name }}
-            </span>
-         </template>
+      <!-- Search Results (Shown only when typing in search) -->
+      <div v-if="searchQuery" class="flex-1 min-h-0 overflow-y-auto no-scrollbar pb-6 bg-(--z-background)">
+         <ul v-if="filteredCategories.length > 0" class="divide-y divide-(--z-muted) bg-(--z-background)">
+            <li
+               v-for="item in filteredCategories"
+               :key="item.category.id"
+               @click="selectSearchedCategory(item.category)"
+               class="cursor-pointer"
+            >
+               <div class="flex items-center justify-between py-2.5 px-1.5 active:bg-(--z-card) rounded-lg transition-colors">
+                  <div class="flex flex-col min-w-0 pr-2">
+                     <span class="font-medium text-sm text-(--z-foreground) truncate">
+                        {{ item.category.name }}
+                     </span>
+                     <span v-if="item.pathText" class="text-[11px] text-(--z-muted-text) truncate">
+                        {{ item.pathText }}
+                     </span>
+                  </div>
+                  <ChevronRight class="size-4 shrink-0 text-(--z-muted-text)" />
+               </div>
+            </li>
+         </ul>
+
+         <div v-else class="flex flex-col items-center justify-center py-12 text-center bg-(--z-background)">
+            <FolderTree class="size-9 text-(--z-muted-text)/50 mb-2" />
+            <p class="text-sm font-medium text-(--z-muted-text)">"{{ searchQuery }}" bo'yicha kategoriya topilmadi</p>
+            <button
+               @click="searchQuery = ''"
+               type="button"
+               class="mt-2 text-xs text-(--z-primary) font-semibold hover:underline"
+            >
+               Barcha kategoriyalarni ko'rish
+            </button>
+         </div>
       </div>
 
-      <!-- Category list / Search Results -->
-      <div class="flex-1 min-h-0 overflow-y-auto pb-6 no-scrollbar">
-         <!-- Search Results -->
-         <div v-if="searchQuery">
-            <ul v-if="filteredCategories.length > 0" class="divide-y divide-(--z-muted)">
-               <li
-                  v-for="item in filteredCategories"
-                  :key="item.category.id"
-                  @click="selectCategory(item.category)"
-                  class="cursor-pointer"
-               >
-                  <div class="flex items-center justify-between py-2.5 px-1.5 active:bg-(--z-card) rounded-lg transition-colors">
-                     <div class="flex flex-col min-w-0 pr-2">
-                        <span class="font-medium text-sm text-(--z-foreground) truncate">
-                           {{ item.category.name }}
-                        </span>
-                        <span v-if="item.pathText" class="text-[11px] text-(--z-muted-text) truncate">
-                           {{ item.pathText }}
-                        </span>
-                     </div>
-                     <ChevronRight class="size-4 shrink-0 text-(--z-muted-text)" />
-                  </div>
-               </li>
-            </ul>
-
-            <div v-else class="flex flex-col items-center justify-center py-12 text-center">
-               <FolderTree class="size-9 text-(--z-muted-text)/50 mb-2" />
-               <p class="text-sm font-medium text-(--z-muted-text)">"{{ searchQuery }}" bo'yicha kategoriya topilmadi</p>
-               <button
-                  @click="searchQuery = ''"
-                  type="button"
-                  class="mt-2 text-xs text-(--z-primary) font-semibold hover:underline"
-               >
-                  Barcha kategoriyalarni ko'rish
-               </button>
-            </div>
+      <!-- Standard Category Navigation with original smooth transitions -->
+      <div v-else class="flex-1 min-h-0 flex flex-col overflow-hidden">
+         <!-- Breadcrumb -->
+         <div class="shrink-0 py-2 text-sm flex flex-wrap items-center gap-1">
+            <span class="font-bold cursor-pointer hover:text-(--z-primary) transition-colors" @click="goRoot"> Barchasi </span>
+            <template v-for="(bc, i) in breadcrumb" :key="bc.id">
+               <span class="font-bold text-(--z-muted-text)">
+                  <ChevronRight class="size-3 font-bold" />
+               </span>
+               <span class="font-bold cursor-pointer hover:text-(--z-primary) transition-colors" @click="goBack(i)">
+                  {{ bc.name }}
+               </span>
+            </template>
          </div>
 
-         <!-- Normal Hierarchical Navigation -->
-         <div v-else>
-            <Transition :name="transitionName" mode="out-in">
-               <ul :key="stack.length" class="divide-y divide-(--z-muted)">
-                  <li v-for="cat in currentCategories" :key="cat.id" @click="selectCategory(cat)" class="cursor-pointer">
-                     <div class="flex items-center justify-between py-2.5 px-1.5 active:bg-(--z-card) rounded-md transition-colors">
-                        <span class="text-sm font-medium"> {{ cat.name }} </span>
+         <!-- Category list -->
+         <div class="relative flex-1 min-h-0 overflow-hidden">
+            <main class="absolute inset-0 overflow-y-auto pb-6 no-scrollbar">
+               <Transition :name="transitionName" mode="out-in">
+                  <ul :key="stack.length" class="divide-y divide-(--z-muted) bg-(--z-background) w-full min-h-full">
+                     <li v-for="cat in currentCategories" :key="cat.id" @click="selectCategory(cat)" class="cursor-pointer">
+                        <div class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md transition-colors">
+                           <span> {{ cat.name }} </span>
 
-                        <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-muted-text)" />
-                     </div>
-                  </li>
-               </ul>
-            </Transition>
+                           <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-muted-text)" />
+                        </div>
+                     </li>
+                  </ul>
+               </Transition>
+            </main>
          </div>
       </div>
    </div>
@@ -198,7 +200,6 @@ function openCategoryById(categoryId: number) {
    }
 
    /**
-    * 🔴 YETISHMAYOTGAN QISM
     * Agar tanlangan category sahifa bo'lmasa — uni ham ochamiz
     */
    const active = path[path.length - 1];
@@ -210,10 +211,34 @@ function openCategoryById(categoryId: number) {
 
    stack.value = newStack;
 }
+
 /**
- * Select category (user click)
+ * Select category (user click in normal list) - exact original animation
  */
 function selectCategory(cat: ICategory) {
+   router.push({
+      query: {
+         ...route.query,
+         category_id: cat.id,
+      },
+   });
+
+   if (cat.is_page) {
+      emit("selectCategory", cat);
+      return;
+   }
+
+   if (cat.children?.length) {
+      transitionName.value = "slide-in";
+      breadcrumb.value.push(cat);
+      stack.value.push(cat.children);
+   }
+}
+
+/**
+ * Select searched category
+ */
+function selectSearchedCategory(cat: ICategory) {
    searchQuery.value = "";
    router.push({
       query: {

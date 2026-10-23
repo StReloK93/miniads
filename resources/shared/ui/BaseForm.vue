@@ -15,9 +15,17 @@
                   </main>
                </Teleport>
                <div v-else :class="input.class">
-                  <p v-if="input.props?.title" class="mb-1 text-sm text-(--z-muted-text) tracking-wide">
-                     {{ input.props?.title }}
-                  </p>
+                  <div v-if="input.props?.title" class="flex items-center gap-1.5 mb-1.5 px-0.5 select-none">
+                     <p class="text-xs font-semibold text-(--z-foreground) tracking-wide">
+                        {{ input.props?.title }}
+                     </p>
+                     <span
+                        v-if="input.optional || input.required === false"
+                        class="text-[11px] font-normal text-(--z-muted-text)/80"
+                     >
+                        (ixtiyoriy)
+                     </span>
+                  </div>
                   <main class="relative" :class="input.teleport_parent_class">
                      <component
                         :is="input.component"

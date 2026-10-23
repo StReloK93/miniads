@@ -24,17 +24,22 @@ class ProductService
 
     public function store(Request $request): Product
     {
+        $productAttributes = $request->only([
+            'title',
+            'description',
+            'category_id',
+            'district_id',
+            'phone',
+            'price',
+            'price_type_id',
+            'back_color_id',
+        ]);
+        $productAttributes['district_id'] = ($productAttributes['district_id'] ?? null) != 0
+            ? ($productAttributes['district_id'] ?? null)
+            : null;
+
         $product = Product::create([
-            ...$request->only([
-                'title',
-                'description',
-                'category_id',
-                'district_id',
-                'phone',
-                'price',
-                'price_type_id',
-                'back_color_id',
-            ]),
+            ...$productAttributes,
             'user_id' => $request->user()->id,
         ]);
 

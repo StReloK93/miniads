@@ -2,9 +2,11 @@ import { Inputs } from "@/modules/Inputs";
 import { api } from "@shared/composables/useFetch";
 import { InputConfig } from "@shared/types";
 import { useAuth } from "@shared/store/useAuth";
+import DistrictRepo from "@shared/entities/District/DistrictRepo";
 import z from "zod";
 
 let cachedPriceTypes: any[] | null = null;
+let cachedDistricts: any[] | null = null;
 
 export async function getPriceTypes() {
    if (!cachedPriceTypes) {
@@ -14,12 +16,22 @@ export async function getPriceTypes() {
    return cachedPriceTypes;
 }
 
+export async function getDistricts() {
+   if (!cachedDistricts) {
+      const { data } = await DistrictRepo.index();
+      cachedDistricts = data;
+   }
+   return cachedDistricts;
+}
+
 export interface ProductInputOptions {
    withPrice?: boolean;
    withImage?: boolean;
    priceTypes?: any[];
    hasTelegramUsername?: boolean;
    telegramUsername?: string | null;
+   districts?: any[];
+   defaultDistrictId?: number | null;
 }
 
 export function productInputs(options: ProductInputOptions = {}): InputConfig[] {
@@ -30,6 +42,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       inputs.push({
          component: Inputs["FieldImage"],
          name: "images",
+         required: true,
          props: {
             multiple: true,
             title: "Rasmlar",
@@ -43,6 +56,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
    inputs.push({
       component: Inputs["FieldText"],
       name: "title",
+      required: true,
       props: { title: "Sarlavha", placeholder: "Eloningiz sarlavhasi" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
       class: ["mb-3"],
@@ -54,6 +68,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          {
             component: Inputs["FieldNumber"],
             name: "price",
+            required: true,
             props: {
                title: "Narx",
                placeholder: "Masalan: 1 000 000",
@@ -69,6 +84,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          {
             component: Inputs["FieldSelect"],
             name: "price_type_id",
+            required: true,
             generateProps: async function () {
                const types = options.priceTypes || (await getPriceTypes());
                this.props = {
@@ -90,7 +106,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
             schema: z.number({ message: "Majburiy maydon!" }),
             class: ["absolute", "inset-y-0", "right-0", "flex", "items-center", "pr-2"],
             teleport_child_class: "parent_price",
-         }
+         },
       );
    }
 
@@ -98,8 +114,42 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
    inputs.push({
       component: Inputs["FieldTextarea"],
       name: "description",
-      props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz  haqida qo'shimcha ma'lumot" },
+      required: false,
+      optional: true,
+      props: { title: "Izoh", maxHeight: 120, placeholder: "Eloningiz haqida qo'shimcha ma'lumot" },
       schema: z.string({ message: "Majburiy maydon!" }).trim().optional().nullable(),
+      class: ["mb-3"],
+   });
+
+   // Shahar / Tuman
+   inputs.push({
+      component: Inputs["FieldSelect"],
+      name: "district_id",
+      required: true,
+      generateProps: async function () {
+         const districts = options.districts || (await getDistricts());
+         this.props = {
+            title: "Shahar / Tuman",
+            placeholder: "Shaharni tanlang",
+            options: districts,
+            value: "name",
+         };
+      },
+      props: options.districts
+         ? {
+              title: "Shahar / Tuman",
+              placeholder: "Shaharni tanlang",
+              options: options.districts,
+              value: "name",
+           }
+         : {
+              title: "Shahar / Tuman",
+              placeholder: "Shaharni tanlang",
+              options: [],
+              value: "name",
+           },
+      value: options.defaultDistrictId !== undefined ? options.defaultDistrictId : 1,
+      schema: z.coerce.number({ message: "Shaharni tanlang!" }).min(0, "Shaharni tanlang!"),
       class: ["mb-3"],
    });
 
@@ -122,6 +172,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
    inputs.push({
       component: Inputs["FieldPhone"],
       name: "phone",
+      required: true,
       props: {
          title: "Bog'lanish uchun",
          placeholder: "93-123-45-67",
@@ -130,23 +181,24 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          telegramUsername,
       },
       schema: z
-         .string()
+         .string({ message: "Telefon raqamini kiriting!" })
          .trim()
-         .optional()
-         .nullable()
          .superRefine((val, ctx) => {
-            const raw = val ? val.trim() : "";
-            if (!hasTelegram && !raw) {
+            if (val === "telegram") {
+               return;
+            }
+            const raw = val ? val.replace(/\D/g, "") : "";
+            if (!raw) {
                ctx.addIssue({
                   code: z.ZodIssueCode.custom,
                   message: "Telefon raqamini to'liq kiriting!",
                });
                return;
             }
-            if (raw && raw.length < 9) {
+            if (raw.length < 9) {
                ctx.addIssue({
                   code: z.ZodIssueCode.custom,
-                  message: "To'liq telefon raqamini kiriting!",
+                  message: "To'liq telefon raqamini kiriting (9 ta raqam)!",
                });
             }
          }),

@@ -36,6 +36,8 @@ export interface InputConfig {
    selectOption?: IProps;
    teleport_child_class?: string;
    teleport_parent_class?: string;
+   required?: boolean;
+   optional?: boolean;
 }
 
 export interface IProps {

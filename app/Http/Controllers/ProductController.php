@@ -30,7 +30,15 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $product = $this->productService->store($request);
-        $this->telegramProductService->publish($product);
+
+        try {
+            $this->telegramProductService->publish($product);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Telegram nashr qilish xatosi: " . $e->getMessage(), [
+                'product_id' => $product->id,
+                'exception' => $e,
+            ]);
+        }
 
         return response()->json([
             'message' => "E'lon joylandi!",

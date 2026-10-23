@@ -84,6 +84,11 @@ class Product extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function setDistrictIdAttribute($value): void
+    {
+        $this->attributes['district_id'] = (!empty($value) && (int) $value !== 0) ? (int) $value : null;
+    }
+
     public function district()
     {
         return $this->belongsTo(District::class);

@@ -3,12 +3,8 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="-mx-4 px-4 pb-4 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
-               <div class="flex gap-2 items-center justify-between">
+               <div class="flex items-center gap-2">
                   <h3 class="font-extrabold text-xl mb-1">E'lonni tahrirlash</h3>
-                  <ProductChangeDistrictModal
-                     @district-changed="onDistrictChanged"
-                     :selected-city-id="selectedCityId"
-                  />
                </div>
                <p class="title text-xs mb-4">E'lon ma'lumotlari</p>
             </main>
@@ -37,7 +33,6 @@
 
 <script setup lang="ts">
 import ProductFormSkeleton from "@/components/ProductFormSkeleton.vue";
-import ProductChangeDistrictModal from "@components/ProductChangeDistrictModal.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
@@ -50,9 +45,11 @@ import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductI
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useAuth } from "@shared/store/useAuth";
+import { useCity } from "@shared/entities/District/useCity";
 import { ChevronRight } from "lucide-vue-next";
 
 const authStore = useAuth();
+const cityStore = useCity();
 const route = useRoute();
 const router = useRouter();
 const { hasFocusedInput } = useFocusedInput();
@@ -60,7 +57,7 @@ const { hasFocusedInput } = useFocusedInput();
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
 const props = defineProps<{
-   product_id: string | number;
+   product_id: number;
 }>();
 
 const selectedCityId = ref<number | null>(null);
@@ -70,11 +67,17 @@ const formInputs = shallowRef<InputConfig[]>([]);
 async function selectCategory(category: ICategory, product: IProduct) {
    selectedCityId.value = product.district_id;
 
+   if (!cityStore.cities?.length) {
+      await cityStore.getCities();
+   }
+
    const baseInputs = productInputs({
       withPrice: category.with_price !== false,
       withImage: category.with_image !== false,
       hasTelegramUsername: Boolean(authStore.user?.username),
       telegramUsername: authStore.user?.username,
+      districts: cityStore.cities || undefined,
+      defaultDistrictId: product.district_id,
    });
 
    await Promise.all(
@@ -92,10 +95,13 @@ async function selectCategory(category: ICategory, product: IProduct) {
 
    const customInputs: InputConfig[] = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
+      const isReq = Boolean(parameter.pivot.is_required);
       return {
          component: Inputs[parameter.component] as Component,
          name: `parameter_${parameter.id}`,
          class: latest ? [] : ["mb-3"],
+         required: isReq,
+         optional: !isReq,
          props: {
             title: parameter.title,
             placeholder: parameter.placeholder,
@@ -117,14 +123,13 @@ async function selectCategory(category: ICategory, product: IProduct) {
    selectedCategory.value = category;
 }
 
-function onDistrictChanged(districtId: number) {
-   selectedCityId.value = districtId;
-}
-
 async function submitForm(values: any) {
+   const districtId = values.district_id !== undefined ? values.district_id : selectedCityId.value;
+   const phoneValue = values.phone === "telegram" || !values.phone ? null : values.phone;
+
    const payload: any = {
       title: values.title,
-      phone: values.phone,
+      phone: phoneValue,
       back_color_id: values.back_color_id,
       description: values.description,
       price: values.price,
@@ -132,7 +137,7 @@ async function submitForm(values: any) {
       category_id: selectedCategory.value?.id,
       parameters: [],
       images: values.images,
-      district_id: selectedCityId.value,
+      district_id: districtId ? Number(districtId) : null,
    };
 
    Object.keys(values).forEach((key) => {
@@ -154,6 +159,7 @@ function onSubmit() {
 
 onMounted(async () => {
    const { data: product } = await ProductRepo.edit(props.product_id);
+
    if (product.category_id) {
       executeCategory(product.category_id).then(() => {
          if (category.value) {

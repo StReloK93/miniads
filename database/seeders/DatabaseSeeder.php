@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(PriceTypeSeeder::class);
         $this->call(BackColorSeeder::class);
+        $this->call(TelegraphSeeder::class);
         // $this->call(ProductSeeder::class);
 
     }

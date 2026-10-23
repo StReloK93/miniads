@@ -9,6 +9,8 @@ return [
      */
     'telegram_api_url' => 'https://api.telegram.org/',
 
+    'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+
     /*
      * Sets Telegraph messages default parse mode
      * allowed values: html|markdown|MarkdownV2

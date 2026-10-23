@@ -3,16 +3,9 @@
       <main v-if="selectedCategory" class="h-full flex flex-col">
          <aside class="-mx-4 px-4 pb-3 border-b border-(--z-border)">
             <main :class="[hasFocusedInput ? 'max-h-0' : ' max-h-40']" class="transition-all overflow-hidden">
-               <div class="flex gap-2 items-center justify-between">
-                  <div class="flex items-center gap-2">
-                     <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-                     <span class="text-xs text-(--z-muted-text) font-medium">2 / 2</span>
-                  </div>
-
-                  <ProductChangeDistrictModal
-                     @district-changed="onDistrictChanged"
-                     :selected-city-id="selectedCityId"
-                  />
+               <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+                  <span class="text-xs text-(--z-muted-text) font-medium">2 / 2</span>
                </div>
 
                <!-- Segmented progress bar (ikkala etap ham to'lgan) -->
@@ -43,14 +36,13 @@
 
 <script setup lang="ts">
 import ProductFormSkeleton from "@/components/ProductFormSkeleton.vue";
-import ProductChangeDistrictModal from "@components/ProductChangeDistrictModal.vue";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { buildBreadcrumb } from "@/modules/Helpers";
 import BaseForm from "@shared/ui/BaseForm.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
 import { ICategory, InputConfig } from "@shared/types";
-import { Component, computed, onMounted, ref, shallowRef } from "vue";
+import { Component, onMounted, ref, shallowRef } from "vue";
 import { Inputs } from "@/modules/Inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { useFetchDecorator } from "@shared/composables/useFetch";
@@ -67,13 +59,6 @@ const { hasFocusedInput } = useFocusedInput();
 
 const selectedCityId = ref<number | null>(null);
 
-function onDistrictChanged(districtId: number) {
-   selectedCityId.value = districtId;
-   try {
-      localStorage.setItem("last_selected_city", String(districtId));
-   } catch (e) {}
-}
-
 const { data: category, execute: executeCategory } = useFetchDecorator<ICategory>(CategoryRepo.show);
 
 const selectedCategory = ref<ICategory | null>(null);
@@ -85,6 +70,8 @@ async function selectCategory(category: ICategory) {
       withImage: category.with_image !== false,
       hasTelegramUsername: Boolean(authStore.user?.username),
       telegramUsername: authStore.user?.username,
+      districts: cityStore.cities || undefined,
+      defaultDistrictId: selectedCityId.value,
    });
 
    await Promise.all(
@@ -102,10 +89,13 @@ async function selectCategory(category: ICategory) {
 
    const customInputs: InputConfig[] = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
+      const isReq = Boolean(parameter.pivot.is_required);
       return {
          component: Inputs[parameter.component] as Component,
          name: `parameter_${parameter.id}`,
          class: latest ? [] : ["mb-3"],
+         required: isReq,
+         optional: !isReq,
          props: {
             title: parameter.title,
             placeholder: parameter.placeholder,
@@ -121,16 +111,19 @@ async function selectCategory(category: ICategory) {
 }
 
 async function submitForm(values: any) {
+   const districtId = values.district_id !== undefined ? values.district_id : selectedCityId.value;
+   const phoneValue = values.phone === "telegram" || !values.phone ? null : values.phone;
+
    const payload: any = {
       title: values.title,
-      phone: values.phone,
+      phone: phoneValue,
       back_color_id: values.back_color_id,
       description: values.description,
       price: values.price,
       price_type_id: values.price_type_id,
       category_id: route.params.categoryId,
       parameters: [],
-      district_id: selectedCityId.value,
+      district_id: districtId ? Number(districtId) : null,
       images: values.images,
    };
 
@@ -152,16 +145,20 @@ function onSubmit() {
 }
 
 onMounted(async () => {
+   const routeCity = route.params.cityId ? Number(route.params.cityId) : null;
+   const storedCity = localStorage.getItem("last_selected_city");
+   selectedCityId.value =
+      routeCity || (authStore.user as any)?.active_district_id || (storedCity ? Number(storedCity) : 1);
+
+   if (!cityStore.cities?.length) {
+      await cityStore.getCities();
+   }
+
    const categoryId = route.params.categoryId as string;
    await executeCategory(categoryId);
 
    if (category.value) {
       selectCategory(category.value);
    }
-
-   const routeCity = route.params.cityId ? Number(route.params.cityId) : null;
-   const storedCity = localStorage.getItem("last_selected_city");
-   selectedCityId.value =
-      routeCity || (authStore.user as any)?.active_district_id || (storedCity ? Number(storedCity) : 1);
 });
 </script>

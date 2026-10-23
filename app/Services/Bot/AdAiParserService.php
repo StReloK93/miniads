@@ -101,9 +101,19 @@ class AdAiParserService
             $boshqaId = $boshqaCategory?->id ?? 55;
             $channelInfo = !empty($channel) ? "Manba kanal: @{$channel}\n" : '';
 
+            $detectedDistrictId = $this->guessDistrictId($rawText, $channel);
+            $districtHint = '';
+            if ($detectedDistrictId) {
+                $districts = Cache::remember('districts_list', 3600, fn() => District::all(['id', 'name']));
+                $dObj = $districts->firstWhere('id', $detectedDistrictId);
+                if ($dObj) {
+                    $districtHint = "- ANIQ HUDUD: Ushbu e'lon matni yoki @{$channel} kanaliga ko'ra shahar/tuman QAT'IY {$dObj->name} (ID: {$detectedDistrictId}) bo'lishi SHART! Boshqa tumanga adashtirma!\n";
+                }
+            }
+
             $prompt = <<<PROMPT
 Sen O'zbekiston viloyatlari bo'yicha e'lonlar doskasi uchun professional copywriter (muharrir) AI assistentsan.
-Vazifang: Telegram kanallardan olingan xom, betartib, har xil alifboda yozilgan xabarlarni sayt uchun TUSHUNARLI, CHIROYLI, JOZIBADOR va 100% USER-FRIENDLY e'longa aylantirish.
+Vazifang: Telegram kanallardan olingan xom, betartib xabarlarni sayt uchun TUSHUNARLI, CHIROYLI, JOZIBADOR va 100% USER-FRIENDLY e'longa aylantirish.
 
 {$channelInfo}Mavjud Kategoriyalar:
 {$categoriesContext}
@@ -113,36 +123,35 @@ Mavjud Tumanlar/Shaharlar:
 
 QAT'IY TALABLAR (BU TALABLARNI BUZISH TAQIQLANADI):
 
-1. TIL VA ALIFBO (ENG MUHIMI):
+1. DO'KONLAR, MAGAZINLAR VA AKSIYALAR TAQIQLANGAN (ENG MUHIM QOIDA):
+   - Do'kon, magazin, market, shourum, optom tovar, aksiya, skidka, chegirma yoki biznes reklamalari bo'lsa, DARHOL {"is_valid": false} deb qaytar!
+   - FAQAT haqiqiy jismoniy shaxs (oddiy inson) o'zining shaxsiy mulkini (uy, mashina, telefon, buyum) sotayotgan yoki shaxsiy ish/xizmat taklif qilayotgan bo'lsa qabul qil!
+
+2. TIL VA ALIFBO:
    - Barcha matnlar (title ham, description ham) FAQAT VA FAQAT O'ZBEK LOTIN ALIFBOSIDA bo'lishi SHART!
-   - Asl e'londagi kirillcha so'zlarni (masalan: "сотилади", "сотих", "кўчаси", "уй", "ишчи керак", "хонадон", "келишилади") TO'LIQ O'ZBEK LOTIN ALIFBOSIGA O'GIRING ("sotiladi", "sotix", "ko'chasi", "uy", "ishchi kerak", "xonadon", "kelishiladi").
-   - HECH QACHON yarmi lotin, yarmi kirill qilib aralashtirma (masalan: "4 soтих" QAT'IYAN XATO! "4 sotix" deb yoz; "угловой коттедж" XATO! "burchak kottedj" deb yoz)!
-   - Ruscha so'zlarni chiroyli o'zbekchaga o'gir (masalan: "угловой" -> "burchakdagi", "ориентир" -> "mo'ljal", "ремонт" -> "ta'mir", "новостройка" -> "yangi bino", "этаж" -> "qavat", "холодильник" -> "muzlatgich").
+   - Asl e'londagi kirillcha so'zlarni ("сотилади", "сотих", "кўчаси", "уй", "ишчи керак", "хонадон", "келишилади") TO'LIQ O'ZBEK LOTIN ALIFBOSIGA O'GIRING ("sotiladi", "sotix", "ko'chasi", "uy", "ishchi kerak", "xonadon", "kelishiladi").
+   - Ruscha so'zlarni chiroyli o'zbekchaga o'gir ("угловой" -> "burchakdagi", "ориентир" -> "mo'ljal", "ремонт" -> "ta'mir", "новостройка" -> "yangi bino", "этаж" -> "qavat", "холодильник" -> "muzlatgich").
 
-2. "title" (Sarlavha):
+3. "title" (Sarlavha):
    - Qisqa, aniq va jozibador bo'lsin (maksimum 45-50 belgi).
-   - E'lonning asosiy mohiyatini darhol anglatuvchi sarlavha tuz:
-     * Masalan: "3 xonali burchak kottedj sotiladi", "2 xonali kvartira sotiladi", "Spark 2019 mexanika oq rang", "Oziq-ovqat do'koniga sotuvchi kerak", "Yer uchastkasi sotiladi, 4 sotix".
-   - "AKSIYA!", "DIQQAT!", "SHOSHILING!", kanal nomlari, telefon raqamlari yoki ma'nosiz belgilarni sarlavhaga QO'YMA.
+   - Masalan: "3 xonali burchak kottedj sotiladi", "2 xonali kvartira sotiladi", "Spark 2019 mexanika oq rang".
+   - "AKSIYA!", "DIQQAT!", "SHOSHILING!", kanal nomlari yoki telefon raqamlarni sarlavhaga QO'YMA.
 
-3. "description" (Tavsif - User-Friendly, faqat nuqtachalar bilan):
-   - QAT'IY TALAB: HECH QANDAY EMOJI YOKI IKONKA (📍, 💵, 📞, 🚗, 📱, ✨ va boshqalar) ISHLATILMASIN! Ikonkalar yoqmaydi, faqat oddiy nuqtachalar (•) ishlatilsin.
-   - Foydalanuvchi o'qishi uchun juda qulay, chiroyli abzaslar va yangi qatorlar bilan formatla:
-     * 1-bo'lim: Mahsulot/xizmat haqida 1-2 gaplik aniq ma'lumot;
-     * 2-bo'lim (bo'sh qator tashlab): Asosiy parametrlar va xususiyatlar (oddiy nuqtachalar bilan, masalan: "• Holati: a'lo\n• Xotirasi: 128 GB\n• Rangi: qora");
+4. "description" (Tavsif - User-Friendly, faqat nuqtachalar bilan):
+   - HECH QANDAY EMOJI YOKI IKONKA (📍, 💵, 📞, 🚗, 📱, ✨ va boshqalar) ISHLATILMASIN! Faqat oddiy nuqtachalar (•) ishlatilsin.
+   - Chiroyli abzaslar va yangi qatorlar bilan formatla:
+     * 1-bo'lim: Mahsulot haqida 1-2 gaplik aniq ma'lumot;
+     * 2-bo'lim (bo'sh qator tashlab): Asosiy parametrlar (• Holati: a'lo\n• Rangi: oq);
      * 3-bo'lim (bo'sh qator tashlab): • Manzil: ... (agar matnda bo'lsa);
      * 4-bo'lim (bo'sh qator tashlab): • Narxi: ... (agar matnda bo'lsa);
-     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i! Hech qanday telegram username (@...) yozma, faqat telefon raqam yozilsin!
-   - SPAM VA BEGONA REKLAMALARNI MUTLAQO O'CHIR:
-     Kanal nomlari (@..., t.me/...), "Obuna bo'ling", "Kanalimizga ulaning", "Admin ga murojaat", "Do'stlarga ulashing", boshqa kanallar reklamasini BUTUNLAY tozalab tashla! Matnda hech qanday @username qolmasin!
-
-4. "category_id":
-   - Agar bir nechta har xil tovarlar (masalan: bir e'londa telefon, televizor, changyutgich aralash) ko'rsatilgan bo'lsa yoki bitta aniq toifaga to'g'ri kelmasa, kategoriya sifatida majburiy tartibda "Boshqa" (ID {$boshqaId}) ni tanla!
-   - Agar bitta aniq mahsulot bo'lsa, ro'yxatdagi eng mos kategoriya ID sini tanla.
+     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i! Hech qanday @username yozilmasin!
+   - Spam va begona kanallar reklamalarini (@..., t.me/...) butunlay tozalab tashla!
 
 5. "district_id" (Shahar/Tuman):
-   - Agar e'lon matnida aniq shahar yoki tuman (masalan: Uchquduq, Navoiy, Zarafshon, Karmana, Qiziltepa) nomi yozilgan bo'lsa, O'SHA tumanni tanla.
-   - Agar e'lon matnida aniq tuman yozilmagan bo'lsa, manba kanal qaysi shaharga tegishli bo'lsa o'shani tanla (masalan: @Uchquduq_24, @uchquduqxabar bo'lsa Uchquduq (ID 1); @navoiy... bo'lsa Navoiy (ID 3); @karmana... bo'lsa Karmana (ID 4)).
+   {$districtHint}- Agar matnda shahar nomi yozilgan bo'lsa o'shani tanla, yozilmagan bo'lsa manba kanal qaysi tumanniki bo'lsa o'sha tuman ID sini tanla.
+
+6. "category_id":
+   - Bitta aniq tovar bo'lsa mos kategoriya ID raqami. Aralash yoki noaniq bo'lsa "Boshqa" (ID {$boshqaId}) ni tanla.
 
 JSON formati:
 {
@@ -152,11 +161,11 @@ JSON formati:
   "price": 12000000, // raqam yoki null
   "currency": "UZS", // "UZS" yoki "USD" yoki null
   "phone": "998901234567", // 12 xonali formatda yoki null
-  "category_id": 12, // eng mos kategoriya ID raqami (aralash/noaniq bo'lsa ID {$boshqaId})
-  "district_id": 1 // shahar/tuman ID raqami
+  "category_id": 12,
+  "district_id": 1
 }
 
-Agar bu xabar tijoriy e'lon (tovar sotish, ijaraga berish, ish yoki xizmat) bo'lmasa yoki spam bo'lsa, {"is_valid": false} deb qaytar.
+Agar bu xabar shaxsiy e'lon bo'lmasa, magazin/do'kon, aksiya yoki spam bo'lsa, faqat {"is_valid": false} deb qaytar.
 
 E'lon matni:
 {$rawText}
@@ -406,45 +415,53 @@ PROMPT;
     /**
      * Guess district by keywords in text, or fallback to channel name.
      */
-    private function guessDistrictId(string $text, ?string $channel = null): ?int
+    public function guessDistrictId(string $text, ?string $channel = null): ?int
     {
-        $lower = mb_strtolower($text);
+        $lower = mb_strtolower(self::cyrillicToLatin($text));
         $districts = Cache::remember('districts_list', 3600, function () {
             return District::all(['id', 'name']);
         });
 
-        // 1. First priority: Check if text explicitly mentions any district/city
+        // 1. Text explicit mentions with aliases (after converting to Latin)
+        $districtKeywords = [
+            1 => ['uchquduq', 'uchkuduk', '11-mavze', '12-mavze', '13-mavze', 'avtovokzal uchquduq'],
+            2 => ['zarafshon', 'zarafshan', '1-kichik', '2-kichik', '3-kichik', '4-kichik'],
+            3 => ['navoiy', 'navoi', 'janubiy', 'shevchenko', 'g\'alaba shoh', 'galaba shoh'],
+            4 => ['karmana', 'varq', 'malik', 'ko\'hna karmana', 'kohna karmana', 'talqoq'],
+            5 => ['qiziltepa', 'kiziltepa', 'vangozi', 'vang\'ozi'],
+        ];
+
+        foreach ($districtKeywords as $dId => $keywords) {
+            foreach ($keywords as $kw) {
+                if (str_contains($lower, $kw)) {
+                    return $dId;
+                }
+            }
+        }
+
+        // Direct DB district names check
         foreach ($districts as $district) {
-            $dName = mb_strtolower($district->name);
+            $dName = mb_strtolower(self::cyrillicToLatin($district->name));
             if (str_contains($lower, $dName)) {
                 return $district->id;
             }
         }
 
-        // Common aliases in text (e.g. Navoi -> Navoiy, Uchkuduk -> Uchquduq, Zarafshan -> Zarafshon)
-        $aliases = [
-            'navoi' => 3,
-            'uchkuduk' => 1,
-            'zarafshan' => 2,
-        ];
-        foreach ($aliases as $alias => $dId) {
-            if (str_contains($lower, $alias)) {
-                return $dId;
-            }
-        }
-
-        // 2. Second priority: Fallback to channel name
+        // 2. Second priority: Fallback to source channel name
         if (!empty($channel)) {
-            $chLower = mb_strtolower($channel);
-            foreach ($districts as $district) {
-                $dName = mb_strtolower($district->name);
-                if (str_contains($chLower, $dName)) {
-                    return $district->id;
+            $chLower = mb_strtolower(self::cyrillicToLatin($channel));
+            foreach ($districtKeywords as $dId => $keywords) {
+                foreach ($keywords as $kw) {
+                    if (str_contains($chLower, $kw)) {
+                        return $dId;
+                    }
                 }
             }
-            foreach ($aliases as $alias => $dId) {
-                if (str_contains($chLower, $alias)) {
-                    return $dId;
+
+            foreach ($districts as $district) {
+                $dName = mb_strtolower(self::cyrillicToLatin($district->name));
+                if (str_contains($chLower, $dName)) {
+                    return $district->id;
                 }
             }
         }
@@ -477,9 +494,11 @@ PROMPT;
             return District::all(['id', 'name']);
         });
 
-        $districtId = !empty($data['district_id']) ? (int) $data['district_id'] : null;
+        // Always prioritize the accurately resolved district from text or channel
+        $resolvedDistrictId = $this->guessDistrictId($rawText, $channel);
+        $districtId = $resolvedDistrictId ?: (!empty($data['district_id']) ? (int) $data['district_id'] : null);
         if (!$districtId || !$districts->contains('id', $districtId)) {
-            $districtId = $this->guessDistrictId($rawText, $channel);
+            $districtId = $resolvedDistrictId;
         }
 
         $title = !empty($data['title']) ? trim($data['title']) : 'E\'lon';

@@ -215,6 +215,10 @@ class ProductService
 
     private function storeProductImage(UploadedFile $file): string
     {
+        if (!$file->isValid()) {
+            throw new \InvalidArgumentException("Faylni yuklashda xatolik yuz berdi: " . $file->getErrorMessage());
+        }
+
         if (!in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)) {
             throw new \InvalidArgumentException("Rasm formati qo'llab-quvvatlanmaydi.");
         }

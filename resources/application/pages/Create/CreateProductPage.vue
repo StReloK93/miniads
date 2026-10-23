@@ -226,14 +226,13 @@ async function selectCategory(category: ICategory, applyDraft: boolean = true) {
 
    const customInputs: InputConfig[] = parameters.map((parameter, index) => {
       const latest = parameters.length - 1 === index;
-      const isReq = Boolean(parameter.pivot.is_required);
       const paramName = `parameter_${parameter.id}`;
       return {
          component: Inputs[parameter.component] as Component,
          name: paramName,
          class: latest ? [] : ["mb-3"],
-         required: isReq,
-         optional: !isReq,
+         required: false,
+         optional: true,
          value: draft?.[paramName] !== undefined ? draft[paramName] : undefined,
          props: {
             title: parameter.title,
@@ -241,7 +240,7 @@ async function selectCategory(category: ICategory, applyDraft: boolean = true) {
             options: parameter.options || [],
             inputmode: parameter.type === "number" ? "numeric" : undefined,
          },
-         schema: ZodTypeMapping[parameter.type](parameter.pivot.is_required),
+         schema: ZodTypeMapping[parameter.type](false),
       };
    });
 
@@ -269,10 +268,13 @@ async function submitForm(values: any) {
    Object.keys(values).forEach((key) => {
       if (key.startsWith("parameter_")) {
          const paramId = key.replace("parameter_", "");
-         payload.parameters.push({
-            id: paramId,
-            value: values[key],
-         });
+         const val = values[key];
+         if (val !== null && val !== undefined && val !== "") {
+            payload.parameters.push({
+               id: paramId,
+               value: val,
+            });
+         }
       }
    });
 

@@ -24,134 +24,110 @@ class CategoryParameterSeeder extends Seeder
         $map = [
             // ================= UY-JOY: KVARTIRA =================
             'Kvartira' => [
-                ['Xonalar soni', true],
-                ['Maydoni', true],
+                ['Xonalar soni', false],
+                ['Maydoni', false],
                 ['Qavati', false],
-                ['Umumiy qavatlar', false],
-                ["Ta'mir turi", false],
-                ['Jihozlanganligi', false],
             ],
 
             // ================= UY-JOY: HOVLI =================
             'Hovli' => [
-                ['Xonalar soni', true],
-                ['Yer maydoni', true],
-                ['Qavatlar soni', false],
+                ['Xonalar soni', false],
+                ['Yer maydoni', false],
                 ["Ta'mir turi", false],
             ],
 
             // ================= UY-JOY: YER =================
             'Yer' => [
-                ['Yer maydoni', true],
+                ['Yer maydoni', false],
                 ['Yer maqsadi', false],
             ],
 
             // ================= UY-JOY: DO'KON-OFIS =================
             "Do'kon-Ofis" => [
-                ['Maydoni', true],
+                ['Maydoni', false],
                 ['Bino turi', false],
-                ["Ta'mir turi", false],
             ],
 
             // ================= TEXNIKA: TELEFON =================
             'Telefon' => [
-                ['Telefon markasi', true],
-                ['Doimiy xotira (ROM)', true],
-                ['Tezkor xotira (RAM)', false],
-                ['Telefon holati', true],
-                ['Telefon rangi', false],
+                ['Telefon markasi', false],
+                ['Doimiy xotira (ROM)', false],
+                ['Telefon holati', false],
             ],
 
             // ================= TEXNIKA: NOUTBUK-KOMPYUTER =================
             'Noutbuk-Kompyuter' => [
-                ['Kompyuter turi', true],
-                ['Protsessor', true],
-                ['Kompyuter RAM', true],
-                ['Xotira turi va hajmi (SSD/HDD)', false],
-                ['Videokarta', false],
-                ['Kompyuter holati', true],
+                ['Kompyuter turi', false],
+                ['Protsessor', false],
+                ['Kompyuter RAM', false],
             ],
 
             // ================= TEXNIKA: MAISHIY TEXNIKA =================
             'Maishiy texnika' => [
-                ['Maishiy texnika turi', true],
-                ['Texnika holati', true],
+                ['Maishiy texnika turi', false],
+                ['Texnika holati', false],
             ],
 
             // ================= TEXNIKA: TV-AUDIO =================
             'TV-Audio' => [
-                ['TV-Audio turi', true],
-                ['Ekran diagonali', false],
-                ['Texnika holati', true],
+                ['TV-Audio turi', false],
+                ['Texnika holati', false],
             ],
 
             // ================= AVTO: YENGIL AVTO =================
             'Yengil avto' => [
-                ['Ishlab chiqarilgan yili', true],
-                ['Yurgan masofasi', true],
-                ['Uzatish qutisi (Korobka)', true],
-                ["Yoqilg'i turi", true],
-                ['Kuzov turi', false],
-                ['Avto holati', true],
-                ['Avto rangi', false],
+                ['Ishlab chiqarilgan yili', false],
+                ['Yurgan masofasi', false],
+                ['Uzatish qutisi (Korobka)', false],
             ],
 
             // ================= AVTO: MOTOTSIKL =================
             'Mototsikl' => [
-                ['Ishlab chiqarilgan yili', true],
-                ['Yurgan masofasi', false],
-                ['Mototsikl turi', true],
-                ['Dvigatel hajmi', false],
+                ['Ishlab chiqarilgan yili', false],
+                ['Mototsikl turi', false],
             ],
 
             // ================= AVTO: AVTOBUS-YUK TASHUVCHI =================
             'Avtobus-Yuk tashuvchi' => [
-                ['Yuk mashinasi turi', true],
-                ['Ishlab chiqarilgan yili', true],
-                ['Yurgan masofasi', false],
-                ["Yuk ko'tarish quvvati", false],
+                ['Yuk mashinasi turi', false],
+                ['Ishlab chiqarilgan yili', false],
             ],
 
             // ================= AVTO: EHTIYOT QISMLAR =================
             'Ehtiyot qismlar' => [
-                ['Qism turi', true],
+                ['Qism turi', false],
                 ['Texnika holati', false],
             ],
 
             // ================= MEBEL =================
             'Divan-Krovat' => [
+                ['Mebel holati', false],
                 ['Mebel materiali', false],
-                ['Mebel holati', true],
-                ['Mebel rangi', false],
             ],
             'Stol-Stul' => [
+                ['Mebel holati', false],
                 ['Mebel materiali', false],
-                ['Mebel holati', true],
-                ['Mebel rangi', false],
             ],
             'Shkaf' => [
+                ['Mebel holati', false],
                 ['Mebel materiali', false],
-                ['Mebel holati', true],
-                ['Mebel rangi', false],
             ],
             'Oshxona mebeli' => [
+                ['Mebel holati', false],
                 ['Mebel materiali', false],
-                ['Mebel holati', true],
-                ['Mebel rangi', false],
             ],
 
             // ================= ISH =================
             'Doimiy ish' => [
-                ['Bandlik turi', true],
+                ['Bandlik turi', false],
                 ['Ish tajribasi', false],
-                ["Maosh to'lash davriyligi", false],
             ],
             'Kunlik ish' => [
                 ['Bandlik turi', false],
-                ["Maosh to'lash davriyligi", true],
+                ["Maosh to'lash davriyligi", false],
             ],
             'Masofaviy ish' => [
-                ['Bandlik turi', true],
+                ['Bandlik turi', false],
                 ['Ish tajribasi', false],
             ],
             'Xizmat takliflari' => [
@@ -163,17 +139,14 @@ class CategoryParameterSeeder extends Seeder
             "Qurilish va ta'mirlash" => [
                 ["Xizmat ko'rsatish joyi", false],
                 ['Xizmat tajribasi', false],
-                ["To'lov shakli", false],
             ],
             'Usta xizmatlari' => [
                 ["Xizmat ko'rsatish joyi", false],
                 ['Xizmat tajribasi', false],
-                ["To'lov shakli", false],
             ],
             'Avto xizmatlar' => [
                 ["Xizmat ko'rsatish joyi", false],
                 ['Xizmat tajribasi', false],
-                ["To'lov shakli", false],
             ],
             'IT va texnik xizmatlar' => [
                 ["Xizmat ko'rsatish joyi", false],
@@ -182,15 +155,15 @@ class CategoryParameterSeeder extends Seeder
 
             // ================= TA'LIM =================
             'Kurslar' => [
-                ['Dars formati', true],
+                ['Dars formati', false],
                 ['Dars darajasi', false],
             ],
             'Repetitor' => [
-                ['Dars formati', true],
+                ['Dars formati', false],
                 ['Dars darajasi', false],
             ],
             'Online darslar' => [
-                ['Dars formati', true],
+                ['Dars formati', false],
                 ['Dars darajasi', false],
             ],
 
@@ -214,14 +187,14 @@ class CategoryParameterSeeder extends Seeder
 
             // ================= SHAXSIY BUYUMLAR =================
             'Kiyim-kechak' => [
-                ['Kim uchun', true],
-                ["Kiyim o'lchami", true],
-                ['Buyum holati', true],
+                ['Kim uchun', false],
+                ["Kiyim o'lchami", false],
+                ['Buyum holati', false],
             ],
             'Poyabzal' => [
-                ['Kim uchun', true],
-                ["Poyabzal o'lchami", true],
-                ['Buyum holati', true],
+                ['Kim uchun', false],
+                ["Poyabzal o'lchami", false],
+                ['Buyum holati', false],
             ],
             'Parfyumeriya va kosmetika' => [
                 ['Kim uchun', false],

@@ -109,8 +109,16 @@ class ProductService
     {
         foreach ($parameters as $param) {
             $parameterId = $param['id'] ?? null;
+            $value = $param['value'] ?? null;
 
             if (!$parameterId) {
+                continue;
+            }
+
+            if ($value === null || $value === '') {
+                ProductParameterValue::where('product_id', $productId)
+                    ->where('parameter_id', $parameterId)
+                    ->delete();
                 continue;
             }
 
@@ -120,7 +128,7 @@ class ProductService
                     'parameter_id' => $parameterId,
                 ],
                 [
-                    'value' => $param['value'] ?? null,
+                    'value' => (string) $value,
                 ]
             );
         }

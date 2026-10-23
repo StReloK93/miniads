@@ -217,8 +217,10 @@ class ProductService
 
         File::ensureDirectoryExists(dirname($destination));
 
+        $contents = $file->get();
+
         ImageManager::usingDriver(Driver::class)
-            ->decode($file->getRealPath())
+            ->decode($contents)
             ->scaleDown(self::MAX_IMAGE_DIMENSION, self::MAX_IMAGE_DIMENSION)
             ->encode(new WebpEncoder(quality: 82, strip: true))
             ->save($destination);

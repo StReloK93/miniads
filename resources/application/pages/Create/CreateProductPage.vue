@@ -208,7 +208,7 @@ async function submitForm(values: any) {
 
    const res = await ProductRepo.store(payload);
    createdProduct.value = {
-      id: res.data?.id || res.data?.product_id,
+      id: res.data?.id,
       title: values.title,
    };
 }

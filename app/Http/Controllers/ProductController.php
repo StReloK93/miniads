@@ -42,7 +42,6 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => "E'lon joylandi!",
-            'product_id' => $product->id,
             'id' => $product->id,
         ], 201);
     }

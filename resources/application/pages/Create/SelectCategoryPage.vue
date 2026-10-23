@@ -1,6 +1,6 @@
 <template>
-   <section class="grid grid-rows-[auto_1fr]">
-      <aside class="pb-3 mb-4 border-b border-(--z-border) -mx-4 px-4">
+   <section class="h-full flex flex-col min-h-0 overflow-hidden">
+      <aside class="shrink-0 pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex gap-2 items-center justify-between">
             <h3 class="font-extrabold text-xl">E'lon joylash</h3>
             <span class="text-xs text-(--z-muted-text) font-medium">1 / 2</span>
@@ -20,6 +20,7 @@
          v-if="CategoryStore.parentCategories"
          :activeCategoryId="activeCategoryId"
          :categories="CategoryStore.parentCategories"
+         class="flex-1 min-h-0"
          @select-category="
             $router.push({ name: 'create-product', params: { categoryId: $event.id } })
          "

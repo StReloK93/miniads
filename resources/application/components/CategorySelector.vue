@@ -1,7 +1,7 @@
 <template>
-   <div class="overflow-hidden grid grid-rows-[auto_auto_1fr] select-none h-full">
+   <div class="flex flex-col h-full min-h-0 select-none overflow-hidden">
       <!-- Search Input -->
-      <div class="relative mb-2">
+      <div class="shrink-0 mb-2">
          <div class="relative flex items-center">
             <Search class="size-4 absolute left-3 text-(--z-muted-text) pointer-events-none" />
             <input
@@ -22,7 +22,7 @@
       </div>
 
       <!-- Breadcrumb (shown only when not searching) -->
-      <div v-if="!searchQuery" class="py-2 text-sm flex flex-wrap items-center gap-1">
+      <div v-if="!searchQuery" class="shrink-0 py-2 text-sm flex flex-wrap items-center gap-1">
          <span class="font-bold cursor-pointer hover:text-(--z-primary) transition-colors" @click="goRoot"> Barchasi </span>
          <template v-for="(bc, i) in breadcrumb" :key="bc.id">
             <span class="font-bold text-(--z-muted-text)">
@@ -35,9 +35,9 @@
       </div>
 
       <!-- Category list / Search Results -->
-      <div class="relative">
+      <div class="flex-1 min-h-0 overflow-y-auto pb-6 no-scrollbar">
          <!-- Search Results -->
-         <main v-if="searchQuery" class="absolute inset-0 overflow-y-scroll pb-4 no-scrollbar">
+         <div v-if="searchQuery">
             <ul v-if="filteredCategories.length > 0" class="divide-y divide-(--z-muted)">
                <li
                   v-for="item in filteredCategories"
@@ -59,7 +59,7 @@
                </li>
             </ul>
 
-            <div v-else class="flex flex-col items-center justify-center py-10 text-center">
+            <div v-else class="flex flex-col items-center justify-center py-12 text-center">
                <FolderTree class="size-9 text-(--z-muted-text)/50 mb-2" />
                <p class="text-sm font-medium text-(--z-muted-text)">"{{ searchQuery }}" bo'yicha kategoriya topilmadi</p>
                <button
@@ -70,14 +70,14 @@
                   Barcha kategoriyalarni ko'rish
                </button>
             </div>
-         </main>
+         </div>
 
          <!-- Normal Hierarchical Navigation -->
-         <main v-else class="absolute inset-0 overflow-y-scroll pb-4 no-scrollbar">
+         <div v-else>
             <Transition :name="transitionName" mode="out-in">
                <ul :key="stack.length" class="divide-y divide-(--z-muted)">
                   <li v-for="cat in currentCategories" :key="cat.id" @click="selectCategory(cat)" class="cursor-pointer">
-                     <div class="flex items-center justify-between py-2 active:bg-(--z-card) rounded-md transition-colors">
+                     <div class="flex items-center justify-between py-2.5 px-1.5 active:bg-(--z-card) rounded-md transition-colors">
                         <span class="text-sm font-medium"> {{ cat.name }} </span>
 
                         <ChevronRight v-if="!cat.is_page" class="size-4 text-(--z-muted-text)" />
@@ -85,7 +85,7 @@
                   </li>
                </ul>
             </Transition>
-         </main>
+         </div>
       </div>
    </div>
 </template>

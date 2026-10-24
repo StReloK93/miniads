@@ -13,11 +13,18 @@
                      </button>
                   </swiper-slide>
                </swiper>
-               <div v-else :style="{
-                  backgroundImage: product.back_color.gradient,
-               }" class="aspect-video w-full flex justify-center items-center">
-                  <span class="text-white text-2xl font-semibold text-center px-5">
-                     {{ product?.title }}
+               <div
+                  v-else
+                  class="w-full aspect-[21/9] flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-800/50 border-b border-(--z-border)/30 select-none py-6"
+               >
+                  <div
+                     :class="categoryVisual.bgClass"
+                     class="size-13 rounded-full flex items-center justify-center mb-2 shadow-xs"
+                  >
+                     <component :is="categoryVisual.icon" class="size-6" />
+                  </div>
+                  <span class="text-xs font-medium text-slate-500 dark:text-zinc-400">
+                     {{ product.category?.name || "Rasmsiz e'lon" }}
                   </span>
                </div>
                <!-- <img
@@ -266,6 +273,7 @@
 
 <script setup lang="ts">
 import { formatPrice, timeAgo } from "@shared/modules/formatters";
+import { getCategoryVisual } from "@shared/modules/categoryIcons";
 import { isTMA } from "@tma.js/bridge";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
@@ -287,6 +295,8 @@ const router = useRouter();
 const scrollContainer = ref<HTMLElement | null>(null);
 
 const { data: product, execute: executeProduct, isFirstLoading } = useFetchDecorator<IProduct>(ProductRepo.show);
+
+const categoryVisual = computed(() => getCategoryVisual(product.value?.category?.name));
 
 function goBackOrHome() {
    if (window.history.length > 1) {

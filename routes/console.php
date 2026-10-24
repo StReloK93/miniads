@@ -17,4 +17,4 @@ Schedule::command('products:flush-views')
 
 Schedule::command('ads:import-telegram')
     ->hourly()
-    ->withoutOverlapping();
+    ->withoutOverlapping(60);

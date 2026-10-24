@@ -15,14 +15,17 @@
             />
             <div
                v-else
-               :style="{
-                  backgroundImage: product.back_color?.gradient,
-               }"
-               class="w-full object-cover aspect-video flex items-center"
+               class="w-full aspect-video flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-800/50 border border-(--z-border)/30 rounded-[10px] select-none p-3"
             >
-               <h3 class="font-bold text-2xl text-white px-4 pt-5 text-center w-full">
-                  {{ product.title }}
-               </h3>
+               <div
+                  :class="categoryVisual.bgClass"
+                  class="size-11 rounded-full flex items-center justify-center mb-1.5 transition-transform"
+               >
+                  <component :is="categoryVisual.icon" class="size-5" />
+               </div>
+               <span class="text-[11px] font-medium text-slate-500 dark:text-zinc-400 max-w-[90%] truncate text-center">
+                  {{ product.category?.name || "Rasmsiz e'lon" }}
+               </span>
             </div>
 
             <!-- Narx belgisi -->
@@ -61,7 +64,7 @@
          </div>
 
          <main class="px-1.5">
-            <h3 v-if="props.product.images && props.product.images.length > 0" class="font-medium line-clamp-1">
+            <h3 class="font-medium line-clamp-1">
                {{ product.title }}
             </h3>
             <aside class="text-xs my-1">
@@ -90,6 +93,7 @@
 <script setup lang="ts">
 import { Heart } from "lucide-vue-next";
 import { formatPrice, timeAgo } from "@shared/modules/formatters";
+import { getCategoryVisual } from "@shared/modules/categoryIcons";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
@@ -118,6 +122,8 @@ const timeValue = computed(() => {
    }
    return props.product.created_at || props.product.published_at;
 });
+
+const categoryVisual = computed(() => getCategoryVisual(props.product.category?.name));
 
 const isFavoriteButtonLoading = ref(false);
 

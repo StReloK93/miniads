@@ -22,12 +22,12 @@ Route::get('/sendmessage', function (Request $request) {
 
     return Telegraph::chat('1016647977')
         ->html($introText)
-        // ->keyboard(
-        //     Keyboard::make()->buttons([
-        //         Button::make("🚀 E'lon joylash")
-        //             ->url('https://t.me/NavoiyElonBot?startapp'),
-        //     ])
-        // )
+        ->keyboard(
+            Keyboard::make()->buttons([
+                Button::make("🚀 E'lon joylash")
+                    ->url('https://t.me/NavoiyElonBot?startapp'),
+            ])
+        )
         ->send();
 });
 
@@ -85,6 +85,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/back-colors', [App\Http\Controllers\BackColorController::class, 'index']);
 
+    Route::get('/products/custom/feed', [App\Http\Controllers\ProductController::class, 'feed']);
     Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);

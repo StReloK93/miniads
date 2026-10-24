@@ -6,10 +6,11 @@
       <main class="relative w-full grow">
          <aside
             ref="scrollEl"
+            @scroll="$emit('scroll', $event)"
             :class="[props.contentClass, { 'overflow-y-auto': isActive }, { 'overflow-y-auto': props.autoScroll }]"
             class="absolute px-4 inset-0 no-scrollbar pt-4 pb-[calc(var(--safe-area-bottom)+var(--spacing)*20)] z-10"
          >
-            <slot name="content" :is-compact="isActive" :progress="displayProgress"></slot>
+            <slot name="content" :is-compact="isActive" :progress="displayProgress" :scroll-el="scrollEl"></slot>
          </aside>
       </main>
       <div
@@ -34,10 +35,18 @@ const props = withDefaults(
    },
 );
 
+const emit = defineEmits<{
+   (e: "scroll", event: Event): void;
+}>();
+
 const scrollEl = ref<HTMLElement | null>(null);
 
 const { isActive, displayProgress } = useTouchToggleProgress(scrollEl, {
    threshold: 135,
    autoScroll: props.autoScroll,
+});
+
+defineExpose({
+   scrollEl,
 });
 </script>

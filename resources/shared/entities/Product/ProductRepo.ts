@@ -1,5 +1,5 @@
 import { api } from "@shared/composables/useFetch";
-import { IProduct } from "@shared/types";
+import { IPaginatedResponse, IProduct } from "@shared/types";
 const baseURL = "products";
 
 export default {
@@ -24,6 +24,11 @@ export default {
          headers: {
             "Content-Type": "multipart/form-data",
          },
+      });
+   },
+   feed(page: number = 1, perPage: number = 12) {
+      return api.get<IPaginatedResponse<IProduct>>(`${baseURL}/custom/feed`, {
+         params: { page, per_page: perPage },
       });
    },
    latestTen() {

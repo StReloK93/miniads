@@ -133,12 +133,36 @@ class ProductController extends Controller
             ->findOrFail($id);
     }
 
-    public function latestTen()
+    public function feed(Request $request)
     {
+        $perPage = min(max($request->integer('per_page', 12), 4), 50);
+
         return Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
-            ->when(auth()->user()->active_district_id, function ($q) {
+            ->when(auth()->user()?->active_district_id, function ($q) {
+                $q->where(function ($query) {
+                    $query->where('district_id', auth()->user()->active_district_id)
+                        ->orWhereNull('district_id');
+                });
+            })
+            ->active()
+            ->latest('published_at')
+            ->latest('id')
+            ->paginate($perPage);
+    }
+
+    public function latestTen(Request $request)
+    {
+        // Agar requestda paginate/page parametri bo'lsa yoki frontend scroll qilsa, feed chaqiriladi
+        if ($request->has('page')) {
+            return $this->feed($request);
+        }
+
+        return Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])
+            ->when(auth()->user()?->active_district_id, function ($q) {
                 $q->where(function ($query) {
                     $query->where('district_id', auth()->user()->active_district_id)
                         ->orWhereNull('district_id');

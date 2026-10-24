@@ -171,44 +171,58 @@ E'lon matni:
 {$rawText}
 PROMPT;
 
-            $model = 'gemini-flash-latest';
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $models = ['gemini-flash-latest', 'gemini-3.8-flash'];
+            $lastError = null;
 
-            $response = Http::timeout(15)
-                ->post($url, [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt]
+            foreach ($models as $model) {
+                try {
+                    $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+                    $response = Http::timeout(60)
+                        ->retry(2, 1000, throw: false)
+                        ->post($url, [
+                            'contents' => [
+                                [
+                                    'parts' => [
+                                        ['text' => $prompt]
+                                    ]
+                                ]
+                            ],
+                            'generationConfig' => [
+                                'responseMimeType' => 'application/json',
+                                'temperature' => 0.2,
                             ]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'responseMimeType' => 'application/json',
-                        'temperature' => 0.2,
-                    ]
-                ]);
+                        ]);
 
-            if ($response->successful()) {
-                $content = $response->json('candidates.0.content.parts.0.text');
-                if ($content) {
-                    $cleanJson = trim($content);
-                    if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
-                        $cleanJson = trim($matches[1]);
+                    if ($response->successful()) {
+                        $content = $response->json('candidates.0.content.parts.0.text');
+                        if ($content) {
+                            $cleanJson = trim($content);
+                            if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
+                                $cleanJson = trim($matches[1]);
+                            }
+                            $decoded = json_decode($cleanJson, true);
+                            if (is_array($decoded)) {
+                                return $decoded;
+                            }
+                        }
+                    } else {
+                        $errorData = $response->json('error');
+                        $lastError = is_array($errorData) ? ($errorData['message'] ?? $response->body()) : $response->body();
+                        Log::warning("Gemini API ({$model}) javob xatoligi: " . $lastError);
                     }
-                    $decoded = json_decode($cleanJson, true);
-                    if (is_array($decoded)) {
-                        return $decoded;
-                    }
+                } catch (\Throwable $e) {
+                    $lastError = $e->getMessage();
+                    Log::warning("Gemini API ({$model}) ulanish xatoligi: " . $lastError);
                 }
-            } else {
-                $errorData = $response->json('error');
-                $errorMsg = is_array($errorData) ? ($errorData['message'] ?? $response->body()) : $response->body();
-                Log::warning("Gemini API ({$model}) xatoligi: " . $errorMsg);
-                $this->notifyTelegramFailure("Gemini ({$model})", $errorMsg);
+            }
+
+            if ($lastError) {
+                Log::error("Gemini API barcha modellarda xatolik: " . $lastError);
+                $this->notifyTelegramFailure("Gemini", $lastError);
             }
         } catch (\Throwable $e) {
-            Log::error("Gemini API chaqirishda xatolik: " . $e->getMessage());
+            Log::error("Gemini API chaqirishda kutilmagan xatolik: " . $e->getMessage());
             $this->notifyTelegramFailure("Gemini", $e->getMessage());
         }
 
@@ -226,7 +240,8 @@ PROMPT;
 
             $systemPrompt = "Sen e'lonlarni tahlil qiluvchi professional muharrir assistentsan. Javobing FAQAT toza JSON bo'lishi shart. Barcha matnlarni (title va description) FAQAT toza O'zbek lotin alifbosida, user-friendly tartibli qilib yoz, hech qachon kirill harflarini aralashtirma.\nKategoriyalar: {$categoriesContext}\nTumanlar: {$districtsContext}";
 
-            $response = Http::timeout(15)
+            $response = Http::timeout(60)
+                ->retry(2, 1000, throw: false)
                 ->withToken($apiKey)
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model' => 'gpt-4o-mini',

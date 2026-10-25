@@ -357,7 +357,9 @@ class AdminController extends Controller
 
     public function runBotImport(\App\Services\Bot\BotAdImportService $service)
     {
-        $result = $service->importBatch();
+        $setting = \App\Models\BotSetting::current();
+        // Har doim admin panelda ko'rsatilgan limit (masalan 10 ta) miqdorida kiritishni maqsad qiladi
+        $result = $service->importBatch(customTarget: $setting->hourly_limit, force: true);
 
         return response()->json([
             'message' => $result['message'] ?? 'Import bajarildi.',

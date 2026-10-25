@@ -316,6 +316,7 @@
                         <th>Kategoriya</th>
                         <th>Hudud</th>
                         <th>Narx</th>
+                        <th>Ko'rishlar</th>
                         <th>Holati</th>
                      </tr>
                   </thead>
@@ -330,6 +331,12 @@
                         <td>{{ product.district?.name || "—" }}</td>
                         <td>{{ formatPrice(product.price) }}</td>
                         <td>
+                           <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-(--z-foreground)">
+                              <Eye class="size-3.5 text-sky-500" />
+                              {{ (product.views_count ?? 0).toLocaleString() }}
+                           </span>
+                        </td>
+                        <td>
                            <span
                               class="admin-badge"
                               :class="product.deleted_at ? 'admin-badge-muted' : product.is_active ? 'admin-badge-success' : 'admin-badge-warning'"
@@ -339,7 +346,7 @@
                         </td>
                      </tr>
                      <tr v-if="dashboard.recent_products.length === 0">
-                        <td colspan="6" class="admin-empty-cell">Hozircha e'lonlar yo'q.</td>
+                        <td colspan="7" class="admin-empty-cell">Hozircha e'lonlar yo'q.</td>
                      </tr>
                   </tbody>
                </table>

@@ -8,19 +8,22 @@ use Illuminate\Console\Command;
 
 class ImportTelegramAdsCommand extends Command
 {
-    protected $signature = 'ads:import-telegram {--force : Sozlama o\'chiq bo\'lsa ham majburiy ishga tushirish}';
+    protected $signature = 'ads:import-telegram {--force : Sozlama o\'chiq bo\'lsa ham majburiy ishga tushirish} {--limit= : Bir martada kiritilishi kerak bo\'lgan aniq e\'lonlar soni}';
     protected $description = 'Telegram kanallardan yangi e\'lonlarni avtomatik skrap qilib bazaga joylash';
 
     public function handle(BotAdImportService $service): int
     {
         $this->info("Avto-e'lonlar importi boshlandi...");
 
-        if ($this->option('force')) {
+        $force = (bool) $this->option('force');
+        $limit = $this->option('limit') ? (int) $this->option('limit') : null;
+
+        if ($force) {
             $setting = BotSetting::current();
             $setting->update(['is_enabled' => true]);
         }
 
-        $result = $service->importBatch();
+        $result = $service->importBatch(customTarget: $limit, force: $force);
 
         $this->info("Natija: " . ($result['message'] ?? $result['status']));
         $this->info("Ushbu siklda qo'shildi: " . ($result['imported_count'] ?? 0) . " ta e'lon.");

@@ -24,7 +24,8 @@ class AdAiParserService
         }
 
         // Basic filter: must have a phone number or telegram @username
-        $hasContact = preg_match('/(?:\+?998[\s-]?)?(?:\(?\d{2}\)?[\s-]?)?\d{3}[\s-]?\d{2}[\s-]?\d{2}/', $rawText)
+        $hasContact = preg_match('/(?:\+?998|8)?[\s().-]*[3789]\d[\s().-]*\d{3}[\s().-]*\d{2}[\s().-]*\d{2}/u', $rawText)
+            || preg_match('/(?<!\d)[3789]\d\d{7}(?!\d)/u', $rawText)
             || preg_match('/@[a-zA-Z0-9_]{4,}/', $rawText)
             || preg_match('/(?:tel|aloqa|nomer|telefon|telegram|lichka|murojaat)\s*[:\-]?\s*[\d+@]/ui', $rawText);
 
@@ -47,9 +48,8 @@ class AdAiParserService
         $apiKey = $setting->ai_api_key ?: ($provider === 'openai' ? env('OPENAI_API_KEY') : env('GEMINI_API_KEY'));
 
         if (empty($apiKey)) {
-            $this->notifyTelegramFailure(strtoupper($provider), "API kalit topilmadi (.env yoki bot sozlamalarida {$provider} kaliti kiritilmagan).");
-            // AI ishlamasa hech narsa yozilmasin:
-            return null;
+            // Agar API kalit bo'lmasa, e'lonni yo'qotmaslik uchun qoidali parserga yo'naltiramiz
+            return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel);
         }
 
         $aiResult = null;
@@ -63,7 +63,13 @@ class AdAiParserService
             return $this->normalizeParsedData($aiResult, $rawText, $channel);
         }
 
-        // Agar AI ishlamasa yoki xato bo'lsa - e'lon yozilmaydi!
+        // Agar AI javob bermasa yoki xatolik yuz bersa, e'lonni saqlab qolish uchun fallback tahlildan foydalanamiz
+        $fallback = $this->fallbackParse($rawText, $channel);
+        if ($fallback && !empty($fallback['is_valid'])) {
+            Log::info("AI vaqtinchalik javob bermadi, fallback parser bilan e'lon saqlandi: " . mb_substr($rawText, 0, 40));
+            return $this->normalizeParsedData($fallback, $rawText, $channel);
+        }
+
         return null;
     }
 
@@ -123,9 +129,10 @@ Mavjud Tumanlar/Shaharlar:
 
 QAT'IY TALABLAR (BU TALABLARNI BUZISH TAQIQLANADI):
 
-1. DO'KONLAR, MAGAZINLAR VA AKSIYALAR TAQIQLANGAN (ENG MUHIM QOIDA):
-   - Do'kon, magazin, market, shourum, optom tovar, aksiya, skidka, chegirma yoki biznes reklamalari bo'lsa, DARHOL {"is_valid": false} deb qaytar!
-   - FAQAT haqiqiy jismoniy shaxs (oddiy inson) o'zining shaxsiy mulkini (uy, mashina, telefon, buyum) sotayotgan yoki shaxsiy ish/xizmat taklif qilayotgan bo'lsa qabul qil!
+1. E'LONLARNI SARALASH QOIDASI (ENG MUHIM QOIDA):
+   - Foydalanuvchilar uchun foydali bo'lgan har qanday haqiqiy e'lonlarni (avtomobil, ko'chmas mulk, elektronika, telefon, maishiy texnika, mebel, kiyim, chorva, xizmatlar, ish/vakansiya, xususiy buyumlar savdosi) qabul qil (is_valid: true).
+   - "Mo'ljal: Korzinka market yonida", "magazin oldida", "dorixona yaqinida", "ozgina skidkasi bor", "kelishamiz" kabi jumlalar bo'lsa, ularni to'g'ri qabul qil, aslo rad etma!
+   - Faqatgina aniq noqonuniy spam (onlayn kazino, 1xbet, stavka, intim/pornografiya, piramida) yoki umuman e'longa aloqasi bo'lmagan shaxsiy suhbatlar bo'lsagina {"is_valid": false} deb qaytar.
 
 2. TIL VA ALIFBO:
    - Barcha matnlar (title ham, description ham) FAQAT VA FAQAT O'ZBEK LOTIN ALIFBOSIDA bo'lishi SHART!
@@ -144,7 +151,7 @@ QAT'IY TALABLAR (BU TALABLARNI BUZISH TAQIQLANADI):
      * 2-bo'lim (bo'sh qator tashlab): Asosiy parametrlar (• Holati: a'lo\n• Rangi: oq);
      * 3-bo'lim (bo'sh qator tashlab): • Manzil: ... (agar matnda bo'lsa);
      * 4-bo'lim (bo'sh qator tashlab): • Narxi: ... (agar matnda bo'lsa);
-     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i! Hech qanday @username yozilmasin!
+     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i yoki @username!
    - Spam va begona kanallar reklamalarini (@..., t.me/...) butunlay tozalab tashla!
 
 5. "district_id" (Shahar/Tuman):
@@ -165,13 +172,13 @@ JSON formati:
   "district_id": 1
 }
 
-Agar bu xabar shaxsiy e'lon bo'lmasa, magazin/do'kon, aksiya yoki spam bo'lsa, faqat {"is_valid": false} deb qaytar.
+Agar bu xabar aniq spam (kazino, stavka, intim) bo'lsa, faqat {"is_valid": false} deb qaytar.
 
 E'lon matni:
 {$rawText}
 PROMPT;
 
-            $models = ['gemini-flash-latest', 'gemini-3.8-flash'];
+            $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
             $lastError = null;
 
             foreach ($models as $model) {
@@ -323,11 +330,27 @@ PROMPT;
      */
     public function fallbackParse(string $rawText, ?string $channel = null): array
     {
-        // 1. Phone extraction
+        // 1. Phone extraction (supports 935504433, +998935504433, 93 550 44 33, etc.)
         $phone = null;
-        if (preg_match('/(?:\+?998[\s-]?)?\(?(\d{2})\)?[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})/', $rawText, $phoneMatch)) {
-            $phone = '998' . $phoneMatch[1] . $phoneMatch[2] . $phoneMatch[3] . $phoneMatch[4];
-        } elseif (preg_match('/@([a-zA-Z0-9_]{4,})/', $rawText, $userMatch)) {
+        $patterns = [
+            '/(?<!\d)(?:\+?998[\s.-]?)?\(?([3789]\d)\)?[\s.-]?(\d{3})[\s.-]?(\d{2})[\s.-]?(\d{2})(?!\d)/u',
+            '/(?<!\d)(?:8[\s.-]?)?\(?([3789]\d)\)?[\s.-]?(\d{3})[\s.-]?(\d{2})[\s.-]?(\d{2})(?!\d)/u',
+            '/(?<!\d)([3789]\d)(\d{7})(?!\d)/u',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $rawText, $matches)) {
+                $code = $matches[1];
+                $rest = isset($matches[4]) ? ($matches[2] . $matches[3] . $matches[4]) : $matches[2];
+                $cleanRest = preg_replace('/\D/', '', $rest);
+                if (strlen($cleanRest) === 7) {
+                    $phone = '998' . $code . $cleanRest;
+                    break;
+                }
+            }
+        }
+
+        if (!$phone && preg_match('/@([a-zA-Z0-9_]{4,})/', $rawText, $userMatch)) {
             $phone = '@' . $userMatch[1];
         }
 

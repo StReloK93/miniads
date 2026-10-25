@@ -396,7 +396,7 @@
     ]
   },
   "resources/admin/adminApp.ts": {
-    "file": "assets/adminApp-CH9QEwb_.js",
+    "file": "assets/adminApp-BH-ajwKH.js",
     "name": "adminApp",
     "src": "resources/admin/adminApp.ts",
     "isEntry": true,
@@ -420,7 +420,7 @@
     ]
   },
   "resources/admin/pages/AdminBotPage.vue": {
-    "file": "assets/AdminBotPage-DthmNBWh.js",
+    "file": "assets/AdminBotPage-DXiX80Ke.js",
     "name": "AdminBotPage",
     "src": "resources/admin/pages/AdminBotPage.vue",
     "isDynamicEntry": true,
@@ -442,7 +442,7 @@
     ]
   },
   "resources/admin/pages/AdminCategoriesPage.vue": {
-    "file": "assets/AdminCategoriesPage-CS7WOAPF.js",
+    "file": "assets/AdminCategoriesPage-yZBFhdoH.js",
     "name": "AdminCategoriesPage",
     "src": "resources/admin/pages/AdminCategoriesPage.vue",
     "isDynamicEntry": true,
@@ -474,7 +474,7 @@
     ]
   },
   "resources/admin/pages/AdminHomePage.vue": {
-    "file": "assets/AdminHomePage-Bt6hKKzB.js",
+    "file": "assets/AdminHomePage-DwC9EX_M.js",
     "name": "AdminHomePage",
     "src": "resources/admin/pages/AdminHomePage.vue",
     "isDynamicEntry": true,
@@ -528,7 +528,7 @@
     ]
   },
   "resources/admin/pages/AdminProductsPage.vue": {
-    "file": "assets/AdminProductsPage-BgQjncKk.js",
+    "file": "assets/AdminProductsPage-DDt5p2YN.js",
     "name": "AdminProductsPage",
     "src": "resources/admin/pages/AdminProductsPage.vue",
     "isDynamicEntry": true,
@@ -542,6 +542,7 @@
       "_triangle-alert-DYC0TQtC.js",
       "_search-BjhT1dBc.js",
       "resources/admin/adminApp.ts",
+      "_eye-CNUtlBok.js",
       "_createLucideIcon-DlHQCKip.js",
       "_trash-2-FmvNtGIC.js",
       "_keyboard-CKORB_YI.js",

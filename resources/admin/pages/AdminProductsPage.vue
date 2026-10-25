@@ -80,6 +80,7 @@
                      <th>Muallif</th>
                      <th>Hudud</th>
                      <th>Narx</th>
+                     <th>Ko'rishlar</th>
                      <th>Holati</th>
                      <th class="admin-actions-heading">Amallar</th>
                   </tr>
@@ -110,6 +111,12 @@
                      </td>
                      <td>{{ product.district?.name || "Navoiy viloyati" }}</td>
                      <td>{{ formatPrice(product.price) }}</td>
+                     <td>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-(--z-foreground)">
+                           <Eye class="size-3.5 text-sky-500" />
+                           {{ (product.views_count ?? 0).toLocaleString() }}
+                        </span>
+                     </td>
                      <td>
                         <span class="admin-badge" :class="badgeClass(product)">
                            {{ statusLabel(product) }}
@@ -151,7 +158,7 @@
                      </td>
                   </tr>
                   <tr v-if="products.length === 0">
-                     <td colspan="6" class="admin-empty-cell">Qidiruvga mos e'lon topilmadi.</td>
+                     <td colspan="7" class="admin-empty-cell">Qidiruvga mos e'lon topilmadi.</td>
                   </tr>
                </tbody>
             </table>
@@ -186,7 +193,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { Bot, RotateCcw, Search, Trash2, TriangleAlert } from "lucide-vue-next";
+import { Bot, Eye, RotateCcw, Search, Trash2, TriangleAlert } from "lucide-vue-next";
 import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";

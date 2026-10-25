@@ -26,12 +26,13 @@ class BotAdImportService
 
     /**
      * Run an import batch according to BotSetting.
+     * Guarantees aiming to import the exact targetCount (hourly_limit from admin panel).
      */
-    public function importBatch(): array
+    public function importBatch(?int $customTarget = null, bool $force = false): array
     {
         $setting = BotSetting::current();
 
-        if (!$setting->is_enabled) {
+        if (!$setting->is_enabled && !$force) {
             return [
                 'status' => 'disabled',
                 'message' => 'Avto-e\'lonlar boti o\'chirilgan.',
@@ -39,16 +40,16 @@ class BotAdImportService
             ];
         }
 
-        if ($setting->today_imported_count >= $setting->daily_limit) {
+        // Qat'iy target soni: admin panelda berilgan hourly_limit (masalan 10 ta desangiz, aynan 10 ta)
+        $targetCount = max(1, (int) ($customTarget ?: $setting->hourly_limit));
+
+        if (!$force && $setting->today_imported_count >= $setting->daily_limit) {
             return [
                 'status' => 'daily_limit_reached',
                 'message' => "Bugungi kunlik limitga ({$setting->daily_limit}) yetildi.",
                 'imported_count' => 0,
             ];
         }
-
-        $remainingToday = $setting->daily_limit - $setting->today_imported_count;
-        $targetCount = min($setting->hourly_limit, $remainingToday);
 
         $channels = $setting->getChannelList();
         if (empty($channels)) {
@@ -65,99 +66,119 @@ class BotAdImportService
         $botUser = User::getBotUser();
         $importedProducts = [];
 
-        foreach ($channels as $channel) {
+        // Agar bitta aylanada targetCount ga (masalan 10 taga) yetmasa,
+        // kanallardan chuqurroq (45 ta, so'ngra 90 tagacha) xabarlar olib, targetCount to'lguncha qidiriladi:
+        $scrapePasses = [45, 90];
+
+        foreach ($scrapePasses as $scrapeLimit) {
             if (count($importedProducts) >= $targetCount) {
                 break;
             }
 
-            $posts = $this->scraper->fetchChannelPosts($channel, 15);
-
-            foreach ($posts as $post) {
+            foreach ($channels as $channel) {
                 if (count($importedProducts) >= $targetCount) {
                     break;
                 }
 
-                $text = trim($post['text']);
-                if (empty($text) || mb_strlen($text) < 15) {
-                    continue;
-                }
+                $posts = $this->scraper->fetchChannelPosts($channel, $scrapeLimit);
 
-                // Check post freshness: only allow posts from the last 24 hours (today)
-                if (!empty($post['date'])) {
-                    try {
-                        $postDate = \Carbon\Carbon::parse($post['date']);
-                        if ($postDate->lt(now()->subHours(24))) {
-                            continue;
-                        }
-                    } catch (\Throwable) {
-                        // ignore parse errors
+                foreach ($posts as $post) {
+                    if (count($importedProducts) >= $targetCount) {
+                        break;
                     }
+
+                    $messageId = $post['message_id'] ?? null;
+
+                    // 0. CHECK: Ushbu kanal va xabar ID avval saqlanganmi? (Tezkor indeks orqali)
+                    if ($messageId && Product::where('source_channel', $channel)->where('source_message_id', $messageId)->exists()) {
+                        continue;
+                    }
+
+                    $text = trim($post['text'] ?? '');
+                    if (empty($text) || mb_strlen($text) < 15) {
+                        continue;
+                    }
+
+                    // 1. FRESHNESS: Oxirgi 7 kunga (1 haftalik yangi e'lonlarga) to'liq ruxsat beriladi
+                    if (!empty($post['date'])) {
+                        try {
+                            $postDate = \Carbon\Carbon::parse($post['date']);
+                            if ($postDate->lt(now()->subDays(7))) {
+                                continue;
+                            }
+                        } catch (\Throwable) {
+                            // ignore parse errors
+                        }
+                    }
+
+                    // 2. FILTER: Aniq tijoriy/do'kon/reklama xabarlarni to'xtatish (mo'ljal so'zlariga tegmasdan)
+                    if ($this->isCommercialOrPromo($text)) {
+                        Log::info("Tijoriy/aksiya/reklama e'loni o'tkazib yuborildi: " . mb_substr($text, 0, 45));
+                        continue;
+                    }
+
+                    // 3. FILTER: Aloqa vositasi (telefon raqam yoki Telegram @username)
+                    $phone = $this->extractPhone($text);
+                    $telegramUsername = $this->extractTelegramUsername($text);
+                    if (!$phone && !$telegramUsername) {
+                        continue;
+                    }
+
+                    // 4. FILTER: Content Fingerprint Hash (Barcha kanallar bo'yicha 100% bir xil matn dublikatini to'xtatish)
+                    $sourceHash = $this->generateContentFingerprint($text);
+                    if (Product::where('source_hash', $sourceHash)->exists()) {
+                        continue;
+                    }
+
+                    // 5. FILTER: Telefon orqali aynan bir xil takroriy e'lonlarni tekshirish (o'xshashlik >= 75%)
+                    if ($phone && $this->isDuplicateByPhoneAndContent($phone, $text)) {
+                        Log::info("Bitta ma'nodagi takroriy e'lon o'tkazib yuborildi (Tel: {$phone})");
+                        continue;
+                    }
+
+                    // E'lonni tahlil qilish (AI yoki fallback orqali):
+                    $parsed = $this->aiParser->parse($text, $setting, $channel);
+                    if (!$parsed || empty($parsed['is_valid'])) {
+                        continue;
+                    }
+
+                    if (!empty($parsed['phone'])) {
+                        $phone = $parsed['phone'];
+                    }
+
+                    // Agar telefon raqam topilmagan bo'lsa, username ni kontakt sifatida saqlaymiz
+                    $contactPhone = $phone ?: ($telegramUsername ? '@' . $telegramUsername : null);
+
+                    // Determine listing duration
+                    $category = Category::find($parsed['category_id']);
+                    $durationDays = $category?->listing_duration_days ?? 30;
+
+                    // Create Product
+                    $product = Product::create([
+                        'title' => $parsed['title'] ?? 'E\'lon',
+                        'description' => $parsed['description'] ?? $text,
+                        'category_id' => $parsed['category_id'] ?? 1,
+                        'district_id' => $parsed['district_id'] ?? null,
+                        'user_id' => $botUser->id,
+                        'phone' => $contactPhone,
+                        'price' => $parsed['price'] ?? null,
+                        'price_type_id' => $parsed['price_type_id'] ?? 1,
+                        'back_color_id' => 1,
+                        'is_bot' => true,
+                        'source_channel' => $channel,
+                        'source_message_id' => $messageId,
+                        'source_hash' => $sourceHash,
+                        'published_at' => now(),
+                        'expires_at' => now()->addDays($durationDays),
+                    ]);
+
+                    // Download and attach images (up to 4 images), but omit for Jobs and Services
+                    if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
+                        $this->attachImages($product, array_slice($post['images'], 0, 4));
+                    }
+
+                    $importedProducts[] = $product;
                 }
-
-                // 1. FILTER: Magazin, do'kon, aksiya, skidka va tijoriy reklamalarni AI ga bormasdan darhol to'xtatish
-                if ($this->isCommercialOrPromo($text)) {
-                    Log::info("Tijoriy/aksiya/do'kon e'loni o'tkazib yuborildi: " . mb_substr($text, 0, 45));
-                    continue;
-                }
-
-                // 2. FILTER: Haqiqiy sotuvchi telefon raqami bo'lmagan xabarlarni o'tkazib yuborish
-                $phone = $this->extractPhone($text);
-                if (!$phone) {
-                    continue;
-                }
-
-                // 3. FILTER: Content Fingerprint Hash (Barcha kanallar bo'yicha 100% bir xil matn dublikatini to'xtatish)
-                $sourceHash = $this->generateContentFingerprint($text);
-                if (Product::where('source_hash', $sourceHash)->exists()) {
-                    continue;
-                }
-
-                // 4. FILTER: Telefon va semantik o'xshashlik (Bitta ma'nodagi e'lonni AI siz aniqlash)
-                if ($this->isDuplicateByPhoneAndContent($phone, $text)) {
-                    Log::info("Bitta ma'nodagi takroriy e'lon aniqlandi va o'tkazib yuborildi (Tel: {$phone})");
-                    continue;
-                }
-
-                // Faqat barcha filtrlardan o'tgan haqiqiy va YANGI e'longina AI ga yuboriladi:
-                $parsed = $this->aiParser->parse($text, $setting, $channel);
-                if (!$parsed || empty($parsed['is_valid'])) {
-                    continue;
-                }
-
-                // Double check if AI marked it as commercial/invalid
-                if (!empty($parsed['phone'])) {
-                    $phone = $parsed['phone'];
-                }
-
-                // Determine listing duration
-                $category = Category::find($parsed['category_id']);
-                $durationDays = $category?->listing_duration_days ?? 30;
-
-                // Create Product
-                $product = Product::create([
-                    'title' => $parsed['title'] ?? 'E\'lon',
-                    'description' => $parsed['description'] ?? $text,
-                    'category_id' => $parsed['category_id'] ?? 1,
-                    'district_id' => $parsed['district_id'] ?? null,
-                    'user_id' => $botUser->id,
-                    'phone' => $phone,
-                    'price' => $parsed['price'] ?? null,
-                    'price_type_id' => $parsed['price_type_id'] ?? 1,
-                    'back_color_id' => 1,
-                    'is_bot' => true,
-                    'source_channel' => $channel,
-                    'source_message_id' => $post['message_id'],
-                    'source_hash' => $sourceHash,
-                    'published_at' => now(),
-                    'expires_at' => now()->addDays($durationDays),
-                ]);
-
-                // Download and attach images (up to 4 images), but omit for Jobs and Services
-                if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
-                    $this->attachImages($product, array_slice($post['images'], 0, 4));
-                }
-
-                $importedProducts[] = $product;
             }
         }
 
@@ -272,59 +293,46 @@ class BotAdImportService
 
     /**
      * Check if text is commercial advertisement, shop/store promotion, aksiya, or business broadcast.
+     * Note: "Mo'ljal" (market yonida, magazin oldida) and private seller discounts (skidkasi bor, kelishamiz) are NOT blocked.
      */
     protected function isCommercialOrPromo(string $text): bool
     {
         $lower = mb_strtolower(AdAiParserService::cyrillicToLatin($text));
 
-        $promoPatterns = [
-            '/\baksiya\b/ui',
-            '/\baktsiya\b/ui',
-            '/\bakciya\b/ui',
-            '/\bskidka\b/ui',
-            '/\bchegirma\b/ui',
-            '/\bchegirmalar\b/ui',
-            '/\bsuper\s+taklif\b/ui',
-            '/do[\'’`]?konimiz/ui',
-            '/do[\'’`]?koni\b/ui',
-            '/magazinimiz/ui',
-            '/\bmagazin\b/ui',
-            '/\bmarket\b/ui',
-            '/\bshowroom\b/ui',
-            '/\bshourum\b/ui',
-            '/\bbutik\b/ui',
-            '/\boptom\b/ui',
-            '/\bulgurji\b/ui',
-            '/assortiment/ui',
-            '/katalog/ui',
-            '/tanlov\s+keng/ui',
+        $strictPromoPatterns = [
+            '/do[\'’`]?konimiz(?:ga|da|ning)/ui',
+            '/bizning\s+do[\'’`]?kon/ui',
+            '/magazinimiz(?:ga|da|ning)/ui',
+            '/bizning\s+(?:filial|manzil|shourum|showroom)/ui',
+            '/\boptom\s+sotamiz\b/ui',
+            '/\bulgurji\s+narxda\b/ui',
+            '/assortimentimiz/ui',
+            '/katalogimiz/ui',
+            '/tanlov\s+juda\s+keng/ui',
             '/bepul\s+dostavka/ui',
             '/yetkazib\s+berish\s+bepul/ui',
             '/dostavka\s+bepul/ui',
-            '/buyurtma\s+(?:qiling|bering)/ui',
             '/nasiya\s+savdo/ui',
             '/muddatli\s+to[\'’`]?lov/ui',
-            '/rassrochka/ui',
-            '/o[\'’`]?quv\s+markaz/ui',
-            '/kurslarimiz/ui',
-            '/trening/ui',
-            '/turizm/ui',
-            '/\bumra\b/ui',
-            '/\bhajj\b/ui',
-            '/\bviza\b/ui',
-            '/dorixona/ui',
-            '/apteka/ui',
-            '/klinika/ui',
-            '/stomatolog/ui',
-            '/restoran/ui',
-            '/kafe\s+menyu/ui',
-            '/kafeimiz/ui',
-            '/reklama\s+uchun/ui',
-            '/sponsor/ui',
-            '/homiy/ui',
+            '/boshlang[\'’`]?ich\s+to[\'’`]?lovsiz/ui',
+            '/rassrochka(?:ga|\s+bor)/ui',
+            '/o[\'’`]?quv\s+markaz(?:imiz)?/ui',
+            '/kurslarimiz(?:ga|da)/ui',
+            '/trening(?:imiz)?/ui',
+            '/turizm\s+xizmat/ui',
+            '/\bumra\s+(?:ziyorat|safar|viza|paket)/ui',
+            '/\bhajj\s+safar/ui',
+            '/\bviza\s+xizmat/ui',
+            '/reklama\s+uchun\s+admin/ui',
+            '/reklama\s+berish\s+uchun/ui',
+            '/kanalimizga\s+a[\'’`]?zo\s+bo[\'’`]?ling/ui',
+            '/obuna\s+bo[\'’`]?ling/ui',
+            '/kanalga\s+ulaning/ui',
+            '/\bsponsor\b/ui',
+            '/\bhomiy\b/ui',
         ];
 
-        foreach ($promoPatterns as $pattern) {
+        foreach ($strictPromoPatterns as $pattern) {
             if (preg_match($pattern, $lower)) {
                 return true;
             }
@@ -335,13 +343,58 @@ class BotAdImportService
 
     /**
      * Extract primary seller phone number from ad text.
+     * Supports all Uzbek formats: 935504433, +998935504433, 93 550 44 33, (93) 550-44-33, 8935504433, etc.
      */
     protected function extractPhone(string $text): ?string
     {
-        if (preg_match('/(?:\+?998[\s-]?)?\(?([389]\d)\)?[\s-]?(\d{3})[\s-]?(\d{2})[\s-]?(\d{2})/', $text, $matches)) {
-            return '998' . $matches[1] . $matches[2] . $matches[3] . $matches[4];
+        $patterns = [
+            '/(?<!\d)(?:\+?998[\s.-]?)?\(?([3789]\d)\)?[\s.-]?(\d{3})[\s.-]?(\d{2})[\s.-]?(\d{2})(?!\d)/u',
+            '/(?<!\d)(?:8[\s.-]?)?\(?([3789]\d)\)?[\s.-]?(\d{3})[\s.-]?(\d{2})[\s.-]?(\d{2})(?!\d)/u',
+            '/(?<!\d)([3789]\d)(\d{7})(?!\d)/u',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $text, $matches)) {
+                $code = $matches[1];
+                $rest = isset($matches[4]) ? ($matches[2] . $matches[3] . $matches[4]) : $matches[2];
+                $cleanRest = preg_replace('/\D/', '', $rest);
+                if (strlen($cleanRest) === 7) {
+                    return '998' . $code . $cleanRest;
+                }
+            }
         }
 
+        // Fallback: search for any phone-like sequence
+        if (preg_match_all('/(?:\+?998|8)?[\s().-]*[3789]\d[\s().-]*\d{3}[\s().-]*\d{2}[\s().-]*\d{2}/u', $text, $all)) {
+            foreach ($all[0] as $raw) {
+                $digits = preg_replace('/\D/', '', $raw);
+                if (strlen($digits) === 9) {
+                    return '998' . $digits;
+                }
+                if (strlen($digits) === 10 && str_starts_with($digits, '8')) {
+                    return '998' . substr($digits, 1);
+                }
+                if (strlen($digits) === 12 && str_starts_with($digits, '998')) {
+                    return $digits;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract Telegram username if seller left contact as @username instead of phone.
+     */
+    protected function extractTelegramUsername(string $text): ?string
+    {
+        if (preg_match('/@([a-zA-Z0-9_]{4,32})/u', $text, $matches)) {
+            $username = $matches[1];
+            $ignored = ['admin', 'elon_admin', 'aloqa_bot', 'joinchat', 'share'];
+            if (!in_array(strtolower($username), $ignored, true)) {
+                return $username;
+            }
+        }
         return null;
     }
 
@@ -353,19 +406,19 @@ class BotAdImportService
         $clean = mb_strtolower(AdAiParserService::cyrillicToLatin($text));
         $clean = preg_replace('/https?:\/\/\S+/i', '', $clean);
         $clean = preg_replace('/@\w+/u', '', $clean);
-        $clean = preg_replace('/(?:\+?998[\s-]?)?\(?\d{2}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}/', '', $clean);
+        $clean = preg_replace('/(?:\+?998|8)?[\s().-]*[3789]\d[\s().-]*\d{3}[\s().-]*\d{2}[\s().-]*\d{2}/u', '', $clean);
         $clean = preg_replace('/[^\p{L}\p{N}]+/u', '', $clean);
 
         return md5($clean);
     }
 
     /**
-     * Check if this phone already posted an ad with identical or very similar meaning in the last 5 days.
+     * Check if this phone already posted an ad with identical or very similar meaning in the last 3 days (>= 75%).
      */
     protected function isDuplicateByPhoneAndContent(string $phone, string $newText): bool
     {
         $recentProducts = Product::where('phone', $phone)
-            ->where('created_at', '>=', now()->subDays(5))
+            ->where('created_at', '>=', now()->subDays(3))
             ->get(['id', 'title', 'description']);
 
         if ($recentProducts->isEmpty()) {
@@ -375,25 +428,13 @@ class BotAdImportService
         $cleanNew = mb_strtolower(AdAiParserService::cyrillicToLatin($newText));
         $cleanNew = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $cleanNew);
 
-        preg_match_all('/\b\d{2,}\b/', $cleanNew, $newNumbers);
-        $newNumList = array_unique($newNumbers[0] ?? []);
-
         foreach ($recentProducts as $prod) {
             $oldText = mb_strtolower(AdAiParserService::cyrillicToLatin($prod->description . ' ' . $prod->title));
             $cleanOld = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $oldText);
 
-            // 1. Text similarity percentage
+            // Faqat haqiqiy takroriy e'lon bo'lsa (matn o'xshashligi 75% dan yuqori)
             similar_text($cleanNew, $cleanOld, $percent);
-            if ($percent >= 45) {
-                return true;
-            }
-
-            // 2. Overlapping key numbers (prices, years, specs) + partial similarity
-            preg_match_all('/\b\d{2,}\b/', $cleanOld, $oldNumbers);
-            $oldNumList = array_unique($oldNumbers[0] ?? []);
-            $commonNums = array_intersect($newNumList, $oldNumList);
-
-            if (count($commonNums) >= 2 && $percent >= 28) {
+            if ($percent >= 75) {
                 return true;
             }
         }

@@ -11,10 +11,10 @@ class TelegramChannelScraperService
      * Fetch the latest public posts from a Telegram channel.
      *
      * @param string $channel e.g. "navoiy_bozor" or "@navoiy_bozor"
-     * @param int $limit Maximum number of posts to return
+     * @param int $limit Maximum number of posts to return (e.g. 35)
      * @return array List of array items: ['channel', 'message_id', 'text', 'images', 'date']
      */
-    public function fetchChannelPosts(string $channel, int $limit = 20): array
+    public function fetchChannelPosts(string $channel, int $limit = 50): array
     {
         $cleanChannel = ltrim($channel, '@');
         $cleanChannel = preg_replace('#^https?://t\.me/#i', '', $cleanChannel);
@@ -23,13 +23,65 @@ class TelegramChannelScraperService
             return [];
         }
 
-        $url = "https://t.me/s/{$cleanChannel}";
+        try {
+            $posts = [];
+            $url = "https://t.me/s/{$cleanChannel}";
+            $maxPages = (int) min(6, ceil($limit / 18));
+            $page = 0;
 
+            while ($page < $maxPages && count($posts) < $limit) {
+                $page++;
+                $html = $this->fetchUrl($url);
+                if (empty($html)) {
+                    break;
+                }
+
+                $pagePosts = $this->parseHtml($html, $cleanChannel, 25);
+                if (empty($pagePosts)) {
+                    break;
+                }
+
+                $existingIds = array_column($posts, 'message_id');
+                $newAdded = 0;
+                foreach ($pagePosts as $p) {
+                    if (!in_array($p['message_id'], $existingIds, true)) {
+                        $posts[] = $p;
+                        $newAdded++;
+                    }
+                }
+
+                if ($newAdded === 0) {
+                    break;
+                }
+
+                $minId = min(array_column($posts, 'message_id'));
+                if ($minId <= 1) {
+                    break;
+                }
+                $url = "https://t.me/s/{$cleanChannel}?before={$minId}";
+            }
+
+            // Sort by message_id descending (newest first)
+            usort($posts, fn($a, $b) => $b['message_id'] <=> $a['message_id']);
+
+            return array_slice($posts, 0, $limit);
+        } catch (\Throwable $e) {
+            Log::error("Telegram kanalni skrap qilishda xatolik: {$cleanChannel}: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Fetch HTML with timeout, headers and proxy if configured.
+     */
+    protected function fetchUrl(string $url): ?string
+    {
         try {
             $options = [
                 'curl' => [
                     CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                 ],
+                'verify' => false,
             ];
 
             $proxy = env('TELEGRAM_PROXY') ?: env('HTTPS_PROXY') ?: env('HTTP_PROXY');
@@ -46,14 +98,14 @@ class TelegramChannelScraperService
                 ->get($url);
 
             if (!$response->successful()) {
-                Log::warning("Telegram kanalni yuklab bo'lmadi: {$cleanChannel}, status: " . $response->status());
-                return [];
+                Log::warning("Telegram sahifani yuklab bo'lmadi: {$url}, status: " . $response->status());
+                return null;
             }
 
-            return $this->parseHtml($response->body(), $cleanChannel, $limit);
+            return $response->body();
         } catch (\Throwable $e) {
-            Log::error("Telegram kanalni skrap qilishda xatolik: {$cleanChannel}: " . $e->getMessage());
-            return [];
+            Log::warning("Telegram URL yuklashda xatolik: {$url}: " . $e->getMessage());
+            return null;
         }
     }
 

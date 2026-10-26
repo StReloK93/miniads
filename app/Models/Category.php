@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 class Category extends Model
 {
     use SoftDeletes;
@@ -23,6 +24,25 @@ class Category extends Model
         'with_image' => 'boolean',
         'listing_duration_days' => 'integer',
     ];
+    protected static function booted(): void
+    {
+        // Kategoriya o'zgarsa unga bog'liq keshlarni yangilaymiz
+        $flush = function (): void {
+            Cache::forever('categories:version', (int) Cache::get('categories:version', 0) + 1);
+            Cache::forget('leaf_categories_list');
+            Cache::forget('leaf_categories_with_parents');
+        };
+
+        static::saved($flush);
+        static::deleted($flush);
+        static::restored($flush);
+    }
+
+    public static function cacheVersion(): int
+    {
+        return (int) Cache::get('categories:version', 0);
+    }
+
     public function children()
     {
         // Bu podkategoriyalarni olish uchun

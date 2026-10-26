@@ -28,6 +28,27 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL'),
+    ],
+
+    // E'lon importi uchun AI. Model aniq nom bilan yoziladi ("-latest" alias emas),
+    // aks holda Google uni jimgina qimmatroq modelga almashtirib qo'yadi.
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
+        'thinking_level' => env('GEMINI_THINKING_LEVEL', 'minimal'),
+    ],
+
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
+    // Bir kunda AI'ga sarflanadigan maksimal token (input + output). Oshsa, import keyingi kungacha to'xtaydi.
+    'ai_daily_token_limit' => (int) env('AI_DAILY_TOKEN_LIMIT', 500000),
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
 use App\Services\TelegramProductService;
 use App\Services\ProductSearchService;
+use App\Http\Requests\SaveProductRequest;
 class ProductController extends Controller
 {
     public function __construct(
@@ -27,7 +28,7 @@ class ProductController extends Controller
             ->get();
     }
 
-    public function store(Request $request)
+    public function store(SaveProductRequest $request)
     {
         $product = $this->productService->store($request);
 
@@ -46,7 +47,7 @@ class ProductController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, int $id)
+    public function update(SaveProductRequest $request, int $id)
     {
         $product = Product::with('images')->findOrFail($id);
 
@@ -124,13 +125,19 @@ class ProductController extends Controller
     }
 
 
-    public function edit(int $id)
+    public function edit(Request $request, int $id)
     {
-        return Product::withExists([
+        $product = Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
             ->with(['user'])
             ->findOrFail($id);
+
+        if (!$this->productService->isOwner($product, $request->user()->id) && $request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return $product;
     }
 
     public function feed(Request $request)
@@ -240,6 +247,15 @@ class ProductController extends Controller
         }
 
         $this->productService->delete($product);
+
+        try {
+            $this->telegramProductService->deleteFromChannels($product);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Telegram postni o'chirish xatosi: " . $e->getMessage(), [
+                'product_id' => $product->id,
+                'exception' => $e,
+            ]);
+        }
 
         return response()->json([
             'message' => "E'lon muvaffaqiyatli o'chirildi!",

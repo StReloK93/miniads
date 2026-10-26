@@ -87,6 +87,32 @@ class TelegramProductService
         }
     }
 
+    public function deleteFromChannels(Product $product): void
+    {
+        $telegramIds = ProductTelegramId::query()
+            ->where('product_id', $product->id)
+            ->get();
+
+        foreach ($telegramIds as $telegramId) {
+            $response = Telegraph::chat($telegramId->channel_id)
+                ->deleteMessage((int) $telegramId->message_id)
+                ->send();
+
+            if (! $response->telegraphOk()) {
+                $description = mb_strtolower((string) $response->json('description'));
+                if (
+                    ! str_contains($description, 'message to delete not found')
+                    && ! str_contains($description, 'message_id_invalid')
+                    && ! str_contains($description, 'message not found')
+                ) {
+                    $this->throwTelegramError($response, $product, (string) $telegramId->channel_id, "o'chirish");
+                }
+            }
+
+            $telegramId->delete();
+        }
+    }
+
     private function makeCaption(Product $product): string
     {
         $price = $product->price === null

@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 
 class TelegramAuth
 {
+    // initData shu muddatdan eski bo'lsa qabul qilinmaydi (qayta ishlatishdan himoya)
+    private const MAX_AGE_SECONDS = 86400;
+
     public function handle(Request $request, Closure $next)
     {
-        $authHeader = $authHeader = $authHeader = $request->header('Authorization')
+        $authHeader = $request->header('Authorization')
             ?? $request->server('HTTP_AUTHORIZATION')
             ?? $request->server('REDIRECT_HTTP_AUTHORIZATION');
 
@@ -17,13 +20,21 @@ class TelegramAuth
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $initDataRaw = urldecode(substr($authHeader, 4));
-        $botToken = env('TELEGRAM_BOT_TOKEN');
+        $initDataRaw = substr($authHeader, 4);
+        $botToken = (string) config('services.telegram.bot_token');
 
-        $telegramData = $this->validateTelegramInitData($initDataRaw, $botToken);
+        // Telegram hujjati bo'yicha initData bir marta decode qilinadi.
+        // Avvalgi usul (urldecode + parse_str) ham fallback sifatida qoldirildi, shunda hozir ishlayotgan klientlar buzilmaydi.
+        $telegramData = $this->validateTelegramInitData($initDataRaw, $botToken)
+            ?? $this->validateTelegramInitData(urldecode($initDataRaw), $botToken);
 
         if (!$telegramData) {
             return response()->json(['error' => 'Invalid Telegram hash'], 403);
+        }
+
+        $authDate = (int) ($telegramData['auth_date'] ?? 0);
+        if ($authDate <= 0 || time() - $authDate > self::MAX_AGE_SECONDS) {
+            return response()->json(['error' => 'Telegram init data expired'], 403);
         }
 
         // requestga user ma'lumotini qo'shamiz
@@ -40,7 +51,7 @@ class TelegramAuth
         parse_str($initData, $data);
 
         $receivedHash = $data['hash'] ?? null;
-        if (!$receivedHash) {
+        if (!$receivedHash || !is_string($receivedHash)) {
             return null;
         }
 

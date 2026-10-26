@@ -69,7 +69,7 @@ export const useAuth = defineStore("useAuth", () => {
    }
 
    async function logout() {
-      const data = await api.get("logout");
+      const data = await api.post("logout");
 
       if (data.status == 200) {
          api.defaults.headers.common["Authorization"] = null;

@@ -7,6 +7,7 @@ use App\Models\ProductImage;
 use App\Models\ProductParameterValue;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -38,36 +39,50 @@ class ProductService
             ? ($productAttributes['district_id'] ?? null)
             : null;
 
-        $product = Product::create([
-            ...$productAttributes,
-            'user_id' => $request->user()->id,
-        ]);
+        // Xato bo'lsa bazada chala e'lon va diskda ortiqcha rasm qolmasligi uchun
+        $storedPaths = [];
 
-        $product->expires_at = now()->addDays($product->category->listing_duration_days);
-        $product->save();
+        try {
+            return DB::transaction(function () use ($request, $productAttributes, &$storedPaths) {
+                $product = Product::create([
+                    ...$productAttributes,
+                    'user_id' => $request->user()->id,
+                ]);
 
-        if ($request->has('parameters')) {
-            $this->syncProductParameters($product->id, $request->parameters);
-        }
+                $product->expires_at = now()->addDays($product->category->listing_duration_days ?: 30);
+                $product->save();
 
-        foreach ($request->file('images', []) as $index => $image) {
-            $uploadedFile = is_array($image) ? ($image['file'] ?? null) : $image;
+                if ($request->has('parameters')) {
+                    $this->syncProductParameters($product->id, $request->parameters);
+                }
 
-            if (!$uploadedFile instanceof UploadedFile) {
-                continue;
+                foreach ($request->file('images', []) as $index => $image) {
+                    $uploadedFile = is_array($image) ? ($image['file'] ?? null) : $image;
+
+                    if (!$uploadedFile instanceof UploadedFile) {
+                        continue;
+                    }
+
+                    $crop = $this->normalizeCrop($request->input("images.{$index}", []));
+                    $src = $this->storeProductImage($uploadedFile);
+                    $storedPaths[] = $src;
+
+                    ProductImage::create([
+                        'product_id' => $product->id,
+                        'src' => $src,
+                        ...$crop,
+                    ]);
+                }
+
+                return $product;
+            });
+        } catch (\Throwable $e) {
+            foreach ($storedPaths as $path) {
+                $this->deleteProductImageFile($path);
             }
 
-            $crop = $this->normalizeCrop($request->input("images.{$index}", []));
-            $src = $this->storeProductImage($uploadedFile);
-
-            ProductImage::create([
-                'product_id' => $product->id,
-                'src' => $src,
-                ...$crop,
-            ]);
+            throw $e;
         }
-
-        return $product;
     }
 
     public function update(Request $request, Product $product): Product
@@ -92,10 +107,15 @@ class ProductService
 
         $product->update($productAttributes);
 
-        $this->syncProductParameters(
-            $product->id,
-            $request->input('parameters', [])
-        );
+        $parameters = $request->input('parameters', []);
+
+        // Frontend faqat to'ldirilgan parametrlarni yuboradi, shuning uchun
+        // yuborilmaganlari foydalanuvchi tozalagan qiymatlar hisoblanadi
+        ProductParameterValue::where('product_id', $product->id)
+            ->whereNotIn('parameter_id', collect($parameters)->pluck('id')->filter()->all())
+            ->delete();
+
+        $this->syncProductParameters($product->id, $parameters);
 
         $this->syncProductImages(
             $product,
@@ -272,12 +292,7 @@ class ProductService
 
     public function delete(Product $product): void
     {
-        foreach ($product->images as $image) {
-            $this->deleteProductImageFile($image->src);
-            $this->deleteProductImageFile($image->crop_src);
-            $image->delete();
-        }
-
+        // Soft delete: admin tiklay olishi uchun rasmlar saqlanib qoladi
         $product->delete();
     }
 }

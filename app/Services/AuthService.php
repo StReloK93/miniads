@@ -17,13 +17,14 @@ class AuthService
    public function telegramAuth($request)
    {
       $telegram_user = $request->telegram_user;
-      $first_name = $telegram_user['first_name'];
-      $last_name = $telegram_user['last_name'];
+      // Telegramda familiya (va ba'zan username) bo'lmasligi mumkin
+      $first_name = $telegram_user['first_name'] ?? '';
+      $last_name = $telegram_user['last_name'] ?? '';
       $username = $telegram_user['username'] ?? null;
 
       $user = User::updateOrCreate(
          ['telegram_user_id' => $telegram_user['id']],
-         ['name' => "$first_name $last_name", 'username' => "$username"],
+         ['name' => trim("$first_name $last_name"), 'username' => $username],
       );
 
       if (Auth::loginUsingId($user->id)) {
@@ -99,7 +100,7 @@ class AuthService
       sort($data_check_arr);
       $data_check_string = implode("\n", $data_check_arr);
 
-      $bot_token = env('TELEGRAM_BOT_TOKEN'); // .env dagi bot token
+      $bot_token = (string) config('services.telegram.bot_token'); // .env dagi bot token
       $secret_key = hash('sha256', $bot_token, true);
       $hash = hash_hmac('sha256', $data_check_string, $secret_key);
 

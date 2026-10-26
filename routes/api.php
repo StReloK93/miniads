@@ -6,30 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\TelegramAuth;
 
-use DefStudio\Telegraph\Facades\Telegraph;
-use DefStudio\Telegraph\Keyboard\Button;
-use DefStudio\Telegraph\Keyboard\Keyboard;
-
 Route::get('/user', function (Request $request) {
     return $request->user()->load('activeDistrict');
 })->middleware('auth:sanctum');
-
-
-
-
-Route::get('/sendmessage', function (Request $request) {
-    $introText = "Debil";
-
-    return Telegraph::chat('1016647977')
-        ->html($introText)
-        ->keyboard(
-            Keyboard::make()->buttons([
-                Button::make("🚀 E'lon joylash")
-                    ->url('https://t.me/NavoiyElonBot?startapp'),
-            ])
-        )
-        ->send();
-});
 
 Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->middleware(TelegramAuth::class);
 Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetAuth']);
@@ -98,6 +77,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
     Route::apiResource('products', App\Http\Controllers\ProductController::class)->except('update');
     Route::post('/user/change-district', [AuthController::class, 'changeDistrict']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 

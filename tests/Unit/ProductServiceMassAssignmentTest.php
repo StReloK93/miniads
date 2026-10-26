@@ -24,6 +24,12 @@ test('product update ignores client supplied system fields', function () {
         $table->id();
         $table->unsignedBigInteger('product_id');
     });
+    Schema::create('product_parameter_values', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('product_id');
+        $table->unsignedBigInteger('parameter_id');
+        $table->string('value')->nullable();
+    });
 
     try {
         $id = DB::table('products')->insertGetId([
@@ -63,12 +69,13 @@ test('product update ignores client supplied system fields', function () {
             ->and((int) $savedProduct->views_count)->toBe(4)
             ->and($savedProduct->expires_at)->toBe('2026-10-10 00:00:00');
     } finally {
+        Schema::dropIfExists('product_parameter_values');
         Schema::dropIfExists('product_images');
         Schema::dropIfExists('products');
     }
 });
 
-test('product deletion removes images from disk and database while soft deleting product', function () {
+test('product soft deletion keeps images so the product can be restored', function () {
     Schema::create('products', function (Blueprint $table) {
         $table->id();
         $table->string('title');
@@ -113,12 +120,10 @@ test('product deletion removes images from disk and database while soft deleting
         expect($rawProduct)->not->toBeNull()
             ->and($rawProduct->deleted_at)->not->toBeNull();
 
-        // ProductImage row is deleted
+        // Restore qilinganda rasm bilan qaytishi uchun rasm yozuvi va fayl saqlanadi
         $rawImage = DB::table('product_images')->where('id', $imageId)->first();
-        expect($rawImage)->toBeNull();
-
-        // Physical file is deleted from disk
-        expect(File::exists($fakeImagePath))->toBeFalse();
+        expect($rawImage)->not->toBeNull()
+            ->and(File::exists($fakeImagePath))->toBeTrue();
     } finally {
         if (File::exists($fakeImagePath)) {
             File::delete($fakeImagePath);

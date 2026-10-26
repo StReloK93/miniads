@@ -32,10 +32,26 @@ class AuthController extends Controller
 
 	public function changeDistrict(Request $request)
 	{
+		$request->validate([
+			'district_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
+				// 0 = "Barcha shaharlar"
+				if ((int) $value !== 0 && !\App\Models\District::whereKey($value)->exists()) {
+					$fail("Tanlangan shahar topilmadi.");
+				}
+			}],
+		]);
+
 		$user = $request->user();
 		$user->active_district_id = $request->district_id != 0 ? $request->input('district_id') : null;
 		$user->save();
 
 		return $user->load('activeDistrict');
+	}
+
+	public function logout(Request $request)
+	{
+		$this->authService->logout($request);
+
+		return response()->json(['message' => 'Tizimdan chiqildi']);
 	}
 }

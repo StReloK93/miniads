@@ -22,7 +22,7 @@ class CategoryController extends Controller
 	}
 	public function parents($parent_id = null)
 	{
-		$key = 'categories:parents:' . ($parent_id ?? 'root');
+		$key = 'categories:v' . Category::cacheVersion() . ':parents:' . ($parent_id ?? 'root');
 
 		return Cache::remember($key, now()->addMinutes(15), function () use ($parent_id, $key) {
 			return Category::where('parent_id', $parent_id)

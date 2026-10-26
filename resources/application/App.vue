@@ -1,11 +1,15 @@
 <template>
-   <section class="w-dvw h-dvh overflow-hidden no-scrollbar relative">
-      <RouterView v-slot="{ Component, route }">
-         <transition :name="animationName" mode="out-in">
-            <component :is="Component" :key="route.meta.layoutKey" @vue:mounted="onComponentMounted" />
-         </transition>
-      </RouterView>
-   </section>
+   <div class="min-h-dvh w-full flex justify-center bg-slate-100 dark:bg-[#070a12]">
+      <section
+         class="w-full h-dvh overflow-hidden no-scrollbar relative bg-(--z-background) sm:max-w-[500px] sm:border-x sm:border-(--z-border) sm:shadow-2xl"
+      >
+         <RouterView v-slot="{ Component, route }">
+            <transition :name="animationName" mode="out-in">
+               <component :is="Component" :key="route.meta.layoutKey" @vue:mounted="onComponentMounted" />
+            </transition>
+         </RouterView>
+      </section>
+   </div>
 </template>
 
 <script setup lang="ts">

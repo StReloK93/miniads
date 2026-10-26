@@ -288,6 +288,7 @@ import { IProduct } from "@shared/types";
 import { preloadImages } from "@/modules/Helpers";
 import { AlertCircle, ArrowLeft, ChevronRight, Heart, Home, Layers, MapPin, MessageCircle, Phone, Search, Sparkles, X } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
+import { requireAuth } from "@/modules/requireAuth";
 import { postEvent } from "@tma.js/bridge";
 
 const route = useRoute();
@@ -342,6 +343,8 @@ function onSwiperClick(_swiper: unknown, event: MouseEvent | PointerEvent | Touc
 function callPhone(phone: string) {
    if (isTMA()) {
       window.open(`tel:${phone}`);
+   } else {
+      window.location.href = `tel:${phone}`;
    }
 }
 
@@ -359,6 +362,12 @@ function openSellerChat(product: IProduct) {
    const text = `Assalomu alaykum, "${product.title}" e'loni bo'yicha yozyabman.`;
 
    const pathFull = `${username}?text=${encodeURIComponent(text)}`;
+
+   if (!isTMA()) {
+      // Brauzerda: Telegram ilovasi yoki web.telegram orqali ochiladi
+      window.open(`https://t.me/${pathFull}`, "_blank", "noopener");
+      return;
+   }
 
    postEvent("web_app_open_tg_link", {
       path_full: pathFull,
@@ -384,7 +393,7 @@ const viewCount = computed(() => {
 const isFavoriteButtonLoading = ref(false);
 
 async function toggleFavorite() {
-   if (!product.value) return;
+   if (!product.value || !requireAuth()) return;
    isFavoriteButtonLoading.value = true;
 
    if (product.value.is_favorite) {

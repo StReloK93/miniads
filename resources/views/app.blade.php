@@ -95,7 +95,9 @@
 			}
 		} catch (e) {}
 		var ENV = {
-			TELEGRAM_BOT_NAME: "{{ env('TELEGRAM_BOT_NAME') }}"
+			TELEGRAM_BOT_NAME: "{{ config('services.telegram.bot_name') }}",
+			// Bot ID — tokenning ":" dan oldingi qismi, ochiq ma'lumot (Telegram login oynasi uchun kerak)
+			TELEGRAM_BOT_ID: "{{ \Illuminate\Support\Str::before((string) config('services.telegram.bot_token'), ':') }}"
 		}
 	</script>
 </head>

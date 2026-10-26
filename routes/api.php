@@ -5,6 +5,7 @@ use App\Http\Controllers\TelegramController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\TelegramAuth;
+use App\Http\Middleware\OptionalSanctumAuth;
 
 Route::get('/user', function (Request $request) {
     return $request->user()->load('activeDistrict');
@@ -23,7 +24,15 @@ if (app()->environment('local')) {
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents/{id?}', 'parents');
-    Route::get('categories/{id}/products', 'products');
+    Route::get('categories/{id}/products', 'products')->middleware(OptionalSanctumAuth::class);
+});
+
+// E'lonlarni ko'rish ro'yxatdan o'tmagan foydalanuvchilar uchun ham ochiq
+Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\ProductController::class)->group(function () {
+    Route::get('/products/custom/feed', 'feed');
+    Route::get('/products/custom/latest_ten', 'latestTen');
+    Route::get('/products/custom/search', 'search');
+    Route::get('/products/{id}', 'show')->whereNumber('id');
 });
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->only('index', 'show');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class)->only('index', 'show');
@@ -64,10 +73,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/back-colors', [App\Http\Controllers\BackColorController::class, 'index']);
 
-    Route::get('/products/custom/feed', [App\Http\Controllers\ProductController::class, 'feed']);
-    Route::get('/products/custom/latest_ten', [App\Http\Controllers\ProductController::class, 'latestTen']);
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
-    Route::get('/products/custom/search', [App\Http\Controllers\ProductController::class, 'search']);
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
     Route::post('/products/{id}', [App\Http\Controllers\ProductController::class, 'update']);
@@ -75,7 +81,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
     Route::apiResource('favorites', App\Http\Controllers\FavoriteController::class)->only('index', 'store', 'destroy');
-    Route::apiResource('products', App\Http\Controllers\ProductController::class)->except('update');
+    Route::apiResource('products', App\Http\Controllers\ProductController::class)->except('update', 'show');
     Route::post('/user/change-district', [AuthController::class, 'changeDistrict']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });

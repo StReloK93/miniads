@@ -1,0 +1,1 @@
+import{$ as i,Z as n,i as a}from"./ui-C2SARsHq.js";const o="districts",r={index(){return i.get(`${o}`)}},u=n("useCity",()=>{const t=a(null);async function s(){const{data:e}=await r.index();t.value=e}return{cities:t,getCities:s}});export{r as D,u};

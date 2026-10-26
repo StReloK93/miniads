@@ -97,6 +97,7 @@ import { getCategoryVisual } from "@shared/modules/categoryIcons";
 import { IProduct } from "@shared/types";
 import { computed, ref } from "vue";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
+import { requireAuth } from "@/modules/requireAuth";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 
@@ -128,6 +129,7 @@ const categoryVisual = computed(() => getCategoryVisual(props.product.category?.
 const isFavoriteButtonLoading = ref(false);
 
 async function toggleFavorite() {
+   if (!requireAuth()) return;
    isFavoriteButtonLoading.value = true;
    try {
       if (props.product.is_favorite) {

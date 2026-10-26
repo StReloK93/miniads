@@ -30,6 +30,7 @@ return [
 
     'telegram' => [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+        'bot_name' => env('TELEGRAM_BOT_NAME'),
         'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL'),
     ],
 

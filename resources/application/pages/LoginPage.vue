@@ -1,32 +1,30 @@
 <template>
-   <main class="h-dvh flex items-center justify-center flex-col">
-      <h3 class="text-tertiary font-semibold text-xl py-4">Dasturga kiring</h3>
-      <div ref="telegramWrapper"></div>
+   <main class="h-full overflow-y-auto no-scrollbar px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*6)]">
+      <BackPreviusPage title="Kirish" />
+      <TelegramLoginCard
+         class="pt-10"
+         :title="redirect?.startsWith('/select-category') ? 'E\'lon joylash uchun kiring' : 'Telegram orqali kiring'"
+         @success="onSuccess"
+      />
    </main>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
-import { useAuth } from "@shared/store/useAuth";
-const { widgetTelegramAuth } = useAuth();
-const telegramWrapper = ref(null);
+<script setup lang="ts">
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import BackPreviusPage from "@/components/BackPreviusPage.vue";
+import TelegramLoginCard from "@/components/TelegramLoginCard.vue";
 
-onMounted(() => {
-   // Telegram taqdim etgan scriptni yaratamiz
-   const script = document.createElement("script");
-   script.async = true;
-   script.src = `https://telegram.org/js/telegram-widget.js`;
+const route = useRoute();
+const router = useRouter();
 
-   script.setAttribute("data-telegram-login", ENV.TELEGRAM_BOT_NAME);
-   script.setAttribute("data-size", "large");
-   script.setAttribute("data-radius", "2");
-   script.setAttribute("data-onauth", "onTelegramAuth(user)");
-   script.setAttribute("data-request-access", "write");
-
-   telegramWrapper.value.appendChild(script);
-
-   window.onTelegramAuth = (user) => {
-      widgetTelegramAuth(user);
-   };
+// Faqat ilova ichidagi manzillarga qaytaramiz
+const redirect = computed(() => {
+   const value = route.query.redirect;
+   return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : null;
 });
+
+function onSuccess() {
+   router.replace(redirect.value ?? { name: "home" });
+}
 </script>

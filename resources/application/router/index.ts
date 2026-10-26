@@ -22,6 +22,11 @@ router.beforeEach((to, from, next) => {
    if (to.meta.guestOnly && AuthStore.user) {
       return next({ name: "home" });
    }
+
+   if (to.meta.requiresAuth && !AuthStore.user) {
+      return next({ name: "login", query: { redirect: to.fullPath } });
+   }
+
    return next();
 });
 

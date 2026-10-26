@@ -1,0 +1,1 @@
+import{Z as r,i as o}from"./ui-C2SARsHq.js";import{C as s}from"./CategoryRepo-CLte7o2f.js";const g=r("useCategory",()=>{const e=o();async function t(){const{data:a}=await s.parents();e.value=a}return{parentCategories:e,getParentCategories:t}});export{g as u};

@@ -18,6 +18,10 @@ export default {
    async parents() {
       return await api.get<ICategory[]>(`${baseURL}/parents`);
    },
+   /** Har bir kategoriyadagi faol e'lonlar soni: { [category_id]: soni } */
+   counts() {
+      return api.get<Record<number, number>>(`${baseURL}/counts`);
+   },
    products(categoryId: string) {
       return api.get<ICategory>(`${baseURL}/${categoryId}/products`);
    },

@@ -31,6 +31,10 @@ return [
     'telegram' => [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
         'bot_name' => env('TELEGRAM_BOT_NAME'),
+        // E'lonlar va admin postlari yuboriladigan kanallar (vergul bilan bir nechta)
+        'channels' => array_values(array_filter(array_map('trim', explode(',', env('TELEGRAM_CHANNELS', '-1003997124291'))))),
+        // Kanal postidagi "E'lon joylash" tugmasi uchun standart havola
+        'mini_app_url' => env('TELEGRAM_MINI_APP_URL', 'https://t.me/NavoiyElonBot'),
         'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL'),
     ],
 

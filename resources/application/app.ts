@@ -37,6 +37,7 @@ const initApp = async () => {
 
          try {
             await authStore.signInTelegram(initData);
+            router.push({ name: "home" });
          } catch (error) {
             console.error("Telegram Mini App authentication failed.", error);
          }
@@ -52,6 +53,7 @@ const initApp = async () => {
          if (isLocalhost && !authStore.user) {
             try {
                await authStore.testAuth();
+               router.push({ name: "home" });
             } catch (error) {
                console.error("Development authentication failed.", error);
             }
@@ -65,8 +67,10 @@ const initApp = async () => {
       try {
          await router.isReady();
 
+         // Bot havolasi (startapp=product_123 / create): bosh sahifa ustiga ochamiz (replace emas),
+         // shunda "orqaga" bosilganda foydalanuvchi bosh sahifaga qaytadi
          if (startRoute) {
-            await router.replace(startRoute);
+            await router.push(startRoute);
          }
       } catch (error) {
          console.error("Application initial navigation failed.", error);

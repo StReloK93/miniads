@@ -50,3 +50,16 @@ test('actions that need an account still require login', function () {
     $this->getJson("/api/products/{$this->product->id}/edit")->assertUnauthorized();
     $this->deleteJson("/api/products/{$this->product->id}")->assertUnauthorized();
 });
+
+test('category counts include only active, not deleted ads', function () {
+    $categoryId = $this->product->category_id;
+    $base = ['category_id' => $categoryId, 'user_id' => $this->owner->id, 'price_type_id' => 1];
+
+    Product::create([...$base, 'title' => 'Faol 2', 'expires_at' => now()->addDay()]);
+    Product::create([...$base, 'title' => 'Muddati o\'tgan', 'expires_at' => now()->subDay()]);
+    Product::create([...$base, 'title' => 'O\'chirilgan', 'expires_at' => now()->addDay()])->delete();
+
+    $this->getJson('/api/categories/counts')
+        ->assertOk()
+        ->assertExactJson([(string) $categoryId => 2]);
+});

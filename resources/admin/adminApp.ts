@@ -5,9 +5,12 @@ import router from "@admin/router";
 import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/composables/useTheme";
 import "@shared/css/ui.scss";
+import { responsiveTable } from "@admin/modules/responsiveTable";
 initTheme();
 const app = createApp(App);
 app.use(createPinia());
+// Telefonda jadval qatorlari kartaga aylanadi
+app.directive("responsive-table", responsiveTable);
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {

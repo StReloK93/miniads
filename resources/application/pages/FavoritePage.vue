@@ -9,8 +9,8 @@
 </template>
 
 <script setup lang="ts">
-import FavoriteList from "@/components/FavoriteList.vue";
-import GuestLoginPage from "@/components/GuestLoginPage.vue";
+import FavoriteList from "@/features/favorites/FavoriteList.vue";
+import GuestLoginPage from "@/features/auth/GuestLoginPage.vue";
 import { useAuth } from "@shared/store/useAuth";
 
 const authStore = useAuth();

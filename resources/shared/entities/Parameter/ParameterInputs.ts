@@ -1,5 +1,5 @@
 import AdminField from "@shared/ui/AdminField.vue";
-import { Inputs } from "@/modules/Inputs";
+import { Inputs } from "@shared/ui/inputs";
 import { InputConfig } from "@shared/types";
 import z from "zod";
 
@@ -54,18 +54,19 @@ export const parameterInputs: InputConfig[] = [
    },
 ];
 
+// Birinchi ustun — nom: telefonda jadval kartaga aylanganda u karta sarlavhasi bo'ladi
 export const parameterColumns = [
-   { field: "id", header: "ID" },
-   { field: "title", header: "Title" },
-   { field: "placeholder", header: "Placeholder" },
+   { field: "title", header: "Nomi" },
+   { field: "placeholder", header: "Namuna matn" },
    { field: "component", header: "Input turi" },
-   { field: "type", header: "Malumot turi" },
+   { field: "type", header: "Ma'lumot turi" },
    { field: "unit", header: "O'lchov birligi" },
    {
       field: "options",
       header: "Variantlar",
       formatter: (items: any[]): any[] => items,
    },
+   { field: "id", header: "ID" },
 ];
 
 export const superRefine = (data: Record<string, unknown>, ctx: z.RefinementCtx) => {

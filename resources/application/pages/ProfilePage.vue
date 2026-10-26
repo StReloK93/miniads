@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import ProfileAccount from "@/components/ProfileAccount.vue";
-import GuestLoginPage from "@/components/GuestLoginPage.vue";
+import ProfileAccount from "@/features/profile/ProfileAccount.vue";
+import GuestLoginPage from "@/features/auth/GuestLoginPage.vue";
 import { useAuth } from "@shared/store/useAuth";
 
 const authStore = useAuth();

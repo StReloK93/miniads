@@ -47,7 +47,6 @@ export default defineConfig({
          // '@' belgisini resources/ts papkasiga yo'naltiramiz
          "@": resolve(__dirname, "resources/application"),
          "@pages": resolve(__dirname, "resources/application/pages"),
-         "@components": resolve(__dirname, "resources/application/components"),
 
          "@admin": resolve(__dirname, "resources/admin"),
          "@shared": resolve(__dirname, "resources/shared"),

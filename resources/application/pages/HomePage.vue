@@ -1,17 +1,14 @@
 <template>
-   <NavigationPageDecorator
-      :header-class="['border-b', 'border-(--z-border)']"
-      @scroll="onScroll"
-   >
+   <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']" @scroll="onScroll">
       <template #header>
-         <BaseChangeDistrictModal @district-changed="onDistrictChanged" />
+         <DistrictSwitcher @district-changed="onDistrictChanged" />
          <CategoriesSlider />
       </template>
 
       <template #content>
          <!-- Dastlabki yuklanish skeletlari -->
-         <main v-if="isLoadingInitial" class="flex flex-col gap-4">
-            <BaseSkeletonCard v-for="n in 3" :key="`skeleton-${n}`" />
+         <main v-if="isLoadingInitial" class="flex flex-col gap-2.5">
+            <ProductCardSkeleton v-for="n in 3" :key="`skeleton-${n}`" />
          </main>
 
          <!-- Bo'sh holat -->
@@ -19,28 +16,27 @@
             v-else-if="products.length === 0"
             class="flex flex-col items-center justify-center py-16 text-center text-(--z-muted-text)"
          >
-            <div class="size-14 rounded-full bg-(--z-card) border border-(--z-border) flex items-center justify-center mb-3">
+            <div
+               class="size-14 rounded-full bg-(--z-card) border border-(--z-border) flex items-center justify-center mb-3"
+            >
                <PackageOpen class="size-6 text-(--z-muted-text)" />
             </div>
             <p class="font-medium text-sm text-(--z-foreground)">Hozircha e'lonlar mavjud emas</p>
-            <p class="text-xs mt-1 max-w-[240px]">Tanlangan hudud bo'yicha e'lonlar topilmadi. Shaharni o'zgartirib ko'ring.</p>
+            <p class="text-xs mt-1 max-w-60">
+               Tanlangan hudud bo'yicha e'lonlar topilmadi. Shaharni o'zgartirib ko'ring.
+            </p>
          </main>
 
          <!-- E'lonlar ro'yxati (Cheksiz scroll) -->
-         <main v-else class="flex flex-col gap-4">
-            <BaseProductCard
-               v-for="product in products"
-               :key="product.id"
-               :product="product"
-            />
+         <main v-else class="flex flex-col gap-2.5">
+            <ProductCard v-for="product in products" :key="product.id" :product="product" />
 
             <!-- Infinite Scroll Triggiri va Yuklanish animatsiyasi -->
             <div ref="loadMoreTrigger" class="py-2 flex items-center justify-center min-h-10">
-               <div
-                  v-if="isLoadingMore"
-                  class="flex items-center gap-2 text-xs font-medium text-(--z-muted-text) py-2"
-               >
-                  <span class="size-4 border-2 border-(--z-primary) border-t-transparent rounded-full animate-spin"></span>
+               <div v-if="isLoadingMore" class="flex items-center gap-2 text-xs font-medium text-(--z-muted-text) py-2">
+                  <span
+                     class="size-4 border-2 border-(--z-primary) border-t-transparent rounded-full animate-spin"
+                  ></span>
                   <span>Yana yuklanmoqda...</span>
                </div>
                <div
@@ -56,11 +52,11 @@
 </template>
 
 <script setup lang="ts">
-import BaseChangeDistrictModal from "@/components/BaseChangeDistrictModal.vue";
-import BaseSkeletonCard from "@/components/BaseSkeletonCard.vue";
-import CategoriesSlider from "@/components/CategoriesSlider.vue";
-import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
-import BaseProductCard from "@/components/BaseProductCard.vue";
+import DistrictSwitcher from "@/features/district/DistrictSwitcher.vue";
+import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
+import CategoriesSlider from "@/features/category/CategoriesSlider.vue";
+import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
+import ProductCard from "@/features/product/ProductCard.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { IProduct } from "@shared/types";
 import { PackageOpen } from "lucide-vue-next";
@@ -141,7 +137,7 @@ function setupIntersectionObserver() {
       },
       {
          rootMargin: "300px",
-      }
+      },
    );
 
    observer.observe(loadMoreTrigger.value);

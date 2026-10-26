@@ -3,25 +3,18 @@
       <header class="admin-page-heading">
          <div>
             <h1>Avto-e'lonlar Boti</h1>
-            <p class="admin-muted">Ochiq Telegram kanallardan e'lonlarni skrap qilib platformaga joylashni avtomatlashtirish.</p>
+            <p class="admin-muted">
+               Ochiq Telegram kanallardan e'lonlarni skrap qilib platformaga joylashni avtomatlashtirish.
+            </p>
          </div>
          <div class="flex items-center gap-2">
-            <BaseButton
-               severity="secondary"
-               size="sm"
-               :disabled="runningBatch"
-               @click="runBatchNow"
-            >
+            <BaseButton severity="secondary" size="sm" :disabled="runningBatch" @click="runBatchNow">
                <template #icon>
                   <RefreshCw class="size-4" :class="{ 'animate-spin': runningBatch }" />
                </template>
                {{ runningBatch ? "Yuklanmoqda..." : "Hozir 1 sikl ishga tushirish" }}
             </BaseButton>
-            <BaseButton
-               size="sm"
-               :disabled="saving"
-               @click="saveSettings"
-            >
+            <BaseButton size="sm" :disabled="saving" @click="saveSettings">
                <template #icon><Save class="size-4" /></template>
                {{ saving ? "Saqlanmoqda..." : "Saqlash" }}
             </BaseButton>
@@ -67,7 +60,9 @@
             <div class="w-full bg-(--z-muted) h-1.5 rounded-full mt-2 overflow-hidden">
                <div
                   class="bg-(--z-primary) h-full rounded-full transition-all duration-500"
-                  :style="{ width: `${Math.min(100, Math.round((stats.today_imported_count / (form.daily_limit || 1)) * 100))}%` }"
+                  :style="{
+                     width: `${Math.min(100, Math.round((stats.today_imported_count / (form.daily_limit || 1)) * 100))}%`,
+                  }"
                />
             </div>
          </div>
@@ -75,7 +70,9 @@
          <!-- Total Bot Ads -->
          <div class="admin-panel p-4 flex flex-col justify-between">
             <div class="flex items-center justify-between">
-               <span class="text-xs font-semibold text-(--z-muted-text) uppercase tracking-wider">Jami Bot E'lonlari</span>
+               <span class="text-xs font-semibold text-(--z-muted-text) uppercase tracking-wider"
+                  >Jami Bot E'lonlari</span
+               >
                <Bot class="size-4 text-(--z-muted-text)" />
             </div>
             <div class="mt-3 flex items-baseline gap-1">
@@ -88,15 +85,17 @@
          <!-- Last Run -->
          <div class="admin-panel p-4 flex flex-col justify-between">
             <div class="flex items-center justify-between">
-               <span class="text-xs font-semibold text-(--z-muted-text) uppercase tracking-wider">Oxirgi Ishga Tushish</span>
+               <span class="text-xs font-semibold text-(--z-muted-text) uppercase tracking-wider"
+                  >Oxirgi Ishga Tushish</span
+               >
                <Clock class="size-4 text-(--z-muted-text)" />
             </div>
             <div class="mt-3">
                <span class="text-lg font-semibold text-(--z-foreground)">{{ stats.last_run_at }}</span>
             </div>
             <p class="text-xs text-(--z-muted-text) mt-1">
-               AI bugun: {{ stats.ai_usage.requests }} so'rov ·
-               {{ formatTokens(stats.ai_usage.tokens) }} / {{ formatTokens(stats.ai_usage.limit) }} token
+               AI bugun: {{ stats.ai_usage.requests }} so'rov · {{ formatTokens(stats.ai_usage.tokens) }} /
+               {{ formatTokens(stats.ai_usage.limit) }} token
                <span v-if="stats.ai_model">· {{ stats.ai_model }}</span>
             </p>
          </div>
@@ -116,7 +115,9 @@
                   <!-- Big Toggle Switch -->
                   <label class="relative inline-flex items-center cursor-pointer">
                      <input v-model="form.is_enabled" type="checkbox" class="sr-only peer" />
-                     <div class="w-13 h-7 bg-(--z-muted) peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[4px] after:bg-white after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                     <div
+                        class="w-13 h-7 bg-(--z-muted) peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.75 after:left-1 after:bg-white after:rounded-full after:h-5.5 after:w-5.5 after:transition-all peer-checked:bg-emerald-500"
+                     ></div>
                   </label>
                </div>
 
@@ -175,7 +176,8 @@
                      placeholder="@navoiy_bozor&#10;@karmana_bozor&#10;@zar_bozor"
                   ></textarea>
                   <p class="text-[11px] text-(--z-muted-text) mt-1">
-                     Kanal ommaviy (public) bo'lishi shart. Username'ni <code>@kanal</code> yoki <code>t.me/kanal</code> ko'rinishida kiritish mumkin.
+                     Kanal ommaviy (public) bo'lishi shart. Username'ni <code>@kanal</code> yoki
+                     <code>t.me/kanal</code> ko'rinishida kiritish mumkin.
                   </p>
                </div>
             </div>
@@ -189,13 +191,19 @@
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
                      <input v-model="form.telegram_post_enabled" type="checkbox" class="sr-only peer" />
-                     <div class="w-11 h-6 bg-(--z-muted) peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-(--z-primary)"></div>
+                     <div
+                        class="w-11 h-6 bg-(--z-muted) peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-(--z-primary)"
+                     ></div>
                   </label>
                </div>
 
                <div v-if="form.telegram_post_enabled" class="flex flex-col gap-4">
-                  <div class="p-3 rounded-lg bg-(--z-muted)/40 border border-(--z-border) text-xs text-(--z-muted-text) leading-relaxed">
-                     💡 <strong>Qoida:</strong> Kanalga har bir soatlik siklda <strong>faqat 1 ta</strong> eng sifatli (rasmi va narxi bor) e'lon yuboriladi. Haqiqiy foydalanuvchilar e'loni esa navbatsiz, doim darhol kanalga boradi.
+                  <div
+                     class="p-3 rounded-lg bg-(--z-muted)/40 border border-(--z-border) text-xs text-(--z-muted-text) leading-relaxed"
+                  >
+                     💡 <strong>Qoida:</strong> Kanalga har bir soatlik siklda <strong>faqat 1 ta</strong> eng sifatli
+                     (rasmi va narxi bor) e'lon yuboriladi. Haqiqiy foydalanuvchilar e'loni esa navbatsiz, doim darhol
+                     kanalga boradi.
                   </div>
 
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -247,9 +255,7 @@
                </div>
 
                <div>
-                  <label class="block text-xs font-semibold text-(--z-foreground) mb-1.5">
-                     AI Provayder
-                  </label>
+                  <label class="block text-xs font-semibold text-(--z-foreground) mb-1.5"> AI Provayder </label>
                   <FieldSelect
                      v-model="form.ai_provider"
                      :options="[
@@ -261,9 +267,7 @@
                </div>
 
                <div v-if="form.ai_provider !== 'regex'">
-                  <label class="block text-xs font-semibold text-(--z-foreground) mb-1.5">
-                     API Kalit (API Key)
-                  </label>
+                  <label class="block text-xs font-semibold text-(--z-foreground) mb-1.5"> API Kalit (API Key) </label>
                   <input
                      v-model="form.ai_api_key"
                      type="password"
@@ -271,11 +275,14 @@
                      placeholder="AI_API_KEY..."
                   />
                   <p class="text-[11px] text-(--z-muted-text) mt-1">
-                     Kiritmasangiz, <code>.env</code> faylidagi <code>GEMINI_API_KEY</code> yoki <code>OPENAI_API_KEY</code> ishlatiladi.
+                     Kiritmasangiz, <code>.env</code> faylidagi <code>GEMINI_API_KEY</code> yoki
+                     <code>OPENAI_API_KEY</code> ishlatiladi.
                   </p>
                </div>
 
-               <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400">
+               <div
+                  class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400"
+               >
                   ✨ <strong>Google Gemini Flash:</strong> Kuniga 1500 tagacha so'rov mutlaqo bepul taqdim etiladi.
                </div>
             </div>
@@ -285,7 +292,10 @@
                <h3 class="font-bold text-base text-(--z-foreground)">Qanday ishlaydi?</h3>
                <ul class="text-xs text-(--z-muted-text) flex flex-col gap-2 list-disc list-inside leading-relaxed">
                   <li><strong>Cron:</strong> Serverdagi cron har 1 soatda avtomatik ushbu botni ishga tushiradi.</li>
-                  <li><strong>Filtr:</strong> Telefon raqami yoki Telegram kontakti bo'lmagan xabarlar tashlab yuboriladi.</li>
+                  <li>
+                     <strong>Filtr:</strong> Telefon raqami yoki Telegram kontakti bo'lmagan xabarlar tashlab
+                     yuboriladi.
+                  </li>
                   <li><strong>Dublikat:</strong> Bir xil e'lonlar xesh orqali tekshirilib, qayta qo'yilmaydi.</li>
                   <li><strong>Suratlar:</strong> Rasmlar avtomatik yuklanib, ixcham WebP formatida saqlanadi.</li>
                </ul>

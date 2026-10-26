@@ -15,6 +15,7 @@
             v-if="CategoryStore?.parentCategories?.length"
             :activeCategoryId="activeCategoryId"
             :categories="CategoryStore?.parentCategories"
+            :counts="CategoryStore.counts"
             @selectCategory="(category) => $router.push({ name: 'category', params: { id: category.id } })"
          />
       </template>
@@ -22,13 +23,16 @@
 </template>
 
 <script setup lang="ts">
-import NavigationPageDecorator from "@components/NavigationPageDecorator.vue";
+import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import { useRoute } from "vue-router";
 import { useCategory } from "@shared/entities/Category/useCategory";
-import CategorySelector from "@components/CategorySelector.vue";
-import { computed } from "vue";
+import CategorySelector from "@/features/category/CategorySelector.vue";
+import { computed, onMounted } from "vue";
 
 const CategoryStore = useCategory();
+
+// Sonlar kelmasa ham sahifa ishlaydi — shunchaki "N ta bo'lim" ko'rinadi
+onMounted(() => CategoryStore.getCounts().catch(() => {}));
 
 const route = useRoute();
 

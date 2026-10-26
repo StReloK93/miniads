@@ -17,8 +17,8 @@
          </main>
       </template>
       <template #content>
-         <div v-show="fullMountedPage" class="grid grid-cols-1 gap-4">
-            <BaseProductCard v-for="product in category?.products" :key="product.id" :product />
+         <div v-show="fullMountedPage" class="grid grid-cols-1 gap-2.5">
+            <ProductCard v-for="product in category?.products" :key="product.id" :product />
          </div>
          <template v-if="!fullMountedPage">
             <main class="h-full flex justify-center items-center flex-col px-12">
@@ -38,16 +38,16 @@
 </template>
 
 <script setup lang="ts">
-import { buildBreadcrumb } from "@/modules/Helpers";
-import { preloadImages } from "@/modules/Helpers";
+import { buildBreadcrumb } from "@shared/modules/helpers";
+import { preloadImages } from "@shared/modules/helpers";
 import { useRouter } from "vue-router";
-import BaseProductCard from "@/components/BaseProductCard.vue";
+import ProductCard from "@/features/product/ProductCard.vue";
 import { onMounted, ref } from "vue";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import { useRoute } from "vue-router";
 import { ICategory } from "@shared/types";
-import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import { ChevronRight } from "lucide-vue-next";
 
 const route = useRoute();

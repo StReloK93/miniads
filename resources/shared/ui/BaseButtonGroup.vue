@@ -6,7 +6,8 @@
          @click.stop="option.onClick?.()"
          type="button"
          :class="[
-            'inline-flex items-center gap-2 w-11 h-11 justify-center text-xs font-medium first:rounded-l-full active:scale-95 last:rounded-r-full transition-colors',
+            'inline-flex items-center gap-2 justify-center text-xs font-medium first:rounded-l-full active:scale-95 last:rounded-r-full transition-colors',
+            props.size === 'sm' ? 'w-8.5 h-8.5' : 'w-11 h-11',
             option.class || 'text-(--z-primary) focus:bg-(--z-primary)/10',
          ]"
       >
@@ -33,9 +34,11 @@ export interface ButtonOption {
 const props = withDefaults(
    defineProps<{
       options?: ButtonOption[];
+      size?: "sm" | "md";
    }>(),
    {
       options: (): ButtonOption[] => [],
+      size: "md",
    },
 );
 </script>

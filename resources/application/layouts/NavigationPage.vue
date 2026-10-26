@@ -5,12 +5,12 @@
             <component :is="Component" :key="route.name" />
          </transition>
       </router-view>
-      <BaseBottomNavigator
+      <BottomNavigator
          class="absolute bottom-[calc(var(--safe-area-bottom)+var(--spacing)*2)] left-2 right-2 z-100"
       />
    </main>
 </template>
 
 <script setup lang="ts">
-import BaseBottomNavigator from "@/components/BaseBottomNavigator.vue";
+import BottomNavigator from "@/layouts/BottomNavigator.vue";
 </script>

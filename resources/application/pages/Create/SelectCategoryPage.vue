@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import CategorySelector from "@components/CategorySelector.vue";
+import CategorySelector from "@/features/category/CategorySelector.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";

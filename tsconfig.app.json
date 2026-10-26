@@ -10,7 +10,6 @@
       "moduleResolution": "bundler",
       "paths": {
          "@/*": ["./resources/application/*"],
-         "@components/*": ["./resources/application/components/*"],
          "@pages/*": ["./resources/application/pages/*"],
          "@admin/*": ["./resources/admin/*"],
          "@shared/*": ["./resources/shared/*"]

@@ -373,6 +373,52 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Kanal posti formasi uchun standart qiymatlar.
+     */
+    public function channelPostDefaults()
+    {
+        return response()->json([
+            'channels' => \App\Services\TelegramProductService::channels(),
+            'button_text' => "E'lon joylash",
+            'button_url' => rtrim(config('services.telegram.mini_app_url'), '/') . '?startapp=create',
+        ]);
+    }
+
+    /**
+     * Kanal(lar)ga ixtiyoriy post: matn, ixtiyoriy rasm va ixtiyoriy tugma (matni va havolasi admin tomonidan).
+     */
+    public function sendChannelPost(Request $request, \App\Services\ChannelPostService $service)
+    {
+        $hasPhoto = $request->hasFile('photo');
+
+        $validated = $request->validate([
+            // Rasmli postda Telegram izoh (caption) uzunligi 1024 belgi bilan cheklangan
+            'text' => ['required', 'string', 'max:' . ($hasPhoto ? 1024 : 4096)],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:20480'],
+            'button_text' => ['nullable', 'required_with:button_url', 'string', 'max:64'],
+            'button_url' => ['nullable', 'required_with:button_text', 'string', 'max:512', 'regex:/^(https?:\/\/|tg:\/\/)\S+$/i'],
+        ], [
+            'button_url.regex' => "Havola https://, http:// yoki tg:// bilan boshlanishi kerak.",
+        ]);
+
+        try {
+            $sent = $service->send(
+                $validated['text'],
+                $request->file('photo'),
+                $validated['button_text'] ?? null,
+                $validated['button_url'] ?? null,
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['message' => "Telegram postni qabul qilmadi: {$e->getMessage()}"], 422);
+        }
+
+        return response()->json([
+            'message' => count($sent) > 1 ? count($sent) . " ta kanalga yuborildi." : "Post kanalga yuborildi.",
+            'sent' => $sent,
+        ]);
+    }
+
     private function isActive(Product $product): bool
     {
         return ! $product->trashed()

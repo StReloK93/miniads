@@ -24,6 +24,7 @@ if (app()->environment('local')) {
 
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents/{id?}', 'parents');
+    Route::get('/categories/counts', 'counts');
     Route::get('categories/{id}/products', 'products')->middleware(OptionalSanctumAuth::class);
 });
 
@@ -53,6 +54,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('bot-settings', 'getBotSettings');
         Route::post('bot-settings', 'updateBotSettings');
         Route::post('bot-settings/run-now', 'runBotImport');
+        Route::get('channel-post', 'channelPostDefaults');
+        Route::post('channel-post', 'sendChannelPost');
     });
 
     Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {

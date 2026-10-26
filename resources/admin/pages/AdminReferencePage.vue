@@ -101,7 +101,7 @@
       <section class="admin-panel admin-table-panel">
          <div v-if="loading" class="admin-loading">Ro'yxat yuklanmoqda…</div>
          <div v-else class="admin-table-wrap">
-            <table class="admin-table">
+            <table v-responsive-table class="admin-table">
                <thead>
                   <tr>
                      <th>Nomi</th>

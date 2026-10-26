@@ -51,9 +51,7 @@
 
                         <!-- Body -->
                         <div class="mt-4">
-                           <slot>
-                              <p class="text-sm leading-6 text-(--z-muted-text)">Bu yerga modal ichidagi content yoziladi.</p>
-                           </slot>
+                           <slot />
                         </div>
 
                         <!-- Footer -->

@@ -1,15 +1,23 @@
 import { defineStore } from "pinia";
 import { ref, Ref } from "vue";
-import router from "@/router";
 import { api } from "@shared/composables/useFetch";
+import { IUser } from "@shared/types";
 
 const TOKEN_KEY = "token";
 
-export const useAuth = defineStore("useAuth", () => {
-   const user: Ref = ref(null);
-   const token: Ref = ref(null);
+interface IAuthResponse {
+   type: string;
+   token: string;
+   user: IUser;
+}
 
-   function setSession(result: { type: string; token: string; user: any }) {
+// Store faqat sessiyani boshqaradi. Login/logoutdan keyin qayerga o'tishni chaqiruvchi (sahifa yoki app.ts) hal qiladi,
+// shuning uchun bu fayl ikkala ilovada (app va admin) bir xil ishlaydi.
+export const useAuth = defineStore("useAuth", () => {
+   const user: Ref<IUser | null> = ref(null);
+   const token: Ref<string | null> = ref(null);
+
+   function setSession(result: IAuthResponse) {
       const value = `${result.type} ${result.token}`;
       localStorage.setItem(TOKEN_KEY, value);
       api.defaults.headers.common["Authorization"] = value;
@@ -38,7 +46,6 @@ export const useAuth = defineStore("useAuth", () => {
    async function testAuth() {
       await api.post("test-auth").then(async (result) => {
          setSession(result.data);
-         router.push({ name: "home" });
       });
    }
 
@@ -58,7 +65,6 @@ export const useAuth = defineStore("useAuth", () => {
          )
          .then(async (result) => {
             setSession(result.data);
-            router.push({ name: "home" });
          });
    }
 

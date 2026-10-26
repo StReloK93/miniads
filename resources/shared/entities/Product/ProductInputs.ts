@@ -1,4 +1,4 @@
-import { Inputs } from "@/modules/Inputs";
+import { Inputs } from "@shared/ui/inputs";
 import { api } from "@shared/composables/useFetch";
 import { InputConfig } from "@shared/types";
 import { useAuth } from "@shared/store/useAuth";

@@ -1,12 +1,12 @@
 <template>
    <div>
       <div
-         class="group flex min-h-11 items-center gap-2 rounded-xl border border-(--z-border) bg-(--z-card) py-1 pr-2.5 transition-all select-none cursor-pointer hover:bg-(--z-muted) hover:border-(--z-primary)/30"
+         class="group flex min-h-11 items-center gap-2 rounded-xl pl-[calc(8px+var(--depth)*12px)] sm:pl-[calc(10px+var(--depth)*20px)] border border-(--z-border) bg-(--z-card) py-1 pr-2.5 transition-all select-none cursor-pointer hover:bg-(--z-muted) hover:border-(--z-primary)/30"
          :class="{
             'bg-(--z-primary)/8! border-(--z-primary)!': node.key === selectedKey || node.key === selectedParentKey,
             'border-(--z-primary)! bg-(--z-primary)/12! ring-2 ring-(--z-primary)/30': isDropTarget,
          }"
-         :style="{ paddingLeft: `${10 + depth * 20}px` }"
+         :style="{ '--depth': depth }"
          @click="onRowClick"
          @dragover.prevent="isDropTarget = !node.is_page"
          @dragleave="isDropTarget = false"
@@ -14,7 +14,7 @@
       >
          <!-- Drag Handle -->
          <span
-            class="inline-grid h-6 w-4.5 place-items-center text-(--z-muted-text) cursor-grab opacity-40 transition-opacity hover:opacity-100 group-hover:opacity-100"
+            class="hidden sm:inline-grid h-6 w-4.5 place-items-center text-(--z-muted-text) cursor-grab opacity-40 transition-opacity hover:opacity-100 group-hover:opacity-100"
             draggable="true"
             title="Kategoriyani surish uchun bosing va torting"
             @dragstart="onDragStart"
@@ -45,17 +45,17 @@
 
          <!-- Title and Badges -->
          <div class="flex min-w-0 flex-1 items-center gap-2">
-            <span class="truncate text-xs font-semibold text-(--z-foreground)">{{ node.label }}</span>
-            <span v-if="node.is_page" class="rounded-md bg-blue-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500">
+            <span class="min-w-0 truncate text-sm font-semibold text-(--z-foreground)">{{ node.label }}</span>
+            <span v-if="node.is_page" class="shrink-0 rounded-md bg-blue-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500">
                {{ node.listing_duration_days ? `${node.listing_duration_days} kun` : "E'lon sahifasi" }}
             </span>
-            <span v-else-if="node.children?.length" class="rounded-md bg-(--z-muted) px-1.5 py-0.5 text-[10px] font-semibold text-(--z-muted-text)">
+            <span v-else-if="node.children?.length" class="shrink-0 rounded-md bg-(--z-muted) px-1.5 py-0.5 text-[10px] font-semibold text-(--z-muted-text)">
                {{ node.children.length }} ta
             </span>
          </div>
 
          <!-- Action Buttons (Strictly using BaseButton from Shared UI) -->
-         <div class="ml-auto flex items-center gap-1.5 opacity-85 transition-opacity group-hover:opacity-100" @click.stop>
+         <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 opacity-85 transition-opacity group-hover:opacity-100" @click.stop>
             <!-- Parameters button (Only for pages) -->
             <BaseButton
                v-if="node.is_page"
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Recursive Children -->
-      <div v-if="expanded && node.children?.length" class="grid gap-1.25 mt-1.25">
+      <div v-if="expanded && node.children?.length" class="grid grid-cols-[minmax(0,1fr)] gap-1.25 mt-1.25">
          <BaseTreeNode
             v-for="child in node.children"
             :key="String(child.key)"

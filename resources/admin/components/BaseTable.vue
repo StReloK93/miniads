@@ -1,6 +1,6 @@
 <template>
    <div class="admin-table-wrap">
-      <table class="admin-table">
+      <table v-responsive-table class="admin-table">
          <thead>
             <tr>
                <th v-for="column in columns" :key="column.field">{{ column.header }}</th>

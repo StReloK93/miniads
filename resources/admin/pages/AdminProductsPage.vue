@@ -40,7 +40,7 @@
                   @keyup.enter="search"
                />
             </label>
-            <div class="w-44">
+            <div class="w-full sm:w-44">
                <FieldSelect
                   v-model="status"
                   size="sm"
@@ -53,7 +53,7 @@
                   @change="load(1)"
                />
             </div>
-            <div class="w-40">
+            <div class="w-full sm:w-40">
                <FieldSelect
                   v-model="isBot"
                   size="sm"
@@ -73,7 +73,7 @@
 
          <div v-if="loading" class="admin-loading">E'lonlar yuklanmoqda…</div>
          <div v-else class="admin-table-wrap">
-            <table class="admin-table">
+            <table v-responsive-table class="admin-table">
                <thead>
                   <tr>
                      <th>E'lon</th>

@@ -49,7 +49,7 @@
    width: 38px;
    height: 38px;
    place-items: center;
-   border-radius: 12px;
+   border-radius: var(--z-rounded);
    background: var(--z-muted);
    color: var(--admin-accent);
    font-size: 20px;
@@ -72,15 +72,15 @@
 .admin-user-label small {
    margin-top: 3px;
    color: var(--admin-muted);
-   font-size: 9px;
+   font-size: 11px;
    font-weight: 700;
    letter-spacing: 0.13em;
 }
 
 .admin-nav-label {
    margin: 0 10px 9px;
-   color: #9aa7b7;
-   font-size: 9px;
+   color: var(--z-muted-text);
+   font-size: 11px;
    font-weight: 800;
    letter-spacing: 0.13em;
 }
@@ -99,10 +99,10 @@
    min-height: 42px;
    align-items: center;
    gap: 12px;
-   border-radius: 8px;
+   border-radius: 10px;
    padding: 0 11px;
    color: var(--z-muted-text);
-   font-size: 12px;
+   font-size: 14px;
    font-weight: 600;
    text-decoration: none;
    transition: background 0.15s ease, color 0.15s ease;
@@ -140,7 +140,7 @@
    border-radius: 50%;
    background: var(--z-muted);
    color: var(--z-foreground);
-   font-size: 11px;
+   font-size: 13px;
    font-weight: 800;
 }
 
@@ -151,7 +151,7 @@
 .admin-user-label strong {
    overflow: hidden;
    max-width: 150px;
-   font-size: 11px;
+   font-size: 13px;
    text-overflow: ellipsis;
    white-space: nowrap;
 }
@@ -166,12 +166,12 @@
    align-items: center;
    justify-content: space-between;
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 13px;
    text-decoration: none;
 }
 
 .admin-site-link {
-   border-radius: 7px;
+   border-radius: 10px;
    padding: 9px 5px;
 }
 
@@ -205,10 +205,10 @@
 }
 
 .admin-topbar-label {
-   color: #8391a2;
-   font-size: 9px;
-   font-weight: 800;
-   letter-spacing: 0.12em;
+   color: var(--admin-ink);
+   font-size: 15px;
+   font-weight: 700;
+   letter-spacing: -0.01em;
 }
 
 .admin-topbar-user {
@@ -228,6 +228,8 @@
 
 .admin-page {
    display: grid;
+   /* Ustun ichidagi uzun matn yoki jadval sahifani ekrandan kengaytirib yubormasin */
+   grid-template-columns: minmax(0, 1fr);
    gap: 20px;
 }
 
@@ -242,7 +244,7 @@
 .admin-eyebrow {
    margin: 0 0 7px;
    color: var(--admin-accent);
-   font-size: 9px;
+   font-size: 11px;
    font-weight: 800;
    letter-spacing: 0.13em;
 }
@@ -258,13 +260,13 @@
 .admin-muted {
    margin: 6px 0 0;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 14px;
    line-height: 1.6;
 }
 
 .admin-panel {
    border: 1px solid var(--admin-border);
-   border-radius: 12px;
+   border-radius: var(--z-rounded);
    background: var(--z-card);
    box-shadow: 0 2px 8px rgba(23, 43, 77, 0.025);
 }
@@ -281,14 +283,14 @@
    flex-direction: column;
    justify-content: center;
    border: 1px solid var(--admin-border);
-   border-radius: 11px;
+   border-radius: var(--z-rounded);
    background: var(--z-card);
    padding: 18px 20px;
 }
 
 .admin-stat-label {
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 13px;
    font-weight: 600;
 }
 
@@ -302,8 +304,8 @@
 
 .admin-stat-detail {
    margin-top: 4px;
-   color: #9aa7b7;
-   font-size: 10px;
+   color: var(--z-muted-text);
+   font-size: 12px;
 }
 
 .admin-section-heading {
@@ -319,7 +321,7 @@
 
 .admin-text-link {
    color: var(--admin-accent);
-   font-size: 11px;
+   font-size: 13px;
    font-weight: 700;
    text-decoration: none;
 }
@@ -340,8 +342,8 @@
    border-top: 1px solid var(--admin-border);
    border-bottom: 1px solid var(--admin-border);
    background: var(--z-muted);
-   color: #8290a1;
-   font-size: 9px;
+   color: var(--z-muted-text);
+   font-size: 11px;
    font-weight: 800;
    letter-spacing: 0.08em;
    text-transform: uppercase;
@@ -355,7 +357,7 @@
 .admin-table td {
    border-bottom: 1px solid var(--admin-border);
    color: var(--admin-ink);
-   font-size: 11px;
+   font-size: 13px;
 }
 
 .admin-table tbody tr:last-child td {
@@ -377,7 +379,7 @@
 .admin-cell-subtitle {
    margin-top: 4px;
    color: var(--admin-muted);
-   font-size: 9px;
+   font-size: 11px;
 }
 
 .admin-badge {
@@ -385,7 +387,7 @@
    align-items: center;
    border-radius: 20px;
    padding: 5px 8px;
-   font-size: 9px;
+   font-size: 11px;
    font-weight: 700;
 }
 
@@ -418,7 +420,7 @@
 .admin-loading {
    padding: 25px;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 14px;
 }
 
 .admin-toolbar {
@@ -435,10 +437,10 @@
    align-items: center;
    gap: 9px;
    border: 1px solid var(--admin-border);
-   border-radius: 7px;
+   border-radius: 10px;
    background: var(--z-field-background);
    padding: 0 11px;
-   color: #91a0b1;
+   color: var(--z-muted-text);
 }
 
 .admin-search input {
@@ -448,19 +450,19 @@
    outline: 0;
    background: transparent;
    color: var(--admin-ink);
-   font-size: 11px;
+   font-size: 13px;
 }
 
 .admin-select,
 .admin-input {
    min-height: 38px;
    border: 1px solid var(--admin-border);
-   border-radius: 7px;
+   border-radius: 10px;
    background: var(--z-field-background);
    padding: 0 10px;
    color: var(--admin-ink);
-   font-size: 11px;
-   outline-color: #79b9aa;
+   font-size: 13px;
+   outline-color: var(--z-primary);
 }
 
 .admin-button {
@@ -469,9 +471,9 @@
    align-items: center;
    justify-content: center;
    border: 1px solid transparent;
-   border-radius: 7px;
+   border-radius: 10px;
    padding: 0 14px;
-   font-size: 11px;
+   font-size: 13px;
    font-weight: 700;
    text-decoration: none;
    cursor: pointer;
@@ -506,7 +508,7 @@
 .admin-button-small {
    min-height: 30px;
    padding: 0 9px;
-   font-size: 9px;
+   font-size: 11px;
 }
 
 .admin-table-panel {
@@ -523,8 +525,8 @@
    width: 38px;
    height: 38px;
    margin-right: 10px;
-   border-radius: 6px;
-   background: #f1f4f7;
+   border-radius: 10px;
+   background: var(--z-muted);
    object-fit: cover;
 }
 
@@ -548,7 +550,7 @@
    height: 30px;
    place-items: center;
    border: 1px solid var(--admin-border);
-   border-radius: 7px;
+   border-radius: 10px;
    background: transparent;
    color: var(--admin-muted);
    cursor: pointer;
@@ -577,7 +579,7 @@
    border-top: 1px solid var(--admin-border);
    padding: 12px 15px;
    color: var(--admin-muted);
-   font-size: 10px;
+   font-size: 12px;
 }
 
 .admin-pagination > div {
@@ -594,9 +596,9 @@
 
 .admin-alert {
    border: 1px solid transparent;
-   border-radius: 8px;
+   border-radius: 10px;
    padding: 11px 14px;
-   font-size: 11px;
+   font-size: 13px;
 }
 
 .admin-alert-error {
@@ -620,7 +622,7 @@
 .admin-select-small {
    min-height: 30px;
    padding: 0 6px;
-   font-size: 9px;
+   font-size: 11px;
 }
 
 .admin-reference-form {
@@ -636,7 +638,7 @@
    flex: 1;
    gap: 6px;
    color: var(--admin-muted);
-   font-size: 10px;
+   font-size: 12px;
    font-weight: 700;
 }
 
@@ -664,61 +666,9 @@
 }
 
 @media (max-width: 700px) {
-   .admin-sidebar {
-      position: sticky;
-      top: 0;
-      inset: auto;
-      width: 58px;
-      height: 100vh;
-      overflow-y: auto;
-      padding: 14px 6px;
-   }
-
-   .admin-brand {
-      justify-content: center;
-      padding: 0 0 20px;
-   }
-
-   .admin-brand > span:last-child,
-   .admin-nav-label,
-   .admin-nav-link span,
-   .admin-sidebar-footer {
-      display: none;
-   }
-
-   .admin-nav-link {
-      justify-content: center;
-      padding: 0;
-   }
-
-   .admin-nav-link i {
-      width: auto;
-   }
-
-   .admin-nav-label-spaced {
-      display: block;
-      height: 1px;
-      margin: 13px 5px;
-      overflow: hidden;
-      background: var(--admin-border);
-      font-size: 0;
-   }
-
-   .admin-nav-label-spaced + .admin-nav {
-      margin-top: 0;
-   }
-
-   .admin-main {
-      margin-left: 0;
-   }
-
    .admin-topbar {
       min-height: 54px;
       padding: 0 13px;
-   }
-
-   .admin-topbar-label {
-      font-size: 8px;
    }
 
    .admin-content {
@@ -778,7 +728,6 @@
 
 html.dark .admin-shell {
    color-scheme: dark;
-   --admin-accent: #60a5fa;
    --admin-ink: var(--z-foreground);
    --admin-muted: var(--z-muted-text);
    --admin-border: var(--z-border);
@@ -896,7 +845,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    ========================================================================== */
 .admin-table-panel {
    border: 1px solid var(--admin-border);
-   border-radius: 12px;
+   border-radius: var(--z-rounded);
    background: var(--z-card);
    overflow: hidden;
    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -932,7 +881,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    display: flex;
    flex-direction: column;
    border: 1px solid var(--admin-border);
-   border-radius: 12px;
+   border-radius: var(--z-rounded);
    background: var(--z-card);
    padding: 20px;
    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -955,7 +904,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
 .admin-card-subtitle {
    margin: 3px 0 0;
-   font-size: 11px;
+   font-size: 13px;
    color: var(--admin-muted);
 }
 
@@ -976,7 +925,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    display: flex;
    align-items: center;
    justify-content: space-between;
-   font-size: 12px;
+   font-size: 14px;
 }
 
 .admin-rank-name {
@@ -986,7 +935,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
 .admin-rank-count {
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 13px;
 }
 
 .admin-rank-track {
@@ -1043,7 +992,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 .admin-bar-label {
    position: absolute;
    bottom: -20px;
-   font-size: 9px;
+   font-size: 11px;
    font-weight: 600;
    color: var(--admin-muted);
    white-space: nowrap;
@@ -1052,7 +1001,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 .admin-bar-tooltip {
    position: absolute;
    top: -20px;
-   font-size: 10px;
+   font-size: 12px;
    font-weight: 700;
    color: var(--admin-ink);
    white-space: nowrap;
@@ -1077,7 +1026,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    align-items: center;
    justify-content: space-between;
    padding: 8px 10px;
-   border-radius: 8px;
+   border-radius: 10px;
    background: color-mix(in srgb, var(--z-muted) 50%, transparent);
    transition: background 0.15s ease;
 }
@@ -1086,3 +1035,313 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    background: var(--z-muted);
 }
 
+
+/* ==========================================================================
+   FORMA YORLIQLARI (barcha admin formalari uchun bir xil)
+   ========================================================================== */
+
+.admin-label {
+   color: var(--admin-ink);
+   font-size: 13px;
+   font-weight: 600;
+}
+
+.admin-hint {
+   margin-top: 5px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   line-height: 1.5;
+}
+
+/* ==========================================================================
+   MOBIL: yon panel "☰" tugmasi bilan ochiladigan menyuga aylanadi
+   ========================================================================== */
+
+.admin-menu-button {
+   display: none;
+   width: 38px;
+   height: 38px;
+   align-items: center;
+   justify-content: center;
+   border: 1px solid var(--admin-border);
+   border-radius: 999px;
+   background: var(--z-card);
+   color: var(--admin-ink);
+   cursor: pointer;
+}
+
+.admin-backdrop {
+   position: fixed;
+   z-index: 30;
+   inset: 0;
+   background: rgb(0 0 0 / 0.4);
+   backdrop-filter: blur(2px);
+}
+
+@media (max-width: 900px) {
+   .admin-sidebar {
+      z-index: 40;
+      width: min(280px, 85vw);
+      padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
+      overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+   }
+
+   .admin-shell.is-menu-open .admin-sidebar {
+      transform: none;
+      box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
+   }
+
+   .admin-main {
+      margin-left: 0;
+   }
+
+   .admin-menu-button {
+      display: inline-flex;
+   }
+
+   /* Menyuda "Ilovaga qaytish" bor — tor ekranda joy tejaymiz */
+   .admin-topbar-link {
+      display: none;
+   }
+
+   .admin-topbar {
+      gap: 10px;
+      padding: env(safe-area-inset-top, 0px) 12px 0;
+   }
+
+   .admin-content {
+      padding: 16px 12px 40px;
+   }
+
+   .admin-nav-link {
+      min-height: 46px;
+      font-size: 15px;
+   }
+
+   /* iOS 16px'dan kichik maydonda fokusda sahifani kattalashtiradi */
+   .admin-input,
+   .admin-select,
+   .admin-search input {
+      font-size: 16px;
+   }
+}
+
+/* ==========================================================================
+   MOBIL: pastki navigatsiya paneli (ilovadagi pastki panel uslubida)
+   ========================================================================== */
+
+.admin-tabbar {
+   display: none;
+}
+
+@media (max-width: 900px) {
+   .admin-tabbar {
+      position: fixed;
+      z-index: 20;
+      right: 10px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+      left: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 2px;
+      border: 1px solid var(--admin-border);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--z-card) 92%, transparent);
+      padding: 5px;
+      box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
+      backdrop-filter: blur(12px);
+   }
+
+   .admin-tab {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      padding: 7px 2px;
+      color: var(--admin-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+   }
+
+   .admin-tab span {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+   }
+
+   .admin-tab.router-link-exact-active,
+   .admin-tab.is-active {
+      background: var(--z-muted);
+      color: var(--admin-ink);
+   }
+
+   /* Pastki panel bor — yuqoridagi "☰" kerak emas */
+   .admin-menu-button {
+      display: none;
+   }
+
+   .admin-content {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
+   }
+
+   .admin-topbar {
+      min-height: 56px;
+   }
+
+   /* Sarlavhalar ixchamroq: kontent ko'proq ko'rinadi */
+   .admin-page {
+      gap: 14px;
+   }
+
+   .admin-page-heading {
+      gap: 10px;
+   }
+
+   .admin-page-heading h1 {
+      font-size: 22px;
+   }
+
+   .admin-muted {
+      margin-top: 4px;
+      font-size: 13px;
+      line-height: 1.45;
+   }
+}
+
+/* ==========================================================================
+   MOBIL JADVAL: har bir qator kartaga aylanadi (v-responsive-table yorliqlari bilan)
+   ========================================================================== */
+
+@media (max-width: 900px) {
+   .admin-table,
+   .admin-table tbody {
+      display: block;
+      white-space: normal;
+   }
+
+   .admin-table thead {
+      display: none;
+   }
+
+   .admin-table tbody tr {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 1px solid var(--admin-border);
+      padding: 14px 16px;
+   }
+
+   .admin-table tbody tr:last-child {
+      border-bottom: 0;
+   }
+
+   .admin-table td,
+   .admin-table tbody tr:last-child td {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px 8px;
+      border: 0;
+      padding: 0;
+      font-size: 14px;
+      text-align: right;
+   }
+
+   /* Yorliq chapda, katakdagi barcha qiymatlar birga o'ngda */
+   .admin-table td::before {
+      content: attr(data-label);
+      margin-right: auto;
+      flex-shrink: 0;
+      color: var(--admin-muted);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+   }
+
+   /* Birinchi katak — sarlavha (e'lon nomi, foydalanuvchi): yorliqsiz, to'liq kenglikda */
+   .admin-table td:first-child {
+      display: block;
+      text-align: left;
+   }
+
+   .admin-table td:first-child::before,
+   .admin-table td[data-label=""]::before,
+   .admin-table td.admin-actions::before {
+      content: none;
+   }
+
+   .admin-table td:first-child strong {
+      max-width: none;
+      font-size: 15px;
+      white-space: normal;
+   }
+
+   /* Amallar — kartaning pastida, alohida qatorda */
+   .admin-table td.admin-actions {
+      justify-content: flex-end;
+      margin-top: 2px;
+      border-top: 1px solid var(--admin-border);
+      padding-top: 10px;
+   }
+
+   .admin-table td.admin-empty-cell {
+      display: block;
+      text-align: center;
+   }
+
+   .admin-product-cell {
+      min-width: 0;
+   }
+}
+
+/* Telefonda filtrlar ixcham: qidiruv to'liq qatorda, tanlovlar yonma-yon */
+@media (max-width: 900px) {
+   .admin-table-panel > .admin-toolbar:has(.admin-search) {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+   }
+
+   .admin-table-panel > .admin-toolbar .admin-search {
+      grid-column: 1 / -1;
+      min-width: 0;
+   }
+
+   /* Juft sondagi oxirgi element (masalan "Qidirish" tugmasi) yolg'iz qolmasin — to'liq qatorni oladi */
+   .admin-table-panel > .admin-toolbar:has(.admin-search) > :last-child:nth-child(even) {
+      grid-column: 1 / -1;
+   }
+}
+
+/* Kompyuterda: uzun sarlavha ikki qatorga o'tadi — jadval amallar ustunigacha sig'adi */
+@media (min-width: 901px) {
+   .admin-table th,
+   .admin-table td {
+      padding: 12px;
+   }
+
+   .admin-table td strong {
+      min-width: 160px;
+      white-space: normal;
+   }
+}
+
+/* Telefonda karta sarlavhasi (birinchi katak) har doim ajralib tursin */
+@media (max-width: 900px) {
+   .admin-table td:first-child {
+      font-size: 15px;
+      font-weight: 600;
+   }
+}

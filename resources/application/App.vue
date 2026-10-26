@@ -20,6 +20,7 @@ import { nextTick, onMounted, ref } from "vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useCity } from "@shared/entities/District/useCity";
 import { on, postEvent } from "@tma.js/bridge";
+import { goBack, runBackHandler } from "@/modules/navigation";
 const categoryStore = useCategory();
 const cityStore = useCity();
 const animationName = ref("");
@@ -82,10 +83,13 @@ onMounted(async () => {
          return;
       }
 
+      // Ochiq oyna bo'lsa (masalan rasm preview) — avval o'sha yopiladi
+      if (runBackHandler()) return;
+
       if (route.name === "home") {
          postEvent("web_app_close");
       } else {
-         router.back();
+         goBack(router);
       }
    });
 });

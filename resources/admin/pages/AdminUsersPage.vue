@@ -23,7 +23,7 @@
                   @keyup.enter="search"
                />
             </label>
-            <div class="w-48">
+            <div class="w-full sm:w-48">
                <FieldSelect
                   v-model="roleFilter"
                   size="sm"
@@ -43,7 +43,7 @@
 
          <div v-if="loading" class="admin-loading">Foydalanuvchilar yuklanmoqda…</div>
          <div v-else class="admin-table-wrap">
-            <table class="admin-table">
+            <table v-responsive-table class="admin-table">
                <thead>
                   <tr>
                      <th>Foydalanuvchi</th>

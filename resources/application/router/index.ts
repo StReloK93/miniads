@@ -8,15 +8,16 @@ const router = createRouter({
    routes,
 });
 
-router.beforeEach((to, from, next) => {
-   if (isTMA()) {
-      if (to.name == "home") {
-         postEvent("web_app_setup_back_button", { is_visible: false });
-      } else {
-         postEvent("web_app_setup_back_button", { is_visible: true });
-      }
-   }
+// Telegram tugmalari yakuniy sahifaga qarab sozlanadi (yo'naltirishlardan keyin)
+router.afterEach((to) => {
+   if (!isTMA()) return;
 
+   postEvent("web_app_setup_back_button", { is_visible: to.name !== "home" });
+   // Forma to'ldirilayotganda tasodifan yopib yubormaslik uchun tasdiq so'raladi; boshqa sahifalarda — yo'q
+   postEvent("web_app_setup_closing_behavior", { need_confirmation: Boolean(to.meta.confirmClose) });
+});
+
+router.beforeEach((to, from, next) => {
    const AuthStore = useAuth();
 
    if (to.meta.guestOnly && AuthStore.user) {

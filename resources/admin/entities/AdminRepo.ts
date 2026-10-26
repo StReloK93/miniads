@@ -22,6 +22,14 @@ export default {
    updateUserRole(id: number, role: "admin" | "user") {
       return api.patch(`admin/users/${id}/role`, { role });
    },
+   channelPostDefaults() {
+      return api.get<{ channels: string[]; button_text: string; button_url: string }>("admin/channel-post");
+   },
+   sendChannelPost(payload: { text: string; photo: File | null; button_text: string | null; button_url: string | null }) {
+      return api.post<{ message: string }>("admin/channel-post", payload, {
+         headers: { "Content-Type": "multipart/form-data" },
+      });
+   },
    reference(kind: "districts" | "price-types") {
       return api.get(kind);
    },

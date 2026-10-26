@@ -17,17 +17,23 @@ class TelegramProductService
 {
     private const MAX_CAPTION_LENGTH = 900;
 
-    private const CHANNELS = [
-        '-1003997124291',
-    ];
-
     private const MINI_APP_URL = 'https://t.me/NavoiyElonBot';
+
+    /**
+     * E'lonlar va admin postlari yuboriladigan kanallar (config/services.php → telegram.channels).
+     *
+     * @return string[]
+     */
+    public static function channels(): array
+    {
+        return config('services.telegram.channels');
+    }
 
     public function publish(Product $product): void
     {
         $this->loadProductRelations($product);
 
-        foreach (self::CHANNELS as $channelId) {
+        foreach (self::channels() as $channelId) {
             $this->publishToChannel($product, $channelId);
         }
     }
@@ -48,7 +54,7 @@ class TelegramProductService
         $this->loadProductRelations($product);
         $hasImage = $this->getMainImage($product) !== null;
 
-        foreach (self::CHANNELS as $channelId) {
+        foreach (self::channels() as $channelId) {
             $telegramId = ProductTelegramId::query()
                 ->where('product_id', $product->id)
                 ->where('channel_id', $channelId)

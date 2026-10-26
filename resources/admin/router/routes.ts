@@ -32,6 +32,11 @@ export const routes: RouteRecordRaw[] = [
             name: "admin-bot",
          },
          {
+            path: "channel-post",
+            component: () => import("@admin/pages/AdminChannelPostPage.vue"),
+            name: "admin-channel-post",
+         },
+         {
             path: "parameter",
             component: () => import("@admin/pages/AdminParametersPage.vue"),
             name: "admin-parameters",

@@ -1,6 +1,6 @@
 <template>
    <main class="h-full overflow-y-auto no-scrollbar px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*6)]">
-      <BackPreviusPage title="Kirish" />
+      <BackButton title="Kirish" />
       <TelegramLoginCard
          class="pt-10"
          :title="redirect?.startsWith('/select-category') ? 'E\'lon joylash uchun kiring' : 'Telegram orqali kiring'"
@@ -12,8 +12,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import BackPreviusPage from "@/components/BackPreviusPage.vue";
-import TelegramLoginCard from "@/components/TelegramLoginCard.vue";
+import BackButton from "@/layouts/BackButton.vue";
+import TelegramLoginCard from "@/features/auth/TelegramLoginCard.vue";
 
 const route = useRoute();
 const router = useRouter();

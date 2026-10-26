@@ -1,6 +1,6 @@
 <template>
    <div
-      class="grid gap-1.5 rounded-2xl border border-(--z-border) bg-(--z-card) p-3.5"
+      class="grid grid-cols-[minmax(0,1fr)] gap-1.5 rounded-2xl border border-(--z-border) bg-(--z-card) p-2 sm:p-3.5"
       @dragover.prevent
       @drop.prevent="dropAtRoot($event)"
    >

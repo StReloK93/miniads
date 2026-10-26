@@ -308,7 +308,7 @@
             </div>
 
             <div class="admin-table-wrap">
-               <table class="admin-table">
+               <table v-responsive-table class="admin-table">
                   <thead>
                      <tr>
                         <th>E'lon</th>

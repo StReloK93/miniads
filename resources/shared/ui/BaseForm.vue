@@ -78,7 +78,7 @@
 
 <script setup lang="ts">
 import { useFocusedInput } from "@shared/composables/useFocusInput";
-import { centerElement } from "@/modules/Helpers";
+import { centerElement } from "@shared/modules/helpers";
 import { ref, computed } from "vue";
 import { Form, ErrorMessage } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";

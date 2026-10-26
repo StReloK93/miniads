@@ -156,8 +156,8 @@
             <div class="flex items-center justify-between pb-3 text-xs text-(--z-muted-text)">
                <span>Topilgan e'lonlar: <b class="text-(--z-foreground)">{{ products.length }}</b> ta</span>
             </div>
-            <div class="grid grid-cols-1 gap-4">
-               <BaseProductCard v-for="product in products" :key="product.id" :product="product" />
+            <div class="grid grid-cols-1 gap-2.5">
+               <ProductCard v-for="product in products" :key="product.id" :product="product" />
             </div>
          </template>
 
@@ -261,10 +261,10 @@
 </template>
 
 <script setup lang="ts">
-import BaseProductCard from "@/components/BaseProductCard.vue";
+import ProductCard from "@/features/product/ProductCard.vue";
 import { Form } from "vee-validate";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
-import NavigationPageDecorator from "@/components/NavigationPageDecorator.vue";
+import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import {
    Search as SearchIcon,
    SlidersHorizontal,
@@ -300,7 +300,7 @@ const activeSearchText = ref<string>("");
 
 const popularTags = ["Kvartira", "Telefon", "Cobalt", "Gentra", "Ish", "Mebel"];
 
-let debounceTimer: any = null;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Foydalanuvchi yozayotganda qulay avto-qidiruv (debounce 350ms)
 watch(searchText, (newVal) => {
@@ -321,7 +321,7 @@ watch(searchText, (newVal) => {
    }, 350);
 });
 
-async function submitFilter(params: any) {
+async function submitFilter(params: Partial<typeof filters.value>) {
    filters.value = { ...filters.value, ...params };
    await applyFilters();
    isFilterOpen.value = false;

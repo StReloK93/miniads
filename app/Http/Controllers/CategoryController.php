@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -31,6 +32,21 @@ class CategoryController extends Controller
 		});
 	}
 
+
+	/**
+	 * Har bir kategoriyadagi faol e'lonlar soni: { category_id: soni }.
+	 * Bitta GROUP BY so'rov, 5 daqiqa keshlanadi. Ota bo'limlar soni frontendda ichki bo'limlardan yig'iladi.
+	 */
+	public function counts()
+	{
+		return Cache::remember('categories:active_counts', now()->addMinutes(5), function () {
+			return Product::active()
+				->selectRaw('category_id, COUNT(*) as total')
+				->groupBy('category_id')
+				->pluck('total', 'category_id')
+				->map(fn($total) => (int) $total);
+		});
+	}
 
 	public function store(Request $request)
 	{

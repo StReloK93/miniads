@@ -97,11 +97,28 @@ export interface IProduct {
    similar_products?: IProduct[];
 }
 
+// E'lon yaratish/yangilash uchun API'ga yuboriladigan ma'lumot (multipart/form-data)
+export interface IProductPayload {
+   title: string;
+   description?: string | null;
+   phone: string | null;
+   price?: number | null;
+   price_type_id?: number | null;
+   back_color_id?: number | null;
+   category_id: number | string | undefined;
+   district_id: number | null;
+   parameters: { id: string | number; value: unknown }[];
+   images?: unknown[];
+}
+
 export interface IUser {
    id: number;
    name: string;
    username: string | null;
-   telegram_id: number | null;
+   telegram_user_id: number | null;
+   role: "user" | "admin";
+   active_district_id: number | null;
+   active_district?: IDistrict | null;
 }
 
 export interface IParameterValue {

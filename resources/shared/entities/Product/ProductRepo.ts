@@ -1,13 +1,13 @@
 import { api } from "@shared/composables/useFetch";
-import { IPaginatedResponse, IProduct } from "@shared/types";
+import { IPaginatedResponse, IProduct, IProductPayload } from "@shared/types";
 const baseURL = "products";
 
 export default {
    index() {
       return api.get<IProduct[]>(`${baseURL}`);
    },
-   store(formData: IProduct) {
-      return api.post<IProduct>(`${baseURL}`, formData, {
+   store(formData: IProductPayload) {
+      return api.post<{ message: string; id: number }>(`${baseURL}`, formData, {
          headers: {
             "Content-Type": "multipart/form-data",
          },
@@ -19,7 +19,7 @@ export default {
    edit(id: string | number) {
       return api.get<IProduct>(`${baseURL}/${id}/edit`);
    },
-   update(id: string | number, formData: IProduct) {
+   update(id: string | number, formData: IProductPayload) {
       return api.post<IProduct>(`${baseURL}/${id}`, formData, {
          headers: {
             "Content-Type": "multipart/form-data",

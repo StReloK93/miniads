@@ -15,7 +15,8 @@ Route::post('/telegram/sign-in', [AuthController::class, 'telegramSignIn'])->mid
 Route::post('/telegram/widget-sign-in', [AuthController::class, 'telegramWidgetAuth']);
 
 
-Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegraph.webhook');
+// Nom Telegraph paketining "telegraph.webhook" route'idan farq qilishi shart — aks holda `php artisan optimize` (route:cache) xato beradi
+Route::post('/telegram/webhook', [TelegramController::class, 'webhook'])->name('telegram.webhook');
 
 if (app()->environment('local')) {
     Route::post('/test-auth', [AuthController::class, 'testAuth']);

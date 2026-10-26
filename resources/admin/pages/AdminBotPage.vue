@@ -94,7 +94,11 @@
             <div class="mt-3">
                <span class="text-lg font-semibold text-(--z-foreground)">{{ stats.last_run_at }}</span>
             </div>
-            <p class="text-xs text-(--z-muted-text) mt-1">Avtomatik Cron orqali tekshirildi</p>
+            <p class="text-xs text-(--z-muted-text) mt-1">
+               AI bugun: {{ stats.ai_usage.requests }} so'rov ·
+               {{ formatTokens(stats.ai_usage.tokens) }} / {{ formatTokens(stats.ai_usage.limit) }} token
+               <span v-if="stats.ai_model">· {{ stats.ai_model }}</span>
+            </p>
          </div>
       </div>
 
@@ -305,6 +309,8 @@ interface IBotStats {
    daily_limit: number;
    hourly_limit: number;
    last_run_at: string;
+   ai_usage: { tokens: number; requests: number; limit: number };
+   ai_model: string | null;
 }
 
 interface IBotSetting {
@@ -338,7 +344,13 @@ const stats = ref<IBotStats>({
    daily_limit: 150,
    hourly_limit: 7,
    last_run_at: "—",
+   ai_usage: { tokens: 0, requests: 0, limit: 0 },
+   ai_model: null,
 });
+
+function formatTokens(value: number) {
+   return value >= 1000 ? `${Math.round(value / 1000)}K` : String(value);
+}
 
 const saving = ref(false);
 const runningBatch = ref(false);

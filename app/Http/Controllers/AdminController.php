@@ -328,6 +328,12 @@ class AdminController extends Controller
                 'daily_limit' => $setting->daily_limit,
                 'hourly_limit' => $setting->hourly_limit,
                 'last_run_at' => $setting->last_run_at?->diffForHumans() ?: 'Hali ishga tushmagan',
+                'ai_usage' => \App\Services\Bot\AdAiParserService::todayUsage(),
+                'ai_model' => match ($setting->ai_provider) {
+                    'gemini' => config('services.gemini.model'),
+                    'openai' => config('services.openai.model'),
+                    default => null,
+                },
             ],
         ]);
     }

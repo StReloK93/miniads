@@ -6,6 +6,9 @@ use App\Models\BotSetting;
 use App\Models\Category;
 use App\Models\District;
 use App\Models\PriceType;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +18,8 @@ class AdAiParserService
 {
     /**
      * Parse raw ad text into structured product data.
+     *
+     * null — post e'lon emas (rad etildi). AI javob bera olmasa AiUnavailableException tashlanadi.
      */
     public function parse(string $rawText, BotSetting $setting, ?string $channel = null): ?array
     {
@@ -38,39 +43,66 @@ class AdAiParserService
             return null;
         }
 
-        // Agar maxsus qoidali regex parser tanlangan bo'lsa:
-        if ($setting->ai_provider === 'regex') {
-            return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel);
-        }
-
-        // AI orqali tahlil qilish (Gemini yoki OpenAI)
         $provider = $setting->ai_provider ?: 'gemini';
-        $apiKey = $setting->ai_api_key ?: ($provider === 'openai' ? env('OPENAI_API_KEY') : env('GEMINI_API_KEY'));
+        $apiKey = $setting->ai_api_key ?: config($provider === 'openai' ? 'services.openai.api_key' : 'services.gemini.api_key');
 
-        if (empty($apiKey)) {
-            // Agar API kalit bo'lmasa, e'lonni yo'qotmaslik uchun qoidali parserga yo'naltiramiz
+        // AI yo'q bo'lsa (regex rejimi yoki kalit yo'q): qoidali parser, lekin faqat taklif niyati aniq postlar uchun
+        if ($provider === 'regex' || empty($apiKey)) {
+            if (!app(AdPrefilter::class)->hasOfferIntent($rawText)) {
+                return null;
+            }
+
             return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel);
         }
 
-        $aiResult = null;
-        if ($provider === 'openai') {
-            $aiResult = $this->callOpenAi($rawText, $apiKey);
-        } else {
-            $aiResult = $this->callGemini($rawText, $apiKey, $channel);
+        $this->ensureWithinDailyTokenLimit();
+
+        $aiResult = $provider === 'openai'
+            ? $this->callOpenAi($rawText, $apiKey, $channel)
+            : $this->callGemini($rawText, $apiKey, $channel);
+
+        // AI "e'lon emas" desa — shu qaror qabul qilinadi (avval bu holatda fallback e'lonni baribir saqlab yuborardi)
+        if (empty($aiResult['is_valid'])) {
+            Log::info("AI e'lonni rad etdi (" . ($aiResult['reason'] ?? 'sababsiz') . '): ' . mb_substr($rawText, 0, 60));
+
+            return null;
         }
 
-        if ($aiResult && !empty($aiResult['is_valid'])) {
-            return $this->normalizeParsedData($aiResult, $rawText, $channel);
-        }
+        return $this->normalizeParsedData($aiResult, $rawText, $channel);
+    }
 
-        // Agar AI javob bermasa yoki xatolik yuz bersa, e'lonni saqlab qolish uchun fallback tahlildan foydalanamiz
-        $fallback = $this->fallbackParse($rawText, $channel);
-        if ($fallback && !empty($fallback['is_valid'])) {
-            Log::info("AI vaqtinchalik javob bermadi, fallback parser bilan e'lon saqlandi: " . mb_substr($rawText, 0, 40));
-            return $this->normalizeParsedData($fallback, $rawText, $channel);
-        }
+    /**
+     * Bugun AI'ga sarflangan tokenlar.
+     */
+    public static function todayUsage(): array
+    {
+        $day = now()->toDateString();
 
-        return null;
+        return [
+            'tokens' => (int) Cache::get("ai_usage:{$day}:tokens", 0),
+            'requests' => (int) Cache::get("ai_usage:{$day}:requests", 0),
+            'limit' => (int) config('services.ai_daily_token_limit'),
+        ];
+    }
+
+    private function ensureWithinDailyTokenLimit(): void
+    {
+        $usage = self::todayUsage();
+
+        if ($usage['limit'] > 0 && $usage['tokens'] >= $usage['limit']) {
+            throw new AiUnavailableException("AI kunlik token limiti ({$usage['limit']}) tugadi.");
+        }
+    }
+
+    private function recordUsage(int $tokens): void
+    {
+        $day = now()->toDateString();
+        $ttl = now()->addDays(3);
+
+        Cache::add("ai_usage:{$day}:tokens", 0, $ttl);
+        Cache::add("ai_usage:{$day}:requests", 0, $ttl);
+        Cache::increment("ai_usage:{$day}:tokens", $tokens);
+        Cache::increment("ai_usage:{$day}:requests");
     }
 
     /**
@@ -96,193 +128,196 @@ class AdAiParserService
     }
 
     /**
-     * Call Google Gemini API (gemini-flash-latest / gemini-3.8-flash).
+     * O'zgarmas ko'rsatmalar. Har bir so'rovda bir xil bo'lgani uchun Gemini ularni avtomatik keshlaydi (arzonroq).
      */
-    private function callGemini(string $rawText, string $apiKey, ?string $channel = null): ?array
+    private function systemPrompt(): string
     {
-        try {
-            $categoriesContext = $this->getCategoriesContext();
-            $districtsContext = $this->getDistrictsContext();
-            $boshqaCategory = Category::where('name', 'like', '%Boshqa%')->first();
-            $boshqaId = $boshqaCategory?->id ?? 55;
-            $channelInfo = !empty($channel) ? "Manba kanal: @{$channel}\n" : '';
+        $categoriesContext = $this->getCategoriesContext();
+        $districtsContext = $this->getDistrictsContext();
+        $boshqaId = Cache::remember('boshqa_category_id', 3600, fn() => Category::where('name', 'like', '%Boshqa%')->value('id')) ?? 55;
 
-            $detectedDistrictId = $this->guessDistrictId($rawText, $channel);
-            $districtHint = '';
-            if ($detectedDistrictId) {
-                $districts = Cache::remember('districts_list', 3600, fn() => District::all(['id', 'name']));
-                $dObj = $districts->firstWhere('id', $detectedDistrictId);
-                if ($dObj) {
-                    $districtHint = "- ANIQ HUDUD: Ushbu e'lon matni yoki @{$channel} kanaliga ko'ra shahar/tuman QAT'IY {$dObj->name} (ID: {$detectedDistrictId}) bo'lishi SHART! Boshqa tumanga adashtirma!\n";
-                }
-            }
+        return <<<PROMPT
+Sen Navoiy viloyati e'lonlar platformasi uchun Telegram postlarni tekshiruvchi va tahrirlovchi assistentsan. Javob FAQAT JSON.
 
-            $prompt = <<<PROMPT
-Sen O'zbekiston viloyatlari bo'yicha e'lonlar doskasi uchun professional copywriter (muharrir) AI assistentsan.
-Vazifang: Telegram kanallardan olingan xom, betartib xabarlarni sayt uchun TUSHUNARLI, CHIROYLI, JOZIBADOR va 100% USER-FRIENDLY e'longa aylantirish.
+1-QADAM. Post haqiqiy e'lonmi?
+Haqiqiy e'lon: muallif biror narsani SOTMOQCHI, SOTIB OLMOQCHI, IJARAGA BERMOQCHI yoki OLMOQCHI, ISH TAKLIF QILYAPTI yoki IZLAYAPTI, yoki XIZMAT ko'rsatyapti, va u bilan bog'lanish mumkin (telefon yoki @username).
+Masalan: avtomobil, uy-joy, ijara, elektronika, telefon, maishiy texnika, mebel, kiyim, chorva, xizmatlar, vakansiya.
+"Mo'ljal: Korzinka yonida", "magazin oldida", "kelishamiz", "skidka bor" kabi jumlalar rad etishga sabab EMAS.
 
-{$channelInfo}Mavjud Kategoriyalar:
-{$categoriesContext}
+E'lon EMAS (shunda faqat {"is_valid": false, "reason": "..."} qaytar):
+- yangilik, rasmiy xabar, hodisa, ob-havo;
+- tabrik, bayram, tadbir yoki yig'ilish haqida xabar;
+- kanal reklamasi, obunaga chaqirish, konkurs, so'rovnoma;
+- do'kon yoki kompaniyaning ommaviy reklamasi (aksiya, katalog, filiallar);
+- kazino, stavka, piramida, intim;
+- savol, suhbat, fikr yoki shunchaki ma'lumot.
+reason qiymati: "yangilik", "tabrik", "reklama", "spam", "suhbat" yoki "boshqa".
+Sotish/olish/ijara/ish/xizmat niyati aniq ko'rinmasa — is_valid: false.
 
-Mavjud Tumanlar/Shaharlar:
-{$districtsContext}
+2-QADAM. Haqiqiy e'lon bo'lsa, maydonlarni to'ldir:
+- Til: title va description FAQAT o'zbek lotin alifbosida. Kirillni lotinga o'gir ("сотилади" -> "sotiladi", "кўчаси" -> "ko'chasi"), ruscha so'zlarni o'zbekchaga ("ремонт" -> "ta'mir", "этаж" -> "qavat", "ориентир" -> "mo'ljal", "угловой" -> "burchakdagi").
+- title: 50 belgigacha, aniq va jozibador ("2 xonali kvartira sotiladi", "Spark 2019 mexanika oq rang"). "AKSIYA", "DIQQAT", kanal nomi yoki telefon qo'yilmaydi.
+- description: emoji yo'q, faqat "•" belgisi. Bo'limlar orasida bo'sh qator:
+  1) 1-2 gaplik qisqa tavsif;
+  2) asosiy parametrlar ("• Holati: a'lo", "• Rangi: oq");
+  3) "• Manzil: ..." (postda bo'lsa);
+  4) "• Narxi: ..." (postda bo'lsa);
+  5) "• Bog'lanish uchun: ..." — faqat telefon yoki @username.
+  Begona kanal havolalari (@kanal, t.me/...) olib tashlanadi. Postda yo'q ma'lumotni o'ylab topma.
+- price: faqat raqam yoki null. currency: "UZS", "USD" yoki null.
+- phone: "998XXXXXXXXX" formatida yoki null.
+- category_id: ro'yxatdagi eng mos ID. Aralash yoki noaniq bo'lsa {$boshqaId} ("Boshqa").
+- district_id: matnda shahar bo'lsa o'sha, bo'lmasa manba kanal hududi.
 
-QAT'IY TALABLAR (BU TALABLARNI BUZISH TAQIQLANADI):
+Kategoriyalar: {$categoriesContext}
 
-1. E'LONLARNI SARALASH QOIDASI (ENG MUHIM QOIDA):
-   - Foydalanuvchilar uchun foydali bo'lgan har qanday haqiqiy e'lonlarni (avtomobil, ko'chmas mulk, elektronika, telefon, maishiy texnika, mebel, kiyim, chorva, xizmatlar, ish/vakansiya, xususiy buyumlar savdosi) qabul qil (is_valid: true).
-   - "Mo'ljal: Korzinka market yonida", "magazin oldida", "dorixona yaqinida", "ozgina skidkasi bor", "kelishamiz" kabi jumlalar bo'lsa, ularni to'g'ri qabul qil, aslo rad etma!
-   - Faqatgina aniq noqonuniy spam (onlayn kazino, 1xbet, stavka, intim/pornografiya, piramida) yoki umuman e'longa aloqasi bo'lmagan shaxsiy suhbatlar bo'lsagina {"is_valid": false} deb qaytar.
+Shahar/tumanlar: {$districtsContext}
 
-2. TIL VA ALIFBO:
-   - Barcha matnlar (title ham, description ham) FAQAT VA FAQAT O'ZBEK LOTIN ALIFBOSIDA bo'lishi SHART!
-   - Asl e'londagi kirillcha so'zlarni ("сотилади", "сотих", "кўчаси", "уй", "ишчи керак", "хонадон", "келишилади") TO'LIQ O'ZBEK LOTIN ALIFBOSIGA O'GIRING ("sotiladi", "sotix", "ko'chasi", "uy", "ishchi kerak", "xonadon", "kelishiladi").
-   - Ruscha so'zlarni chiroyli o'zbekchaga o'gir ("угловой" -> "burchakdagi", "ориентир" -> "mo'ljal", "ремонт" -> "ta'mir", "новостройка" -> "yangi bino", "этаж" -> "qavat", "холодильник" -> "muzlatgich").
-
-3. "title" (Sarlavha):
-   - Qisqa, aniq va jozibador bo'lsin (maksimum 45-50 belgi).
-   - Masalan: "3 xonali burchak kottedj sotiladi", "2 xonali kvartira sotiladi", "Spark 2019 mexanika oq rang".
-   - "AKSIYA!", "DIQQAT!", "SHOSHILING!", kanal nomlari yoki telefon raqamlarni sarlavhaga QO'YMA.
-
-4. "description" (Tavsif - User-Friendly, faqat nuqtachalar bilan):
-   - HECH QANDAY EMOJI YOKI IKONKA (📍, 💵, 📞, 🚗, 📱, ✨ va boshqalar) ISHLATILMASIN! Faqat oddiy nuqtachalar (•) ishlatilsin.
-   - Chiroyli abzaslar va yangi qatorlar bilan formatla:
-     * 1-bo'lim: Mahsulot haqida 1-2 gaplik aniq ma'lumot;
-     * 2-bo'lim (bo'sh qator tashlab): Asosiy parametrlar (• Holati: a'lo\n• Rangi: oq);
-     * 3-bo'lim (bo'sh qator tashlab): • Manzil: ... (agar matnda bo'lsa);
-     * 4-bo'lim (bo'sh qator tashlab): • Narxi: ... (agar matnda bo'lsa);
-     * 5-bo'lim (bo'sh qator tashlab): • Bog'lanish uchun: FAQAT telefon raqam(lar)i yoki @username!
-   - Spam va begona kanallar reklamalarini (@..., t.me/...) butunlay tozalab tashla!
-
-5. "district_id" (Shahar/Tuman):
-   {$districtHint}- Agar matnda shahar nomi yozilgan bo'lsa o'shani tanla, yozilmagan bo'lsa manba kanal qaysi tumanniki bo'lsa o'sha tuman ID sini tanla.
-
-6. "category_id":
-   - Bitta aniq tovar bo'lsa mos kategoriya ID raqami. Aralash yoki noaniq bo'lsa "Boshqa" (ID {$boshqaId}) ni tanla.
-
-JSON formati:
-{
-  "is_valid": true,
-  "title": "Sodda va aniq sarlavha (toza lotin tilida)",
-  "description": "Tozalangan, tartibli va user-friendly tavsif matni (toza lotin tilida)",
-  "price": 12000000, // raqam yoki null
-  "currency": "UZS", // "UZS" yoki "USD" yoki null
-  "phone": "998901234567", // 12 xonali formatda yoki null
-  "category_id": 12,
-  "district_id": 1
-}
-
-Agar bu xabar aniq spam (kazino, stavka, intim) bo'lsa, faqat {"is_valid": false} deb qaytar.
-
-E'lon matni:
-{$rawText}
+Haqiqiy e'lon uchun JSON:
+{"is_valid": true, "title": "...", "description": "...", "price": 12000000, "currency": "UZS", "phone": "998901234567", "category_id": 12, "district_id": 1}
 PROMPT;
-
-            $models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
-            $lastError = null;
-
-            foreach ($models as $model) {
-                try {
-                    $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-                    $response = Http::timeout(60)
-                        ->retry(2, 1000, throw: false)
-                        ->post($url, [
-                            'contents' => [
-                                [
-                                    'parts' => [
-                                        ['text' => $prompt]
-                                    ]
-                                ]
-                            ],
-                            'generationConfig' => [
-                                'responseMimeType' => 'application/json',
-                                'temperature' => 0.2,
-                            ]
-                        ]);
-
-                    if ($response->successful()) {
-                        $content = $response->json('candidates.0.content.parts.0.text');
-                        if ($content) {
-                            $cleanJson = trim($content);
-                            if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
-                                $cleanJson = trim($matches[1]);
-                            }
-                            $decoded = json_decode($cleanJson, true);
-                            if (is_array($decoded)) {
-                                return $decoded;
-                            }
-                        }
-                    } else {
-                        $errorData = $response->json('error');
-                        $lastError = is_array($errorData) ? ($errorData['message'] ?? $response->body()) : $response->body();
-                        Log::warning("Gemini API ({$model}) javob xatoligi: " . $lastError);
-                    }
-                } catch (\Throwable $e) {
-                    $lastError = $e->getMessage();
-                    Log::warning("Gemini API ({$model}) ulanish xatoligi: " . $lastError);
-                }
-            }
-
-            if ($lastError) {
-                Log::error("Gemini API barcha modellarda xatolik: " . $lastError);
-                $this->notifyTelegramFailure("Gemini", $lastError);
-            }
-        } catch (\Throwable $e) {
-            Log::error("Gemini API chaqirishda kutilmagan xatolik: " . $e->getMessage());
-            $this->notifyTelegramFailure("Gemini", $e->getMessage());
-        }
-
-        return null;
     }
 
     /**
-     * Call OpenAI API (gpt-4o-mini).
+     * Har bir postga xos qism (kanal, hudud, matn) — keshlanadigan ko'rsatmalardan keyin yuboriladi.
      */
-    private function callOpenAi(string $rawText, string $apiKey): ?array
+    private function userPrompt(string $rawText, ?string $channel): string
     {
+        $prompt = '';
+
+        if (!empty($channel)) {
+            $prompt .= "Manba kanal: @{$channel}\n";
+        }
+
+        $detectedDistrictId = $this->guessDistrictId($rawText, $channel);
+        if ($detectedDistrictId) {
+            $districts = Cache::remember('districts_list', 3600, fn() => District::all(['id', 'name']));
+            $district = $districts->firstWhere('id', $detectedDistrictId);
+            if ($district) {
+                $prompt .= "Aniq hudud: {$district->name} (ID: {$detectedDistrictId}). district_id shu bo'lishi SHART.\n";
+            }
+        }
+
+        return $prompt . "Post matni:\n" . $rawText;
+    }
+
+    /**
+     * Faqat vaqtinchalik xatolarda qayta urinadi (tarmoq, 429, 5xx). 4xx xatoni qayta yuborish — bekorga pul va vaqt.
+     */
+    private function shouldRetry(\Throwable $e): bool
+    {
+        if ($e instanceof ConnectionException) {
+            return true;
+        }
+
+        return $e instanceof RequestException
+            && ($e->response->status() === 429 || $e->response->serverError());
+    }
+
+    private function decodeJson(?string $content): ?array
+    {
+        if (!$content) {
+            return null;
+        }
+
+        $cleanJson = trim($content);
+        if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
+            $cleanJson = trim($matches[1]);
+        }
+
+        $decoded = json_decode($cleanJson, true);
+
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    private function failed(string $provider, string $message): never
+    {
+        Log::error("{$provider} API xatolik: {$message}");
+        $this->notifyTelegramFailure($provider, $message);
+
+        throw new AiUnavailableException("{$provider}: {$message}");
+    }
+
+    /**
+     * Call Google Gemini API. Bitta aniq model, fikrlash (thinking) minimal — bu vazifa uchun keragi yo'q va qimmat.
+     */
+    private function callGemini(string $rawText, string $apiKey, ?string $channel = null): array
+    {
+        $model = config('services.gemini.model');
+
+        $generationConfig = [
+            'responseMimeType' => 'application/json',
+            'temperature' => 0.2,
+        ];
+        if (filled(config('services.gemini.thinking_level'))) {
+            $generationConfig['thinkingConfig'] = ['thinkingLevel' => config('services.gemini.thinking_level')];
+        }
+
         try {
-            $categoriesContext = $this->getCategoriesContext();
-            $districtsContext = $this->getDistrictsContext();
-
-            $systemPrompt = "Sen e'lonlarni tahlil qiluvchi professional muharrir assistentsan. Javobing FAQAT toza JSON bo'lishi shart. Barcha matnlarni (title va description) FAQAT toza O'zbek lotin alifbosida, user-friendly tartibli qilib yoz, hech qachon kirill harflarini aralashtirma.\nKategoriyalar: {$categoriesContext}\nTumanlar: {$districtsContext}";
-
+            /** @var Response $response */
             $response = Http::timeout(60)
-                ->retry(2, 1000, throw: false)
+                ->retry(2, 2000, fn(\Throwable $e) => $this->shouldRetry($e), throw: false)
+                ->withHeaders(['x-goog-api-key' => $apiKey])
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", [
+                    'systemInstruction' => ['parts' => [['text' => $this->systemPrompt()]]],
+                    'contents' => [['role' => 'user', 'parts' => [['text' => $this->userPrompt($rawText, $channel)]]]],
+                    'generationConfig' => $generationConfig,
+                ]);
+        } catch (\Throwable $e) {
+            $this->failed("Gemini ({$model})", $e->getMessage());
+        }
+
+        if (!$response->successful()) {
+            $this->failed("Gemini ({$model})", (string) ($response->json('error.message') ?: $response->body()));
+        }
+
+        $this->recordUsage((int) $response->json('usageMetadata.totalTokenCount', 0));
+
+        $decoded = $this->decodeJson($response->json('candidates.0.content.parts.0.text'));
+        if ($decoded === null) {
+            $this->failed("Gemini ({$model})", "JSON bo'lmagan javob: " . Str::limit((string) $response->json('candidates.0.content.parts.0.text'), 200));
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * Call OpenAI API.
+     */
+    private function callOpenAi(string $rawText, string $apiKey, ?string $channel = null): array
+    {
+        $model = config('services.openai.model');
+
+        try {
+            /** @var Response $response */
+            $response = Http::timeout(60)
+                ->retry(2, 2000, fn(\Throwable $e) => $this->shouldRetry($e), throw: false)
                 ->withToken($apiKey)
                 ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4o-mini',
+                    'model' => $model,
                     'messages' => [
-                        ['role' => 'system', 'content' => $systemPrompt],
-                        ['role' => 'user', 'content' => "Tahlil qil:\n" . $rawText],
+                        ['role' => 'system', 'content' => $this->systemPrompt()],
+                        ['role' => 'user', 'content' => $this->userPrompt($rawText, $channel)],
                     ],
                     'response_format' => ['type' => 'json_object'],
                     'temperature' => 0.1,
                 ]);
-
-            if ($response->successful()) {
-                $content = $response->json('choices.0.message.content');
-                if ($content) {
-                    $cleanJson = trim($content);
-                    if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/s', $cleanJson, $matches)) {
-                        $cleanJson = trim($matches[1]);
-                    }
-                    $decoded = json_decode($cleanJson, true);
-                    if (is_array($decoded)) {
-                        return $decoded;
-                    }
-                }
-            } else {
-                $errorMsg = $response->json('error.message') ?: $response->body();
-                Log::warning("OpenAI API xatolik: " . $errorMsg);
-                $this->notifyTelegramFailure("OpenAI (gpt-4o-mini)", $errorMsg);
-            }
         } catch (\Throwable $e) {
-            Log::error("OpenAI API xatolik: " . $e->getMessage());
-            $this->notifyTelegramFailure("OpenAI", $e->getMessage());
+            $this->failed("OpenAI ({$model})", $e->getMessage());
         }
 
-        return null;
+        if (!$response->successful()) {
+            $this->failed("OpenAI ({$model})", (string) ($response->json('error.message') ?: $response->body()));
+        }
+
+        $this->recordUsage((int) $response->json('usage.total_tokens', 0));
+
+        $decoded = $this->decodeJson($response->json('choices.0.message.content'));
+        if ($decoded === null) {
+            $this->failed("OpenAI ({$model})", "JSON bo'lmagan javob");
+        }
+
+        return $decoded;
     }
 
     /**
@@ -297,8 +332,8 @@ PROMPT;
         }
         Cache::put($cacheKey, true, now()->addMinutes(15));
 
-        $botToken = env('TELEGRAM_BOT_TOKEN');
-        $chatId = env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL');
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.admin_chat_id');
 
         if (empty($botToken) || empty($chatId)) {
             Log::warning("Telegramga ogohlantirish yuborilmadi: TELEGRAM_BOT_TOKEN yoki TELEGRAM_ADMIN_CHAT_ID bo'sh.");
@@ -313,7 +348,7 @@ PROMPT;
                 . "🤖 <b>Provayder:</b> " . htmlspecialchars($provider, ENT_QUOTES, 'UTF-8') . "\n"
                 . "❌ <b>Xatolik sababi:</b>\n<code>" . htmlspecialchars($shortError, ENT_QUOTES, 'UTF-8') . "</code>\n\n"
                 . "⏰ <b>Vaqt:</b> {$timeNow}\n\n"
-                . "⛔ <b>Eslatma:</b> AI ishlamay qolgani sababli bu e'lonlar platformaga kiritilmadi (xunuk/buzilgan matnlar chiqmasligi uchun).";
+                . "⛔ <b>Eslatma:</b> AI ishlamay qolgani sababli import to'xtatildi. Postlar keyingi importda qayta tahlil qilinadi.";
 
             Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                 'chat_id' => $chatId,

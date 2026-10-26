@@ -2,6 +2,7 @@
 
 namespace App\Services\Bot;
 
+use App\Models\BotSeenPost;
 use App\Models\BotSetting;
 use App\Models\Category;
 use App\Models\Product;
@@ -22,6 +23,7 @@ class BotAdImportService
         protected TelegramChannelScraperService $scraper,
         protected AdAiParserService $aiParser,
         protected TelegramProductService $telegramService,
+        protected AdPrefilter $prefilter,
     ) {}
 
     /**
@@ -65,122 +67,57 @@ class BotAdImportService
 
         $botUser = User::getBotUser();
         $importedProducts = [];
+        $aiStoppedReason = null;
 
         // Agar bitta aylanada targetCount ga (masalan 10 taga) yetmasa,
-        // kanallardan chuqurroq (45 ta, so'ngra 90 tagacha) xabarlar olib, targetCount to'lguncha qidiriladi:
+        // kanallardan chuqurroq (45 ta, so'ngra 90 tagacha) xabarlar olib, targetCount to'lguncha qidiriladi.
+        // Ko'rilgan postlar bot_seen_posts'da turadi, shuning uchun ikkinchi aylana ularni qayta tahlil qilmaydi.
         $scrapePasses = [45, 90];
 
         foreach ($scrapePasses as $scrapeLimit) {
-            if (count($importedProducts) >= $targetCount) {
+            if (count($importedProducts) >= $targetCount || $aiStoppedReason) {
                 break;
             }
 
             foreach ($channels as $channel) {
-                if (count($importedProducts) >= $targetCount) {
+                if (count($importedProducts) >= $targetCount || $aiStoppedReason) {
                     break;
                 }
 
                 $posts = $this->scraper->fetchChannelPosts($channel, $scrapeLimit);
+                $seenIds = $this->seenMessageIds($channel, $posts);
 
                 foreach ($posts as $post) {
                     if (count($importedProducts) >= $targetCount) {
                         break;
                     }
 
-                    $messageId = $post['message_id'] ?? null;
-
-                    // 0. CHECK: Ushbu kanal va xabar ID avval saqlanganmi? (Tezkor indeks orqali)
-                    if ($messageId && Product::where('source_channel', $channel)->where('source_message_id', $messageId)->exists()) {
+                    $messageId = (int) ($post['message_id'] ?? 0);
+                    if (!$messageId || isset($seenIds[$messageId])) {
                         continue;
                     }
 
-                    $text = trim($post['text'] ?? '');
-                    if (empty($text) || mb_strlen($text) < 15) {
-                        continue;
+                    try {
+                        [$status, $reason, $product] = $this->processPost($post, $channel, $setting, $botUser);
+                    } catch (AiUnavailableException $e) {
+                        // AI ishlamayapti yoki limit tugadi: post belgilanmaydi (keyingi safar qayta ko'riladi), import to'xtaydi
+                        $aiStoppedReason = $e->getMessage();
+                        Log::warning("Bot import to'xtatildi: {$aiStoppedReason}");
+                        break;
                     }
 
-                    // 1. FRESHNESS: Oxirgi 7 kunga (1 haftalik yangi e'lonlarga) to'liq ruxsat beriladi
-                    if (!empty($post['date'])) {
-                        try {
-                            $postDate = \Carbon\Carbon::parse($post['date']);
-                            if ($postDate->lt(now()->subDays(7))) {
-                                continue;
-                            }
-                        } catch (\Throwable) {
-                            // ignore parse errors
-                        }
+                    BotSeenPost::mark($channel, $messageId, $status, $reason);
+                    $seenIds[$messageId] = true;
+
+                    if ($product) {
+                        $importedProducts[] = $product;
                     }
-
-                    // 2. FILTER: Aniq tijoriy/do'kon/reklama xabarlarni to'xtatish (mo'ljal so'zlariga tegmasdan)
-                    if ($this->isCommercialOrPromo($text)) {
-                        Log::info("Tijoriy/aksiya/reklama e'loni o'tkazib yuborildi: " . mb_substr($text, 0, 45));
-                        continue;
-                    }
-
-                    // 3. FILTER: Aloqa vositasi (telefon raqam yoki Telegram @username)
-                    $phone = $this->extractPhone($text);
-                    $telegramUsername = $this->extractTelegramUsername($text);
-                    if (!$phone && !$telegramUsername) {
-                        continue;
-                    }
-
-                    // 4. FILTER: Content Fingerprint Hash (Barcha kanallar bo'yicha 100% bir xil matn dublikatini to'xtatish)
-                    $sourceHash = $this->generateContentFingerprint($text);
-                    if (Product::where('source_hash', $sourceHash)->exists()) {
-                        continue;
-                    }
-
-                    // 5. FILTER: Telefon orqali aynan bir xil takroriy e'lonlarni tekshirish (o'xshashlik >= 75%)
-                    if ($phone && $this->isDuplicateByPhoneAndContent($phone, $text)) {
-                        Log::info("Bitta ma'nodagi takroriy e'lon o'tkazib yuborildi (Tel: {$phone})");
-                        continue;
-                    }
-
-                    // E'lonni tahlil qilish (AI yoki fallback orqali):
-                    $parsed = $this->aiParser->parse($text, $setting, $channel);
-                    if (!$parsed || empty($parsed['is_valid'])) {
-                        continue;
-                    }
-
-                    if (!empty($parsed['phone'])) {
-                        $phone = $parsed['phone'];
-                    }
-
-                    // Agar telefon raqam topilmagan bo'lsa, username ni kontakt sifatida saqlaymiz
-                    $contactPhone = $phone ?: ($telegramUsername ? '@' . $telegramUsername : null);
-
-                    // Determine listing duration
-                    $category = Category::find($parsed['category_id']);
-                    $durationDays = $category?->listing_duration_days ?? 30;
-
-                    // Create Product
-                    $product = Product::create([
-                        'title' => $parsed['title'] ?? 'E\'lon',
-                        'description' => $parsed['description'] ?? $text,
-                        'category_id' => $parsed['category_id'] ?? 1,
-                        'district_id' => $parsed['district_id'] ?? null,
-                        'user_id' => $botUser->id,
-                        'phone' => $contactPhone,
-                        'price' => $parsed['price'] ?? null,
-                        'price_type_id' => $parsed['price_type_id'] ?? 1,
-                        'back_color_id' => 1,
-                        'is_bot' => true,
-                        'source_channel' => $channel,
-                        'source_message_id' => $messageId,
-                        'source_hash' => $sourceHash,
-                        'published_at' => now(),
-                        'expires_at' => now()->addDays($durationDays),
-                    ]);
-
-                    // Download and attach images (up to 4 images), but omit for Jobs and Services
-                    if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
-                        $this->attachImages($product, array_slice($post['images'], 0, 4));
-                    }
-
-                    $importedProducts[] = $product;
                 }
             }
         }
+
+        // 30 kundan eski yozuvlar kerak emas (7 kundan eski postlar baribir o'tkazib yuboriladi)
+        BotSeenPost::where('created_at', '<', now()->subDays(30))->delete();
 
         $importedCount = count($importedProducts);
 
@@ -214,12 +151,129 @@ class BotAdImportService
             }
         }
 
+        $usage = AdAiParserService::todayUsage();
+
         return [
-            'status' => 'success',
+            'status' => $aiStoppedReason ? 'ai_stopped' : 'success',
+            'message' => $aiStoppedReason
+                ? "{$importedCount} ta e'lon qo'shildi, keyin AI to'xtadi: {$aiStoppedReason}"
+                : "{$importedCount} ta e'lon qo'shildi. Bugun AI: {$usage['requests']} so'rov, {$usage['tokens']} token.",
             'imported_count' => $importedCount,
             'telegram_published_product_id' => $telegramPublishedProduct,
             'today_total' => $setting->fresh()->today_imported_count,
+            'ai_usage' => $usage,
         ];
+    }
+
+    /**
+     * Shu kanal postlaridan qaysilari avval ko'rilgan (yoki import qilingan, jumladan keyin o'chirilgan) — bitta so'rovda.
+     */
+    protected function seenMessageIds(string $channel, array $posts): array
+    {
+        $ids = array_values(array_filter(array_map(fn($p) => (int) ($p['message_id'] ?? 0), $posts)));
+        if ($ids === []) {
+            return [];
+        }
+
+        $seen = BotSeenPost::where('channel', $channel)->whereIn('message_id', $ids)->pluck('message_id');
+        // bot_seen_posts paydo bo'lishidan oldin import qilinganlar; admin o'chirganlari ham qayta kirmasin
+        $imported = Product::withTrashed()->where('source_channel', $channel)->whereIn('source_message_id', $ids)->pluck('source_message_id');
+
+        return $seen->merge($imported)->mapWithKeys(fn($id) => [(int) $id => true])->all();
+    }
+
+    /**
+     * Bitta postni tekshiradi. Arzon filtrlar avval, AI eng oxirida.
+     *
+     * @return array{0: string, 1: ?string, 2: ?Product} [status, sabab, yaratilgan e'lon]
+     */
+    protected function processPost(array $post, string $channel, BotSetting $setting, User $botUser): array
+    {
+        $text = trim($post['text'] ?? '');
+        if (mb_strlen($text) < 15) {
+            return ['filtered', 'matn qisqa', null];
+        }
+
+        // 1. FRESHNESS: Oxirgi 7 kunga (1 haftalik yangi e'lonlarga) to'liq ruxsat beriladi
+        if (!empty($post['date'])) {
+            try {
+                if (\Carbon\Carbon::parse($post['date'])->lt(now()->subDays(7))) {
+                    return ['old', null, null];
+                }
+            } catch (\Throwable) {
+                // ignore parse errors
+            }
+        }
+
+        // 2. FILTER: Aniq tijoriy/do'kon/reklama xabarlarni to'xtatish (mo'ljal so'zlariga tegmasdan)
+        if ($this->isCommercialOrPromo($text)) {
+            return ['filtered', 'tijoriy reklama', null];
+        }
+
+        // 3. FILTER: Aloqa vositasi. Kanalning o'z imzosi (@KanalNomi, t.me/...) kontakt hisoblanmaydi
+        $contactText = $this->prefilter->stripChannelNoise($text, $channel);
+        $phone = $this->extractPhone($contactText);
+        $telegramUsername = $this->extractTelegramUsername($contactText);
+        if (!$phone && !$telegramUsername) {
+            return ['filtered', 'kontakt yo\'q', null];
+        }
+
+        // 4. FILTER: Yangilik, tabrik va taklifsiz uzun matnlar — AI'ga yuborilmaydi
+        if ($reason = $this->prefilter->rejectReason($text)) {
+            return ['filtered', $reason, null];
+        }
+
+        // 5. FILTER: Content Fingerprint Hash (Barcha kanallar bo'yicha 100% bir xil matn dublikatini to'xtatish)
+        $sourceHash = $this->generateContentFingerprint($text);
+        if (Product::withTrashed()->where('source_hash', $sourceHash)->exists()) {
+            return ['duplicate', 'bir xil matn', null];
+        }
+
+        // 6. FILTER: Telefon orqali aynan bir xil takroriy e'lonlarni tekshirish (o'xshashlik >= 75%)
+        if ($phone && $this->isDuplicateByPhoneAndContent($phone, $text)) {
+            return ['duplicate', "o'xshash e'lon (tel: {$phone})", null];
+        }
+
+        // 7. AI: haqiqiy e'lonmi va uni tozalash
+        $parsed = $this->aiParser->parse($text, $setting, $channel);
+        if (!$parsed || empty($parsed['is_valid'])) {
+            return ['rejected', 'AI: e\'lon emas', null];
+        }
+
+        if (!empty($parsed['phone'])) {
+            $phone = $parsed['phone'];
+        }
+
+        // Agar telefon raqam topilmagan bo'lsa, username ni kontakt sifatida saqlaymiz
+        $contactPhone = $phone ?: ($telegramUsername ? '@' . $telegramUsername : null);
+
+        $category = Category::find($parsed['category_id']);
+        $durationDays = $category?->listing_duration_days ?? 30;
+
+        $product = Product::create([
+            'title' => $parsed['title'] ?? 'E\'lon',
+            'description' => $parsed['description'] ?? $text,
+            'category_id' => $parsed['category_id'] ?? 1,
+            'district_id' => $parsed['district_id'] ?? null,
+            'user_id' => $botUser->id,
+            'phone' => $contactPhone,
+            'price' => $parsed['price'] ?? null,
+            'price_type_id' => $parsed['price_type_id'] ?? 1,
+            'back_color_id' => 1,
+            'is_bot' => true,
+            'source_channel' => $channel,
+            'source_message_id' => $post['message_id'],
+            'source_hash' => $sourceHash,
+            'published_at' => now(),
+            'expires_at' => now()->addDays($durationDays),
+        ]);
+
+        // Download and attach images (up to 4 images), but omit for Jobs and Services
+        if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
+            $this->attachImages($product, array_slice($post['images'], 0, 4));
+        }
+
+        return ['imported', null, $product];
     }
 
     /**

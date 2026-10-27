@@ -15,7 +15,7 @@
             <div class="min-w-0">
                <h3 class="font-bold text-lg leading-tight truncate">{{ user.name }}</h3>
                <p class="text-sm text-(--z-muted-text) truncate">
-                  {{ user.username ? `@${user.username}` : "Telegram username o'rnatilmagan" }}
+                  {{ user.username ? `@${user.username}` : $t("profile.noUsername") }}
                </p>
                <!-- Statistika — alohida kartalar emas, bitta ixcham qator; bosilsa E'lonlarim -->
                <RouterLink
@@ -23,7 +23,7 @@
                   :to="{ name: 'my-ads' }"
                   class="mt-0.5 inline-flex items-center gap-1 text-xs text-(--z-muted-text) tabular-nums active:opacity-70"
                >
-                  {{ summary.stats.active }} faol e'lon · {{ compact(summary.stats.views) }} ko'rish
+                  {{ $t("profile.activeAds", summary.stats.active) }} · {{ $t("common.views", { n: compact(summary.stats.views) }, summary.stats.views) }}
                   <ChevronRight class="size-3" />
                </RouterLink>
             </div>
@@ -33,10 +33,9 @@
       <template #content>
          <BaseModal
             :open="isLogoutOpen"
-            title="Hisobdan chiqish"
-            description="Rostdan ham chiqmoqchimisiz? Qayta kirish uchun Telegram orqali login qilishingiz kerak bo'ladi."
-            confirm-text="Chiqish"
-            cancel-text="Bekor qilish"
+            :title="$t('profile.logout')"
+            :description="$t('profile.logoutText')"
+            :confirm-text="$t('profile.logoutConfirm')"
             @close="isLogoutOpen = false"
             @confirm="logout"
          >
@@ -45,20 +44,18 @@
 
          <div class="flex flex-col gap-5 pb-4">
             <section>
-               <h4 class="section-title">Kuzatuvlarim</h4>
+               <h4 class="section-title">{{ $t("profile.savedSearches") }}</h4>
                <SavedSearchList />
             </section>
 
             <section>
-               <h4 class="section-title">Bildirishnomalar</h4>
+               <h4 class="section-title">{{ $t("profile.notifications") }}</h4>
                <div class="card divide-y divide-(--z-border)">
                   <!-- Bot yoza olmasa — sozlamalar foydasiz; avval ruxsat -->
                   <div v-if="!authStore.user?.bot_can_message" class="px-4 py-3 flex items-center gap-3">
                      <BotMessageSquare class="size-5 shrink-0 text-amber-500" />
-                     <p class="grow text-xs text-(--z-muted-text) leading-snug">
-                        Bot sizga hali xabar yubora olmaydi. Ruxsat bering — kuzatuv va eslatmalar shunda keladi.
-                     </p>
-                     <BaseButton size="xs" :loading="isRequestingAccess" @click="allowMessages">Ruxsat</BaseButton>
+                     <p class="grow text-xs text-(--z-muted-text) leading-snug">{{ $t("profile.botNoAccess") }}</p>
+                     <BaseButton size="xs" :loading="isRequestingAccess" @click="allowMessages">{{ $t("profile.allow") }}</BaseButton>
                   </div>
                   <div class="px-4 py-3">
                      <BaseSwitch
@@ -66,8 +63,8 @@
                         :disabled="savingField === 'notify_saved_searches'"
                         @update:model-value="saveSetting('notify_saved_searches', $event)"
                      >
-                        <span class="block text-sm font-medium">Kuzatuvlarga mos yangi e'lonlar</span>
-                        <span class="block text-xs text-(--z-muted-text)">Ko'pi bilan 15 daqiqada bir marta</span>
+                        <span class="block text-sm font-medium">{{ $t("profile.notifySaved") }}</span>
+                        <span class="block text-xs text-(--z-muted-text)">{{ $t("profile.notifySavedHint") }}</span>
                      </BaseSwitch>
                   </div>
                   <div class="px-4 py-3">
@@ -76,15 +73,15 @@
                         :disabled="savingField === 'notify_expiry'"
                         @update:model-value="saveSetting('notify_expiry', $event)"
                      >
-                        <span class="block text-sm font-medium">E'lon muddati tugayotganda</span>
-                        <span class="block text-xs text-(--z-muted-text)">Tugashidan 2 kun oldin eslatadi</span>
+                        <span class="block text-sm font-medium">{{ $t("profile.notifyExpiry") }}</span>
+                        <span class="block text-xs text-(--z-muted-text)">{{ $t("profile.notifyExpiryHint") }}</span>
                      </BaseSwitch>
                   </div>
                </div>
             </section>
 
             <section>
-               <h4 class="section-title">Asosiy telefon raqam</h4>
+               <h4 class="section-title">{{ $t("profile.phone") }}</h4>
                <form class="card px-4 py-3 flex items-center gap-2" @submit.prevent="savePhone">
                   <Phone class="size-4.5 shrink-0 text-(--z-muted-text)" />
                   <span class="text-sm text-(--z-muted-text)">+998</span>
@@ -96,33 +93,40 @@
                      class="grow min-w-0 bg-transparent outline-none text-sm font-medium"
                      @input="phoneDraft = formatPhone(phoneDraft)"
                   />
-                  <BaseButton v-if="phoneChanged" type="submit" size="xs" :loading="savingField === 'phone'">Saqlash</BaseButton>
+                  <BaseButton v-if="phoneChanged" type="submit" size="xs" :loading="savingField === 'phone'">{{ $t("common.save") }}</BaseButton>
                   <Check v-else-if="phoneSaved" class="size-4 text-emerald-500" />
                </form>
-               <p class="mt-1.5 px-1 text-xs text-(--z-muted-text)">Yangi e'lon formasida avtomatik to'ldiriladi.</p>
+               <p class="mt-1.5 px-1 text-xs text-(--z-muted-text)">{{ $t("profile.phoneHint") }}</p>
             </section>
 
             <section>
-               <h4 class="section-title">Sozlamalar</h4>
+               <h4 class="section-title">{{ $t("profile.settings") }}</h4>
                <ul class="card divide-y divide-(--z-border)">
                   <li>
                      <RouterLink :to="{ name: 'my-ads' }" class="row">
                         <Megaphone class="size-4.5 text-(--z-muted-text)" />
-                        <span class="grow text-sm font-medium">E'lonlarim</span>
+                        <span class="grow text-sm font-medium">{{ $t("myAds.title") }}</span>
                         <ChevronRight class="size-4 text-(--z-muted-text)" />
                      </RouterLink>
                   </li>
                   <li class="px-4 py-3">
                      <div class="flex items-center gap-3 mb-2.5">
+                        <Languages class="size-4.5 text-(--z-muted-text)" />
+                        <span class="text-sm font-medium">{{ $t("profile.language") }}</span>
+                     </div>
+                     <LanguageSwitcher class="w-full" />
+                  </li>
+                  <li class="px-4 py-3">
+                     <div class="flex items-center gap-3 mb-2.5">
                         <SunMoon class="size-4.5 text-(--z-muted-text)" />
-                        <span class="text-sm font-medium">Mavzu</span>
+                        <span class="text-sm font-medium">{{ $t("profile.theme") }}</span>
                      </div>
                      <ThemeSwitcher variant="segmented" class="w-full" />
                   </li>
                   <li v-if="authStore.user?.role === 'admin'">
                      <a href="/admin" class="row">
                         <LayoutDashboard class="size-4.5 text-(--z-muted-text)" />
-                        <span class="grow text-sm font-medium">Admin panel</span>
+                        <span class="grow text-sm font-medium">{{ $t("profile.adminPanel") }}</span>
                         <ChevronRight class="size-4 text-(--z-muted-text)" />
                      </a>
                   </li>
@@ -130,19 +134,19 @@
             </section>
 
             <section>
-               <h4 class="section-title">Yordam</h4>
+               <h4 class="section-title">{{ $t("profile.help") }}</h4>
                <ul class="card divide-y divide-(--z-border)">
                   <li>
                      <button type="button" class="row w-full" @click="openUrl(privacyUrl)">
                         <ShieldCheck class="size-4.5 text-(--z-muted-text)" />
-                        <span class="grow text-left text-sm font-medium">Qoidalar va maxfiylik</span>
+                        <span class="grow text-left text-sm font-medium">{{ $t("profile.rules") }}</span>
                         <ChevronRight class="size-4 text-(--z-muted-text)" />
                      </button>
                   </li>
                   <li v-if="summary?.support_username">
                      <button type="button" class="row w-full" @click="openSupport(summary.support_username)">
                         <LifeBuoy class="size-4.5 text-(--z-muted-text)" />
-                        <span class="grow text-left text-sm font-medium">Admin bilan bog'lanish</span>
+                        <span class="grow text-left text-sm font-medium">{{ $t("profile.support") }}</span>
                         <ChevronRight class="size-4 text-(--z-muted-text)" />
                      </button>
                   </li>
@@ -155,7 +159,7 @@
                         @click="isLogoutOpen = true"
                      >
                         <LogOut class="size-4.5" />
-                        <span class="grow text-left text-sm font-medium">Hisobdan chiqish</span>
+                        <span class="grow text-left text-sm font-medium">{{ $t("profile.logout") }}</span>
                      </button>
                   </li>
                </ul>
@@ -173,6 +177,7 @@ import {
    Camera,
    Check,
    ChevronRight,
+   Languages,
    LayoutDashboard,
    LifeBuoy,
    LogOut,
@@ -186,6 +191,7 @@ import BaseModal from "@shared/ui/BaseModal.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import ThemeSwitcher from "@shared/ui/ThemeSwitcher.vue";
+import LanguageSwitcher from "@shared/ui/LanguageSwitcher.vue";
 import SavedSearchList from "@/features/notifications/SavedSearchList.vue";
 import { useSavedSearches } from "@/features/notifications/useSavedSearches";
 import { useBotAccess } from "@/features/notifications/useBotAccess";

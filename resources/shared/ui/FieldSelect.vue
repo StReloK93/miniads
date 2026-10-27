@@ -187,6 +187,7 @@ import { Listbox, ListboxButton, ListboxOptions, ListboxOption } from "@headless
 import { Check, ChevronDown } from "lucide-vue-next";
 import { useFloating, offset, flip, shift, size as sizeMiddleware, autoUpdate } from "@floating-ui/vue";
 import type { Placement } from "@floating-ui/vue";
+import { t } from "@shared/i18n";
 
 const props = withDefaults(
    defineProps<{
@@ -203,7 +204,6 @@ const props = withDefaults(
       placement?: Placement;
    }>(),
    {
-      placeholder: "Tanlang",
       value: "value",
       id: "id",
       selectIcon: true,
@@ -261,9 +261,9 @@ function isValueEmpty(val: any) {
 }
 
 function selectedLabel(val: any) {
-   if (isValueEmpty(val)) return props.placeholder;
+   if (isValueEmpty(val)) return props.placeholder ?? t("common.choose");
    const found = normalizedOptions.value.find((o) => o.value === val);
-   return found ? found.label : (val || props.placeholder);
+   return found ? found.label : (val || props.placeholder || t("common.choose"));
 }
 
 function onSelectValue(val: any, handleChange?: (val: any) => void) {

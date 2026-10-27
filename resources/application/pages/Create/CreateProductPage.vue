@@ -3,7 +3,7 @@
       <ProductFormShell :category="selectedCategory" :inputs="formInputs" :submit="submitForm" @submitted="onSubmit">
          <template #heading>
             <div class="flex items-center gap-2">
-               <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
+               <h3 class="font-extrabold text-xl mb-1">{{ $t("common.postAd") }}</h3>
                <span class="text-xs text-(--z-muted-text) font-medium">2 / 2</span>
             </div>
 
@@ -13,7 +13,7 @@
                   <div class="h-1 bg-(--z-primary) rounded-full"></div>
                   <div class="h-1 bg-(--z-primary) rounded-full"></div>
                </div>
-               <p class="text-xs text-(--z-muted-text) font-medium">E'lon ma'lumotlari</p>
+               <p class="text-xs text-(--z-muted-text) font-medium">{{ $t("create.details") }}</p>
             </div>
          </template>
       </ProductFormShell>
@@ -21,8 +21,8 @@
       <!-- Success Modal -->
       <BaseModal
          :open="showSuccessModal"
-         title="E'loningiz qabul qilindi!"
-         description="E'loningiz muvaffaqiyatli joylandi va Telegram kanalda e'lon qilinadi."
+         :title="$t('create.successTitle')"
+         :description="$t('create.successText')"
          :show-buttons="false"
          @close="viewCreatedProduct"
       >
@@ -37,12 +37,12 @@
                v-if="createdProduct?.title"
                class="p-3 bg-(--z-muted)/40 border border-(--z-border) rounded-xl flex flex-col gap-1"
             >
-               <span class="text-xs text-(--z-muted-text)">E'lon sarlavhasi:</span>
+               <span class="text-xs text-(--z-muted-text)">{{ $t("create.adTitle") }}</span>
                <p class="text-sm font-semibold text-(--z-foreground) line-clamp-1">
                   {{ createdProduct.title }}
                </p>
                <span v-if="createdProduct.id" class="text-[11px] text-(--z-muted-text)">
-                  Raqami: <strong class="text-(--z-primary)">#{{ createdProduct.id }}</strong>
+                  {{ $t("create.adNumber") }} <strong class="text-(--z-primary)">#{{ createdProduct.id }}</strong>
                </span>
             </div>
 
@@ -51,21 +51,21 @@
                   <template #icon>
                      <Eye class="size-4 mr-2" />
                   </template>
-                  E'lonni ko'rish
+                  {{ $t("create.view") }}
                </BaseButton>
 
                <BaseButton @click="createAnother" severity="secondary" class="w-full">
                   <template #icon>
                      <Plus class="size-4 mr-2" />
                   </template>
-                  Yana e'lon berish
+                  {{ $t("create.another") }}
                </BaseButton>
 
                <BaseButton @click="goToProfile" severity="glass" class="w-full">
                   <template #icon>
                      <User class="size-4 mr-2" />
                   </template>
-                  Mening e'lonlarim
+                  {{ $t("myAds.title") }}
                </BaseButton>
             </div>
          </div>

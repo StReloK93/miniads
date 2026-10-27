@@ -5,7 +5,7 @@
          class="fixed inset-0 z-500 select-none touch-none"
          role="dialog"
          aria-modal="true"
-         aria-label="Rasmlarni ko'rish"
+         :aria-label="$t('product.photos')"
          @touchstart="onTouchStart"
          @touchmove="onTouchMove"
          @touchend="onTouchEnd"
@@ -36,7 +36,7 @@
                   @click="onSlideClick"
                >
                   <div class="swiper-zoom-container">
-                     <img :src="image.src" class="max-h-full max-w-full object-contain" alt="E'lon rasmi" draggable="false" />
+                     <img :src="image.src" class="max-h-full max-w-full object-contain" :alt="$t('product.photo')" draggable="false" />
                   </div>
                </swiper-slide>
             </swiper>
@@ -55,7 +55,7 @@
             <button
                type="button"
                class="pointer-events-auto size-9 inline-flex items-center justify-center rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-white cursor-pointer transition active:scale-90 hover:bg-white/20"
-               aria-label="Yopish"
+               :aria-label="$t('common.close')"
                @click="close"
             >
                <X class="size-5" />

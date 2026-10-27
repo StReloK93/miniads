@@ -11,6 +11,23 @@ export const categoryInputs: InputConfig[] = [
       schema: z.string({ message: "Majburiy maydon!" }).trim().min(1, "Majburiy maydon!"),
       class: ["mb-4"],
    },
+   // Tarjimalar: ilova shu tilda ochilganda ko'rinadi; bo'sh qolsa — o'zbekchasi
+   {
+      component: AdminField,
+      name: "name_ru",
+      placeholder: "Nomi (ru)",
+      props: { adminKind: "text" },
+      schema: z.string().trim().optional().nullable(),
+      class: ["mb-4"],
+   },
+   {
+      component: AdminField,
+      name: "name_en",
+      placeholder: "Nomi (en)",
+      props: { adminKind: "text" },
+      schema: z.string().trim().optional().nullable(),
+      class: ["mb-4"],
+   },
    {
       component: AdminField,
       name: "is_page",

@@ -42,17 +42,20 @@ class NotifyExpiringProducts extends Command
                 continue;
             }
 
+            app()->setLocale($user->language ?? 'uz');
+
             $lines = $items
                 ->map(fn (Product $product) => '• ' . e($product->title) . ' — ' . Carbon::parse($product->expires_at)->format('d.m H:i'))
                 ->implode("\n");
-            $heading = $items->count() > 1
-                ? "⏳ <b>{$items->count()} ta e'loningiz muddati tugayapti:</b>"
-                : "⏳ <b>E'loningiz muddati tugayapti:</b>";
+            $count = $items->count();
+            $heading = $count > 1
+                ? trans_choice('bot.expiring_many', $count, ['count' => $count])
+                : __('bot.expiring_one');
 
             $ok = $notifier->toUser(
                 $user,
-                "{$heading}\n\n{$lines}\n\nUzaytirsangiz, e'lon yana lenta boshiga chiqadi.",
-                [['Uzaytirish', TelegramNotifier::appLink('my_ads')]],
+                "{$heading}\n\n{$lines}\n\n" . __('bot.expiring_hint'),
+                [[__('bot.extend'), TelegramNotifier::appLink('my_ads')]],
             );
 
             if ($ok) {

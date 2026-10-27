@@ -14,7 +14,7 @@ class CategoryController extends Controller
 	//
 	public function index()
 	{
-		return Category::select('id', 'name')->get();
+		return Category::select('id', 'name', 'translations')->get();
 	}
 
 	public function show($id)
@@ -65,6 +65,7 @@ class CategoryController extends Controller
 			],
 			'name' => 'required|string',
 			'image' => 'sometimes|mimes:svg',
+			...Category::translationRules(),
 		]);
 
 		$validated['is_page'] = $request->boolean('is_page');
@@ -80,7 +81,8 @@ class CategoryController extends Controller
 			$validated['image'] = '/icons/' . $fileName;
 		}
 
-		$category = Category::create($validated);
+		$category = new Category($validated);
+		$category->fillTranslations($request->all())->save();
 		return response()->json($category, 201);
 	}
 
@@ -94,6 +96,7 @@ class CategoryController extends Controller
 		$request->validate([
 			'name' => 'string',
 			'image' => 'sometimes|mimes:svg', // image ekanligini ham tekshirish yaxshi
+			...Category::translationRules(),
 		]);
 
 		$data = $request->all(); // Barcha ma'lumotlarni o'zgaruvchiga olamiz
@@ -120,7 +123,7 @@ class CategoryController extends Controller
 			$data['image'] = '/icons/' . $fileName;
 		}
 
-		$category->update($data);
+		$category->fill($data)->fillTranslations($request->all())->save();
 
 		return response()->json($category, 200);
 	}

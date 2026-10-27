@@ -34,9 +34,11 @@ class ParameterController extends Controller
             'component' => 'required|string',
             'unit' => 'nullable|string',
             'options' => 'nullable|array', // Options massiv bo'lishi shart
+            ...Parameter::translationRules(),
         ]);
 
-        $parameter = Parameter::create($validated);
+        $parameter = new Parameter($validated);
+        $parameter->fillTranslations($request->all())->save();
 
 
         return response()->json($parameter->fresh(), 201);
@@ -45,7 +47,8 @@ class ParameterController extends Controller
     public function update(Request $request, $id)
     {
         $parameter = Parameter::findOrFail($id);
-        $parameter->update($request->all());
+        $request->validate(Parameter::translationRules());
+        $parameter->fill($request->all())->fillTranslations($request->all())->save();
         return response()->json($parameter);
     }
 

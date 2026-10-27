@@ -1,9 +1,9 @@
 <template>
-   <BaseDrawer :open="open" title="Filtrlar" @close="emit('close')">
+   <BaseDrawer :open="open" :title="$t('common.filters')" @close="emit('close')">
       <!-- Qoralama: "Ko'rsatish" bosilgunicha ro'yxat qayta yuklanmaydi -->
       <div class="flex flex-col gap-6">
          <section>
-            <h4 class="filter-title">Saralash</h4>
+            <h4 class="filter-title">{{ $t("filters.sort") }}</h4>
             <div class="flex flex-wrap gap-2">
                <button
                   v-for="option in SORT_OPTIONS"
@@ -13,36 +13,36 @@
                   :class="{ 'is-active': (draft.sort ?? 'new') === option.value }"
                   @click="draft.sort = option.value"
                >
-                  {{ option.label }}
+                  {{ $t(option.label) }}
                </button>
             </div>
          </section>
 
          <section v-if="withCategory">
-            <h4 class="filter-title">Bo'lim</h4>
+            <h4 class="filter-title">{{ $t("categories.category") }}</h4>
             <FieldSelect
                :model-value="draft.root_category_id ?? 0"
-               :options="[{ id: 0, name: 'Barcha bo\'limlar' }, ...(categoryStore.parentCategories ?? [])]"
+               :options="[{ id: 0, name: $t('categories.all') }, ...(categoryStore.parentCategories ?? [])]"
                @update:model-value="(id) => (draft.root_category_id = id || null)"
                value="name"
-               placeholder="Barcha bo'limlar"
+               :placeholder="$t('categories.all')"
             />
          </section>
 
          <!-- Server ro'yxati "Barcha shaharlar" (id 0) bilan keladi: 0 — filtr yo'q (null) -->
          <section>
-            <h4 class="filter-title">Shahar</h4>
+            <h4 class="filter-title">{{ $t("district.city") }}</h4>
             <FieldSelect
                :model-value="draft.city_id ?? 0"
                :options="cityStore.cities ?? []"
                @update:model-value="(id) => (draft.city_id = id || null)"
                value="name"
-               placeholder="Barcha shaharlar"
+               :placeholder="$t('district.all')"
             />
          </section>
 
          <section v-if="withPrice">
-            <h4 class="filter-title">Narx</h4>
+            <h4 class="filter-title">{{ $t("common.price") }}</h4>
             <FilterRange
                :model-value="{ from: draft.price_from, to: draft.price_to }"
                placeholder-from="0"
@@ -58,7 +58,7 @@
             <FilterRange
                v-if="parameter.type === 'number'"
                :model-value="rangeOf(parameter.id)"
-               :unit="isYearParameter(parameter) ? null : cleanUnit(parameter.unit)"
+               :unit="displayUnit(parameter)"
                :grouping="!isYearParameter(parameter)"
                @update:model-value="(range) => (draft.params![parameter.id] = range)"
             />
@@ -72,31 +72,31 @@
                   :class="{ 'is-active': draft.params![parameter.id] === option }"
                   @click="toggleOption(parameter.id, option)"
                >
-                  {{ option }}
+                  {{ labelOf(parameter, option) }}
                </button>
             </div>
 
             <FieldSelect
                v-else
                :model-value="draft.params![parameter.id] ?? null"
-               :options="[{ id: null, name: 'Farqi yo\'q' }, ...optionsOf(parameter).map((o) => ({ id: o, name: o }))]"
+               :options="[{ id: null, name: $t('filters.any') }, ...optionsOf(parameter).map((o) => ({ id: o, name: labelOf(parameter, o) }))]"
                value="name"
-               placeholder="Farqi yo'q"
+               :placeholder="$t('filters.any')"
                @update:model-value="(value) => (draft.params![parameter.id] = value)"
             />
          </section>
 
          <section>
             <BaseSwitch v-model="draft.with_image">
-               <span class="text-sm font-medium">Faqat rasmli e'lonlar</span>
+               <span class="text-sm font-medium">{{ $t("filters.withImage") }}</span>
             </BaseSwitch>
          </section>
       </div>
 
       <template #footer>
          <div class="grid grid-cols-2 gap-3">
-            <BaseButton severity="secondary" class="w-full" @click="reset">Tozalash</BaseButton>
-            <BaseButton class="w-full" @click="apply">Ko'rsatish</BaseButton>
+            <BaseButton severity="secondary" class="w-full" @click="reset">{{ $t("common.clear") }}</BaseButton>
+            <BaseButton class="w-full" @click="apply">{{ $t("common.show") }}</BaseButton>
          </div>
       </template>
    </BaseDrawer>
@@ -110,7 +110,7 @@ import FieldSelect from "@shared/ui/FieldSelect.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import FilterRange from "@/features/filters/FilterRange.vue";
 import { SORT_OPTIONS, emptyFilters, type ListFilters, type RangeValue } from "@/features/filters/listFilters";
-import { isYearParameter } from "@shared/modules/productSpecs";
+import { displayUnit, isYearParameter } from "@shared/modules/productSpecs";
 import { useCity } from "@shared/entities/District/useCity";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import type { IParameter } from "@shared/types";
@@ -164,9 +164,10 @@ function rangeOf(parameterId: number): RangeValue {
    return typeof value === "object" && value !== null ? value : {};
 }
 
-// "-qavat" → "qavat": oraliqda "dan 2 gacha 5 qavat" deb o'qiladi
-function cleanUnit(unit: string | null) {
-   return unit?.replace(/^-/, "") || null;
+// Variant nomi foydalanuvchi tilida; filtrga esa asl (o'zbekcha) qiymat yuboriladi
+function labelOf(parameter: IParameter, option: string): string {
+   const index = optionsOf(parameter).indexOf(option);
+   return parameter.option_labels?.[index] ?? option;
 }
 
 function toggleOption(parameterId: number, option: string) {

@@ -8,7 +8,7 @@
       <template v-if="search.products?.length">
          <div class="pb-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
             <p class="text-xs text-(--z-muted-text) tabular-nums">
-               {{ search.isLoading ? "Qidirilmoqda…" : `${search.products.length} ta e'lon topildi` }}
+               {{ search.isLoading ? $t("search.searching") : $t("search.found", search.products.length) }}
             </p>
             <WatchSearchButton :query="search.activeSearchText" :filters="search.filters" />
          </div>
@@ -25,15 +25,15 @@
          <div class="size-14 rounded-full bg-(--z-card) border border-(--z-border) grid place-items-center mb-3 text-(--z-muted-text)">
             <SearchX class="size-6" />
          </div>
-         <h3 class="text-base font-semibold mb-1">Hech narsa topilmadi</h3>
+         <h3 class="text-base font-semibold mb-1">{{ $t("common.notFound") }}</h3>
          <p class="text-xs text-(--z-muted-text) max-w-xs">
-            "<b>{{ search.activeSearchText }}</b>" bo'yicha e'lon yo'q. Boshqacha yozib ko'ring
-            <template v-if="search.hasFilters"> yoki filtrlarni tozalang</template>.
+            {{ $t("search.noResultsFor", { query: search.activeSearchText }) }}
+            {{ search.hasFilters ? $t("search.tryOtherOrFilters") : $t("search.tryOther") }}
          </p>
          <!-- Topilmadi — eng yaxshi payt kuzatuv taklif qilish uchun: talab bor, e'lon hali yo'q -->
          <WatchSearchButton class="mt-5" variant="cta" :query="search.activeSearchText" :filters="search.filters" />
          <BaseButton v-if="search.hasFilters" severity="secondary" size="sm" class="mt-3" @click="search.resetFilters()">
-            Filtrlarni tozalash
+            {{ $t("filters.reset") }}
          </BaseButton>
       </div>
 
@@ -42,7 +42,7 @@
             <div class="flex justify-between items-center mb-2.5 text-xs">
                <span class="flex items-center gap-1.5 font-medium text-(--z-muted-text)">
                   <History class="size-3.5" />
-                  Oxirgi qidiruvlar
+                  {{ $t("search.recent") }}
                </span>
                <button
                   type="button"
@@ -50,7 +50,7 @@
                   @mousedown.prevent
                   @click="search.clearHistory()"
                >
-                  Tozalash
+                  {{ $t("common.clear") }}
                </button>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -65,7 +65,7 @@
                   <button
                      type="button"
                      class="size-5 rounded-full grid place-items-center text-(--z-muted-text) hover:bg-(--z-muted)"
-                     aria-label="O'chirish"
+                     :aria-label="$t('common.delete')"
                      @mousedown.prevent
                      @click.stop="search.removeSearch(item)"
                   >
@@ -78,11 +78,11 @@
          <section>
             <div class="flex items-center gap-1.5 mb-2.5 text-xs font-medium text-(--z-muted-text)">
                <Sparkles class="size-3.5" />
-               Ommabop qidiruvlar
+               {{ $t("search.popular") }}
             </div>
             <div class="flex flex-wrap gap-2">
                <button
-                  v-for="tag in POPULAR_TAGS"
+                  v-for="tag in popularTags"
                   :key="tag"
                   type="button"
                   class="search-chip"
@@ -98,15 +98,20 @@
 </template>
 
 <script setup lang="ts">
-import type { UnwrapNestedRefs } from "vue";
+import { computed, type UnwrapNestedRefs } from "vue";
+import { useI18n } from "vue-i18n";
 import { History, SearchX, Sparkles, X } from "lucide-vue-next";
 import ProductCard from "@/features/product/ProductCard.vue";
 import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import WatchSearchButton from "@/features/notifications/WatchSearchButton.vue";
-import { POPULAR_TAGS, type ProductSearch } from "@/features/search/useProductSearch";
+import type { ProductSearch } from "@/features/search/useProductSearch";
 
 defineProps<{ search: UnwrapNestedRefs<ProductSearch> }>();
+
+// Har tilda o'z ro'yxati: ruscha "Квартира" ham o'zbekcha e'lonlarni topadi (qidiruv kirillni lotinga o'giradi)
+const { t } = useI18n();
+const popularTags = computed(() => t("search.popularTags").split(","));
 </script>
 
 <style scoped>

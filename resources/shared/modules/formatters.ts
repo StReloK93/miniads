@@ -1,10 +1,16 @@
+import { currentLocale, t } from "@shared/i18n";
+
 export interface FormatPriceOptions {
    fallback?: string;
    unit?: string;
 }
 
+// Intl uchun: o'zbekcha sana "8-okt", ruscha "8 окт.", inglizcha "8 Oct"
+const INTL_LOCALES = { uz: "uz-UZ", ru: "ru-RU", en: "en-GB" } as const;
+
 /**
- * Narxni formatlash funksiyasi (masalan: 1 000 000 yoki 1 000 000 so'm)
+ * Narxni formatlash funksiyasi (masalan: 1 000 000 yoki 1 000 000 so'm).
+ * Mingliklar hamma tilda bo'sh joy bilan — mahalliy odat.
  */
 export function formatPrice(value?: number | null, options?: FormatPriceOptions): string {
    if (value === null || value === undefined) {
@@ -20,10 +26,11 @@ export interface PriceType {
 }
 
 /**
- * E'lon narxi o'z valyutasi bilan (masalan: 1 000 000 so'm yoki $ 500)
+ * E'lon narxi o'z valyutasi bilan (masalan: 1 000 000 so'm yoki $ 500).
+ * fallback berilmasa — "Kelishiladi" (joriy tilda).
  */
-export function formatProductPrice(value?: number | null, priceType?: PriceType | null, fallback = "Kelishiladi"): string {
-   if (value === null || value === undefined) return fallback;
+export function formatProductPrice(value?: number | null, priceType?: PriceType | null, fallback?: string): string {
+   if (value === null || value === undefined) return fallback ?? t("listingPrice.negotiable");
    const formatted = formatPrice(value);
    if (!priceType?.type) return formatted;
    return priceType.position === "left" ? `${priceType.type} ${formatted}` : `${formatted} ${priceType.type}`;
@@ -49,29 +56,29 @@ export function timeAgo(date: Date | string | number): string {
       const minutes = Math.floor(diffMs / 60000);
       const hours = Math.floor(minutes / 60);
 
-      if (minutes < 1) return "hozir";
-      if (minutes < 60) return `${minutes} minut oldin`;
-      return `${hours} soat oldin`;
+      if (minutes < 1) return t("time.now");
+      if (minutes < 60) return t("time.minutesAgo", minutes);
+      return t("time.hoursAgo", hours);
    }
 
    // Kecha
    if (dayDiff === 1) {
-      return "kecha";
+      return t("time.yesterday");
    }
 
    // 2+ kun
-   return `${dayDiff} kun oldin`;
+   return t("time.daysAgo", dayDiff);
 }
 
 /**
- * Sanani o'zbek formatida formatlash (masalan: 8-okt, 2026)
+ * Sanani joriy til formatida (masalan: 8-okt, 2026)
  */
 export function formatDate(
    value: string | Date | null | undefined,
    dateStyle: "full" | "long" | "medium" | "short" = "medium"
 ): string {
    if (!value) return "";
-   return new Intl.DateTimeFormat("uz-UZ", { dateStyle }).format(new Date(value));
+   return new Intl.DateTimeFormat(INTL_LOCALES[currentLocale()], { dateStyle }).format(new Date(value));
 }
 
 /**
@@ -79,7 +86,7 @@ export function formatDate(
  */
 export function formatDateTime(value: string | Date | null | undefined): string {
    if (!value) return "—";
-   return new Intl.DateTimeFormat("uz-UZ", {
+   return new Intl.DateTimeFormat(INTL_LOCALES[currentLocale()], {
       month: "short",
       day: "numeric",
       hour: "2-digit",

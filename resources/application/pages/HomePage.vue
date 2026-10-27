@@ -48,10 +48,8 @@
             >
                <PackageOpen class="size-6 text-(--z-muted-text)" />
             </div>
-            <p class="font-medium text-sm text-(--z-foreground)">Hozircha e'lonlar mavjud emas</p>
-            <p class="text-xs mt-1 max-w-60">
-               Tanlangan hudud bo'yicha e'lonlar topilmadi. Shaharni o'zgartirib ko'ring.
-            </p>
+            <p class="font-medium text-sm text-(--z-foreground)">{{ $t("feed.empty") }}</p>
+            <p class="text-xs mt-1 max-w-60">{{ $t("feed.emptyHint") }}</p>
          </main>
 
          <!-- E'lonlar ro'yxati (Cheksiz scroll) -->
@@ -64,13 +62,13 @@
                   <span
                      class="size-4 border-2 border-(--z-primary) border-t-transparent rounded-full animate-spin"
                   ></span>
-                  <span>Yana yuklanmoqda...</span>
+                  <span>{{ $t("feed.loadingMore") }}</span>
                </div>
                <div
                   v-else-if="!hasMore && products.length > 0"
                   class="text-xs text-(--z-muted-text) py-4 text-center select-none"
                >
-                  Barcha e'lonlar ko'rsatildi
+                  {{ $t("feed.end") }}
                </div>
             </div>
          </main>

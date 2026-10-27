@@ -4,15 +4,15 @@
          <!-- Bosh sahifa uslubida: qutilarsiz, yengil sarlavha + bir qator statistika -->
          <div class="flex items-start justify-between gap-3 mb-3">
             <div class="min-w-0">
-               <h3 class="font-bold text-xl">E'lonlarim</h3>
+               <h3 class="font-bold text-xl">{{ $t("myAds.title") }}</h3>
                <!-- Yuklanguncha "0 marta" deb yolg'on raqam ko'rsatmaymiz -->
                <p class="mt-0.5 inline-flex items-center gap-1 text-xs text-(--z-muted-text) tabular-nums">
                   <Eye class="size-3.5" />
-                  <template v-if="products">{{ totalViews }} marta ko'rilgan</template>
+                  <template v-if="products">{{ $t("myAds.viewed", { n: totalViews }, totalViewsCount) }}</template>
                   <span v-else class="h-3 w-24 rounded-full bg-(--z-muted) animate-pulse" />
                </p>
             </div>
-            <RouterLink :to="{ name: 'create-select-category' }" aria-label="Yangi e'lon">
+            <RouterLink :to="{ name: 'create-select-category' }" :aria-label="$t('myAds.new')">
                <BaseButton icon-only rounded severity="secondary" size="sm">
                   <template #icon><Plus class="size-4.5" /></template>
                </BaseButton>
@@ -29,7 +29,7 @@
                :class="{ 'is-active': activeTab === index }"
                @click="activeTab = index"
             >
-               {{ tab.label }}
+               {{ $t(tab.label) }}
                <span class="my-chip-count">{{ products ? tab.count : "·" }}</span>
             </button>
 
@@ -40,7 +40,7 @@
                @click="nextSort"
             >
                <ArrowDownUp class="size-3.5" />
-               {{ sortLabel }}
+               {{ sortLabel ? $t(sortLabel) : "" }}
             </button>
          </nav>
       </template>
@@ -87,7 +87,7 @@
             @click="sort = 'expiring'"
          >
             <Clock class="size-3.5" />
-            {{ expiringCount }} ta e'lon muddati tugayapti
+            {{ $t("myAds.expiring", expiringCount) }}
          </button>
 
          <!-- Ko'p e'loni borlar uchun: nom bo'yicha qidirish -->
@@ -96,7 +96,7 @@
             <input
                v-model="searchText"
                type="search"
-               placeholder="E'lonlarim ichidan qidirish"
+               :placeholder="$t('myAds.searchPlaceholder')"
                class="w-full min-w-0 bg-transparent outline-none text-(--z-foreground) placeholder:text-(--z-muted-text)"
             />
          </label>
@@ -122,23 +122,19 @@
                   <Megaphone class="size-6 text-(--z-muted-text)" />
                </div>
                <template v-if="searchText">
-                  <h3 class="font-semibold mb-1">Topilmadi</h3>
-                  <p class="text-sm text-(--z-muted-text)">"{{ searchText }}" nomli e'lon yo'q</p>
+                  <h3 class="font-semibold mb-1">{{ $t("common.notFound") }}</h3>
+                  <p class="text-sm text-(--z-muted-text)">{{ $t("myAds.noMatch", { query: searchText }) }}</p>
                </template>
                <template v-else-if="activeTab === 0">
-                  <h3 class="font-semibold mb-1">Faol e'lonlar yo'q</h3>
-                  <p class="text-sm text-(--z-muted-text) max-w-64 mb-4">
-                     Birinchi e'loningizni joylang — Navoiy viloyati bo'ylab ko'rishadi.
-                  </p>
+                  <h3 class="font-semibold mb-1">{{ $t("myAds.noActive") }}</h3>
+                  <p class="text-sm text-(--z-muted-text) max-w-64 mb-4">{{ $t("myAds.noActiveHint") }}</p>
                   <RouterLink :to="{ name: 'create-select-category' }">
-                     <BaseButton size="sm">E'lon joylash</BaseButton>
+                     <BaseButton size="sm">{{ $t("common.postAd") }}</BaseButton>
                   </RouterLink>
                </template>
                <template v-else>
-                  <h3 class="font-semibold mb-1">O'chiq e'lonlar yo'q</h3>
-                  <p class="text-sm text-(--z-muted-text) max-w-64">
-                     Muddati tugagan yoki siz to'xtatgan e'lonlar shu yerda turadi.
-                  </p>
+                  <h3 class="font-semibold mb-1">{{ $t("myAds.noInactive") }}</h3>
+                  <p class="text-sm text-(--z-muted-text) max-w-64">{{ $t("myAds.noInactiveHint") }}</p>
                </template>
             </div>
          </Transition>
@@ -160,6 +156,9 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { IProduct } from "@shared/types";
 import { ArrowDownUp, Clock, Eye, EyeOff, Megaphone, Plus, Search, Trash2 } from "lucide-vue-next";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 // Shuncha kun qolgan e'lon "tugayapti" deb ogohlantiriladi
 const EXPIRING_DAYS = 3;
@@ -183,18 +182,17 @@ const expiringCount = computed(
 );
 
 const tabs = computed(() => [
-   { label: "Faol", count: activeProducts.value.length },
-   { label: "O'chiq", count: expiredProducts.value.length },
+   { label: "myAds.active", count: activeProducts.value.length },
+   { label: "myAds.inactive", count: expiredProducts.value.length },
 ]);
 
-const totalViews = computed(() =>
-   (products.value ?? []).reduce((sum, p) => sum + (p.views_count ?? 0), 0).toLocaleString("ru-RU"),
-);
+const totalViewsCount = computed(() => (products.value ?? []).reduce((sum, p) => sum + (p.views_count ?? 0), 0));
+const totalViews = computed(() => totalViewsCount.value.toLocaleString("ru-RU"));
 
 const sortOptions = computed(() => [
-   { id: "new" as const, label: "Yangilari" },
-   { id: "views" as const, label: "Ko'p ko'rilgan" },
-   ...(activeTab.value === 0 ? [{ id: "expiring" as const, label: "Tugashi yaqin" }] : []),
+   { id: "new" as const, label: "sort.new" },
+   { id: "views" as const, label: "myAds.mostViewed" },
+   ...(activeTab.value === 0 ? [{ id: "expiring" as const, label: "myAds.endingSoon" }] : []),
 ]);
 
 const sortLabel = computed(() => sortOptions.value.find((o) => o.id === sort.value)?.label);
@@ -225,8 +223,8 @@ const modalParams = ref({
    description: "",
    showButtons: false,
    icon: Eye,
-   confirmText: "Saqlash",
-   cancelText: "Yopish",
+   confirmText: t("common.save"),
+   cancelText: t("common.close"),
    product: null as IProduct | null,
    confirm: async () => {},
 });
@@ -234,13 +232,13 @@ const modalParams = ref({
 function deActivateProduct(product: IProduct) {
    modalParams.value = {
       status: "deActivate",
-      title: "E'lonni o'chirish",
-      description: "E'loningiz o'chirilganlar ro'yxatiga o'tadi va uni qayta faollashtirish mumkin",
+      title: t("myAds.deactivateTitle"),
+      description: t("myAds.deactivateText"),
       showButtons: true,
       icon: EyeOff,
-      confirmText: "O'chirish",
+      confirmText: t("myAds.deactivate"),
       product: product,
-      cancelText: "Bekor qilish",
+      cancelText: t("common.cancel"),
 
       confirm: async () => {
          await ProductRepo.deactivate(product.id);
@@ -255,13 +253,13 @@ function deActivateProduct(product: IProduct) {
 function activateProduct(product: IProduct) {
    modalParams.value = {
       status: "activate",
-      title: "E'lonni faollashtirish",
-      description: "E'loningizni faollashtirmoqchimisiz?",
+      title: t("myAds.activateTitle"),
+      description: t("myAds.activateText"),
       showButtons: true,
       icon: Eye,
       product: product,
-      confirmText: "Faollashtirish",
-      cancelText: "Bekor qilish",
+      confirmText: t("myAds.activate"),
+      cancelText: t("common.cancel"),
       confirm: async () => {
          await ProductRepo.activate(product.id);
          await reload();
@@ -275,13 +273,13 @@ function activateProduct(product: IProduct) {
 function deleteProduct(product: IProduct) {
    modalParams.value = {
       status: "delete",
-      title: "E'lonni butunlay o'chirish",
-      description: "E'lon butunlay o'chiriladi va uning barcha rasmlari o'chiriladi. Ushbu amalni ortga qaytarib bo'lmaydi. Rozimisiz?",
+      title: t("myAds.deleteTitle"),
+      description: t("myAds.deleteText"),
       showButtons: true,
       icon: Trash2,
       product: product,
-      confirmText: "Butunlay o'chirish",
-      cancelText: "Bekor qilish",
+      confirmText: t("myAds.deleteForever"),
+      cancelText: t("common.cancel"),
       confirm: async () => {
          await ProductRepo.delete(product.id);
          await reload();
@@ -300,8 +298,8 @@ function resetModalParams() {
       icon: EyeOff,
       product: null,
       showButtons: false,
-      confirmText: "Saqlash",
-      cancelText: "Yopish",
+      confirmText: t("common.save"),
+      cancelText: t("common.close"),
       confirm: async () => {},
    };
 }

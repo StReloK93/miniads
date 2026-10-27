@@ -3,6 +3,7 @@ import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
 import { useCity } from "@shared/entities/District/useCity";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { formatPrice } from "@shared/modules/formatters";
+import { t } from "@shared/i18n";
 import { ICategory, ISavedSearch } from "@shared/types";
 import { countActiveFilters, toQueryParams, type ListFilters } from "@/features/filters/listFilters";
 
@@ -51,8 +52,8 @@ export function useSavedSearches() {
       const parts = [query.trim()];
       const { price_from: from, price_to: to } = filters;
       if (from && to) parts.push(`${formatPrice(from)}–${formatPrice(to)}`);
-      else if (to) parts.push(`${formatPrice(to)} gacha`);
-      else if (from) parts.push(`${formatPrice(from)} dan`);
+      else if (to) parts.push(t("watch.priceTo", { price: formatPrice(to) }));
+      else if (from) parts.push(t("watch.priceFrom", { price: formatPrice(from) }));
 
       const city = cityStore.cities?.find((item) => item.id === filters.city_id);
       if (city && city.id) parts.push(city.name);
@@ -61,11 +62,11 @@ export function useSavedSearches() {
          (item) => item.id === filters.root_category_id,
       );
       if (category) parts.push(category.name);
-      if (filters.with_image) parts.push("rasmli");
+      if (filters.with_image) parts.push(t("watch.withImage"));
 
       // Parametrlar (yil, probeg...) nomlarini bu yerda bilmaymiz — soni yetarli
       const paramCount = Object.values(filters.params ?? {}).filter(Boolean).length;
-      if (paramCount) parts.push(`+${paramCount} parametr`);
+      if (paramCount) parts.push(t("watch.params", { n: paramCount }));
 
       return parts.join(" · ").slice(0, 200);
    }

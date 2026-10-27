@@ -35,7 +35,7 @@ class SavedSearchController extends Controller
         abort_if(
             $user->savedSearches()->count() >= SavedSearch::MAX_PER_USER,
             422,
-            'Ko\'pi bilan ' . SavedSearch::MAX_PER_USER . " ta kuzatuv. Keraksizini profildan o'chiring.",
+            __('messages.saved_search_limit', ['max' => SavedSearch::MAX_PER_USER]),
         );
 
         return $user->savedSearches()->create([

@@ -2,12 +2,12 @@
    <div class="flex items-center gap-2">
       <button type="button" class="filter-pill" :class="{ 'is-active': activeCount > 0 }" @click="emit('open')">
          <SlidersHorizontal class="size-4" />
-         Filtrlar
+         {{ $t("common.filters") }}
          <span v-if="activeCount" class="filter-pill-count">{{ activeCount }}</span>
       </button>
 
       <span v-if="total !== undefined" class="ml-auto text-xs text-(--z-muted-text) whitespace-nowrap tabular-nums">
-         {{ total }} ta e'lon
+         {{ $t("common.adsCount", total) }}
       </span>
    </div>
 </template>

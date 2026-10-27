@@ -32,7 +32,7 @@
                   </svg>
                </div>
                <span class="text-xs font-bold text-(--z-foreground) truncate">@{{ telegramUsername }}</span>
-               <span class="text-[11px] text-(--z-muted-text) truncate hidden sm:inline">(raqamsiz)</span>
+               <span class="text-[11px] text-(--z-muted-text) truncate hidden sm:inline">{{ $t("phoneField.noNumber") }}</span>
             </div>
 
             <!-- Chetki ixcham addon selektor (Pricedagi kabi) -->
@@ -44,10 +44,10 @@
                   @click="onDisabledClick"
                   class="h-8 px-2.5 py-1 text-xs font-semibold rounded-lg bg-(--z-muted)/40 text-(--z-muted-text) hover:bg-(--z-muted)/60 flex items-center gap-1.5 cursor-pointer select-none transition-transform border border-transparent"
                   :class="{ 'animate-shake': isShaking }"
-                  title="Sizda username yo'q"
+                  :title="$t('phoneField.noUsername')"
                >
                   <Phone class="size-3.5 text-(--z-muted-text)" />
-                  <span class="text-xs font-medium">Tel</span>
+                  <span class="text-xs font-medium">{{ $t("phoneField.tel") }}</span>
                   <ChevronDown class="size-3 text-(--z-muted-text) opacity-50" />
                </button>
 
@@ -68,7 +68,7 @@
 
                      <template v-else-if="mode === 'phone'">
                         <Phone class="size-3.5 text-(--z-primary) shrink-0" />
-                        <span class="text-xs font-medium text-(--z-foreground)">Tel</span>
+                        <span class="text-xs font-medium text-(--z-foreground)">{{ $t("phoneField.tel") }}</span>
                      </template>
 
                      <template v-else>
@@ -115,8 +115,8 @@
                                     </div>
                                  </div>
                                  <div class="flex flex-col text-left">
-                                    <span class="font-semibold text-xs leading-tight">Telefon va Telegram</span>
-                                    <span class="text-[10px] text-(--z-muted-text)">Qo'ng'iroq va yozishmalar uchun</span>
+                                    <span class="font-semibold text-xs leading-tight">{{ $t("phoneField.both") }}</span>
+                                    <span class="text-[10px] text-(--z-muted-text)">{{ $t("phoneField.bothHint") }}</span>
                                  </div>
                               </div>
                               <Check v-if="mode === 'both'" class="size-3.5 text-emerald-500 shrink-0" />
@@ -139,8 +139,8 @@
                                     <Phone class="size-3" />
                                  </div>
                                  <div class="flex flex-col text-left">
-                                    <span class="font-semibold text-xs leading-tight">Faqat telefon</span>
-                                    <span class="text-[10px] text-(--z-muted-text)">Faqat qo'ng'iroq qabul qilish</span>
+                                    <span class="font-semibold text-xs leading-tight">{{ $t("phoneField.phoneOnly") }}</span>
+                                    <span class="text-[10px] text-(--z-muted-text)">{{ $t("phoneField.phoneOnlyHint") }}</span>
                                  </div>
                               </div>
                               <Check v-if="mode === 'phone'" class="size-3.5 text-emerald-500 shrink-0" />
@@ -165,8 +165,8 @@
                                     </svg>
                                  </div>
                                  <div class="flex flex-col text-left">
-                                    <span class="font-semibold text-xs leading-tight">Faqat Telegram</span>
-                                    <span class="text-[10px] text-(--z-muted-text)">Raqam yashiriladi, faqat @{{ telegramUsername }}</span>
+                                    <span class="font-semibold text-xs leading-tight">{{ $t("phoneField.telegramOnly") }}</span>
+                                    <span class="text-[10px] text-(--z-muted-text)">{{ $t("phoneField.telegramOnlyHint", { username: telegramUsername }) }}</span>
                                  </div>
                               </div>
                               <Check v-if="mode === 'telegram'" class="size-3.5 text-emerald-500 shrink-0" />
@@ -179,15 +179,9 @@
          </div>
 
          <!-- Izoh matnlari -->
-         <p v-if="mode === 'both' && telegramUsername" class="text-[11px] text-(--z-muted-text) px-1 mt-1">
-            Qo'ng'iroq va Telegram (@{{ telegramUsername }}) orqali bog'lanish mumkin
-         </p>
-         <p v-else-if="mode === 'phone'" class="text-[11px] text-(--z-muted-text) px-1 mt-1">
-            Xaridorlar faqat telefon orqali bog'lanadilar
-         </p>
-         <p v-else-if="mode === 'telegram' && telegramUsername" class="text-[11px] text-[#229ED9] px-1 mt-1">
-            Telefon raqamingiz ko'rsatilmaydi, xaridorlar faqat Telegram orqali yozishlari mumkin
-         </p>
+         <p v-if="mode === 'both' && telegramUsername" class="text-[11px] text-(--z-muted-text) px-1 mt-1">{{ $t("phoneField.bothNote", { username: telegramUsername }) }}</p>
+         <p v-else-if="mode === 'phone'" class="text-[11px] text-(--z-muted-text) px-1 mt-1">{{ $t("phoneField.phoneOnlyNote") }}</p>
+         <p v-else-if="mode === 'telegram' && telegramUsername" class="text-[11px] text-[#229ED9] px-1 mt-1">{{ $t("phoneField.telegramOnlyNote") }}</p>
 
          <!-- Agar username yo'q bo'lsa va bosmoqchi bo'lsa yumshoq ogohlantirish -->
          <transition
@@ -199,7 +193,7 @@
             leave-to-class="opacity-0 -translate-y-1"
          >
             <p v-if="showNoUsernameAlert" class="text-xs text-amber-500 font-medium px-1 flex items-center gap-1.5 mt-1">
-               <AlertCircle class="size-3.5 shrink-0" /> Telegram profilingizda username o'rnatilmagan
+               <AlertCircle class="size-3.5 shrink-0" /> {{ $t("profile.noUsername") }}
             </p>
          </transition>
       </div>

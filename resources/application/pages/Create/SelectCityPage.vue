@@ -1,8 +1,8 @@
 <template>
    <section class="grid grid-rows-[auto_1fr]">
       <aside class="pb-4 mb-4 border-b border-(--z-border) -mx-4 px-4">
-         <h3 class="font-extrabold text-xl mb-1">E'lon joylash</h3>
-         <p class="title text-xs inline-flex">1-qadam: Shaharni tanlang</p>
+         <h3 class="font-extrabold text-xl mb-1">{{ $t("common.postAd") }}</h3>
+         <p class="title text-xs inline-flex">{{ $t("create.step", { n: 1 }) }}: {{ $t("district.choose") }}</p>
       </aside>
       <div class="relative">
          <main class="absolute inset-0 overflow-y-scroll pb-4 no-scrollbar">

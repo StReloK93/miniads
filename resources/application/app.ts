@@ -6,12 +6,23 @@ import router from "@/router";
 import { setupTMAUI } from "@/modules/InitApp";
 import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/composables/useTheme";
+import { applyLocale, detectLocale, i18n } from "@shared/i18n";
 import "@shared/css/ui.scss";
 
 initTheme();
 
+// Til: tanlangani → Telegram tili (tizim) → brauzer. Birinchi so'rovdan oldin — server ham shu tilda javob bersin
+let telegramLanguage: string | undefined;
+try {
+   telegramLanguage = isTMA() ? retrieveLaunchParams().tgWebAppData?.user?.language_code : undefined;
+} catch {
+   telegramLanguage = undefined;
+}
+applyLocale(detectLocale(telegramLanguage));
+
 const app = createApp(App);
 app.use(createPinia());
+app.use(i18n);
 const authStore = useAuth();
 
 const initApp = async () => {

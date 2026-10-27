@@ -63,7 +63,7 @@
                               severity="glass"
                               class="w-full"
                            >
-                              {{ cancelText }}
+                              {{ cancelText ?? $t("common.cancel") }}
                            </BaseButton>
 
                            <BaseButton
@@ -72,7 +72,7 @@
                               :severity="danger ? 'danger' : 'primary'"
                               class="w-full"
                            >
-                              {{ confirmText }}
+                              {{ confirmText ?? $t("common.confirm") }}
                            </BaseButton>
                         </div>
                      </div>
@@ -100,8 +100,6 @@ interface Props {
 
 withDefaults(defineProps<Props>(), {
    description: "",
-   confirmText: "Tasdiqlash",
-   cancelText: "Bekor qilish",
    showCancel: true,
    danger: false,
    showButtons: true,

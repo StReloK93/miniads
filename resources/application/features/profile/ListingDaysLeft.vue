@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { CircleOff, Timer } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 
 /**
  * E'lon muddati: "4 kun qoldi" va ingichka chiziq. 2 kun va undan kam qolsa — ogohlantiruvchi rang.
@@ -27,15 +28,16 @@ const props = defineProps<{
    max: number;
 }>();
 
+const { t } = useI18n();
 const WARNING_DAYS = 2;
 
 const expired = computed(() => props.current <= 0);
 const daysLeft = computed(() => Math.floor(props.current));
 
 const label = computed(() => {
-   if (expired.value) return "Muddati tugagan";
-   if (daysLeft.value < 1) return "Bugun tugaydi";
-   return `${daysLeft.value} kun qoldi`;
+   if (expired.value) return t("listing.expired");
+   if (daysLeft.value < 1) return t("listing.endsToday");
+   return t("listing.daysLeft", daysLeft.value);
 });
 
 const percent = computed(() => {

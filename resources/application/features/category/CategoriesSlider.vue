@@ -3,7 +3,7 @@
       Ixcham chiplar qatori: bo'limlar bir bosishda, lekin lentadan joy olmaydi.
       Barcha bo'limlar tugmasi qidiruv yonida (HomeSearchBar).
    -->
-   <nav class="-mx-4 px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar" aria-label="Bo'limlar">
+   <nav class="-mx-4 px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar" :aria-label="$t('categories.title')">
       <RouterLink
          v-for="category in CategoryStore.parentCategories"
          :key="category.id"

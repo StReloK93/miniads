@@ -1,13 +1,18 @@
 <template>
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
-         <h3 class="font-bold text-xl">{{ category?.name ?? " " }}</h3>
+         <h3 class="font-bold text-xl">{{ category?.name ?? "" }}</h3>
          <p class="mt-1 mb-3 text-sm text-(--z-muted-text) truncate">
             <span v-for="(item, index) in breadcrumb" :key="item.id">
                <ChevronRight v-if="index" class="size-3 inline" /> {{ item.name }}
             </span>
          </p>
-         <FilterBar class="pb-3" :filters="filters" :total="isLoading ? undefined : category?.products.length" @open="isFilterOpen = true" />
+         <FilterBar
+            class="pb-3"
+            :filters="filters"
+            :total="isLoading ? undefined : category?.products.length"
+            @open="isFilterOpen = true"
+         />
       </template>
 
       <template #content>
@@ -29,12 +34,18 @@
          </main>
 
          <main v-else class="py-16 flex flex-col items-center text-center">
-            <h3 class="text-base font-semibold mb-1">Hech narsa topilmadi</h3>
+            <h3 class="text-base font-semibold mb-1">{{ $t("common.notFound") }}</h3>
             <p class="text-sm text-(--z-muted-text) max-w-64">
-               {{ activeCount ? "Tanlangan filtrlar bo'yicha e'lon yo'q." : "Bu bo'limda hozircha faol e'lonlar yo'q." }}
+               {{ activeCount ? $t("categories.noFiltered") : $t("categories.emptyHint") }}
             </p>
-            <BaseButton v-if="activeCount" severity="secondary" size="sm" class="mt-4" @click="filters = emptyFilters()">
-               Filtrlarni tozalash
+            <BaseButton
+               v-if="activeCount"
+               severity="secondary"
+               size="sm"
+               class="mt-4"
+               @click="filters = emptyFilters()"
+            >
+               {{ $t("filters.reset") }}
             </BaseButton>
          </main>
       </template>

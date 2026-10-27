@@ -2,7 +2,7 @@
    <section class="h-full flex flex-col min-h-0 overflow-hidden">
       <aside class="shrink-0 pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex gap-2 items-center justify-between">
-            <h3 class="font-extrabold text-xl">E'lon joylash</h3>
+            <h3 class="font-extrabold text-xl">{{ $t("common.postAd") }}</h3>
             <span class="text-xs text-(--z-muted-text) font-medium">1 / 2</span>
          </div>
 
@@ -12,7 +12,7 @@
                <div class="h-1 bg-(--z-primary) rounded-full"></div>
                <div class="h-1 bg-(--z-border) rounded-full"></div>
             </div>
-            <p class="text-xs text-(--z-muted-text) font-medium">Kategoriya tanlang</p>
+            <p class="text-xs text-(--z-muted-text) font-medium">{{ $t("create.chooseCategory") }}</p>
          </div>
       </aside>
 

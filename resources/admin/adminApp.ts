@@ -8,10 +8,13 @@ import "@shared/css/ui.scss";
 import { responsiveTable } from "@admin/modules/responsiveTable";
 import { isTMA } from "@tma.js/bridge";
 import { setupTelegramSafeArea } from "@shared/modules/telegramSafeArea";
+import { i18n } from "@shared/i18n";
 initTheme();
 if (isTMA()) setupTelegramSafeArea();
 const app = createApp(App);
 app.use(createPinia());
+// Admin panel o'zbekcha; umumiy komponentlar (modal, forma) ham i18n'dan foydalanadi
+app.use(i18n);
 // Telefonda jadval qatorlari kartaga aylanadi
 app.directive("responsive-table", responsiveTable);
 

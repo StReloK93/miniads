@@ -3,10 +3,8 @@
       <BaseModal
          :show-buttons="false"
          :open="isOpen"
-         title="Shaharni tanlang"
-         description="Asosiy sahifada sizga faqat tanlangan shahar bo'yicha e'lonlar ko'rsatiladi."
-         confirm-text="Saqlash"
-         cancel-text="Yopish"
+         :title="$t('district.choose')"
+         :description="$t('district.hint')"
          :danger="true"
          @close="isOpen = false"
       >
@@ -18,11 +16,11 @@
 
             <div class="mt-6 flex gap-4">
                <BaseButton @click="isOpen = false" type="button" severity="glass" class="w-full">
-                  Bekor qilish
+                  {{ $t("common.cancel") }}
                </BaseButton>
 
                <BaseButton @click="emit('confirm')" :loading="loading" type="submit" class="w-full">
-                  Tasdiqlash
+                  {{ $t("common.confirm") }}
                </BaseButton>
             </div>
          </Form>
@@ -31,7 +29,7 @@
          <h2 class="mb-0.5 text-(--z-muted-text) text-xs font-medium">{{ AuthStore.user?.name }}</h2>
          <div @click="isOpen = true" class="flex gap-1.5 items-center text-sm font-semibold cursor-pointer">
             <MapPin class="size-4 text-(--z-primary)" />
-            <span>{{ AuthStore.user?.active_district?.name || "Barcha shaharlar" }}</span>
+            <span>{{ AuthStore.user?.active_district?.name || $t("district.all") }}</span>
          </div>
       </aside>
       <aside v-else>

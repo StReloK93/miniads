@@ -17,7 +17,7 @@
                   :crop-y="image.crop_y"
                   :crop-scale="image.crop_scale"
                   class="h-full w-full"
-                  alt="Tanlangan e'lon rasmi"
+                  :alt="$t('imageField.selected')"
                />
                <div class="absolute! bottom-1 right-1 z-10 flex gap-2">
                   <BaseButton
@@ -26,7 +26,7 @@
                      severity="danger"
                      icon-only
                      size="sm"
-                     aria-label="Rasmni o'chirish"
+                     :aria-label="$t('imageField.remove')"
                   >
                      <template #icon>
                         <Trash class="size-5" />
@@ -39,7 +39,7 @@
                      
                      icon-only
                      size="sm"
-                     aria-label="Rasmni kesish"
+                     :aria-label="$t('imageField.crop')"
                   >
                      <template #icon>
                         <Crop class="size-5 " />
@@ -72,7 +72,7 @@
       <BaseModal
          :open="activeImage !== null"
          :show-buttons="false"
-         title="Rasmni kesish"
+         :title="$t('imageField.crop')"
          @close="closeCropEditor"
       >
          <template #icon>
@@ -85,7 +85,7 @@
                <div class="flex items-center justify-between px-0.5">
                   <span class="text-xs font-semibold text-(--z-foreground) flex items-center gap-1.5">
                      <Eye class="size-3.5 text-(--z-primary)" />
-                     Real natija 
+                     {{ $t("imageField.result") }}
                   </span>
                </div>
                <div class="relative aspect-video w-full overflow-hidden rounded-(--z-rounded) border border-(--z-border) shadow-md bg-black/60">
@@ -95,7 +95,7 @@
                      :crop-y="activeImage.crop_y"
                      :crop-scale="activeImage.crop_scale"
                      class="h-full w-full pointer-events-none select-none"
-                     alt="Real natija ko'rinishi"
+                     :alt="$t('imageField.result')"
                   />
                </div>
             </div>
@@ -105,7 +105,7 @@
                <div class="flex items-center justify-between px-0.5">
                   <span class="text-xs font-semibold text-(--z-foreground) flex items-center gap-1.5">
                      <Crop class="size-3.5 text-(--z-primary)" />
-                     Kesish ramkasi
+                     {{ $t("imageField.frame") }}
                   </span>
                </div>
 
@@ -115,7 +115,7 @@
                   <button
                      type="button"
                      class="flex items-center justify-center size-7 sm:size-8 rounded-lg border border-(--z-border) bg-(--z-card) text-(--z-foreground) hover:bg-(--z-muted) active:scale-95 transition-all shadow-xs touch-none cursor-pointer"
-                     title="Tepaga 1px siljitish"
+                     :title="$t('imageField.up')"
                      @pointerdown="startNudge(0, -1)"
                      @pointerup="stopNudge"
                      @pointerleave="stopNudge"
@@ -130,7 +130,7 @@
                      <button
                         type="button"
                         class="shrink-0 flex items-center justify-center size-7 sm:size-8 rounded-lg border border-(--z-border) bg-(--z-card) text-(--z-foreground) hover:bg-(--z-muted) active:scale-95 transition-all shadow-xs touch-none cursor-pointer"
-                        title="Chapga 1px siljitish"
+                        :title="$t('imageField.left')"
                         @pointerdown="startNudge(-1, 0)"
                         @pointerup="stopNudge"
                         @pointerleave="stopNudge"
@@ -166,7 +166,7 @@
                            class="absolute max-w-none select-none pointer-events-none [-webkit-touch-callout:none]"
                            :class="{ 'shadow-2xl': isPortraitActive }"
                            :style="editorImageStyle"
-                           alt="Kesish ko'rinishi"
+                           :alt="$t('imageField.frame')"
                            draggable="false"
                            @load="measureCropStage"
                            @contextmenu.prevent
@@ -202,7 +202,7 @@
                      <button
                         type="button"
                         class="shrink-0 flex items-center justify-center size-7 sm:size-8 rounded-lg border border-(--z-border) bg-(--z-card) text-(--z-foreground) hover:bg-(--z-muted) active:scale-95 transition-all shadow-xs touch-none cursor-pointer"
-                        title="O'ngga 1px siljitish"
+                        :title="$t('imageField.right')"
                         @pointerdown="startNudge(1, 0)"
                         @pointerup="stopNudge"
                         @pointerleave="stopNudge"
@@ -217,7 +217,7 @@
                   <button
                      type="button"
                      class="flex items-center justify-center size-7 sm:size-8 rounded-lg border border-(--z-border) bg-(--z-card) text-(--z-foreground) hover:bg-(--z-muted) active:scale-95 transition-all shadow-xs touch-none cursor-pointer"
-                     title="Pastga 1px siljitish"
+                     :title="$t('imageField.down')"
                      @pointerdown="startNudge(0, 1)"
                      @pointerup="stopNudge"
                      @pointerleave="stopNudge"
@@ -233,7 +233,7 @@
                   <div class="flex items-center justify-between text-xs">
                      <span class="font-medium text-(--z-foreground) flex items-center gap-1.5">
                         <ZoomIn class="size-3.5 text-(--z-primary)" />
-                        Masshtab (Kattalashtirish)
+                        {{ $t("imageField.zoom") }}
                      </span>
                      <span class="font-mono text-xs font-semibold text-(--z-primary)">
                         {{ Number(activeImage?.crop_scale ?? 1).toFixed(2) }}x
@@ -244,7 +244,7 @@
                         type="button"
                         class="flex items-center justify-center size-7 rounded-lg border border-(--z-border) bg-(--z-card) hover:bg-(--z-muted) text-(--z-foreground) active:scale-95 transition-all disabled:opacity-40 cursor-pointer"
                         :disabled="(activeImage?.crop_scale ?? 1) <= 1"
-                        title="Kichraytirish"
+                        :title="$t('imageField.zoomOut')"
                         @click="onScaleChange((activeImage?.crop_scale ?? 1) - 0.05)"
                      >
                         <Minus class="size-3.5" />
@@ -262,7 +262,7 @@
                         type="button"
                         class="flex items-center justify-center size-7 rounded-lg border border-(--z-border) bg-(--z-card) hover:bg-(--z-muted) text-(--z-foreground) active:scale-95 transition-all disabled:opacity-40 cursor-pointer"
                         :disabled="(activeImage?.crop_scale ?? 1) >= 3"
-                        title="Kattalashtirish"
+                        :title="$t('imageField.zoomIn')"
                         @click="onScaleChange((activeImage?.crop_scale ?? 1) + 0.05)"
                      >
                         <Plus class="size-3.5" />
@@ -273,8 +273,8 @@
          </div>
 
          <footer class="mt-5 flex gap-3">
-            <BaseButton class="w-full" severity="secondary" @click="closeCropEditor">Bekor qilish</BaseButton>
-            <BaseButton class="w-full" @click="saveCrop">Saqlash</BaseButton>
+            <BaseButton class="w-full" severity="secondary" @click="closeCropEditor">{{ $t("common.cancel") }}</BaseButton>
+            <BaseButton class="w-full" @click="saveCrop">{{ $t("common.save") }}</BaseButton>
          </footer>
       </BaseModal>
    </Field>

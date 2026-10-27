@@ -11,7 +11,7 @@
             class="relative size-6 -ml-1 shrink-0 grid place-items-center rounded-full text-(--z-muted-text)"
             :class="active ? 'cursor-pointer text-(--z-foreground)! active:bg-(--z-muted)' : 'pointer-events-none'"
             :tabindex="active ? 0 : -1"
-            :aria-label="active ? 'Qidiruvdan chiqish' : undefined"
+            :aria-label="active ? $t('search.exit') : undefined"
             @mousedown.prevent
             @click="emit('cancel')"
          >
@@ -24,19 +24,19 @@
             type="search"
             enterkeyhint="search"
             autocomplete="off"
-            placeholder="Nima qidiryapsiz?"
+            :placeholder="$t('search.placeholder')"
             class="w-full min-w-0 bg-transparent outline-none text-(--z-foreground) placeholder:text-(--z-muted-text)"
             @focus="emit('activate')"
             @blur="emit('blur')"
             @keydown.esc="emit('cancel')"
          />
          <!-- Qidirilayotganini ko'z qaraydigan joyda — maydonning o'zida ko'rsatamiz -->
-         <LoaderCircle v-if="loading" class="size-4 shrink-0 animate-spin text-(--z-muted-text)" aria-label="Qidirilmoqda" />
+         <LoaderCircle v-if="loading" class="size-4 shrink-0 animate-spin text-(--z-muted-text)" :aria-label="$t('search.searching')" />
          <button
             v-if="model"
             type="button"
             class="size-6 -mr-1 shrink-0 grid place-items-center rounded-full bg-(--z-muted) text-(--z-muted-text) cursor-pointer"
-            aria-label="Tozalash"
+            :aria-label="$t('common.clear')"
             @mousedown.prevent
             @click="model = ''"
          >
@@ -51,7 +51,7 @@
             icon-only
             :severity="filterCount ? 'primary' : 'secondary'"
             class="relative shrink-0"
-            aria-label="Filtrlar"
+            :aria-label="$t('common.filters')"
             @mousedown.prevent
             @click="emit('filters')"
          >
@@ -66,7 +66,7 @@
             </span>
          </BaseButton>
 
-         <RouterLink v-else key="idle" :to="{ name: 'categories' }" class="shrink-0" aria-label="Barcha bo'limlar">
+         <RouterLink v-else key="idle" :to="{ name: 'categories' }" class="shrink-0" :aria-label="$t('categories.all')">
             <BaseButton icon-only severity="secondary">
                <template #icon>
                   <LayoutGrid class="size-5" stroke-width="1.75" />

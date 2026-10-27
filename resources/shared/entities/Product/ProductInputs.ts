@@ -4,6 +4,7 @@ import { InputConfig } from "@shared/types";
 import { useAuth } from "@shared/store/useAuth";
 import DistrictRepo from "@shared/entities/District/DistrictRepo";
 import z from "zod";
+import { t } from "@shared/i18n";
 
 let cachedPriceTypes: any[] | null = null;
 let cachedDistricts: any[] | null = null;
@@ -32,34 +33,24 @@ export interface ProductInputOptions {
    telegramUsername?: string | null;
    districts?: any[];
    defaultDistrictId?: number | null;
-   categoryName?: string;
+   /** Asosiy bo'lim ikonkasi (categories.image) — sarlavha namunasi uchun */
+   rootIcon?: string | null;
 }
 
-export function getDynamicTitlePlaceholder(categoryName?: string): string {
-   if (!categoryName) return "Masalan: Mahsulot yoki xizmat nomi (holati, modeli)";
-   const name = categoryName.toLowerCase();
-   if (name.includes("telefon") || name.includes("smartfon") || name.includes("gadjet") || name.includes("elektronika")) {
-      return "Masalan: iPhone 13 128GB Midnight ideal holatda";
-   }
-   if (name.includes("avto") || name.includes("mashina") || name.includes("transport")) {
-      return "Masalan: Chevrolet Cobalt 2022 2-pozitsiya, oq rang";
-   }
-   if (name.includes("uy") || name.includes("ko'chmas") || name.includes("kvartira") || name.includes("yer") || name.includes("ijara")) {
-      return "Masalan: 2 xonali kvartira, 3-qavat, ta'mirlangan";
-   }
-   if (name.includes("ish") || name.includes("vakansiya") || name.includes("xodim")) {
-      return "Masalan: Tajribali sotuvchi-maslahatchi kerak";
-   }
-   if (name.includes("xizmat") || name.includes("ta'mir") || name.includes("usta")) {
-      return "Masalan: Muzlatgich va konditsioner ta'mirlash";
-   }
-   if (name.includes("kiyim") || name.includes("poyabzal") || name.includes("moda")) {
-      return "Masalan: Qishki kurtka yangi (L razmer, qora)";
-   }
-   if (name.includes("mebel") || name.includes("jihoz")) {
-      return "Masalan: Yumshoq mebel garnituri (kam ishlatilgan)";
-   }
-   return "Masalan: Mahsulot yoki xizmat nomi (holati, modeli)";
+// Sarlavha namunasi asosiy bo'lim ikonkasi bo'yicha (categories.image) — nomga bog'liq emas, har tilda ishlaydi
+const TITLE_EXAMPLES: Record<string, "phone" | "car" | "realty" | "job" | "service" | "clothes" | "furniture"> = {
+   MonitorSmartphone: "phone",
+   Car: "car",
+   House: "realty",
+   BriefcaseBusiness: "job",
+   Wrench: "service",
+   Shirt: "clothes",
+   Armchair: "furniture",
+};
+
+export function getDynamicTitlePlaceholder(rootIcon?: string | null): string {
+   const key = (rootIcon && TITLE_EXAMPLES[rootIcon]) || "default";
+   return t("common.example", { value: t(`form.examples.${key}`) });
 }
 
 export function productInputs(options: ProductInputOptions = {}): InputConfig[] {
@@ -73,7 +64,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          required: true,
          props: {
             multiple: true,
-            title: "Rasmlar",
+            title: t("form.photos"),
          },
          schema: z.array(z.any()),
          class: ["mb-3"],
@@ -86,10 +77,10 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       name: "title",
       required: true,
       props: {
-         title: "Sarlavha",
-         placeholder: getDynamicTitlePlaceholder(options.categoryName),
+         title: t("form.title"),
+         placeholder: getDynamicTitlePlaceholder(options.rootIcon),
       },
-      schema: z.string({ message: "Majburiy maydon!" }).trim().min(5, "5 ta simboldan ko'p bolishi kerak!"),
+      schema: z.string({ message: t("form.required") }).trim().min(5, t("form.minChars", { n: 5 })),
       class: ["mb-3"],
    });
 
@@ -101,14 +92,14 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
             name: "price",
             required: true,
             props: {
-               title: "Narx",
-               placeholder: "Masalan: 1 000 000",
+               title: t("common.price"),
+               placeholder: t("common.example", { value: "1 000 000" }),
                min: 0,
                max: 9999999999999,
                inputmode: "numeric",
                class: "pr-28!",
             },
-            schema: z.coerce.number({ message: "Majburiy maydon!" }).min(1, "Narx 1 dan katta bo'lishi kerak!"),
+            schema: z.coerce.number({ message: t("form.required") }).min(1, t("form.priceMin")),
             class: ["mb-3"],
             teleport_parent_class: "parent_price",
          },
@@ -134,7 +125,7 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
                  }
                : undefined,
             value: 1,
-            schema: z.number({ message: "Majburiy maydon!" }),
+            schema: z.number({ message: t("form.required") }),
             class: ["absolute", "inset-y-0", "right-0", "flex", "items-center", "pr-2"],
             teleport_child_class: "parent_price",
          },
@@ -148,12 +139,12 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       required: false,
       optional: true,
       props: {
-         title: "Izoh",
+         title: t("common.description"),
          rows: 4,
          maxHeight: 150,
-         placeholder: "Mahsulot holati, xususiyatlari, yetkazib berish yoki boshqa muhim ma'lumotlar",
+         placeholder: t("form.descriptionPlaceholder"),
       },
-      schema: z.string({ message: "Majburiy maydon!" }).trim().optional().nullable(),
+      schema: z.string({ message: t("form.required") }).trim().optional().nullable(),
       class: ["mb-3"],
    });
 
@@ -165,27 +156,27 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       generateProps: async function () {
          const districts = options.districts || (await getDistricts());
          this.props = {
-            title: "Shahar / Tuman",
-            placeholder: "Shaharni tanlang",
+            title: t("district.field"),
+            placeholder: t("district.choose"),
             options: districts,
             value: "name",
          };
       },
       props: options.districts
          ? {
-              title: "Shahar / Tuman",
-              placeholder: "Shaharni tanlang",
+              title: t("district.field"),
+              placeholder: t("district.choose"),
               options: options.districts,
               value: "name",
            }
          : {
-              title: "Shahar / Tuman",
-              placeholder: "Shaharni tanlang",
+              title: t("district.field"),
+              placeholder: t("district.choose"),
               options: [],
               value: "name",
            },
       value: options.defaultDistrictId !== undefined ? options.defaultDistrictId : 1,
-      schema: z.coerce.number({ message: "Shaharni tanlang!" }).min(0, "Shaharni tanlang!"),
+      schema: z.coerce.number({ message: t("district.choose") }).min(0, t("district.choose")),
       class: ["mb-3"],
    });
 
@@ -210,14 +201,14 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       name: "phone",
       required: true,
       props: {
-         title: "Bog'lanish uchun",
+         title: t("form.contact"),
          placeholder: "93-123-45-67",
          mask: "99-999-99-99",
          inputmode: "tel",
          telegramUsername,
       },
       schema: z
-         .string({ message: "Telefon raqamini kiriting!" })
+         .string({ message: t("form.phoneRequired") })
          .trim()
          .superRefine((val, ctx) => {
             if (val === "telegram") {
@@ -227,14 +218,14 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
             if (!raw) {
                ctx.addIssue({
                   code: z.ZodIssueCode.custom,
-                  message: "Telefon raqamini to'liq kiriting!",
+                  message: t("form.phoneIncomplete"),
                });
                return;
             }
             if (raw.length < 9) {
                ctx.addIssue({
                   code: z.ZodIssueCode.custom,
-                  message: "To'liq telefon raqamini kiriting (9 ta raqam)!",
+                  message: t("form.phoneIncomplete"),
                });
             }
          }),
@@ -245,16 +236,16 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
 
 export const ZodTypeMapping: Record<string, (required: boolean) => any> = {
    string: (required) => {
-      const s = z.string({ message: "Majburiy maydon!" }).trim();
-      return required ? s.min(1, `To'ldirilishi shart`) : s.optional().nullable().or(z.literal(""));
+      const s = z.string({ message: t("form.required") }).trim();
+      return required ? s.min(1, t("form.required")) : s.optional().nullable().or(z.literal(""));
    },
    number: (required) => {
-      const n = z.coerce.number({ message: "Majburiy maydon!" }).min(1, `Majburiy maydon!`);
+      const n = z.coerce.number({ message: t("form.required") }).min(1, t("form.required"));
 
       return required ? n : n.optional().nullable();
    },
    boolean: (required) => {
       const b = z.coerce.boolean();
-      return required ? b.refine((val) => val === true, { message: `Tanlanishi shart` }) : b.default(false);
+      return required ? b.refine((val) => val === true, { message: t("form.mustSelect") }) : b.default(false);
    },
 };

@@ -5,8 +5,8 @@
       type="button"
       @click="toggleTheme"
       class="group relative inline-flex size-9 items-center justify-center rounded-full border border-(--z-border) bg-(--z-card) text-(--z-primary) shadow-xs transition-all hover:bg-(--z-muted) active:scale-90 cursor-pointer"
-      :title="isDark ? 'Yorug\' rejimga o\'tish' : 'Qorong\'i rejimga o\'tish'"
-      aria-label="Mavzuni almashtirish"
+      :title="$t('theme.toggle')"
+      :aria-label="$t('theme.toggle')"
    >
       <Transition
          mode="out-in"
@@ -27,7 +27,7 @@
       v-else
       class="inline-flex items-center rounded-xl border border-(--z-border) bg-(--z-muted) p-1 gap-1"
       role="group"
-      aria-label="Mavzu tanlash"
+      :aria-label="$t('theme.toggle')"
    >
       <button
          v-for="btn in buttons"
@@ -42,7 +42,7 @@
          class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer"
       >
          <component :is="btn.icon" class="size-3.5" />
-         <span>{{ btn.label }}</span>
+         <span>{{ $t(btn.label) }}</span>
       </button>
    </div>
 </template>
@@ -63,8 +63,8 @@ const props = withDefaults(
 const { theme, isDark, setTheme, toggleTheme } = useTheme();
 
 const buttons = [
-   { mode: "light" as ThemeMode, icon: Sun, label: "Yorug'" },
-   { mode: "system" as ThemeMode, icon: Laptop, label: "Tizim" },
-   { mode: "dark" as ThemeMode, icon: Moon, label: "Qorong'i" },
+   { mode: "light" as ThemeMode, icon: Sun, label: "theme.light" },
+   { mode: "system" as ThemeMode, icon: Laptop, label: "theme.system" },
+   { mode: "dark" as ThemeMode, icon: Moon, label: "theme.dark" },
 ];
 </script>

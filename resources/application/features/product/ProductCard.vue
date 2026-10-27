@@ -17,7 +17,7 @@
                :crop-y="mainImage.crop_y"
                :crop-scale="mainImage.crop_scale"
                class="size-full"
-               alt="E'lon rasmi"
+               :alt="$t('product.photo')"
             />
             <span
                v-if="imageCount > 1"
@@ -63,7 +63,7 @@
             <div class="mt-auto pt-1.5 flex items-center justify-between gap-2">
                <p class="min-w-0 inline-flex items-center gap-1 text-[11px] text-(--z-muted-text)">
                   <MapPin class="size-3 shrink-0" />
-                  <span class="truncate">{{ product.district?.name || "Butun viloyat" }}</span>
+                  <span class="truncate">{{ product.district?.name || $t("district.region") }}</span>
                   <span class="shrink-0">· {{ timeAgo(timeValue) }}</span>
                </p>
 
@@ -80,7 +80,7 @@
                   v-if="showFavorite"
                   type="button"
                   class="size-8 -my-1.5 -mr-1 shrink-0 grid place-items-center rounded-full cursor-pointer transition active:scale-90 hover:bg-(--z-muted) disabled:opacity-50"
-                  :aria-label="product.is_favorite ? 'Sevimlilardan olib tashlash' : 'Sevimlilarga qo\'shish'"
+                  :aria-label="product.is_favorite ? $t('product.unfavorite') : $t('product.favorite')"
                   :disabled="isFavoriteButtonLoading"
                   @click.stop="toggleFavorite"
                >

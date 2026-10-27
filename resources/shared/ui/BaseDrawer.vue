@@ -48,7 +48,7 @@
                         <button
                            class="grid size-9 shrink-0 place-items-center rounded-full bg-(--z-muted) text-(--z-foreground) transition hover:opacity-80 active:scale-95 cursor-pointer"
                            type="button"
-                           aria-label="Yopish"
+                           :aria-label="$t('common.close')"
                            @click="close"
                         >
                            <X class="size-5" />

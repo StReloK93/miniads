@@ -58,8 +58,14 @@ export interface IParameter {
    component: string;
    type: string;
    pivot: ICategoryParameter;
+   /** Foydalanuvchi tilidagi birlik (ko'rsatish uchun) */
    unit: string | null;
+   /** Asl (o'zbekcha) birlik — mantiq uchun: "yil", "-qavat" */
+   unit_code?: string | null;
+   /** Asl variantlar: e'londa shular saqlanadi */
    options: IParameterOption[];
+   /** options bilan bir tartibda — foydalanuvchi tilidagi nomlari */
+   option_labels?: string[] | null;
 }
 
 export interface IProduct {
@@ -154,6 +160,8 @@ export interface IParameterValue {
    parameter_id: number;
    product_id: number;
    value: string;
+   /** Tanlov qiymatining foydalanuvchi tilidagi nomi (server) */
+   display_value?: string | null;
 }
 
 export interface IParameter {

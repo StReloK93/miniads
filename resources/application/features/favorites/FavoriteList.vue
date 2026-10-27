@@ -3,11 +3,11 @@
       <template #header>
          <aside class="mb-4">
             <div class="flex items-center justify-between mb-2">
-               <h3 class="font-bold text-xl">Sevimlilar</h3>
+               <h3 class="font-bold text-xl">{{ $t("common.favorites") }}</h3>
             </div>
             <p class="text-sm text-(--z-muted-text)">
-               <template v-if="favorites">Sizda sevimlilar ro'yhatida {{ favorites.length }} ta e'lon mavjud.</template>
-               <template v-else>Yuklanmoqda…</template>
+               <template v-if="favorites">{{ $t("favorites.count", favorites.length) }}</template>
+               <template v-else>{{ $t("common.loading") }}</template>
             </p>
          </aside>
       </template>
@@ -24,10 +24,8 @@
                <div class="size-14 mb-3 rounded-full grid place-items-center bg-(--z-card) border border-(--z-border)">
                   <Heart class="size-6 text-(--z-muted-text)" />
                </div>
-               <h3 class="font-semibold mb-1">Sevimlilar bo'sh</h3>
-               <p class="text-sm text-(--z-muted-text) max-w-64">
-                  Yoqqan e'lonlarni yurakcha bilan belgilang — ular shu yerda saqlanadi.
-               </p>
+               <h3 class="font-semibold mb-1">{{ $t("favorites.empty") }}</h3>
+               <p class="text-sm text-(--z-muted-text) max-w-64">{{ $t("favorites.emptyHint") }}</p>
             </div>
          </Transition>
       </template>

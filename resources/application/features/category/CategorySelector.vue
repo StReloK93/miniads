@@ -22,9 +22,9 @@
                         <span class="min-w-0 grow">
                            <span class="block text-sm font-semibold truncate">{{ category.name }}</span>
                            <span class="block text-xs text-(--z-muted-text)">
-                              <template v-if="showCounts">{{ adsCount(category) }} ta e'lon</template>
-                              <template v-else-if="category.children?.length">{{ category.children.length }} ta bo'lim</template>
-                              <template v-else>Tanlash</template>
+                              <template v-if="showCounts">{{ $t("common.adsCount", adsCount(category)) }}</template>
+                              <template v-else-if="category.children?.length">{{ $t("categories.count", category.children.length) }}</template>
+                              <template v-else>{{ $t("common.select") }}</template>
                            </span>
                         </span>
                         <ChevronRight class="size-4 shrink-0 text-(--z-muted-text)" />
@@ -37,7 +37,7 @@
                   <div class="flex items-center gap-3 mb-3">
                      <button
                         type="button"
-                        aria-label="Orqaga"
+                        :aria-label="$t('common.back')"
                         class="size-9 shrink-0 rounded-full bg-(--z-card) border border-(--z-border) grid place-items-center cursor-pointer transition active:scale-90"
                         @click="goBack()"
                      >
@@ -45,7 +45,7 @@
                      </button>
                      <div class="min-w-0">
                         <p class="text-xs text-(--z-muted-text) truncate">
-                           <button type="button" class="cursor-pointer hover:text-(--z-foreground)" @click="goRoot">Barchasi</button>
+                           <button type="button" class="cursor-pointer hover:text-(--z-foreground)" @click="goRoot">{{ $t("common.all") }}</button>
                            <template v-for="(item, i) in breadcrumb.slice(0, -1)" :key="item.id">
                               ›
                               <button type="button" class="cursor-pointer hover:text-(--z-foreground)" @click="goBack(i)">
@@ -71,11 +71,11 @@
                                  v-if="showCounts"
                                  class="min-w-6 h-6 px-2 rounded-full bg-(--z-muted) text-xs font-semibold tabular-nums grid place-items-center"
                                  :class="{ 'opacity-50': !adsCount(category) }"
-                                 :aria-label="`${adsCount(category)} ta e'lon`"
+                                 :aria-label="$t('common.adsCount', adsCount(category))"
                               >
                                  {{ adsCount(category) }}
                               </span>
-                              <span v-else-if="category.children?.length" class="text-xs">{{ category.children.length }} ta</span>
+                              <span v-else-if="category.children?.length" class="text-xs">{{ $t("common.count", category.children.length) }}</span>
                               <ChevronRight class="size-4" />
                            </span>
                         </button>

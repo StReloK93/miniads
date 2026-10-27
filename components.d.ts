@@ -30,6 +30,7 @@ declare module 'vue' {
     FieldSelect: typeof import('./resources/shared/ui/FieldSelect.vue')['default']
     FieldText: typeof import('./resources/shared/ui/FieldText.vue')['default']
     FieldTextarea: typeof import('./resources/shared/ui/FieldTextarea.vue')['default']
+    LanguageSwitcher: typeof import('./resources/shared/ui/LanguageSwitcher.vue')['default']
     ProductImageView: typeof import('./resources/shared/ui/ProductImageView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

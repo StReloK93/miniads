@@ -2,7 +2,7 @@
    <!-- "dan — gacha" oralig'i: narx, yil, yurgan masofa, maydon... -->
    <div class="grid grid-cols-2 gap-2">
       <label v-for="side in sides" :key="side.key" class="field gap-1.5">
-         <span class="shrink-0 text-xs text-(--z-muted-text)">{{ side.label }}</span>
+         <span class="shrink-0 text-xs text-(--z-muted-text)">{{ $t(side.label) }}</span>
          <input
             type="text"
             inputmode="numeric"
@@ -34,8 +34,8 @@ const props = withDefaults(
 const emit = defineEmits<{ (e: "update:modelValue", value: RangeValue): void }>();
 
 const sides = [
-   { key: "from" as const, label: "dan", placeholder: props.placeholderFrom },
-   { key: "to" as const, label: "gacha", placeholder: props.placeholderTo },
+   { key: "from" as const, label: "filters.from", placeholder: props.placeholderFrom },
+   { key: "to" as const, label: "filters.to", placeholder: props.placeholderTo },
 ];
 
 function format(value?: number | null) {

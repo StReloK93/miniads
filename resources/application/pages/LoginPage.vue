@@ -1,9 +1,9 @@
 <template>
    <main class="h-full overflow-y-auto no-scrollbar px-4 pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*6)]">
-      <BackButton title="Kirish" />
+      <BackButton :title="$t('auth.login')" />
       <TelegramLoginCard
          class="pt-10"
-         :title="redirect?.startsWith('/select-category') ? 'E\'lon joylash uchun kiring' : 'Telegram orqali kiring'"
+         :title="redirect?.startsWith('/select-category') ? $t('auth.titlePost') : $t('auth.title')"
          @success="onSuccess"
       />
    </main>

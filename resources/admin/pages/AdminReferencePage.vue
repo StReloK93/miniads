@@ -37,6 +37,23 @@
                      />
                   </div>
                </template>
+               <!-- Tarjimalar: ilova shu tilda ochilganda ko'rinadi; bo'sh qolsa — o'zbekchasi -->
+               <div class="grid grid-cols-2 gap-3">
+                  <AdminField
+                     id="ref-ru"
+                     :label="`${translatedLabel} (ru)`"
+                     placeholder="Русский"
+                     :model-value="form.ru"
+                     @update:model-value="form.ru = String($event ?? '')"
+                  />
+                  <AdminField
+                     id="ref-en"
+                     :label="`${translatedLabel} (en)`"
+                     placeholder="English"
+                     :model-value="form.en"
+                     @update:model-value="form.en = String($event ?? '')"
+                  />
+               </div>
             </div>
 
             <footer class="mt-auto pt-4 border-t border-(--z-border) flex items-center justify-end gap-3">
@@ -169,7 +186,7 @@ import AdminField from "@shared/ui/AdminField.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
 
 type ReferenceKind = "districts" | "price-types";
-type ReferenceItem = { id: number; name: string; type?: string; position?: "left" | "right" };
+type ReferenceItem = { id: number; name: string; type?: string; position?: "left" | "right" } & Record<string, any>;
 
 const props = defineProps<{ kind: ReferenceKind }>();
 
@@ -205,7 +222,11 @@ const error = ref("");
 const drawerError = ref("");
 const itemToDelete = ref<ReferenceItem | null>(null);
 
-const form = reactive({ name: "", type: "", position: "right" as "left" | "right" });
+const form = reactive({ name: "", type: "", position: "right" as "left" | "right", ru: "", en: "" });
+
+// Tarjima qilinadigan maydon: shaharda — nomi, narx turida — qisqa ko'rinishi ("so'm" → "сум")
+const translatedField = computed(() => (props.kind === "districts" ? "name" : "type"));
+const translatedLabel = computed(() => (props.kind === "districts" ? "Nomi" : "Qisqa ko'rinishi"));
 
 async function load() {
    loading.value = true;
@@ -226,6 +247,8 @@ function openCreateDrawer() {
    form.name = "";
    form.type = "";
    form.position = "right";
+   form.ru = "";
+   form.en = "";
    drawerError.value = "";
    drawerOpen.value = true;
 }
@@ -235,6 +258,8 @@ function edit(item: ReferenceItem) {
    form.name = item.name;
    form.type = item.type || "";
    form.position = item.position || "right";
+   form.ru = item[`${translatedField.value}_ru`] ?? "";
+   form.en = item[`${translatedField.value}_en`] ?? "";
    drawerError.value = "";
    drawerOpen.value = true;
 }
@@ -245,6 +270,8 @@ function closeDrawer() {
    form.name = "";
    form.type = "";
    form.position = "right";
+   form.ru = "";
+   form.en = "";
    drawerError.value = "";
 }
 
@@ -257,6 +284,8 @@ async function save() {
       props.kind === "districts"
          ? { name: form.name.trim() }
          : { name: form.name.trim(), type: form.type.trim(), position: form.position };
+   payload[`${translatedField.value}_ru`] = form.ru.trim();
+   payload[`${translatedField.value}_en`] = form.en.trim();
 
    try {
       if (editingId.value) {

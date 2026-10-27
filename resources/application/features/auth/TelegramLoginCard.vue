@@ -6,8 +6,8 @@
          </div>
       </div>
 
-      <h3 class="text-xl font-bold">{{ props.title }}</h3>
-      <p class="text-sm text-(--z-muted-text) mt-2 max-w-72">{{ props.description }}</p>
+      <h3 class="text-xl font-bold">{{ props.title ?? t("auth.title") }}</h3>
+      <p class="text-sm text-(--z-muted-text) mt-2 max-w-72">{{ props.description ?? t("auth.description") }}</p>
 
       <ul class="w-full mt-6 bg-(--z-card) border border-(--z-border) rounded-(--z-rounded) divide-y divide-(--z-border) text-left">
          <li v-for="item in benefits" :key="item.title" class="flex items-center gap-3 px-4 py-3">
@@ -15,8 +15,8 @@
                <component :is="item.icon" class="size-4" />
             </span>
             <div>
-               <div class="text-sm font-semibold">{{ item.title }}</div>
-               <div class="text-xs text-(--z-muted-text)">{{ item.text }}</div>
+               <div class="text-sm font-semibold">{{ t(item.title) }}</div>
+               <div class="text-xs text-(--z-muted-text)">{{ t(item.text) }}</div>
             </div>
          </li>
       </ul>
@@ -29,13 +29,11 @@
       >
          <LoaderCircle v-if="loading" class="size-5 animate-spin" />
          <Send v-else class="size-5" />
-         {{ inTelegram ? "Qayta urinish" : "Telegram orqali kirish" }}
+         {{ inTelegram ? t("common.retry") : t("auth.loginTelegram") }}
       </button>
 
       <p v-if="error" class="text-xs text-(--z-danger) mt-3">{{ error }}</p>
-      <p class="text-xs text-(--z-muted-text) mt-4 max-w-72">
-         Parol kerak emas. Telegram faqat ismingiz va foydalanuvchi nomingizni ulashadi.
-      </p>
+      <p class="text-xs text-(--z-muted-text) mt-4 max-w-72">{{ t("auth.noPassword") }}</p>
    </section>
 </template>
 
@@ -44,24 +42,17 @@ import { onMounted, ref } from "vue";
 import { Heart, LoaderCircle, Megaphone, Send, UserRound } from "lucide-vue-next";
 import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
 import { useAuth } from "@shared/store/useAuth";
+import { useI18n } from "vue-i18n";
 
-const props = withDefaults(
-   defineProps<{
-      title?: string;
-      description?: string;
-   }>(),
-   {
-      title: "Telegram orqali kiring",
-      description: "E'lon joylash, sevimlilarni saqlash va e'lonlaringizni boshqarish uchun bir marta kiring.",
-   },
-);
+const props = defineProps<{ title?: string; description?: string }>();
+const { t, locale } = useI18n();
 
 const emit = defineEmits<{ (e: "success"): void }>();
 
 const benefits = [
-   { icon: Megaphone, title: "E'lon joylash", text: "Bepul va bir necha daqiqada" },
-   { icon: Heart, title: "Sevimlilar", text: "Yoqqan e'lonlarni saqlab qo'ying" },
-   { icon: UserRound, title: "Shaxsiy kabinet", text: "E'lonlaringizni boshqaring" },
+   { icon: Megaphone, title: "common.postAd", text: "auth.benefitPost" },
+   { icon: Heart, title: "common.favorites", text: "auth.benefitFavorites" },
+   { icon: UserRound, title: "auth.cabinet", text: "auth.benefitCabinet" },
 ];
 
 const authStore = useAuth();
@@ -101,7 +92,7 @@ async function login() {
          await authStore.signInTelegram(retrieveRawInitData());
          emit("success");
       } catch {
-         error.value = "Kirib bo'lmadi. Ilovani yopib, qayta oching.";
+         error.value = t("auth.errorTma");
       } finally {
          loading.value = false;
       }
@@ -111,13 +102,13 @@ async function login() {
    try {
       await loadWidget();
    } catch {
-      error.value = "Telegram bilan bog'lanib bo'lmadi. Internetni tekshirib, qayta urining.";
+      error.value = t("auth.errorWidget");
       loading.value = false;
       return;
    }
 
    window.Telegram!.Login!.auth(
-      { bot_id: ENV.TELEGRAM_BOT_ID, request_access: "write", lang: "uz" },
+      { bot_id: ENV.TELEGRAM_BOT_ID, request_access: "write", lang: locale.value },
       async (telegramUser: Record<string, unknown> | false) => {
          if (!telegramUser) {
             // Foydalanuvchi oynani yopdi yoki rad etdi
@@ -129,7 +120,7 @@ async function login() {
             await authStore.widgetTelegramAuth(telegramUser);
             emit("success");
          } catch {
-            error.value = "Kirishda xatolik yuz berdi. Qayta urinib ko'ring.";
+            error.value = t("common.error");
          } finally {
             loading.value = false;
          }

@@ -11,13 +11,13 @@
             >
                <span class="block text-sm font-medium truncate">{{ item.label }}</span>
                <span class="block text-[11px] text-(--z-muted-text)">
-                  {{ item.is_paused ? "Pauzada" : item.last_notified_at ? `Oxirgi xabar ${timeAgo(item.last_notified_at)}` : "Hali mos e'lon chiqmadi" }}
+                  {{ item.is_paused ? $t("watch.paused") : item.last_notified_at ? $t("watch.lastNotified", { time: timeAgo(item.last_notified_at) }) : $t("watch.noMatches") }}
                </span>
             </button>
             <button
                type="button"
                class="size-9 shrink-0 grid place-items-center rounded-full text-(--z-muted-text) cursor-pointer active:bg-(--z-muted)"
-               :aria-label="item.is_paused ? 'Davom ettirish' : 'Pauza'"
+               :aria-label="item.is_paused ? $t('watch.resume') : $t('watch.pause')"
                :disabled="busyId === item.id"
                @click="togglePause(item)"
             >
@@ -26,7 +26,7 @@
             <button
                type="button"
                class="size-9 shrink-0 grid place-items-center rounded-full text-(--z-muted-text) cursor-pointer active:bg-(--z-muted)"
-               aria-label="O'chirish"
+               :aria-label="$t('common.delete')"
                :disabled="busyId === item.id"
                @click="removeItem(item)"
             >
@@ -37,10 +37,7 @@
 
       <div v-else-if="items" class="bg-(--z-card) border border-(--z-border) rounded-(--z-rounded) overflow-hidden px-4 py-4 flex gap-3 items-start">
          <BellRing class="size-5 shrink-0 mt-0.5 text-(--z-muted-text)" />
-         <p class="text-sm text-(--z-muted-text) leading-snug">
-            Qidiruvda <b class="text-(--z-foreground)">Kuzatish</b> tugmasini bosing — mos yangi e'lon chiqsa, bot darhol xabar
-            beradi.
-         </p>
+         <p class="text-sm text-(--z-muted-text) leading-snug">{{ $t("watch.empty") }}</p>
       </div>
 
       <div v-else class="bg-(--z-card) border border-(--z-border) rounded-(--z-rounded) overflow-hidden h-14 skeleton" />

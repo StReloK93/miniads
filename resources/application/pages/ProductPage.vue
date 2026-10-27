@@ -13,7 +13,7 @@
                      <button
                         type="button"
                         class="h-full w-full cursor-zoom-in"
-                        aria-label="To'liq rasmni ko'rish"
+                        :aria-label="$t('product.photos')"
                         @click="openImagePreview(index)"
                      >
                         <ProductImageView
@@ -22,7 +22,7 @@
                            :crop-y="image.crop_y"
                            :crop-scale="image.crop_scale"
                            class="h-full w-full"
-                           alt="E'lon rasmi"
+                           :alt="$t('product.photo')"
                         />
                      </button>
                   </swiper-slide>
@@ -32,7 +32,7 @@
                   v-if="product?.images.length"
                   type="button"
                   class="absolute bottom-3 right-3 z-10 h-7 px-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/45 text-white text-xs font-semibold tabular-nums backdrop-blur-md border border-white/15 cursor-pointer active:scale-95 transition"
-                  aria-label="Rasmlarni to'liq ekranda ko'rish"
+                  :aria-label="$t('product.photos')"
                   @click="openImagePreview(heroIndex)"
                >
                   <Expand class="size-3.5" />
@@ -49,7 +49,7 @@
                      <component :is="categoryVisual.icon" class="size-6" />
                   </div>
                   <span class="text-xs font-medium text-slate-500 dark:text-zinc-400">
-                     {{ product.category?.name || "Rasmsiz e'lon" }}
+                     {{ product.category?.name || $t("product.noPhoto") }}
                   </span>
                </div>
                <!-- <img
@@ -77,7 +77,7 @@
                      size="sm"
                      severity="secondary"
                      class="-my-1 shrink-0"
-                     :aria-label="isLinkCopied ? 'Havola nusxalandi' : 'Ulashish'"
+                     :aria-label="isLinkCopied ? $t('product.copied') : $t('product.share')"
                      @click="shareProduct"
                   >
                      <template #icon><component :is="isLinkCopied ? Check : Share2" class="size-4" /></template>
@@ -111,19 +111,19 @@
                      {{ timeAgo(product?.created_at!) }}
                   </span>
                   <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
-                  <span class="flex items-center gap-1"> {{ viewCount }} ko'rildi </span>
+                  <span class="flex items-center gap-1">{{ $t("common.views", { n: viewCount }, product?.views_count ?? 0) }}</span>
                   <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
 
                   <span class="flex items-center gap-1">
                      <MapPin class="size-3 inline" />
-                     {{ product?.district?.name || "Navoiy V." }}
+                     {{ product?.district?.name || $t("district.region") }}
                   </span>
                </div>
                <!--  -->
 
                <!--  -->
                <div v-if="product?.description">
-                  <h3 class="title text-sm">Izoh</h3>
+                  <h3 class="title text-sm">{{ $t("common.description") }}</h3>
                   <div
                      class="py-1 leading-relaxed text-sm mb-6 whitespace-pre-line text-(--z-foreground) wrap-break-word select-text"
                   >
@@ -131,18 +131,19 @@
                   </div>
                </div>
 
-               <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">Qo'shimcha ma'lumot</h3>
+               <h3 v-if="product?.parameter_values.length" class="title text-sm mb-2">{{ $t("product.details") }}</h3>
                <aside v-if="product?.parameter_values.length" class="text-sm divide-y divide-(--z-border)">
                   <div v-for="v in product.parameter_values" :key="v.id" class="flex justify-between py-2">
                      <span class="text-(--z-muted-text)">
                         {{ v.parameter.title }}
                      </span>
                      <main class="flex gap-1.5 font-medium">
+                        <!-- Tanlov qiymati va birlik foydalanuvchi tilida (server: display_value, unit) -->
                         <span>
-                           {{ v.value }}
+                           {{ v.display_value ?? v.value }}
                         </span>
-                        <span v-if="v.parameter.unit">
-                           {{ v.parameter.unit }}
+                        <span v-if="displayUnit(v.parameter)">
+                           {{ displayUnit(v.parameter) }}
                         </span>
                      </main>
                   </div>
@@ -161,7 +162,7 @@
                      <span v-if="!isBotProduct && product.user.username" class="text-(--z-muted-text) text-xs"
                         >@{{ product.user.username }}</span
                      >
-                     <span v-else class="text-(--z-muted-text) text-xs">Telefon orqali bog'laning</span>
+                     <span v-else class="text-(--z-muted-text) text-xs">{{ $t("product.contactByPhone") }}</span>
                   </main>
                </div>
 
@@ -173,12 +174,12 @@
                   @click="openReport"
                >
                   <Flag class="size-3.5" />
-                  E'lon ustidan shikoyat qilish
+                  {{ $t("product.report") }}
                </button>
 
                <!-- Sotuvchining boshqa e'lonlari: ishonch (faol sotuvchi) va qo'shimcha xarid imkoni -->
                <section v-if="product?.seller_products?.length" class="mt-8">
-                  <h3 class="font-bold text-base mb-3.5">Sotuvchining boshqa e'lonlari</h3>
+                  <h3 class="font-bold text-base mb-3.5">{{ $t("product.sellerAds") }}</h3>
                   <swiper
                      :slides-per-view="1.25"
                      :space-between="12"
@@ -200,7 +201,7 @@
                   <div class="flex items-center justify-between mb-3.5">
                      <div class="flex items-center gap-2">
                         <Sparkles class="size-4 text-amber-500" />
-                        <h3 class="font-bold text-base">O'xshash e'lonlar</h3>
+                        <h3 class="font-bold text-base">{{ $t("product.similar") }}</h3>
                      </div>
                      <button
                         v-if="product.category_id"
@@ -208,7 +209,7 @@
                         @click="router.push({ name: 'category', params: { id: product.category_id } })"
                         class="text-xs text-primary font-medium flex items-center gap-0.5 active:opacity-70 cursor-pointer"
                      >
-                        Barchasi
+                        {{ $t("common.all") }}
                         <ChevronRight class="size-3 inline" />
                      </button>
                   </div>
@@ -258,7 +259,7 @@
                type="button"
                @click="goBackOrHome"
                class="p-2 -ml-2 rounded-full text-(--z-muted-text) hover:text-(--z-foreground) active:bg-(--z-card)"
-               aria-label="Orqaga"
+               :aria-label="$t('common.back')"
             >
                <ArrowLeft class="size-6" />
             </button>
@@ -271,23 +272,21 @@
             >
                <AlertCircle class="size-10" />
             </div>
-            <h2 class="text-xl font-bold mb-2">Ushbu e'lon mavjud emas</h2>
-            <p class="text-sm text-(--z-muted-text) max-w-xs leading-relaxed mb-8">
-               E'lon egasi tomonidan o'chirilgan yoki uning amal qilish muddati tugagan bo'lishi mumkin.
-            </p>
+            <h2 class="text-xl font-bold mb-2">{{ $t("product.notFound") }}</h2>
+            <p class="text-sm text-(--z-muted-text) max-w-xs leading-relaxed mb-8">{{ $t("product.notFoundHint") }}</p>
 
             <div class="w-full flex flex-col gap-3">
                <BaseButton @click="router.push({ name: 'home' })" severity="primary" class="w-full py-3">
                   <template #icon>
                      <Home class="size-4" />
                   </template>
-                  Bosh sahifaga qaytish
+                  {{ $t("common.home") }}
                </BaseButton>
                <BaseButton @click="router.push({ name: 'search' })" severity="secondary" class="w-full py-3">
                   <template #icon>
                      <Search class="size-4" />
                   </template>
-                  Boshqa e'lonlarni qidirish
+                  {{ $t("product.searchOther") }}
                </BaseButton>
             </div>
          </div>
@@ -312,7 +311,7 @@
                <template #icon>
                   <Phone class="size-4 inline" />
                </template>
-               Qo'ng'iroq qilish
+               {{ $t("product.call") }}
             </BaseButton>
          </template>
          <template v-else-if="!isBotProduct && product.user.username">
@@ -320,7 +319,7 @@
                <template #icon>
                   <MessageCircle class="size-4 inline" />
                </template>
-               Telegram orqali bog'lanish
+               {{ $t("product.writeTelegram") }}
             </BaseButton>
          </template>
 
@@ -374,6 +373,8 @@ import { IProduct } from "@shared/types";
 import { preloadImages } from "@shared/modules/helpers";
 import ReportDrawer from "@/features/product/ReportDrawer.vue";
 import { useAuth } from "@shared/store/useAuth";
+import { displayUnit } from "@shared/modules/productSpecs";
+import { t } from "@shared/i18n";
 import {
    AlertCircle,
    ArrowLeft,
@@ -442,7 +443,7 @@ function openSellerChat(product: IProduct) {
 
    if (!username) return;
 
-   const text = `Assalomu alaykum, "${product.title}" e'loni bo'yicha yozyabman.`;
+   const text = t("product.chatGreeting", { title: product.title });
 
    const pathFull = `${username}?text=${encodeURIComponent(text)}`;
 

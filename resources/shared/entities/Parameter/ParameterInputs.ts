@@ -52,7 +52,32 @@ export const parameterInputs: InputConfig[] = [
       schema: z.array(z.string()).optional().nullable(),
       class: ["mb-4"],
    },
+   ...translationInputs(),
 ];
+
+/**
+ * Tarjimalar (ru, en): bo'sh qolsa ilovada o'zbekchasi ko'rinadi.
+ * Variantlar tarjimasi asl ro'yxat bilan bir xil tartibda va sonda yoziladi.
+ */
+function translationInputs(): InputConfig[] {
+   const fields = [
+      { name: "title", label: "Nomi", kind: "text" },
+      { name: "placeholder", label: "Placeholder", kind: "text" },
+      { name: "unit", label: "O'lchov birligi", kind: "text" },
+      { name: "options", label: "Variantlar", kind: "tags" },
+   ];
+
+   return ["ru", "en"].flatMap((locale) =>
+      fields.map((field) => ({
+         component: AdminField,
+         name: `${field.name}_${locale}`,
+         placeholder: `${field.label} (${locale})`,
+         props: { adminKind: field.kind },
+         schema: field.kind === "tags" ? z.array(z.string()).optional().nullable() : z.string().trim().optional().nullable(),
+         class: ["mb-4"],
+      })),
+   );
+}
 
 // Birinchi ustun — nom: telefonda jadval kartaga aylanganda u karta sarlavhasi bo'ladi
 export const parameterColumns = [

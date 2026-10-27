@@ -18,7 +18,7 @@
             class="w-full flex flex-col items-center gap-1 px-1 py-1.5 rounded-[1.375rem] text-[11px] font-semibold leading-none whitespace-nowrap transition-colors duration-150 cursor-pointer"
          >
             <component :is="item.icon" class="size-5" stroke-width="2" />
-            {{ item.label }}
+            {{ $t(item.label ?? "") }}
          </button>
          <button
             v-else
@@ -34,11 +34,11 @@
 import { House, Plus, Megaphone, User, Heart } from "lucide-vue-next";
 
 const items = [
-   { name: "home", label: "Asosiy", icon: House },
+   { name: "home", label: "nav.home", icon: House },
    // Sotuvchi o'z e'lonlarini tez-tez ochadi; qidiruv va bo'limlar bosh sahifaning yuqorisida
-   { name: "my-ads", label: "E'lonlarim", icon: Megaphone },
+   { name: "my-ads", label: "nav.myAds", icon: Megaphone },
    { name: "create-select-category", icon: Plus, iconOnly: true },
-   { name: "favorites", label: "Sevimli", icon: Heart },
-   { name: "profile", label: "Profil", icon: User },
+   { name: "favorites", label: "nav.favorites", icon: Heart },
+   { name: "profile", label: "nav.profile", icon: User },
 ];
 </script>

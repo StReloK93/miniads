@@ -87,6 +87,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";
 import { CheckCircle, ChevronRight } from "lucide-vue-next";
+import { t } from "@shared/i18n";
 
 const { hasFocusedInput } = useFocusedInput();
 
@@ -108,7 +109,7 @@ const props = defineProps<{
    superRefine?: (values: Record<string, unknown>, ctx: z.RefinementCtx) => void;
 }>();
 
-const submitLabel = computed(() => props.submitLabel ?? "E'lonni joylash");
+const submitLabel = computed(() => props.submitLabel ?? t("create.submit"));
 const buttonLoader = ref(false);
 const initialValues = computed(() => Object.fromEntries(props.inputConfigs.map((i) => [i.name, i.value])));
 
@@ -136,7 +137,7 @@ const onSubmit: any = async (values) => {
       await props.submit(values);
    } catch (error: any) {
       console.error("Formani yuborib bo'lmadi.", error);
-      submitError.value = error?.response?.data?.message || "Saqlab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.";
+      submitError.value = error?.response?.data?.message || t("common.saveError");
       return;
    } finally {
       setTimeout(() => {

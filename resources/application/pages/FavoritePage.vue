@@ -2,9 +2,9 @@
    <FavoriteList v-if="authStore.user" />
    <GuestLoginPage
       v-else
-      title="Sevimlilar"
-      card-title="Sevimlilarni saqlash uchun kiring"
-      card-description="Yoqqan e'lonlarni yurakcha bilan belgilang va istalgan vaqtda shu yerda toping."
+      :title="$t('common.favorites')"
+      :card-title="$t('auth.favoritesTitle')"
+      :card-description="$t('auth.favoritesHint')"
    />
 </template>
 

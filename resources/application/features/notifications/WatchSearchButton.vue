@@ -13,7 +13,7 @@
          @click="toggle"
       >
          <template #icon><component :is="saved ? BellRing : Bell" class="size-4" /></template>
-         {{ saved ? "Kuzatilmoqda" : "Paydo bo'lsa xabar berish" }}
+         {{ saved ? $t("watch.on") : $t("watch.cta") }}
       </BaseButton>
 
       <button
@@ -26,12 +26,12 @@
          @click="toggle"
       >
          <component :is="saved ? BellRing : Bell" class="size-3.5" />
-         {{ saved ? "Kuzatilmoqda" : "Kuzatish" }}
+         {{ saved ? $t("watch.on") : $t("watch.button") }}
       </button>
 
       <p v-if="hint" class="text-xs text-(--z-muted-text)" :class="variant === 'cta' ? 'text-center max-w-64' : 'basis-full'">
          {{ hint }}
-         <a v-if="botLink" :href="botLink" target="_blank" rel="noopener" class="font-semibold text-(--z-foreground) underline">Botni ochish</a>
+         <a v-if="botLink" :href="botLink" target="_blank" rel="noopener" class="font-semibold text-(--z-foreground) underline">{{ $t("watch.openBot") }}</a>
       </p>
    </div>
 </template>
@@ -40,6 +40,7 @@
 import { computed, onMounted, ref } from "vue";
 import { Bell, BellRing } from "lucide-vue-next";
 import { isTMA } from "@tma.js/bridge";
+import { useI18n } from "vue-i18n";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import { useAuth } from "@shared/store/useAuth";
 import { requireAuth } from "@/features/auth/requireAuth";
@@ -51,6 +52,7 @@ const props = withDefaults(defineProps<{ query: string; filters: ListFilters; va
    variant: "compact",
 });
 
+const { t } = useI18n();
 const authStore = useAuth();
 const savedSearches = useSavedSearches();
 const { ensureWriteAccess } = useBotAccess();
@@ -77,19 +79,19 @@ async function toggle() {
       // Avval ruxsat: bot yoza olmasa kuzatuvdan foyda yo'q
       const allowed = await ensureWriteAccess();
       if (!allowed && isTMA()) {
-         hint.value = "Xabar yuborishimiz uchun botga ruxsat bering.";
+         hint.value = t("watch.allowHint");
          return;
       }
 
       await savedSearches.add(props.query, props.filters);
-      hint.value = "Mos e'lon chiqsa, bot xabar yuboradi.";
+      hint.value = t("watch.saved");
       if (!allowed) {
          // Brauzerda: ruxsatni faqat botning o'zida /start bilan berish mumkin
-         hint.value = "Saqlandi. Xabar olish uchun botni ishga tushiring.";
+         hint.value = t("watch.savedStartBot");
          botLink.value = (import.meta.env.VITE_TELEGRAM_APP_URL || "https://t.me/NavoiyElonBot").replace(/\?.*$/, "") + "?start=notify";
       }
    } catch (error: any) {
-      hint.value = error?.response?.data?.message || "Saqlab bo'lmadi. Qayta urinib ko'ring.";
+      hint.value = error?.response?.data?.message || t("common.saveError");
    } finally {
       busy.value = false;
    }

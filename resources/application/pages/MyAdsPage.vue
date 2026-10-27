@@ -2,9 +2,9 @@
    <MyAds v-if="authStore.user" />
    <GuestLoginPage
       v-else
-      title="E'lonlarim"
-      card-title="E'lonlaringizni boshqaring"
-      card-description="Joylagan e'lonlaringizni ko'rish, tahrirlash va o'chirish uchun Telegram orqali kiring."
+      :title="$t('nav.myAds')"
+      :card-title="$t('auth.benefitCabinet')"
+      :card-description="$t('auth.myAdsHint')"
    />
 </template>
 

@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminOnly::class,
         ]);
         $middleware->trustProxies(at: '*');
+        // Ilova tili (X-Locale): server xabarlari va bazadagi nomlar (kategoriya, parametr...) shu tilda
+        $middleware->api(append: \App\Http\Middleware\SetLocale::class);
         $middleware->validateCsrfTokens(except: [
             'api/telegraph/*',
         ]);

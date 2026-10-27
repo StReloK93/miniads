@@ -36,7 +36,7 @@ class AuthController extends Controller
 			'district_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
 				// 0 = "Barcha shaharlar"
 				if ((int) $value !== 0 && !\App\Models\District::whereKey($value)->exists()) {
-					$fail("Tanlangan shahar topilmadi.");
+					$fail(__('messages.city_not_found'));
 				}
 			}],
 		]);
@@ -52,6 +52,6 @@ class AuthController extends Controller
 	{
 		$this->authService->logout($request);
 
-		return response()->json(['message' => 'Tizimdan chiqildi']);
+		return response()->json(['message' => __('messages.logged_out')]);
 	}
 }

@@ -30,36 +30,25 @@ class TelegramController extends Controller
         // Agar kelgan so'rovda xabar (message) va matn (text) bo'lsa
         if (isset($data['message']['text'])) {
             $chatId = $data['message']['chat']['id'];
-            $messageId = $data['message']['message_id'];
-            $text = $data['message']['text'];
 
-            $introText =
-                "<b>Xush kelibsiz!</b>
-
-Navoiy viloyati bo'yicha e'lonlarni qulay tarzda qidiring va joylashtiring.
-
-• E'lonni admin bilan bog'lanmasdan o'zingiz joylashtiring
-• E'lon joylashtirish — <b>bepul</b>
-• Telegramdan chiqmasdan foydalaning
-• Sotuvchi bilan bevosita bog'laning
-
-<b>👇Mini App'ni ochish uchun quyidagi tugmani bosing.</b>
-";
+            // Javob foydalanuvchining Telegram tilida (ilova ham shu tilda ochiladi)
+            $code = strtolower((string) ($data['message']['from']['language_code'] ?? ''));
+            $locale = match (true) {
+                str_starts_with($code, 'uz') => 'uz',
+                (bool) preg_match('/^(ru|uk|be|kk|ky|tg)/', $code) => 'ru',
+                $code === '' => 'uz',
+                default => 'en',
+            };
 
             Telegraph::chat($chatId)
-                ->html($introText)
+                ->html(__('bot.welcome', [], $locale))
                 ->keyboard(
                     Keyboard::make()->buttons([
-                        // Veb-ilova (Mini App) URL manzilini ko'rsatasiz
-                        Button::make("🚀 E'lonlar ilovasini ochish")
+                        Button::make(__('bot.open_app', [], $locale))
                             ->webApp('https://elonlar.ruzzifer.uz'),
                     ])
                 )
                 ->send();
-
-
-
-            // Telegraph::chat($chatId)->reply($messageId)->html("Sizning <b>\"{$text}\"</b> xabaringizga javob qaytarild!")->send();
         }
 
         // Telegram serveriga so'rov muvaffaqiyatli qabul qilinganini bildirish

@@ -5,8 +5,6 @@ import { useRecentSearches } from "@shared/composables/useRecentSearch";
 import { IProduct } from "@shared/types";
 import { countActiveFilters, emptyFilters, toQueryParams, type ListFilters } from "@/features/filters/listFilters";
 
-export const POPULAR_TAGS = ["Kvartira", "Telefon", "Cobalt", "Gentra", "Ish", "Mebel"];
-
 const DEBOUNCE_MS = 350;
 
 /**

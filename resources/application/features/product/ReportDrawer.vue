@@ -1,12 +1,12 @@
 <template>
    <!-- E'lon ustidan shikoyat: sabab (bitta bosish) + ixtiyoriy izoh. Admin panelda "Shikoyat" bo'limiga tushadi -->
-   <BaseDrawer :open="open" title="Shikoyat qilish" description="Nima noto'g'ri? Admin ko'rib chiqadi." @close="emit('close')">
+   <BaseDrawer :open="open" :title="$t('report.title')" :description="$t('report.subtitle')" @close="emit('close')">
       <div v-if="sent" class="py-6 flex flex-col items-center text-center">
          <div class="size-12 mb-3 rounded-full grid place-items-center bg-emerald-500/10 text-emerald-600">
             <CheckCheck class="size-6" />
          </div>
-         <p class="font-semibold">Shikoyat yuborildi</p>
-         <p class="text-sm text-(--z-muted-text) mt-1">Rahmat! E'lonlar tozaligi uchun yordam berdingiz.</p>
+         <p class="font-semibold">{{ $t("report.sent") }}</p>
+         <p class="text-sm text-(--z-muted-text) mt-1">{{ $t("report.thanks") }}</p>
       </div>
 
       <div v-else class="flex flex-col gap-2">
@@ -26,17 +26,17 @@
             v-model="comment"
             rows="3"
             maxlength="500"
-            placeholder="Izoh (ixtiyoriy): nimasi noto'g'ri?"
+            :placeholder="$t('report.comment')"
             class="field mt-2 py-2.5 resize-none"
          />
          <p v-if="error" class="text-sm text-(--z-danger)" role="alert">{{ error }}</p>
       </div>
 
       <template #footer>
-         <BaseButton v-if="sent" severity="secondary" class="w-full" @click="emit('close')">Yopish</BaseButton>
+         <BaseButton v-if="sent" severity="secondary" class="w-full" @click="emit('close')">{{ $t("common.close") }}</BaseButton>
          <BaseButton v-else class="w-full" :disabled="!reason" :loading="sending" @click="send">
             <template #icon><Flag class="size-4" /></template>
-            Yuborish
+            {{ $t("common.send") }}
          </BaseButton>
       </template>
    </BaseDrawer>
@@ -48,6 +48,7 @@ import { CheckCheck, Flag } from "lucide-vue-next";
 import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
+import { t } from "@shared/i18n";
 
 const props = defineProps<{ open: boolean; productId: number }>();
 const emit = defineEmits<{ (e: "close"): void }>();
@@ -82,7 +83,7 @@ async function send() {
       await ProductRepo.report(props.productId, { reason: reason.value, comment: comment.value.trim() || undefined });
       sent.value = true;
    } catch (exception: any) {
-      error.value = exception?.response?.data?.message || "Yuborib bo'lmadi. Qayta urinib ko'ring.";
+      error.value = exception?.response?.data?.message || t("report.error");
    } finally {
       sending.value = false;
    }

@@ -24,9 +24,13 @@ class PriceTypeController extends Controller
             'name' => 'required|string',
             'type' => 'required|string',
             'position' => 'required|string',
+            ...PriceType::translationRules(),
         ]);
 
-        return PriceType::create($validated);
+        $priceType = new PriceType($validated);
+        $priceType->fillTranslations($request->all())->save();
+
+        return $priceType;
     }
 
     public function update(Request $request, $id)
@@ -36,8 +40,9 @@ class PriceTypeController extends Controller
             'name' => ['required', 'string', 'max:100'],
             'type' => ['required', 'string', 'max:40'],
             'position' => ['required', 'in:right,left'],
+            ...PriceType::translationRules(),
         ]);
-        $parameter->update($validated);
+        $parameter->fill($validated)->fillTranslations($request->all())->save();
         return response()->json($parameter);
     }
 

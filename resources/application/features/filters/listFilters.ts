@@ -21,10 +21,10 @@ export interface ListFilters {
 }
 
 export const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-   { value: "new", label: "Yangilari" },
-   { value: "cheap", label: "Arzonroq" },
-   { value: "expensive", label: "Qimmatroq" },
-   { value: "popular", label: "Ommabop" },
+   { value: "new", label: "sort.new" },
+   { value: "cheap", label: "sort.cheap" },
+   { value: "expensive", label: "sort.expensive" },
+   { value: "popular", label: "sort.popular" },
 ];
 
 function isFilled(value: unknown): boolean {

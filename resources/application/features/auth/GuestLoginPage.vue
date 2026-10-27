@@ -7,6 +7,8 @@
          </div>
       </template>
       <template #content>
+         <!-- Mehmon ham tilni o'zgartira olsin (kirishdan oldin) -->
+         <LanguageSwitcher class="w-full" />
          <TelegramLoginCard class="pt-6" :title="props.cardTitle" :description="props.cardDescription" />
       </template>
    </NavigationPageDecorator>
@@ -16,6 +18,7 @@
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import TelegramLoginCard from "@/features/auth/TelegramLoginCard.vue";
 import ThemeSwitcher from "@shared/ui/ThemeSwitcher.vue";
+import LanguageSwitcher from "@shared/ui/LanguageSwitcher.vue";
 
 // Mehmon ochgan bo'limlar (Profil, Sevimlilar) o'rniga ko'rsatiladi.
 // Login bo'lgach store'dagi user o'zgaradi va ota sahifa o'zi asl ko'rinishiga qaytadi.

@@ -10,28 +10,27 @@ class DistrictController extends Controller
 
     public function index()
     {
-        return Cache::remember('districts:all', now()->addMinutes(15), function () {
-            $districts = District::query()
-                ->orderBy('name')
-                ->get();
+        $districts = Cache::remember('districts:list', now()->addMinutes(15), fn () => District::query()
+            ->orderBy('name')
+            ->get());
 
-            $districts->prepend((object) [
-                'id' => 0,
-                'name' => 'Barcha shaharlar',
-            ]);
-
-            return $districts->values();
-        });
+        // "Barcha shaharlar" — keshdan tashqarida: so'rovchi tilida
+        return $districts->toBase()->prepend((object) [
+            'id' => 0,
+            'name' => __('messages.all_cities'),
+        ])->values();
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:districts,name'],
+            ...District::translationRules(),
         ]);
 
-        $district = District::create($validated);
-        Cache::forget('districts:all');
+        $district = new District($validated);
+        $district->fillTranslations($request->all())->save();
+        Cache::forget('districts:list');
 
         return response()->json($district, 201);
     }
@@ -41,10 +40,11 @@ class DistrictController extends Controller
         $district = District::findOrFail($id);
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100', 'unique:districts,name,'.$district->id],
+            ...District::translationRules(),
         ]);
 
-        $district->update($validated);
-        Cache::forget('districts:all');
+        $district->fill($validated)->fillTranslations($request->all())->save();
+        Cache::forget('districts:list');
 
         return response()->json($district);
     }
@@ -53,7 +53,7 @@ class DistrictController extends Controller
     {
         $district = District::findOrFail($id);
         $district->delete();
-        Cache::forget('districts:all');
+        Cache::forget('districts:list');
 
         return response()->json(null, 204);
     }

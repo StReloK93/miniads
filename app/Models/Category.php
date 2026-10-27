@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 class Category extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTranslations;
+
+    protected array $translatable = ['name'];
     protected $fillable = [
         'name',
         'image',
@@ -16,6 +19,7 @@ class Category extends Model
         'with_price',
         'with_image',
         'listing_duration_days',
+        'translations',
     ];
 
     protected $casts = [
@@ -81,13 +85,13 @@ class Category extends Model
     public function children()
     {
         // Bu podkategoriyalarni olish uchun
-        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'image', 'parent_id', 'is_page', 'listing_duration_days');
+        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'translations', 'image', 'parent_id', 'is_page', 'listing_duration_days');
     }
 
     public function parent()
     {
         // Bu asosiy kategoriyani olish uchun
-        return $this->belongsTo(Category::class, 'parent_id')->with('parent')->select('id', 'name', 'image', 'parent_id', 'is_page');
+        return $this->belongsTo(Category::class, 'parent_id')->with('parent')->select('id', 'name', 'translations', 'image', 'parent_id', 'is_page');
     }
 
     public function parameters()

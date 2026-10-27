@@ -65,22 +65,28 @@ class NotifySavedSearches extends Command
             ->whereIn('id', array_slice($ids, 0, self::BUTTONS_LIMIT))
             ->get();
 
+        // Xabar foydalanuvchi tilida (narx birligi "сум" ham shu tilda)
+        $locale = $saved->user->language ?? 'uz';
+        app()->setLocale($locale);
+
         $count = count($ids);
         $lines = $products->map(fn (Product $product) => '• ' . e($product->title) . $this->price($product))->implode("\n");
-        $more = $count > self::BUTTONS_LIMIT ? "\n…va yana " . ($count - self::BUTTONS_LIMIT) . ' ta' : '';
+        $rest = $count - self::BUTTONS_LIMIT;
+        $more = $rest > 0 ? "\n" . trans_choice('bot.more', $rest, ['count' => $rest]) : '';
 
         $buttons = $products
             ->map(fn (Product $product) => [mb_strimwidth($product->title, 0, 40, '…'), TelegramNotifier::appLink("product_{$product->id}")])
             ->all();
-        if ($count > self::BUTTONS_LIMIT) {
-            $buttons[] = ["Hammasini ko'rish ({$count})", TelegramNotifier::appLink("ss_{$saved->id}")];
+        if ($rest > 0) {
+            $buttons[] = [__('bot.show_all', ['count' => $count]), TelegramNotifier::appLink("ss_{$saved->id}")];
         }
 
         $photo = $products->first()?->images->first();
+        $heading = trans_choice('bot.new_ads', $count, ['count' => $count, 'label' => e($saved->label)]);
 
         return $notifier->toUser(
             $saved->user,
-            "🔔 <b>«" . e($saved->label) . "»</b> bo'yicha {$count} ta yangi e'lon:\n\n{$lines}{$more}",
+            "{$heading}\n\n{$lines}{$more}",
             $buttons,
             $photo ? asset('storage/' . ltrim($photo->src, '/')) : null,
         );
@@ -93,7 +99,7 @@ class NotifySavedSearches extends Command
         }
 
         $amount = number_format((float) $product->price, 0, '.', ' ');
-        $unit = $product->price_type?->type ?? '';
+        $unit = $product->price_type?->translated('type') ?? '';
 
         return " — <b>{$amount} {$unit}</b>";
     }

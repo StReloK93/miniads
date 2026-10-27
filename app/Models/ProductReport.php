@@ -6,16 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductReport extends Model
 {
-    /** Ilovadagi shikoyat oynasi bilan bir xil ro'yxat */
-    public const REASONS = [
-        'fraud' => 'Firibgarlik',
-        'sold' => 'Sotilgan / dolzarb emas',
-        'wrong_category' => "Noto'g'ri bo'lim",
-        'wrong_info' => "Noto'g'ri narx yoki ma'lumot",
-        'spam' => 'Spam / takroriy',
-        'prohibited' => 'Taqiqlangan mahsulot',
-        'other' => 'Boshqa',
-    ];
+    /** Sabablar ro'yxati; nomlari tarjimada: lang/{uz,ru,en}/messages.php → reasons */
+    public const REASONS = ['fraud', 'sold', 'wrong_category', 'wrong_info', 'spam', 'prohibited', 'other'];
 
     protected $fillable = ['product_id', 'user_id', 'reason', 'comment', 'resolved_at'];
 
@@ -27,7 +19,7 @@ class ProductReport extends Model
 
     public function getReasonLabelAttribute(): string
     {
-        return self::REASONS[$this->reason] ?? $this->reason;
+        return in_array($this->reason, self::REASONS, true) ? __("messages.reasons.{$this->reason}") : $this->reason;
     }
 
     public function product()

@@ -4,12 +4,12 @@
          :category="selectedCategory"
          :inputs="formInputs"
          :submit="submitForm"
-         submit-label="E'lonni yangilash"
+         :submit-label="$t('create.update')"
          @submitted="onSubmit"
       >
          <template #heading>
-            <h3 class="font-extrabold text-xl mb-1">E'lonni tahrirlash</h3>
-            <p class="title text-xs mb-4">E'lon ma'lumotlari</p>
+            <h3 class="font-extrabold text-xl mb-1">{{ $t("create.editTitle") }}</h3>
+            <p class="title text-xs mb-4">{{ $t("create.details") }}</p>
          </template>
       </ProductFormShell>
    </section>

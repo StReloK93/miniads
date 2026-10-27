@@ -3,9 +3,9 @@
       <template #header>
          <aside class="mb-4">
             <div class="flex items-center justify-between mb-2">
-               <h3 class="font-bold text-xl">Bo'limlar</h3>
+               <h3 class="font-bold text-xl">{{ $t("categories.title") }}</h3>
             </div>
-            <p class="text-sm text-(--z-muted-text)">Nima izlayapsiz? Mos kategoriyani tanlang</p>
+            <p class="text-sm text-(--z-muted-text)">{{ $t("categories.subtitle") }}</p>
          </aside>
       </template>
 

@@ -2,10 +2,10 @@
    <ProfileAccount v-if="authStore.user" />
    <GuestLoginPage
       v-else
-      title="Profil"
+      :title="$t('nav.profile')"
       show-theme-switcher
-      card-title="Profilingizga kiring"
-      card-description="E'lonlaringizni ko'rish va boshqarish uchun Telegram orqali kiring."
+      :card-title="$t('auth.profileTitle')"
+      :card-description="$t('auth.profileHint')"
    />
 </template>
 

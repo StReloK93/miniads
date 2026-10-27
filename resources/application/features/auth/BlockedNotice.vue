@@ -4,12 +4,10 @@
       <div class="size-14 mb-3 rounded-full grid place-items-center bg-(--z-danger)/10 text-(--z-danger)">
          <Ban class="size-6" />
       </div>
-      <h3 class="font-semibold mb-1">Hisobingiz bloklangan</h3>
-      <p class="text-sm text-(--z-muted-text) max-w-72">
-         Administrator e'lon joylash imkoniyatingizni cheklagan. E'lonlarni ko'rish va qidirish ochiq.
-      </p>
+      <h3 class="font-semibold mb-1">{{ $t("auth.blockedTitle") }}</h3>
+      <p class="text-sm text-(--z-muted-text) max-w-72">{{ $t("auth.blockedText") }}</p>
       <RouterLink :to="{ name: 'home' }" class="mt-5">
-         <BaseButton severity="secondary" size="sm">Bosh sahifaga</BaseButton>
+         <BaseButton severity="secondary" size="sm">{{ $t("common.home") }}</BaseButton>
       </RouterLink>
    </div>
 </template>

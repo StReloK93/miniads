@@ -5,6 +5,13 @@ import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductI
 import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
 import { isYearParameter } from "@shared/modules/productSpecs";
+import { useCategory } from "@shared/entities/Category/useCategory";
+
+/** Asosiy bo'lim ikonkasi (House, Car...) — sarlavha namunasi shundan tanlanadi */
+function rootIconOf(category: ICategory): string | null {
+   const roots = (useCategory().parentCategories ?? []) as ICategory[];
+   return roots.find((root) => root.id === (category.root_id ?? category.id))?.image ?? null;
+}
 
 /**
  * E'lon yaratish va tahrirlash formasi uchun umumiy mantiq.
@@ -29,7 +36,7 @@ export async function buildProductFormInputs(
       telegramUsername: authStore.user?.username,
       districts: cityStore.cities || undefined,
       defaultDistrictId: options.districtId,
-      categoryName: category.name,
+      rootIcon: rootIconOf(category),
    });
 
    await Promise.all(baseInputs.map((input) => input.generateProps?.()));
@@ -54,7 +61,11 @@ export async function buildProductFormInputs(
       props: {
          title: parameter.title,
          placeholder: parameter.placeholder,
-         options: parameter.options || [],
+         // Ko'rinishi foydalanuvchi tilida, qiymati asl (o'zbekcha) — filtrlar shunga tayanadi
+         options: (parameter.options || []).map((option, i) => ({
+            value: option,
+            label: parameter.option_labels?.[i] ?? option,
+         })),
          inputmode: parameter.type === "number" ? "numeric" : undefined,
          // Yil "2 022" bo'lib ko'rinmasin; kelajak yilini ham yozib bo'lmaydi
          ...(isYearParameter(parameter) ? { grouping: false, max: new Date().getFullYear() + 1 } : {}),

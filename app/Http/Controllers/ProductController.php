@@ -53,7 +53,7 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            'message' => "E'lon joylandi!",
+            'message' => __('messages.ad_created'),
             'id' => $product->id,
         ], 201);
     }
@@ -89,7 +89,7 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            'message' => "E'lon muvaffaqiyatli yangilandi!",
+            'message' => __('messages.ad_updated'),
         ]);
     }
 
@@ -103,7 +103,7 @@ class ProductController extends Controller
 
         if (!$product) {
             return response()->json([
-                'message' => "Ushbu e'lon mavjud emas yoki muddati tugagan.",
+                'message' => __('messages.ad_not_found'),
             ], 404);
         }
 
@@ -111,7 +111,7 @@ class ProductController extends Controller
         $isOwnerOrAdmin = $user && ($user->id === $product->user_id || $user->role === 'admin');
         if ($product->expires_at && $product->expires_at < now() && !$isOwnerOrAdmin) {
             return response()->json([
-                'message' => "Ushbu e'lon mavjud emas yoki muddati tugagan.",
+                'message' => __('messages.ad_not_found'),
                 'is_expired' => true,
             ], 404);
         }
@@ -247,7 +247,7 @@ class ProductController extends Controller
         $this->productService->activate($product);
 
         return response()->json([
-            'message' => "E'lon muvaffaqiyatli faollashtirildi!",
+            'message' => __('messages.ad_activated'),
         ]);
     }
 
@@ -262,7 +262,7 @@ class ProductController extends Controller
         $this->productService->deActivate($product);
 
         return response()->json([
-            'message' => "E'lon muvaffaqiyatli o'chirildi!",
+            'message' => __('messages.ad_deactivated'),
         ]);
     }
 
@@ -292,7 +292,7 @@ class ProductController extends Controller
         }
 
         return response()->json([
-            'message' => "E'lon muvaffaqiyatli o'chirildi!",
+            'message' => __('messages.ad_deleted'),
         ]);
     }
 
@@ -303,12 +303,12 @@ class ProductController extends Controller
     public function report(Request $request, int $id)
     {
         $validated = $request->validate([
-            'reason' => ['required', 'string', Rule::in(array_keys(ProductReport::REASONS))],
+            'reason' => ['required', 'string', Rule::in(ProductReport::REASONS)],
             'comment' => ['nullable', 'string', 'max:500'],
         ]);
 
         $product = Product::findOrFail($id);
-        abort_if((int) $product->user_id === (int) $request->user()->id, 422, "O'z e'loningiz ustidan shikoyat qilib bo'lmaydi.");
+        abort_if((int) $product->user_id === (int) $request->user()->id, 422, __('messages.report_own'));
 
         ProductReport::updateOrCreate(
             ['product_id' => $product->id, 'user_id' => $request->user()->id],
@@ -318,7 +318,7 @@ class ProductController extends Controller
         // Admin chatiga xabar javobdan keyin: foydalanuvchi Telegram API'ni kutib qolmasin
         app()->terminating(fn () => app(ModerationService::class)->reportAdded($product));
 
-        return response()->json(['message' => "Shikoyat yuborildi. Rahmat, ko'rib chiqamiz."]);
+        return response()->json(['message' => __('messages.report_sent')]);
     }
 
     private function scanAfterResponse(Product $product): void
@@ -335,8 +335,7 @@ class ProductController extends Controller
     public function reportReasons()
     {
         return collect(ProductReport::REASONS)
-            ->map(fn (string $label, string $id) => ['id' => $id, 'label' => $label])
-            ->values();
+            ->map(fn (string $id) => ['id' => $id, 'label' => __("messages.reasons.{$id}")]);
     }
 
     private function abortIfBlocked(Request $request): void
@@ -344,7 +343,7 @@ class ProductController extends Controller
         abort_if(
             $request->user()?->isBlocked(),
             403,
-            "Hisobingiz administrator tomonidan bloklangan. E'lon joylash va tahrirlash imkoni yo'q.",
+            __('messages.blocked'),
         );
     }
 }

@@ -1,42 +1,27 @@
 <template>
-   <main class="pb-4 -mx-4">
-      <div class="flex items-center text-sm justify-between mb-2 px-4">
-         <h3 class="title text-xs">Bo'limlar</h3>
-      </div>
-      <swiper :slidesPerView="5.5" :space-between="25" :modules="[FreeMode]" class="w-full px-4!">
-         <swiper-slide>
-            <RouterLink :to="{ name: 'categories' }" class="select-none inline-flex flex-col items-center gap-2">
-               <div
-                  class="size-14 grid place-items-center bg-(--z-primary) text-(--z-muted) border border-(--z-border) rounded-full">
-                  <LayoutGrid class="size-5" stroke-width="1.5" />
-               </div>
-
-               <div class="text-xs text-center">Barchasi</div>
-            </RouterLink>
-         </swiper-slide>
-         <swiper-slide v-for="category in CategoryStore.parentCategories" :key="category.id">
-            <RouterLink :to="category.is_page
+   <!--
+      Ixcham chiplar qatori: bo'limlar bir bosishda, lekin lentadan joy olmaydi.
+      Barcha bo'limlar tugmasi qidiruv yonida (HomeSearchBar).
+   -->
+   <nav class="-mx-4 px-4 pb-3 flex gap-2 overflow-x-auto no-scrollbar" aria-label="Bo'limlar">
+      <RouterLink
+         v-for="category in CategoryStore.parentCategories"
+         :key="category.id"
+         :to="
+            category.is_page
                ? { name: 'category', params: { id: category.id } }
                : { name: 'categories', query: { category_id: category.id } }
-               " class="select-none inline-flex flex-col items-center gap-2">
-               <div class="size-14 grid place-items-center bg-(--z-card) border border-(--z-border) rounded-full">
-                  <component :is="icons[category.image]" stroke-width="1.5" class="size-5" />
-               </div>
-
-               <div class="text-xs text-center">
-                  {{ category.name }}
-               </div>
-            </RouterLink>
-         </swiper-slide>
-      </swiper>
-   </main>
+         "
+         class="shrink-0 h-9 pl-2.5 pr-3.5 inline-flex items-center gap-1.5 rounded-full bg-(--z-card) border border-(--z-border) text-xs font-medium whitespace-nowrap select-none transition active:scale-95"
+      >
+         <component :is="icons[category.image]" stroke-width="1.75" class="size-4 text-(--z-muted-text)" />
+         {{ category.name }}
+      </RouterLink>
+   </nav>
 </template>
 
 <script setup lang="ts">
-import { Swiper, SwiperSlide } from "swiper/vue";
-import { LayoutGrid } from "lucide-vue-next";
 import icons from "@/features/category/icons";
-import { FreeMode } from "swiper/modules";
 import { useCategory } from "@shared/entities/Category/useCategory";
 
 const CategoryStore = useCategory();

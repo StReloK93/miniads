@@ -166,7 +166,9 @@ onMounted(async () => {
    justify-content: flex-end;
    gap: 8px;
    border-top: 1px solid var(--z-border);
-   background: var(--z-card);
+   background: var(--z-glass-strong);
+   -webkit-backdrop-filter: blur(var(--z-blur));
+   backdrop-filter: blur(var(--z-blur));
    padding: 13px 0 0;
 }
 

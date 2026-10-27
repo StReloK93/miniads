@@ -4,6 +4,7 @@ import { Inputs } from "@shared/ui/inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
+import { isYearParameter } from "@shared/modules/productSpecs";
 
 /**
  * E'lon yaratish va tahrirlash formasi uchun umumiy mantiq.
@@ -51,6 +52,8 @@ export async function buildProductFormInputs(
          placeholder: parameter.placeholder,
          options: parameter.options || [],
          inputmode: parameter.type === "number" ? "numeric" : undefined,
+         // Yil "2 022" bo'lib ko'rinmasin; kelajak yilini ham yozib bo'lmaydi
+         ...(isYearParameter(parameter) ? { grouping: false, max: new Date().getFullYear() + 1 } : {}),
       },
       schema: ZodTypeMapping[parameter.type](false),
    }));

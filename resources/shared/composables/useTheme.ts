@@ -25,7 +25,8 @@ function updateDOM(dark: boolean): void {
    // Telegram Mini App header va fon rangini sinxronlash
    if (isTMA()) {
       try {
-         const color = dark ? "#0f172a" : "#f8fafc";
+         // Fon rangi bilan bir xil (shared/css/glass.scss: --z-background)
+         const color = dark ? "#080b14" : "#f3f6fb";
          postEvent("web_app_set_header_color", { color });
          postEvent("web_app_set_background_color", { color });
       } catch (e) {

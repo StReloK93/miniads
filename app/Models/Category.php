@@ -31,6 +31,8 @@ class Category extends Model
             Cache::forever('categories:version', (int) Cache::get('categories:version', 0) + 1);
             Cache::forget('leaf_categories_list');
             Cache::forget('leaf_categories_with_parents');
+            // Uzoq ishlaydigan jarayonlarda (queue worker) ham yangi daraxt olinsin
+            self::$rootIds = null;
         };
 
         static::saved($flush);
@@ -41,6 +43,39 @@ class Category extends Model
     public static function cacheVersion(): int
     {
         return (int) Cache::get('categories:version', 0);
+    }
+
+    // Asosiy bo'lim (Uy-joy, Avto...) — e'lon kartasida ikonka va rang shundan olinadi
+    protected $appends = ['root_id'];
+
+    private static ?array $rootIds = null;
+
+    /** @return array<int, int> kategoriya id → eng yuqori ota-ona id */
+    public static function rootIdMap(): array
+    {
+        return self::$rootIds ??= Cache::remember(
+            'categories:v' . self::cacheVersion() . ':root-ids',
+            now()->addDay(),
+            function (): array {
+                $parents = self::withTrashed()->pluck('parent_id', 'id')->all();
+                $roots = [];
+                foreach (array_keys($parents) as $id) {
+                    $root = $id;
+                    // Sikl himoyasi: daraxt chuqurligi 10 dan oshmaydi
+                    for ($depth = 0; $depth < 10 && !empty($parents[$root]); $depth++) {
+                        $root = $parents[$root];
+                    }
+                    $roots[$id] = $root;
+                }
+
+                return $roots;
+            },
+        );
+    }
+
+    public function getRootIdAttribute(): ?int
+    {
+        return $this->id ? (self::rootIdMap()[$this->id] ?? $this->id) : null;
     }
 
     public function children()

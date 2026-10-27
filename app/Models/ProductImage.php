@@ -10,6 +10,7 @@ class ProductImage extends Model
 
     protected $fillable = [
         'src',
+        'thumb_src',
         'crop_src',
         'crop_x',
         'crop_y',

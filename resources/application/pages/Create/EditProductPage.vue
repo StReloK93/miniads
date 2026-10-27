@@ -44,7 +44,7 @@ async function submitForm(values: Record<string, any>) {
 }
 
 function onSubmit() {
-   router.push({ name: "profile", query: { category_id: selectedCategory.value?.parent_id } });
+   router.push({ name: "my-ads" });
 }
 
 onMounted(async () => {

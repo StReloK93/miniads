@@ -6,7 +6,10 @@ import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/composables/useTheme";
 import "@shared/css/ui.scss";
 import { responsiveTable } from "@admin/modules/responsiveTable";
+import { isTMA } from "@tma.js/bridge";
+import { setupTelegramSafeArea } from "@shared/modules/telegramSafeArea";
 initTheme();
+if (isTMA()) setupTelegramSafeArea();
 const app = createApp(App);
 app.use(createPinia());
 // Telefonda jadval qatorlari kartaga aylanadi

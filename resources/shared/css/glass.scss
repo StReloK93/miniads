@@ -1,0 +1,150 @@
+/* ==========================================================================
+   SHISHASIMON (glass) DIZAYN QATLAMI
+   ui.scss oxirida ulanadi va faqat tokenlarni / ko'rinishni qayta yozadi.
+   O'chirish uchun ui.scss'dagi `meta.load-css("./glass")` qatorini olib tashlang.
+
+   Qoida: oddiy kartalar shaffof + yorug' qirra (blur'siz, ro'yxatda tez ishlaydi),
+   blur faqat kontent ustida suzib turadigan qatlamlarda (.z-glass) va tugmalarda.
+   ========================================================================== */
+
+:root {
+   --z-background: #f3f6fb;
+   --z-card: rgb(255 255 255 / 0.55);
+   --z-muted: rgb(15 23 42 / 0.05);
+   --z-secondary: rgb(15 23 42 / 0.05);
+   --z-border: rgb(15 23 42 / 0.08);
+   --z-field-background: rgb(255 255 255 / 0.65);
+
+   --z-glass: rgb(255 255 255 / 0.6);
+   --z-glass-strong: rgb(255 255 255 / 0.78);
+   --z-glass-border: rgb(255 255 255 / 0.85);
+   --z-glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 10px 30px -8px rgb(15 23 42 / 0.15);
+   /* Kartalar uchun yengilroq: yuqori chetda yorug'lik + past soya */
+   --z-glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 4px 16px -6px rgb(15 23 42 / 0.1);
+   /* Rangli tugmalar ustidagi yaltiroq */
+   --z-btn-shine: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 55%);
+   --z-btn-highlight: inset 0 1px 0 rgb(255 255 255 / 0.25);
+   /* Modal/drawer orqa qoplamasi: qora parda emas, orqadagi sahifa xira ko'rinib tursin */
+   --z-overlay: rgb(15 23 42 / 0.18);
+   --z-overlay-blur: 6px;
+   --z-blur: 20px;
+
+   /* Och pastel dog'lar ekran bo'ylab — kartalar qayerda bo'lsa ham orqasida rang bo'lsin */
+   --z-ambient:
+      radial-gradient(55% 35% at 0% 0%, rgb(147 197 253 / 0.4), transparent 70%),
+      radial-gradient(50% 30% at 100% 25%, rgb(196 181 253 / 0.36), transparent 70%),
+      radial-gradient(55% 30% at 0% 60%, rgb(251 207 232 / 0.32), transparent 70%),
+      radial-gradient(60% 35% at 100% 100%, rgb(153 246 228 / 0.36), transparent 70%);
+}
+
+html.dark {
+   --z-background: #080b14;
+   --z-card: rgb(30 41 59 / 0.38);
+   --z-muted: rgb(255 255 255 / 0.05);
+   --z-secondary: rgb(255 255 255 / 0.06);
+   --z-border: rgb(255 255 255 / 0.08);
+   --z-field-background: rgb(15 23 42 / 0.45);
+
+   --z-glass: rgb(15 23 42 / 0.55);
+   --z-glass-strong: rgb(15 23 42 / 0.75);
+   --z-glass-border: rgb(255 255 255 / 0.1);
+   --z-glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 12px 36px -8px rgb(0 0 0 / 0.6);
+   --z-glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 4px 18px -6px rgb(0 0 0 / 0.5);
+   /* Quyuq temada asosiy tugma och rangli — yaltiroq o'rniga yengil soya */
+   --z-btn-shine: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0) 55%);
+   --z-btn-highlight: inset 0 1px 0 rgb(255 255 255 / 0.35);
+   --z-overlay: rgb(0 0 0 / 0.4);
+
+   --z-ambient:
+      radial-gradient(55% 35% at 0% 0%, rgb(59 130 246 / 0.24), transparent 70%),
+      radial-gradient(50% 30% at 100% 25%, rgb(139 92 246 / 0.22), transparent 70%),
+      radial-gradient(55% 30% at 0% 60%, rgb(236 72 153 / 0.12), transparent 70%),
+      radial-gradient(60% 35% at 100% 100%, rgb(20 184 166 / 0.2), transparent 70%);
+}
+
+/*
+   Karta rangidagi barcha yuzalar (e'lon kartalari, ro'yxatlar, chiplar, admin panellari)
+   shisha qirrasini oladi. [class~=...] — aynan shu klass; "active:bg-(--z-card)" kabi holatlarga tegmaydi.
+*/
+[class~="bg-(--z-card)"],
+.admin-panel,
+.admin-stat-card,
+.admin-chart-card,
+.admin-table-panel {
+   border-color: var(--z-glass-border);
+   box-shadow: var(--z-glass-edge);
+}
+
+/* Kiritish maydonlari: shisha qirrasi, fokusda yumshoq halqa */
+:not(.child) > .field,
+.admin-search,
+.admin-select,
+.admin-input {
+   border-color: var(--z-glass-border);
+   box-shadow: var(--z-glass-edge);
+
+   &:focus-within {
+      outline: none;
+      border-color: color-mix(in srgb, var(--z-primary) 35%, transparent);
+      box-shadow: var(--z-glass-edge), 0 0 0 3px color-mix(in srgb, var(--z-primary) 12%, transparent);
+   }
+}
+
+/* ---------- TUGMALAR ---------- */
+
+/* Rangli tugmalar: yuqoridan yaltiroq + o'z rangidagi yumshoq soya */
+.z-btn-primary,
+.z-btn-success,
+.z-btn-danger,
+.admin-button-primary {
+   background-image: var(--z-btn-shine);
+}
+
+.z-btn-primary,
+.admin-button-primary {
+   box-shadow: var(--z-btn-highlight), 0 6px 16px -6px color-mix(in srgb, var(--z-primary) 60%, transparent);
+}
+
+.z-btn-success {
+   box-shadow: var(--z-btn-highlight), 0 6px 16px -6px rgb(5 150 105 / 0.55);
+}
+
+.z-btn-danger {
+   box-shadow: var(--z-btn-highlight), 0 6px 16px -6px color-mix(in srgb, var(--z-danger) 60%, transparent);
+}
+
+/* Ikkinchi darajali tugmalar: shisha bo'lak (chegara layout'ni surmasligi uchun inset soya bilan) */
+.z-btn-secondary,
+.z-btn-glass,
+.admin-button-secondary,
+.admin-icon-button {
+   background-color: var(--z-glass);
+   border-color: var(--z-glass-border);
+   color: var(--z-foreground);
+   box-shadow: inset 0 0 0 1px var(--z-glass-border), var(--z-glass-edge);
+   -webkit-backdrop-filter: blur(12px) saturate(170%);
+   backdrop-filter: blur(12px) saturate(170%);
+
+   &:hover {
+      background-color: var(--z-glass-strong);
+   }
+}
+
+/*
+   "E'lon qo'shish" tugmasi: asosiy amal — rangli effektlarsiz, tema rangida jiddiy doira.
+   Shishadan faqat yuqoridagi nozik yaltiroq va yorug' qirra qoladi.
+*/
+.z-fab {
+   background-image: var(--z-btn-shine);
+   box-shadow:
+      var(--z-btn-highlight),
+      0 0 0 4px var(--z-glass),
+      0 8px 20px -8px rgb(15 23 42 / 0.5);
+}
+
+html.dark .z-fab {
+   box-shadow:
+      var(--z-btn-highlight),
+      0 0 0 4px var(--z-glass),
+      0 8px 20px -8px rgb(0 0 0 / 0.7);
+}

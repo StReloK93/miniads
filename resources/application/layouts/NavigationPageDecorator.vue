@@ -1,5 +1,5 @@
 <template>
-   <section class="pt-[calc(var(--safe-area-top)+var(--spacing)*4)] bg-(--z-background) flex flex-col h-full">
+   <section class="pt-[calc(var(--safe-area-top)+var(--spacing)*4)] z-ambient flex flex-col h-full">
       <main class="px-4" :class="props.headerClass">
          <slot name="header" :is-compact="isActive" :progress="displayProgress"></slot>
       </main>

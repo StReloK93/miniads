@@ -32,9 +32,10 @@
                   </span>
                   <span class="text-[11px] text-(--z-muted-text)">·</span>
                   <span class="text-[11px] text-(--z-muted-text)">
-                     {{ dashboard.stats.deleted_products ?? 0 }} arxiv
+                     {{ dashboard.stats.expired_products ?? 0 }} muddati tugagan
                   </span>
                </div>
+               <span class="admin-stat-detail">Arxivda yana {{ dashboard.stats.deleted_products ?? 0 }} ta</span>
             </article>
 
             <article class="admin-stat-card">
@@ -70,9 +71,7 @@
                   <FolderTree class="size-4 text-amber-500" />
                </div>
                <strong>{{ dashboard.stats.categories ?? 0 }}</strong>
-               <span class="admin-stat-detail">
-                  Eng faol kun: <b class="text-(--z-primary)">{{ dashboard.stats.busiest_day ?? '—' }}</b>
-               </span>
+               <span class="admin-stat-detail">Katalogdagi barcha bo'limlar</span>
             </article>
          </div>
 
@@ -86,9 +85,11 @@
                         <Calendar class="size-4 text-(--z-primary)" />
                         E'lonlar dinamikasi
                      </h2>
-                     <p class="admin-card-subtitle">So'nggi 14 kunlik e'lonlar soni va eng faol kunlar</p>
+                     <p class="admin-card-subtitle">So'nggi 14 kunda qo'shilgan e'lonlar va hafta kunlari bo'yicha taqsimot</p>
                   </div>
-                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-(--z-muted) text-(--z-primary)">
+                  <span
+                     v-if="dashboard.stats.busiest_day"
+                     class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-(--z-muted) text-(--z-primary)">
                      <Flame class="size-3.5 text-amber-500" />
                      {{ dashboard.stats.busiest_day }} ko'proq
                   </span>
@@ -101,6 +102,7 @@
                      :key="day.date"
                      class="admin-bar-col group"
                      :class="{ 'is-peak': isPeakDay(day.count) }"
+                     :title="`${day.day_label}: ${day.count} ta`"
                   >
                      <span class="admin-bar-tooltip">{{ day.count }} ta</span>
                      <div
@@ -328,8 +330,8 @@
                         </td>
                         <td>{{ product.user?.name || "—" }}</td>
                         <td>{{ product.category?.name || "—" }}</td>
-                        <td>{{ product.district?.name || "—" }}</td>
-                        <td>{{ formatPrice(product.price) }}</td>
+                        <td>{{ product.district?.name || "Navoiy viloyati" }}</td>
+                        <td>{{ formatProductPrice(product.price, product.price_type) }}</td>
                         <td>
                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-(--z-foreground)">
                               <Eye class="size-3.5 text-sky-500" />
@@ -361,7 +363,7 @@ import { onMounted, ref, computed } from "vue";
 import { FileText, Layers, Eye, Users, FolderTree, Calendar, MapPin, Tag, Activity, Flame } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
-import { formatPrice as formatPriceUtil, formatDate, timeAgo } from "@shared/modules/formatters";
+import { formatProductPrice, formatDate, timeAgo } from "@shared/modules/formatters";
 
 type Dashboard = {
    stats: Record<string, any>;
@@ -397,10 +399,6 @@ function isRecentlyActive(dateString: string | null | undefined): boolean {
    if (!dateString) return false;
    const diffMs = Date.now() - new Date(dateString).getTime();
    return diffMs < 1000 * 60 * 60 * 24; // Oxirgi 24 soat ichida
-}
-
-function formatPrice(value: number | null) {
-   return formatPriceUtil(value, { fallback: "Kelishiladi", unit: "so'm" });
 }
 
 onMounted(async () => {

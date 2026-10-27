@@ -1,5 +1,5 @@
 <template>
-   <div class="inline-flex z-bg-gradient backdrop-blur-sm border rounded-full border-(--z-border)" role="group">
+   <div class="inline-flex z-glass border rounded-full" role="group">
       <button
          v-for="option in props.options"
          :key="option.value"

@@ -11,7 +11,7 @@
             leave-from="opacity-100"
             leave-to="opacity-0"
          >
-            <div class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-100" />
+            <div class="fixed inset-0 z-overlay z-100" />
          </TransitionChild>
 
          <div class="fixed inset-0 overflow-y-auto z-200">
@@ -27,7 +27,7 @@
                   leave-to="opacity-0 translate-y-4 scale-[0.98]"
                >
                   <DialogPanel
-                     class="w-full max-w-md transform rounded-(--z-rounded) bg-(--z-card) text-left align-middle shadow-2xl transition-all border border-(--z-border)"
+                     class="w-full max-w-md transform rounded-(--z-rounded) z-glass-strong text-left align-middle transition-all border"
                   >
                      <div class="p-(--space-lg)">
                         <!-- Header -->

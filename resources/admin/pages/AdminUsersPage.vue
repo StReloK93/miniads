@@ -80,7 +80,7 @@
                               :title="isRecentlyActive(user.last_active_at) ? 'Faol' : 'Nofaol'"
                            ></span>
                            <div>
-                              <strong>{{ timeAgo(user.last_active_at!) || 'Hozirgina' }}</strong>
+                              <strong>{{ user.last_active_at ? timeAgo(user.last_active_at) : 'Kirmagan' }}</strong>
                               <small>{{ formatDateTime(user.last_active_at) }}</small>
                            </div>
                         </div>

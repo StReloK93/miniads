@@ -3,6 +3,7 @@
       :product="product"
       :show-favorite="false"
       :show-category="false"
+      show-views
       :inactive="!isActive"
       time-field="created_at"
    >

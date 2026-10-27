@@ -315,6 +315,7 @@ class BotAdImportService
                 ProductImage::create([
                     'product_id' => $product->id,
                     'src' => $path,
+                    'thumb_src' => \App\Support\ProductThumbnail::make($path),
                     'crop_src' => null,
                     'crop_x' => 50,
                     'crop_y' => 50,

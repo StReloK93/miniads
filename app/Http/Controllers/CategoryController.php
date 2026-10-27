@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ProductFilters;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -157,21 +158,26 @@ class CategoryController extends Controller
 		], 200);
 	}
 
-	public function products($categoryId)
+	/**
+	 * Kategoriya e'lonlari + uning parametrlari (frontend ulardan filtrlarni quradi).
+	 * Filtrlar: App\Services\ProductFilters (shahar, narx, rasmli, parametrlar, saralash).
+	 */
+	public function products(Request $request, $categoryId)
 	{
-		$Category = Category::with([
-			'parent',
-			'products' => function ($query) {
-				$query->withExists([
-					'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
-				])
-					->active()
-					->latest('published_at')
-					->latest('id');
-			}
-		])->findOrFail($categoryId);
+		$category = Category::with(['parent', 'parameters'])->findOrFail($categoryId);
 
-		return $Category;
+		$query = Product::withExists([
+			'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+		])
+			->where('category_id', $category->id)
+			->active();
+
+		ProductFilters::apply($query, $request);
+		ProductFilters::sort($query, $request->input('sort'));
+
+		$category->setRelation('products', $query->get());
+
+		return $category;
 	}
 
 	public function destroy($id)

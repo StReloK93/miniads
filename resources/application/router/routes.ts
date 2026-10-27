@@ -15,11 +15,9 @@ export const routes: RouteRecordRaw[] = [
             props: true,
          },
          { path: "profile", component: () => import("@pages/ProfilePage.vue"), name: "profile" },
-         {
-            path: "search",
-            component: () => import("@pages/SearchPage.vue"),
-            name: "search",
-         },
+         { path: "my-ads", component: () => import("@pages/MyAdsPage.vue"), name: "my-ads" },
+         // Qidiruv endi bosh sahifaning o'zida (Telegram uslubi); eski havolalar uni ochadi
+         { path: "search", name: "search", redirect: { name: "home", query: { search: "1" } } },
          {
             path: "category/:id",
             component: () => import("@pages/CategoryIdPage.vue"),
@@ -57,7 +55,8 @@ export const routes: RouteRecordRaw[] = [
          },
          {
             path: "edit-product/:product_id",
-            props: true,
+            // URL parametri doim satr ("17"); sahifa son kutadi
+            props: (route) => ({ product_id: Number(route.params.product_id) }),
             component: () => import("@pages/Create/EditProductPage.vue"),
             name: "edit-product",
             meta: { requiresAuth: true, confirmClose: true },

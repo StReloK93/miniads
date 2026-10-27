@@ -1,7 +1,11 @@
 <template>
    <Teleport to="body">
+      <!--
+         z-200: pastki menyu (z-100) ustida — drawer tugmalari menyu orqasida qolmasin; modal bilan bir qatlam.
+         Izoh TransitionRoot'dan tashqarida: as="template" ichida faqat bitta element bo'lishi shart.
+      -->
       <TransitionRoot appear :show="open" as="template">
-         <Dialog as="div" class="fixed inset-0 z-50 overflow-hidden" @close="close">
+         <Dialog as="div" class="fixed inset-0 z-200 overflow-hidden" @close="close">
             <TransitionChild
                as="template"
                enter="transition-opacity duration-200 ease-out"
@@ -11,7 +15,7 @@
                leave-from="opacity-100"
                leave-to="opacity-0"
             >
-               <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs" />
+               <div class="fixed inset-0 z-overlay" />
             </TransitionChild>
 
             <div class="fixed inset-0 z-1 flex justify-end overflow-hidden pointer-events-none">
@@ -25,9 +29,12 @@
                   leave-to="translate-x-full opacity-0 sm:translate-x-6"
                >
                   <DialogPanel
-                     class="pointer-events-auto flex h-full w-full max-w-130 flex-col border-l border-(--z-border) bg-(--z-card) text-(--z-foreground) shadow-2xl transition-all max-sm:max-w-full max-sm:border-l-0"
+                     class="pointer-events-auto flex h-full w-full max-w-130 flex-col z-glass-strong border-l text-(--z-foreground) transition-all max-sm:max-w-full max-sm:border-l-0"
                   >
-                     <header class="flex min-h-17 items-center justify-between gap-4 border-b border-(--z-border) px-5 py-3.5">
+                     <!-- Telefonda drawer butun ekranni egallaydi: sarlavha Telegram tugmalari ostida qolmasin -->
+                     <header
+                        class="flex min-h-17 items-center justify-between gap-4 border-b border-(--z-border) px-5 py-3.5 max-sm:pt-[calc(var(--safe-area-top)+0.875rem)]"
+                     >
                         <div class="min-w-0">
                            <slot name="header">
                               <DialogTitle class="m-0 text-base font-semibold text-(--z-foreground)">
@@ -50,6 +57,13 @@
                      <div class="min-h-0 flex-1 overflow-y-auto p-5 max-sm:p-4">
                         <slot />
                      </div>
+                     <!-- Doim ko'rinadigan amallar (masalan filtrlarda "Tozalash / Ko'rsatish") -->
+                     <footer
+                        v-if="$slots.footer"
+                        class="border-t border-(--z-border) px-5 pt-3.5 pb-[calc(var(--safe-area-bottom)+0.875rem)] max-sm:px-4"
+                     >
+                        <slot name="footer" />
+                     </footer>
                   </DialogPanel>
                </TransitionChild>
             </div>

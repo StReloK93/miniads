@@ -14,6 +14,21 @@ export function formatPrice(value?: number | null, options?: FormatPriceOptions)
    return options?.unit ? `${formatted} ${options.unit}` : formatted;
 }
 
+export interface PriceType {
+   type: string;
+   position?: "left" | "right";
+}
+
+/**
+ * E'lon narxi o'z valyutasi bilan (masalan: 1 000 000 so'm yoki $ 500)
+ */
+export function formatProductPrice(value?: number | null, priceType?: PriceType | null, fallback = "Kelishiladi"): string {
+   if (value === null || value === undefined) return fallback;
+   const formatted = formatPrice(value);
+   if (!priceType?.type) return formatted;
+   return priceType.position === "left" ? `${priceType.type} ${formatted}` : `${formatted} ${priceType.type}`;
+}
+
 /**
  * Vaqtni 'hozir', '10 minut oldin', 'kecha', '3 kun oldin' ko'rinishida formatlash
  */

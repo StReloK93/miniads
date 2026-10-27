@@ -3,42 +3,38 @@
 namespace App\Services;
 
 use App\Models\Category;
+use App\Models\District;
 use App\Models\Product;
+use App\Support\UzbekText;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ProductSearchService
 {
+    // Kartalar ro'yxatida bundan ko'pini hech kim varaqlamaydi; aniqroq so'z yozgan ma'qul
+    private const RESULT_LIMIT = 100;
+
     /**
      * Search products with intelligent Uzbek-aware word-boundary and category matching.
+     * Matn ham, so'rov ham UzbekText::normalize'dan o'tadi: kirill/lotin va tutuq belgilari farq qilmaydi.
      */
     public function search(Request $request): Collection
     {
-        $search = trim((string) $request->input('search', ''));
-        if ($search === '') {
-            return collect();
-        }
-
-        $terms = preg_split('/\s+/u', mb_strtolower($search), -1, PREG_SPLIT_NO_EMPTY);
+        $terms = preg_split('/\s+/u', UzbekText::normalize((string) $request->input('search', '')), -1, PREG_SPLIT_NO_EMPTY);
         if (empty($terms)) {
             return collect();
         }
 
-        // Uzbek word character class: Latin, Cyrillic, numbers, and Uzbek apostrophes
-        $wordCharClass = 'a-z0-9а-яёўқғҳ\'ʻ’‘`';
-
         // 1. Identify category matches
-        $allCategories = Category::all();
+        $allCategories = Category::all(['id', 'name', 'parent_id']);
         $matchedCategoryIds = [];
         foreach ($allCategories as $cat) {
-            $catName = mb_strtolower($cat->name);
+            $catName = UzbekText::normalize($cat->name);
             foreach ($terms as $term) {
-                $termLen = mb_strlen($term);
-                if ($termLen <= 4) {
-                    $pattern = '/(^|[^' . $wordCharClass . '])' . preg_quote($term, '/') . '([^' . $wordCharClass . ']|$)/ui';
-                } else {
-                    $pattern = '/(^|[^' . $wordCharClass . '])' . preg_quote($term, '/') . '/ui';
-                }
+                $pattern = mb_strlen($term) <= 4
+                    ? '/(^| )' . preg_quote($term, '/') . '( |$)/u'
+                    : '/(^| )' . preg_quote($term, '/') . '/u';
 
                 if (preg_match($pattern, $catName)) {
                     $matchedCategoryIds[] = $cat->id;
@@ -50,45 +46,60 @@ class ProductSearchService
         }
         $matchedCategoryIds = array_unique($matchedCategoryIds);
 
-        // 2. Query candidates from database
-        $products = Product::withExists([
-            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
-        ])
+        $districtNames = District::pluck('name', 'id')->map(fn ($name) => UzbekText::normalize($name));
+
+        // 2. Nomzodlar: faqat matn ustunlari, rasm/parametr/kategoriya yuklamasdan (har so'rovda barcha faol e'lonlar)
+        $candidates = Product::query()
+            ->setEagerLoads([])
+            ->select(['id', 'title', 'description', 'category_id', 'district_id'])
             ->active()
-            ->when($request->city_id, fn($q) => $q->where('district_id', $request->city_id))
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
-            ->when($request->price_from, fn($q) => $q->where('price', '>=', $request->price_from))
-            ->when($request->price_to, fn($q) => $q->where('price', '<=', $request->price_to))
+            ->tap(fn ($q) => ProductFilters::apply($q, $request))
             ->latest('published_at')
             ->latest('id')
+            ->toBase()
             ->get();
+
+        // Parametr qiymatlari ("Mikroto'lqinli pech", "Cobalt", "Avtomat") ko'pincha sarlavhada yo'q — ular ham qidiriladi
+        $paramsText = [];
+        foreach ($candidates->pluck('id')->chunk(1000) as $chunk) {
+            DB::table('product_parameter_values')
+                ->whereIn('product_id', $chunk->all())
+                ->get(['product_id', 'value'])
+                ->each(function ($row) use (&$paramsText): void {
+                    $paramsText[$row->product_id] = ($paramsText[$row->product_id] ?? '') . ' ' . $row->value;
+                });
+        }
 
         // 3. Filter & score results
         $scored = [];
 
-        foreach ($products as $product) {
-            $title = mb_strtolower($product->title);
-            $desc = mb_strtolower($product->description ?? '');
-            $districtName = mb_strtolower($product->district?->name ?? '');
+        foreach ($candidates as $product) {
+            $title = UzbekText::normalize($product->title);
+            $desc = UzbekText::normalize($product->description);
+            $params = UzbekText::normalize($paramsText[$product->id] ?? '');
+            $districtName = $districtNames[$product->district_id] ?? '';
 
             $score = 0;
             $matchedAllTerms = true;
 
             foreach ($terms as $term) {
                 $termLen = mb_strlen($term);
+                $quoted = preg_quote($term, '/');
 
                 // Exact whole word pattern
-                $exactWordPattern = '/(^|[^' . $wordCharClass . '])' . preg_quote($term, '/') . '([^' . $wordCharClass . ']|$)/ui';
+                $exactWordPattern = '/(^| )' . $quoted . '( |$)/u';
 
                 // Word prefix pattern (handling short roots like "ish", "uy" without matching suffixes like "-ish")
                 if ($term === 'ish') {
                     // Match: ish, ishchi, ishchilar, ishga, ishda, ishdan, ishlar, ishsiz, ishxona, ish joyi
-                    // Reject: g'isht, kelishildi, berish, sotish, qilish, yuvish, ishonch
-                    $wordPrefixPattern = '/(^|[^' . $wordCharClass . '])ish(chi|chilar|ga|da|dan|lar|siz|xona|joyi|o\'rni|\b|[^' . $wordCharClass . ']|$)/ui';
+                    // Reject: gisht, kelishildi, berish, sotish, qilish, yuvish, ishonch
+                    // Qo'shimcha yoki so'z oxiri ("ishchilarga" ham topiladi)
+                    $wordPrefixPattern = '/(^| )ish(chi|ga|da|lar|siz|xona|joyi|orni| |$)/u';
                 } elseif ($termLen <= 3) {
-                    $wordPrefixPattern = '/(^|[^' . $wordCharClass . '])' . preg_quote($term, '/') . '([^' . $wordCharClass . ']|$|da|ga|dan|lar|ning)/ui';
+                    $wordPrefixPattern = '/(^| )' . $quoted . '( |$|da|ga|dan|lar|ning)/u';
                 } else {
-                    $wordPrefixPattern = '/(^|[^' . $wordCharClass . '])' . preg_quote($term, '/') . '/ui';
+                    $wordPrefixPattern = '/(^| )' . $quoted . '/u';
                 }
 
                 $termMatched = false;
@@ -117,6 +128,12 @@ class ProductSearchService
                     $termMatched = true;
                 }
 
+                // Parameter values match (description darajasida)
+                if (preg_match($wordPrefixPattern, $params)) {
+                    $score += 15;
+                    $termMatched = true;
+                }
+
                 // District match
                 if (preg_match($wordPrefixPattern, $districtName)) {
                     $score += 10;
@@ -130,21 +147,38 @@ class ProductSearchService
             }
 
             if ($matchedAllTerms && $score > 0) {
-                $scored[] = [
-                    'product' => $product,
-                    'score' => $score,
-                ];
+                $scored[] = ['id' => $product->id, 'score' => $score];
             }
         }
 
         // Sort by score DESC, then ID DESC
         usort($scored, function ($a, $b) {
             if ($b['score'] === $a['score']) {
-                return $b['product']->id <=> $a['product']->id;
+                return $b['id'] <=> $a['id'];
             }
             return $b['score'] <=> $a['score'];
         });
 
-        return collect(array_column($scored, 'product'));
+        $ids = array_column(array_slice($scored, 0, self::RESULT_LIMIT), 'id');
+        if (empty($ids)) {
+            return collect();
+        }
+
+        // 4. To'liq ma'lumot (rasmlar, parametrlar...) faqat ko'rsatiladiganlar uchun
+        $query = Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])->whereIn('id', $ids);
+
+        // Foydalanuvchi saralashni tanlagan bo'lsa (arzon, qimmat...) — o'sha tartib; aks holda moslik bo'yicha
+        $sort = $request->input('sort');
+        if (in_array($sort, ProductFilters::SORTS, true)) {
+            return ProductFilters::sort($query, $sort)->get();
+        }
+
+        $order = array_flip($ids);
+
+        return $query->get()
+            ->sortBy(fn (Product $product) => $order[$product->id])
+            ->values();
     }
 }

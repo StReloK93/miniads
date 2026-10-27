@@ -1,7 +1,7 @@
 <template>
    <div class="min-h-dvh w-full flex justify-center bg-slate-100 dark:bg-[#070a12]">
       <section
-         class="w-full h-dvh overflow-hidden no-scrollbar relative bg-(--z-background) sm:max-w-125 sm:border-x sm:border-(--z-border) sm:shadow-2xl"
+         class="w-full h-dvh overflow-hidden no-scrollbar relative z-ambient sm:max-w-125 sm:border-x sm:border-(--z-border) sm:shadow-2xl"
       >
          <RouterView v-slot="{ Component, route }">
             <transition :name="animationName" mode="out-in">
@@ -30,7 +30,7 @@ const route = useRoute();
 
 const { hasFocusedInput, focusedElement } = useFocusedInput();
 function onComponentMounted() {
-   animationName.value = "slide-bottom";
+   animationName.value = "page-rise";
 }
 
 function canPrefetch(): boolean {
@@ -65,11 +65,11 @@ onMounted(async () => {
    setTimeout(() => {
       if (canPrefetch()) {
          import("@pages/ProfilePage.vue");
+         import("@pages/MyAdsPage.vue");
          import("@pages/LoginPage.vue");
          import("@pages/CategoriesPage.vue");
          import("@pages/CategoryIdPage.vue");
          import("@pages/ProductPage.vue");
-         import("@pages/SearchPage.vue");
          import("@pages/Create/SelectCategoryPage.vue");
          import("@pages/FavoritePage.vue");
          import("@/layouts/FullPage.vue");

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductParameterValue;
+use App\Support\ProductThumbnail;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -65,11 +66,14 @@ class ProductService
 
                     $crop = $this->normalizeCrop($request->input("images.{$index}", []));
                     $src = $this->storeProductImage($uploadedFile);
+                    $thumb = ProductThumbnail::make($src);
                     $storedPaths[] = $src;
+                    $storedPaths[] = $thumb;
 
                     ProductImage::create([
                         'product_id' => $product->id,
                         'src' => $src,
+                        'thumb_src' => $thumb,
                         ...$crop,
                     ]);
                 }
@@ -172,6 +176,7 @@ class ProductService
 
         foreach ($imagesToDelete as $image) {
             $this->deleteProductImageFile($image->src);
+            $this->deleteProductImageFile($image->thumb_src);
             $this->deleteProductImageFile($image->crop_src);
             $image->delete();
         }
@@ -212,6 +217,7 @@ class ProductService
             ProductImage::create([
                 'product_id' => $product->id,
                 'src' => $path,
+                'thumb_src' => ProductThumbnail::make($path),
                 ...$crop,
             ]);
         }

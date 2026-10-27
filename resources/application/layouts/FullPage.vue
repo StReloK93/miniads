@@ -1,6 +1,6 @@
 <template>
    <router-view v-slot="{ Component, route }">
-      <transition name="slide-in" mode="out-in">
+      <transition name="page-forward" mode="out-in">
          <component
             :is="Component"
             :key="route.name"

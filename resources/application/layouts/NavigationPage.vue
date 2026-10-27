@@ -1,7 +1,7 @@
 <template>
    <main class="h-full">
       <router-view v-slot="{ Component, route }">
-         <transition name="slide-in" mode="out-in">
+         <transition name="page-fade" mode="out-in">
             <component :is="Component" :key="route.name" />
          </transition>
       </router-view>

@@ -95,19 +95,7 @@ const variantClasses = computed(() => {
             return "bg-transparent text-(--z-foreground) hover:bg-(--z-muted)";
       }
    }
-   switch (props.severity) {
-      case "secondary":
-         return "bg-(--z-secondary) text-(--z-foreground) hover:bg-(--z-border)";
-      case "success":
-         return "bg-emerald-600 text-white hover:bg-emerald-700";
-      case "danger":
-         return "bg-(--z-danger) text-white hover:bg-red-700";
-      case "glass":
-         return "bg-(--z-card)/70 text-(--z-foreground) backdrop-blur-md hover:bg-(--z-muted)";
-      case "light":
-         return "bg-white text-slate-800 hover:bg-slate-100";
-      default:
-         return "bg-(--z-primary) text-(--z-primary-foreground) hover:bg-(--z-primary-hover)";
-   }
+   // Ranglar shared/css/ui.scss'da (.z-btn-*), shisha ko'rinishi glass.scss'da
+   return `z-btn-${props.severity}`;
 });
 </script>

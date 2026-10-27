@@ -22,8 +22,9 @@ export default {
    counts() {
       return api.get<Record<number, number>>(`${baseURL}/counts`);
    },
-   products(categoryId: string) {
-      return api.get<ICategory>(`${baseURL}/${categoryId}/products`);
+   /** Kategoriya e'lonlari + parametrlari; params — ro'yxat filtrlari (features/filters/listFilters) */
+   products(categoryId: string | number, params?: Record<string, unknown>) {
+      return api.get<ICategory>(`${baseURL}/${categoryId}/products`, { params });
    },
    update(id: string, formData: { name: string; image?: File | string }) {
       return api.post(`${baseURL}/${id}`, formData, headerMultipart);

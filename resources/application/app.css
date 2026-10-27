@@ -10,7 +10,7 @@
 
 :root {
    --safe-area-top: env(safe-area-inset-top, 0px);
-   --safe-area-bottom: env(safe-area-inset-bottom, 0);
+   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
    --swiper-pagination-bullet-size: 6px;
    --swiper-pagination-bullet-inactive-opacity: 0.9;
    --swiper-pagination-bullet-inactive-color: rgba(255, 255, 255, 0.3);
@@ -111,6 +111,82 @@
    opacity: 0;
 }
 
+/* ==========================================================================
+   SAHIFA O'TISHLARI
+   Tez kirish (ease-out), undan ham tez chiqish: ko'z harakatni sezadi, lekin kutmaydi.
+   ========================================================================== */
+:root {
+   --page-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Pastki menyu tablari va qidiruv: joyida yumshoq paydo bo'lish (yon tomonga sirpanish yo'q) */
+.page-fade-enter-active {
+   transition:
+      opacity 0.22s var(--page-ease),
+      transform 0.22s var(--page-ease);
+}
+.page-fade-leave-active {
+   transition: opacity 0.12s ease-in;
+}
+.page-fade-enter-from {
+   opacity: 0;
+   transform: translateY(6px);
+}
+.page-fade-leave-to {
+   opacity: 0;
+}
+
+/* Ichkariroq sahifa (e'lon yaratish bosqichlari): o'ngdan qisqa siljish */
+.page-forward-enter-active {
+   transition:
+      opacity 0.26s var(--page-ease),
+      transform 0.26s var(--page-ease);
+}
+.page-forward-leave-active {
+   transition:
+      opacity 0.14s ease-in,
+      transform 0.14s ease-in;
+}
+.page-forward-enter-from {
+   opacity: 0;
+   transform: translateX(24px);
+}
+.page-forward-leave-to {
+   opacity: 0;
+   transform: translateX(-8px);
+}
+
+/* Boshqa qatlamga o'tish (lenta → e'lon sahifasi): pastdan ko'tarilish */
+.page-rise-enter-active {
+   transition:
+      opacity 0.3s var(--page-ease),
+      transform 0.3s var(--page-ease);
+}
+.page-rise-leave-active {
+   transition:
+      opacity 0.16s ease-in,
+      transform 0.16s ease-in;
+}
+.page-rise-enter-from {
+   opacity: 0;
+   transform: translateY(18px);
+}
+.page-rise-leave-to {
+   opacity: 0;
+   transform: scale(0.985);
+}
+
+/* Harakatni kamaytirish so'ralgan qurilmalarda — faqat shaffoflik */
+@media (prefers-reduced-motion: reduce) {
+   .page-fade-enter-from,
+   .page-forward-enter-from,
+   .page-forward-leave-to,
+   .page-rise-enter-from,
+   .page-rise-leave-to {
+      transform: none;
+   }
+}
+
 .no-scrollbar {
    -ms-overflow-style: none; /* IE, Edge */
    scrollbar-width: none; /* Firefox */
@@ -166,6 +242,7 @@ html.dark .skeleton::after {
 
 .full-page {
    @apply h-full pt-[calc(var(--safe-area-top)+var(--spacing)*4)] pb-[calc(var(--safe-area-bottom)+var(--spacing)*4)] bg-(--z-background);
+   background-image: var(--z-ambient);
 }
 
 .title {

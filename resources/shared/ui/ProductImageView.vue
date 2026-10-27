@@ -9,6 +9,7 @@
          alt=""
          aria-hidden="true"
          decoding="async"
+         loading="lazy"
          draggable="false"
          @contextmenu.prevent
       />
@@ -21,6 +22,7 @@
          :class="{ 'shadow-2xl': isPortrait }"
          :alt="alt"
          decoding="async"
+         loading="lazy"
          draggable="false"
          @load="measureImage"
          @contextmenu.prevent

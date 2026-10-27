@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Telegram ichida shared/modules/telegramSafeArea.ts bu qiymatlarni bridge hodisalaridan qayta yozadi */
+:root {
+   --safe-area-top: env(safe-area-inset-top, 0px);
+   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 * {
    box-sizing: border-box;
    font-family: "InterVariable", system-ui, sans-serif;
@@ -20,7 +26,8 @@
    display: flex;
    min-height: 100vh;
    color: var(--admin-ink);
-   background: var(--z-background);
+   background-color: var(--z-background);
+   background-image: var(--z-ambient);
 }
 
 .admin-sidebar {
@@ -199,9 +206,10 @@
    align-items: center;
    justify-content: space-between;
    border-bottom: 1px solid var(--admin-border);
-   background: color-mix(in srgb, var(--z-card) 94%, transparent);
+   background: var(--z-glass);
    padding: 0 34px;
-   backdrop-filter: blur(10px);
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
 }
 
 .admin-topbar-label {
@@ -1082,10 +1090,13 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    .admin-sidebar {
       z-index: 40;
       width: min(280px, 85vw);
-      padding-top: calc(env(safe-area-inset-top, 0px) + 20px);
+      padding-top: calc(var(--safe-area-top) + 20px);
       overflow-y: auto;
       transform: translateX(-100%);
       transition: transform 0.25s ease;
+      background: var(--z-glass-strong);
+      -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+      backdrop-filter: blur(var(--z-blur)) saturate(170%);
    }
 
    .admin-shell.is-menu-open .admin-sidebar {
@@ -1108,7 +1119,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
 
    .admin-topbar {
       gap: 10px;
-      padding: env(safe-area-inset-top, 0px) 12px 0;
+      padding: var(--safe-area-top) 12px 0;
    }
 
    .admin-content {
@@ -1141,17 +1152,18 @@ html.dark ::-webkit-scrollbar-thumb:hover {
       position: fixed;
       z-index: 20;
       right: 10px;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+      bottom: calc(var(--safe-area-bottom) + 10px);
       left: 10px;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 2px;
       border: 1px solid var(--admin-border);
       border-radius: 999px;
-      background: color-mix(in srgb, var(--z-card) 92%, transparent);
+      background: var(--z-glass);
       padding: 5px;
-      box-shadow: 0 8px 30px rgb(15 23 42 / 0.12);
-      backdrop-filter: blur(12px);
+      box-shadow: var(--z-glass-shadow);
+      -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+      backdrop-filter: blur(var(--z-blur)) saturate(170%);
    }
 
    .admin-tab {
@@ -1192,7 +1204,7 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    }
 
    .admin-content {
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
+      padding-bottom: calc(var(--safe-area-bottom) + 100px);
    }
 
    .admin-topbar {

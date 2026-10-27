@@ -65,7 +65,7 @@
                   <ListboxOptions
                      v-show="isPositioned"
                      static
-                     class="max-h-60 overflow-auto rounded-xl border border-(--z-border) bg-(--z-card) p-1 text-(--z-foreground) shadow-xl focus:outline-none"
+                     class="max-h-60 overflow-auto rounded-xl border z-glass-strong p-1 text-(--z-foreground) focus:outline-none"
                   >
                      <ListboxOption
                         v-for="option in normalizedOptions"
@@ -155,7 +155,7 @@
                <ListboxOptions
                   v-show="isPositioned"
                   static
-                  class="max-h-60 overflow-auto rounded-xl border border-(--z-border) bg-(--z-card) p-1 text-(--z-foreground) shadow-xl focus:outline-none"
+                  class="max-h-60 overflow-auto rounded-xl border z-glass-strong p-1 text-(--z-foreground) focus:outline-none"
                >
                   <ListboxOption
                      v-for="option in normalizedOptions"

@@ -1,5 +1,5 @@
 <template>
-   <main class="flex items-center justify-between mb-4">
+   <main class="flex items-center justify-between mb-3">
       <BaseModal
          :show-buttons="false"
          :open="isOpen"

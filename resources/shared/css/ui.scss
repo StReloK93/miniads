@@ -1,3 +1,4 @@
+@use "sass:meta";
 @use "./field-core";
 
 :root {
@@ -25,6 +26,16 @@
    --z-secondary-foreground: #0f172a;
    --z-muted-text: #64748b;
    --z-field-background: #ffffff;
+
+   /* SUZUVCHI QATLAMLAR (nav, drawer, modal, dropdown) — glass.scss qayta yozadi */
+   --z-glass: var(--z-card);
+   --z-glass-strong: var(--z-card);
+   --z-glass-border: var(--z-border);
+   --z-glass-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.12);
+   --z-blur: 0px;
+   --z-ambient: none;
+   --z-overlay: rgb(0 0 0 / 0.4);
+   --z-overlay-blur: 2px;
 
    /* ANIMATION */
    --duration: 150ms;
@@ -55,3 +66,98 @@ body {
    color: var(--z-foreground);
    transition: background-color var(--duration) var(--ease-soft), color var(--duration) var(--ease-soft);
 }
+
+/* Sahifa foni: asosiy rang + (glass yoqilgan bo'lsa) rangli dog'lar */
+.z-ambient {
+   background-color: var(--z-background);
+   background-image: var(--z-ambient);
+}
+
+/* Kontent ustida suzib turadigan yuza: orqasidagi narsa xira ko'rinadi */
+.z-glass,
+.z-glass-strong {
+   border-color: var(--z-glass-border);
+   background-color: var(--z-glass);
+   box-shadow: var(--z-glass-shadow);
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+/* Matn ko'p bo'lgan oynalar (drawer, modal, dropdown) — o'qilishi uchun zichroq */
+.z-glass-strong {
+   background-color: var(--z-glass-strong);
+}
+
+/* Modal va drawer orqasidagi qoplama */
+.z-overlay {
+   background-color: var(--z-overlay);
+   -webkit-backdrop-filter: blur(var(--z-overlay-blur));
+   backdrop-filter: blur(var(--z-overlay-blur));
+}
+
+/* TUGMALAR (BaseButton severity) */
+.z-btn-primary {
+   background-color: var(--z-primary);
+   color: var(--z-primary-foreground);
+
+   &:hover {
+      background-color: var(--z-primary-hover);
+   }
+}
+
+.z-btn-secondary {
+   background-color: var(--z-secondary);
+   color: var(--z-foreground);
+
+   &:hover {
+      background-color: var(--z-border);
+   }
+}
+
+.z-btn-success {
+   background-color: #059669;
+   color: #ffffff;
+
+   &:hover {
+      background-color: #047857;
+   }
+}
+
+.z-btn-danger {
+   background-color: var(--z-danger);
+   color: #ffffff;
+
+   &:hover {
+      background-color: #b91c1c;
+   }
+}
+
+.z-btn-glass {
+   background-color: color-mix(in srgb, var(--z-card) 70%, transparent);
+   color: var(--z-foreground);
+   -webkit-backdrop-filter: blur(12px);
+   backdrop-filter: blur(12px);
+
+   &:hover {
+      background-color: var(--z-muted);
+   }
+}
+
+/* Pastki menyudagi "E'lon qo'shish" tugmasi */
+.z-fab {
+   background-color: var(--z-primary);
+   color: var(--z-primary-foreground);
+   box-shadow: 0 6px 16px -6px rgb(15 23 42 / 0.45);
+}
+
+/* Rasm ustidagi tugmalar: tema qanday bo'lmasin oq */
+.z-btn-light {
+   background-color: #ffffff;
+   color: #1e293b;
+
+   &:hover {
+      background-color: #f1f5f9;
+   }
+}
+
+@include meta.load-css("./glass");

@@ -134,7 +134,10 @@ async function onSubmit() {
    gap: 9px;
    margin-top: auto;
    border-top: 1px solid var(--z-border);
-   background: var(--z-card);
+   /* Forma ustidan suzadi: shaffof karta rangi orqasidagi maydonlarni ko'rsatib qo'yardi */
+   background: var(--z-glass-strong);
+   -webkit-backdrop-filter: blur(var(--z-blur));
+   backdrop-filter: blur(var(--z-blur));
    padding-top: 14px;
 }
 

@@ -1,73 +1,74 @@
 <template>
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
-         <main class="-mx-4 px-4">
-            <h3 class="font-bold text-xl mb-4">{{ category?.name }}</h3>
-            <aside class="pb-4">
-               <main class="flex gap-1 items-center">
-                  <span
-                     v-for="(item, index) in buildBreadcrumb(category)"
-                     :key="item.id"
-                     class="text-sm text-(--z-muted-text)"
-                  >
-                     <ChevronRight v-if="index" class="size-3 inline" /> {{ item.name }}
-                  </span>
-               </main>
-            </aside>
-         </main>
+         <h3 class="font-bold text-xl">{{ category?.name ?? " " }}</h3>
+         <p class="mt-1 mb-3 text-sm text-(--z-muted-text) truncate">
+            <span v-for="(item, index) in breadcrumb" :key="item.id">
+               <ChevronRight v-if="index" class="size-3 inline" /> {{ item.name }}
+            </span>
+         </p>
+         <FilterBar class="pb-3" :filters="filters" :total="isLoading ? undefined : category?.products.length" @open="isFilterOpen = true" />
       </template>
+
       <template #content>
-         <div v-show="fullMountedPage" class="grid grid-cols-1 gap-2.5">
-            <ProductCard v-for="product in category?.products" :key="product.id" :product />
-         </div>
-         <template v-if="!fullMountedPage">
-            <main class="h-full flex justify-center items-center flex-col px-12">
-               <div class="skeleton w-full h-3 mb-4"></div>
-               <div class="skeleton w-full h-3 mb-4"></div>
-               <div class="skeleton w-full h-3 mb-4"></div>
-            </main>
-         </template>
-         <main v-if="fullMountedPage && category?.products.length == 0" class="h-full flex justify-center items-center">
-            <aside class="text-center">
-               <h3 class="text-xl font-semibold mb-4">Hech nima yo'q</h3>
-               <p class="text-(--z-muted-text)">Ushbu kategoriya tegishli fa'ol e'lonlar yo'q</p>
-            </aside>
+         <!-- Shu bo'limning o'z parametrlari bilan: avtoda yil/probeg, uyda xona/maydon... -->
+         <ProductFilterDrawer
+            v-model="filters"
+            :open="isFilterOpen"
+            :parameters="category?.parameters ?? []"
+            :with-price="category?.with_price !== false"
+            @close="isFilterOpen = false"
+         />
+
+         <main v-if="isLoading && !category?.products?.length" class="flex flex-col gap-2.5">
+            <ProductCardSkeleton v-for="n in 4" :key="n" />
+         </main>
+
+         <main v-else-if="category?.products.length" class="flex flex-col gap-2.5" :class="{ 'opacity-60': isLoading }">
+            <ProductCard v-for="product in category.products" :key="product.id" :product />
+         </main>
+
+         <main v-else class="py-16 flex flex-col items-center text-center">
+            <h3 class="text-base font-semibold mb-1">Hech narsa topilmadi</h3>
+            <p class="text-sm text-(--z-muted-text) max-w-64">
+               {{ activeCount ? "Tanlangan filtrlar bo'yicha e'lon yo'q." : "Bu bo'limda hozircha faol e'lonlar yo'q." }}
+            </p>
+            <BaseButton v-if="activeCount" severity="secondary" size="sm" class="mt-4" @click="filters = emptyFilters()">
+               Filtrlarni tozalash
+            </BaseButton>
          </main>
       </template>
    </NavigationPageDecorator>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { ChevronRight } from "lucide-vue-next";
 import { buildBreadcrumb } from "@shared/modules/helpers";
-import { preloadImages } from "@shared/modules/helpers";
-import { useRouter } from "vue-router";
 import ProductCard from "@/features/product/ProductCard.vue";
-import { onMounted, ref } from "vue";
+import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
+import FilterBar from "@/features/filters/FilterBar.vue";
+import ProductFilterDrawer from "@/features/filters/ProductFilterDrawer.vue";
+import { countActiveFilters, emptyFilters, toQueryParams, type ListFilters } from "@/features/filters/listFilters";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import { useRoute } from "vue-router";
 import { ICategory } from "@shared/types";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
-import { ChevronRight } from "lucide-vue-next";
+import BaseButton from "@shared/ui/BaseButton.vue";
 
 const route = useRoute();
-const router = useRouter();
-const { data: category, execute } = useFetchDecorator<ICategory>(CategoryRepo.products);
+const { data: category, execute, isLoading } = useFetchDecorator<ICategory>(CategoryRepo.products);
 
-function backToCategoryPage() {
-   router.push({ name: "categories", query: { category_id: category.value?.parent_id } });
+const filters = ref<ListFilters>(emptyFilters());
+const isFilterOpen = ref(false);
+const activeCount = computed(() => countActiveFilters(filters.value));
+const breadcrumb = computed(() => buildBreadcrumb(category.value));
+
+function load() {
+   return execute(route.params.id, toQueryParams(filters.value));
 }
-const fullMountedPage = ref(false);
-onMounted(async () => {
-   await execute(route.params.id);
 
-   const products = category.value?.products;
-   const imageUrls: string[] = products!
-      .filter((product) => product.images.length > 0)
-      .map((product) => `/storage/${product.images[0].src}`);
-
-   imageUrls.push("/images/no-image.png");
-   await preloadImages(imageUrls);
-   fullMountedPage.value = true;
-});
+watch(filters, load, { deep: true });
+onMounted(load);
 </script>

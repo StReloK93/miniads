@@ -39,7 +39,7 @@
                ? 'bg-(--z-card) text-(--z-primary) shadow-xs font-semibold'
                : 'text-(--z-muted-text) hover:text-(--z-primary) bg-transparent',
          ]"
-         class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs transition-all duration-150 active:scale-95 cursor-pointer"
+         class="flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs whitespace-nowrap transition-all duration-150 active:scale-95 cursor-pointer"
       >
          <component :is="btn.icon" class="size-3.5" />
          <span>{{ btn.label }}</span>

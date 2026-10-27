@@ -88,7 +88,7 @@
                <tbody>
                   <tr v-for="product in products" :key="product.id">
                      <td class="admin-product-cell">
-                        <img v-if="product.images?.[0]?.src" :src="imageUrl(product.images[0].src)" alt="" />
+                        <img v-if="product.images?.[0]?.src" :src="imageUrl(product.images[0].thumb_src || product.images[0].src)" alt="" loading="lazy" />
                         <span class="admin-product-copy">
                            <span class="flex items-center gap-1.5 flex-wrap">
                               <strong>{{ product.title }}</strong>
@@ -110,7 +110,7 @@
                         </small>
                      </td>
                      <td>{{ product.district?.name || "Navoiy viloyati" }}</td>
-                     <td>{{ formatPrice(product.price) }}</td>
+                     <td>{{ formatProductPrice(product.price, product.price_type) }}</td>
                      <td>
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-(--z-foreground)">
                            <Eye class="size-3.5 text-sky-500" />
@@ -198,7 +198,7 @@ import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
-import { formatPrice as formatPriceUtil } from "@shared/modules/formatters";
+import { formatProductPrice } from "@shared/modules/formatters";
 
 type AdminProduct = Record<string, any> & {
    id: number;
@@ -292,10 +292,6 @@ async function restore(product: AdminProduct) {
 
 function imageUrl(src: string) {
    return src.startsWith("http") ? src : `/storage/${src.replace(/^\/+/, "")}`;
-}
-
-function formatPrice(value: number | null) {
-   return formatPriceUtil(value, { fallback: "Kelishiladi", unit: "so'm" });
 }
 
 function statusLabel(product: AdminProduct) {

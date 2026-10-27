@@ -12,6 +12,8 @@ export interface ICategory {
    with_image: boolean;
    parent: ICategory;
    parent_id: number | null;
+   /** Asosiy bo'lim id'si (Uy-joy, Avto...) — server hisoblaydi */
+   root_id?: number;
    parameters: IParameter[];
    children: ICategory[];
 }
@@ -77,6 +79,8 @@ export interface IProduct {
       product_id: number;
       src: string;
       crop_src: string | null;
+      // Ro'yxat kartalari uchun kichik nusxa (yo'q bo'lsa src)
+      thumb_src: string | null;
       crop_x: number;
       crop_y: number;
       crop_scale: number;

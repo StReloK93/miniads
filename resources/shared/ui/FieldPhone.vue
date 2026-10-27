@@ -90,7 +90,7 @@
                      leave-to-class="transform scale-95 opacity-0"
                   >
                      <MenuItems
-                        class="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-(--z-border) bg-(--z-card) p-1.5 text-(--z-foreground) shadow-2xl focus:outline-none z-50 flex flex-col gap-1"
+                        class="absolute right-0 top-full mt-2 w-64 rounded-2xl border z-glass-strong p-1.5 text-(--z-foreground) focus:outline-none z-50 flex flex-col gap-1"
                      >
                         <!-- 1. Telefon va Telegram -->
                         <MenuItem v-slot="{ active }">

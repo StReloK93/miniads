@@ -29,12 +29,12 @@
 			width: 100vw;
 			height: 100vh;
 			z-index: 1000;
-			background-color: #f8fafc;
+			background-color: #f3f6fb;
 			transition: opacity 0.2s ease;
 		}
 
 		html.dark #loader {
-			background-color: #0b0f19;
+			background-color: #080b14;
 		}
 
 		.dot {

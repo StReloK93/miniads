@@ -119,7 +119,7 @@ function viewCreatedProduct() {
    if (createdProduct.value?.id) {
       router.push({ name: "product-id", params: { id: String(createdProduct.value.id) } });
    } else {
-      router.push({ name: "profile" });
+      router.push({ name: "my-ads" });
    }
 }
 
@@ -130,7 +130,7 @@ function createAnother() {
 
 function goToProfile() {
    showSuccessModal.value = false;
-   router.push({ name: "profile", query: { category_id: selectedCategory.value?.parent_id } });
+   router.push({ name: "my-ads" });
 }
 
 onMounted(async () => {

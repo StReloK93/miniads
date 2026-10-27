@@ -21,8 +21,9 @@ class AdminController extends Controller
         $districtsBreakdown = DB::table('products')
             ->leftJoin('districts', 'products.district_id', '=', 'districts.id')
             ->whereNull('products.deleted_at')
-            ->selectRaw('COALESCE(districts.name, "Belgilanmagan") as name, COUNT(products.id) as count')
-            ->groupBy('districts.name')
+            ->selectRaw("COALESCE(districts.name, 'Navoiy viloyati') as name, COUNT(products.id) as count")
+            // id bo'yicha: nomi bir xil ikki hudud bitta qatorga qo'shilib ketmasin
+            ->groupBy('districts.id', 'districts.name')
             ->orderByDesc('count')
             ->get()
             ->map(fn ($item) => [
@@ -56,76 +57,60 @@ class AdminController extends Controller
             ->pluck('count', 'date')
             ->all();
 
-        $dailyAds = [];
+        // Carbon format('w'): 0 = yakshanba
         $dayNames = [
-            1 => 'Du', 2 => 'Se', 3 => 'Chor', 4 => 'Pay', 5 => 'Juma', 6 => 'Shan', 0 => 'Yak',
+            1 => ['Du', 'Dushanba'],
+            2 => ['Se', 'Seshanba'],
+            3 => ['Ch', 'Chorshanba'],
+            4 => ['Pa', 'Payshanba'],
+            5 => ['Ju', 'Juma'],
+            6 => ['Sh', 'Shanba'],
+            0 => ['Ya', 'Yakshanba'],
         ];
+
+        $dailyAds = [];
+        // Haftalik taqsimot ham shu 14 kundan: grafik va "eng faol kun" bir davrni ko'rsatsin
+        $dowCounts = array_fill_keys(array_keys($dayNames), 0);
 
         for ($i = 13; $i >= 0; $i--) {
             $dateObj = now()->subDays($i);
             $dateKey = $dateObj->toDateString();
+            $w = (int) $dateObj->format('w');
+            $count = (int) ($rawDaily[$dateKey] ?? 0);
+
             $dailyAds[] = [
                 'date' => $dateKey,
-                'day_label' => $dateObj->format('d-M'),
-                'day_name' => $dayNames[(int) $dateObj->format('w')],
-                'count' => (int) ($rawDaily[$dateKey] ?? 0),
+                'day_label' => $dateObj->format('d.m'),
+                'day_name' => $dayNames[$w][0],
+                'count' => $count,
             ];
+            $dowCounts[$w] += $count;
         }
 
-        // Haftaning qaysi kunlarida ko'proq e'lon qo'yilishi (DB-agnostic)
-        $dowMapping = [
-            1 => 'Dushanba',
-            2 => 'Seshanba',
-            3 => 'Chorshanba',
-            4 => 'Payshanba',
-            5 => 'Juma',
-            6 => 'Shanba',
-            0 => 'Yakshanba',
-        ];
-
-        $dowCounts = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 0 => 0];
-        DB::table('products')
-            ->whereNull('deleted_at')
-            ->select('created_at')
-            ->get()
-            ->each(function ($row) use (&$dowCounts): void {
-                if ($row->created_at) {
-                    $w = (int) Carbon::parse($row->created_at)->format('w');
-                    $dowCounts[$w] = ($dowCounts[$w] ?? 0) + 1;
-                }
-            });
-
         $weeklyDistribution = [];
-        $maxDowCount = -1;
-        $busiestDay = '—';
-        foreach ($dowMapping as $w => $dayName) {
-            $cnt = $dowCounts[$w] ?? 0;
-            $weeklyDistribution[] = [
-                'day' => $dayName,
-                'count' => $cnt,
-            ];
-            if ($cnt > $maxDowCount && $cnt > 0) {
-                $maxDowCount = $cnt;
+        $maxDowCount = 0;
+        $busiestDay = null;
+        foreach ($dayNames as $w => [, $dayName]) {
+            $weeklyDistribution[] = ['day' => $dayName, 'count' => $dowCounts[$w]];
+            if ($dowCounts[$w] > $maxDowCount) {
+                $maxDowCount = $dowCounts[$w];
                 $busiestDay = $dayName;
             }
         }
 
-        // Foydalanuvchilar faolligi ko'rsatkichlari
-        $activeUsersToday = DB::table('personal_access_tokens')
+        // Foydalanuvchilar faolligi: token har so'rovda last_used_at'ni yangilaydi
+        $activeUsersSince = fn (Carbon $since) => DB::table('personal_access_tokens')
             ->where('tokenable_type', User::class)
-            ->where('last_used_at', '>=', now()->subHours(24))
+            ->where('last_used_at', '>=', $since)
             ->distinct('tokenable_id')
             ->count('tokenable_id');
 
-        $activeUsersWeek = DB::table('personal_access_tokens')
-            ->where('tokenable_type', User::class)
-            ->where('last_used_at', '>=', now()->subDays(7))
-            ->distinct('tokenable_id')
-            ->count('tokenable_id');
+        $activeUsersToday = $activeUsersSince(now()->startOfDay());
+        $activeUsersWeek = $activeUsersSince(now()->subDays(7));
 
         $newUsersWeek = User::where('created_at', '>=', now()->subDays(7))->count();
 
-        // So'nggi faol / yangi foydalanuvchilar
+        // So'nggi faol foydalanuvchilar (hech kirmaganlar oxirida)
         $recentUsers = User::query()
             ->with('activeDistrict:id,name')
             ->withCount('products')
@@ -136,7 +121,7 @@ class AdminController extends Controller
                     ->whereColumn('tokenable_id', 'users.id')
                     ->selectRaw('MAX(last_used_at)'),
             ])
-            ->orderByRaw('COALESCE(last_active_at, updated_at, created_at) DESC')
+            ->orderByRaw('last_active_at IS NULL, last_active_at DESC, users.created_at DESC')
             ->limit(6)
             ->get()
             ->map(fn (User $user) => [
@@ -148,7 +133,7 @@ class AdminController extends Controller
                 'products_count' => $user->products_count,
                 'district_name' => $user->activeDistrict?->name,
                 'created_at' => $user->created_at?->toISOString(),
-                'last_active_at' => $user->last_active_at ?: ($user->updated_at?->toISOString() ?: $user->created_at?->toISOString()),
+                'last_active_at' => $this->lastActiveAt($user),
             ]);
 
         return response()->json([
@@ -190,7 +175,7 @@ class AdminController extends Controller
         ]);
 
         $query = Product::query()
-            ->with(['user:id,name,username', 'category:id,name', 'district:id,name', 'images:id,product_id,src'])
+            ->with(['user:id,name,username', 'category:id,name', 'district:id,name', 'images:id,product_id,src,thumb_src'])
             ->withTrashed()
             ->when(($filters['status'] ?? 'all') === 'deleted', fn ($query) => $query->onlyTrashed())
             ->when(($filters['status'] ?? 'all') === 'active', fn ($query) => $query->whereNull('deleted_at')->active())
@@ -226,10 +211,11 @@ class AdminController extends Controller
 
         if ($validated['status'] === 'active') {
             $product->loadMissing('category');
-            $product->update([
+            // published_at $fillable'da yo'q — update() uni jim tashlab yuborardi, e'lon lenta boshiga chiqmasdi
+            $product->forceFill([
                 'expires_at' => now()->addDays($product->category?->listing_duration_days ?: 30),
                 'published_at' => now(),
-            ]);
+            ])->save();
         } else {
             $product->update(['expires_at' => now()->subMinute()]);
         }
@@ -284,7 +270,7 @@ class AdminController extends Controller
             ->paginate($filters['per_page'] ?? 20)
             ->through(fn (User $user) => [
                 ...$user->toArray(),
-                'last_active_at' => $user->last_active_at ?: ($user->updated_at?->toISOString() ?: $user->created_at?->toISOString()),
+                'last_active_at' => $this->lastActiveAt($user),
             ]);
     }
 
@@ -417,6 +403,15 @@ class AdminController extends Controller
             'message' => count($sent) > 1 ? count($sent) . " ta kanalga yuborildi." : "Post kanalga yuborildi.",
             'sent' => $sent,
         ]);
+    }
+
+    /**
+     * MAX(last_used_at) — xom "Y-m-d H:i:s" satr (vaqt zonasisiz, iOS Safari uni o'qimaydi).
+     * Hech kirmagan bo'lsa null: updated_at'ga almashtirsak "hozirgina faol" deb ko'rinardi.
+     */
+    private function lastActiveAt(User $user): ?string
+    {
+        return $user->last_active_at ? Carbon::parse($user->last_active_at)->toISOString() : null;
     }
 
     private function isActive(Product $product): bool

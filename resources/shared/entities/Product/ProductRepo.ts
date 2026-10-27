@@ -47,13 +47,8 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`);
    },
 
-   search(params: {
-      search: string;
-      city_id?: number | string;
-      category_id?: number | string;
-      price_from?: number | string;
-      price_to?: number | string;
-   }) {
+   /** params: search + ro'yxat filtrlari (features/filters/listFilters → toQueryParams) */
+   search(params: { search: string } & Record<string, unknown>) {
       return api.get<IProduct[]>(`${baseURL}/custom/search`, {
          params,
       });

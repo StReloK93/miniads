@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductReport;
+use App\Services\ModerationService;
+use Illuminate\Validation\Rule;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,7 +33,15 @@ class ProductController extends Controller
 
     public function store(SaveProductRequest $request)
     {
+        $this->abortIfBlocked($request);
         $product = $this->productService->store($request);
+
+        // Birinchi e'londagi raqam profilga yoziladi — keyingi e'lonlarda forma o'zi to'ldiradi
+        $user = $request->user();
+        if (! $user->phone && filled($request->input('phone'))) {
+            $user->forceFill(['phone' => $request->input('phone')])->save();
+        }
+        $this->scanAfterResponse($product);
 
         try {
             $this->telegramProductService->publish($product);
@@ -51,14 +62,22 @@ class ProductController extends Controller
     {
         $product = Product::with('images')->findOrFail($id);
 
-        if (!$this->productService->isOwner($product, $request->user()->id)) {
+        // Admin ham tahrirlay oladi (admin paneldagi "Tahrirlash" — ilovaning tahrirlash sahifasi)
+        $isAdmin = $request->user()->role === 'admin';
+        if (!$isAdmin && !$this->productService->isOwner($product, $request->user()->id)) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
         }
+        if (!$isAdmin) {
+            $this->abortIfBlocked($request);
+        }
 
         $previouslyHadImage = $product->images->isNotEmpty();
         $this->productService->update($request, $product);
+        if (!$isAdmin) {
+            $this->scanAfterResponse($product);
+        }
 
         try {
             $this->telegramProductService->synchronize($product, $previouslyHadImage);
@@ -120,6 +139,20 @@ class ProductController extends Controller
             ->get();
 
         $product->setRelation('similar_products', $similarProducts);
+
+        // Sotuvchining boshqa e'lonlari — ishonch uchun. Bot e'lonlari turli odamlarniki, ularda ma'nosiz
+        $sellerProducts = $product->is_bot ? collect() : Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])
+            ->active()
+            ->where('user_id', $product->user_id)
+            ->where('id', '!=', $product->id)
+            ->latest('published_at')
+            ->latest('id')
+            ->take(6)
+            ->get();
+
+        $product->setRelation('seller_products', $sellerProducts);
 
         return response()->json($product);
     }
@@ -209,6 +242,7 @@ class ProductController extends Controller
         if (!$this->productService->isOwner($product, $request->user()->id)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+        $this->abortIfBlocked($request);
 
         $this->productService->activate($product);
 
@@ -260,5 +294,57 @@ class ProductController extends Controller
         return response()->json([
             'message' => "E'lon muvaffaqiyatli o'chirildi!",
         ]);
+    }
+
+    /**
+     * E'lon ustidan shikoyat. Bitta foydalanuvchi — bitta shikoyat: qayta yuborsa sababi yangilanadi
+     * va (admin avval yopgan bo'lsa ham) yana ko'rib chiqishga tushadi.
+     */
+    public function report(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', Rule::in(array_keys(ProductReport::REASONS))],
+            'comment' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $product = Product::findOrFail($id);
+        abort_if((int) $product->user_id === (int) $request->user()->id, 422, "O'z e'loningiz ustidan shikoyat qilib bo'lmaydi.");
+
+        ProductReport::updateOrCreate(
+            ['product_id' => $product->id, 'user_id' => $request->user()->id],
+            [...$validated, 'resolved_at' => null],
+        );
+
+        // Admin chatiga xabar javobdan keyin: foydalanuvchi Telegram API'ni kutib qolmasin
+        app()->terminating(fn () => app(ModerationService::class)->reportAdded($product));
+
+        return response()->json(['message' => "Shikoyat yuborildi. Rahmat, ko'rib chiqamiz."]);
+    }
+
+    private function scanAfterResponse(Product $product): void
+    {
+        app()->terminating(function () use ($product): void {
+            try {
+                app(ModerationService::class)->scan($product->fresh());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Moderatsiya tekshiruvi xatosi: {$e->getMessage()}", ['product_id' => $product->id]);
+            }
+        });
+    }
+
+    public function reportReasons()
+    {
+        return collect(ProductReport::REASONS)
+            ->map(fn (string $label, string $id) => ['id' => $id, 'label' => $label])
+            ->values();
+    }
+
+    private function abortIfBlocked(Request $request): void
+    {
+        abort_if(
+            $request->user()?->isBlocked(),
+            403,
+            "Hisobingiz administrator tomonidan bloklangan. E'lon joylash va tahrirlash imkoni yo'q.",
+        );
     }
 }

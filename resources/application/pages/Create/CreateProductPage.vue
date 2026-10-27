@@ -104,6 +104,10 @@ async function submitForm(values: Record<string, any>) {
    });
 
    const res = await ProductRepo.store(payload);
+   // Server birinchi raqamni profilga yozdi — keyingi e'lon formasi shu sessiyada ham to'ldirilsin
+   if (authStore.user && !authStore.user.phone && payload.phone) {
+      authStore.user.phone = payload.phone;
+   }
    createdProduct.value = {
       id: res.data?.id,
       title: values.title,

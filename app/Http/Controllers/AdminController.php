@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductReport;
+use App\Models\Setting;
 use App\Models\User;
+use App\Services\ProductService;
+use App\Services\TelegramProductService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
@@ -150,6 +155,9 @@ class AdminController extends Controller
                 'admins' => User::where('role', 'admin')->count(),
                 'categories' => Category::count(),
                 'busiest_day' => $busiestDay,
+                // Shikoyat qilingan (hali ko'rilmagan) e'lonlar soni — bosh sahifadagi ogohlantirish uchun
+                'reported_products' => Product::whereHas('openReports')->count(),
+                'blocked_users' => User::whereNotNull('blocked_at')->count(),
             ],
             'districts_breakdown' => $districtsBreakdown,
             'categories_breakdown' => $categoriesBreakdown,
@@ -169,35 +177,192 @@ class AdminController extends Controller
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
-            'status' => ['nullable', Rule::in(['active', 'expired', 'deleted', 'all'])],
+            'status' => ['nullable', Rule::in(['active', 'expired', 'deleted', 'reported', 'all'])],
             'is_bot' => ['nullable', Rule::in(['all', 'bot', 'user'])],
+            'user_id' => ['nullable', 'integer'],
+            'sort' => ['nullable', Rule::in(['new', 'views', 'reports'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
+        $status = $filters['status'] ?? 'all';
+        $sort = $filters['sort'] ?? ($status === 'reported' ? 'reports' : 'new');
 
-        $query = Product::query()
-            ->with(['user:id,name,username', 'category:id,name', 'district:id,name', 'images:id,product_id,src,thumb_src'])
+        // Holat chiplaridagi sonlar uchun: qidiruv/manba/muallif filtrlari hisobga olinadi, holat — yo'q
+        $base = fn () => Product::query()
             ->withTrashed()
-            ->when(($filters['status'] ?? 'all') === 'deleted', fn ($query) => $query->onlyTrashed())
-            ->when(($filters['status'] ?? 'all') === 'active', fn ($query) => $query->whereNull('deleted_at')->active())
-            ->when(($filters['status'] ?? 'all') === 'expired', fn ($query) => $query->whereNull('deleted_at')->passive())
-            ->when(($filters['status'] ?? 'all') !== 'deleted', fn ($query) => $query->orderByRaw('deleted_at IS NULL DESC'))
             ->when(($filters['is_bot'] ?? 'all') === 'bot', fn ($query) => $query->where('is_bot', true))
             ->when(($filters['is_bot'] ?? 'all') === 'user', fn ($query) => $query->where('is_bot', false))
+            ->when(filled($filters['user_id'] ?? null), fn ($query) => $query->where('user_id', $filters['user_id']))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
-                $search = $filters['search'];
+                $search = ltrim($filters['search'], '#');
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%")
-                        ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"));
+                        ->orWhereHas('user', fn ($userQuery) => $userQuery
+                            ->where('name', 'like', "%{$search}%")
+                            ->orWhere('username', 'like', "%{$search}%"));
+                    if (ctype_digit($search)) {
+                        $query->orWhere('products.id', (int) $search);
+                    }
                 });
-            })
-            ->latest();
+            });
 
-        return $query->paginate($filters['per_page'] ?? 20)
+        $applyStatus = fn ($query, string $status) => match ($status) {
+            'deleted' => $query->onlyTrashed(),
+            'active' => $query->whereNull('deleted_at')->active(),
+            'expired' => $query->whereNull('deleted_at')->passive(),
+            'reported' => $query->whereNull('deleted_at')->whereHas('openReports'),
+            default => $query,
+        };
+
+        $query = $applyStatus($base(), $status)
+            ->with([
+                'user:id,name,username,telegram_user_id,blocked_at',
+                'category:id,name',
+                'district:id,name',
+                'images:id,product_id,src,thumb_src',
+                'openReports' => fn ($query) => $query->with('user:id,name,username')->latest(),
+            ])
+            ->withCount(['favorites', 'openReports as open_reports_count'])
+            ->when($status === 'all', fn ($query) => $query->orderByRaw('deleted_at IS NULL DESC'));
+
+        match ($sort) {
+            'views' => $query->orderByDesc('views_count'),
+            'reports' => $query->orderByDesc('open_reports_count'),
+            default => null,
+        };
+        $query->latest('products.id');
+
+        $counts = collect(['all', 'active', 'expired', 'reported', 'deleted'])
+            ->mapWithKeys(fn (string $key) => [$key => $applyStatus($base(), $key)->count()]);
+
+        $page = $query->paginate($filters['per_page'] ?? 20)
             ->through(fn (Product $product) => [
-                ...$product->toArray(),
-            'is_active' => $this->isActive($product),
+                // expires_at modelda yashirin (ilova uchun); admin uchun kerak
+                ...$product->makeVisible('expires_at')->toArray(),
+                // Xom "Y-m-d H:i:s" iOS Safari'da o'qilmaydi — ISO formatda beramiz
+                'expires_at' => $product->expires_at ? Carbon::parse($product->expires_at)->toISOString() : null,
+                'is_active' => $this->isActive($product),
             ]);
+
+        return response()->json([...$page->toArray(), 'counts' => $counts]);
+    }
+
+    /** Arxivdagi e'lonni butunlay o'chirish (rasmlari bilan) */
+    public function forceDeleteProduct(int $id, ProductService $productService, TelegramProductService $telegram)
+    {
+        $product = Product::onlyTrashed()->findOrFail($id);
+
+        try {
+            $telegram->deleteFromChannels($product);
+        } catch (\Throwable $e) {
+            Log::warning("Kanal postini o'chirib bo'lmadi: {$e->getMessage()}", ['product_id' => $id]);
+        }
+        $productService->forceDelete($product);
+
+        return response()->json(['message' => "E'lon butunlay o'chirildi."]);
+    }
+
+    /**
+     * Ommaviy amallar: belgilangan e'lonlarni birdaniga arxivlash, tiklash, faollashtirish, to'xtatish, shikoyatlarni yopish.
+     * Har biri yakka amal bilan bir xil ishlaydi (arxivlashda kanal posti o'chadi, shikoyatlar yopiladi).
+     */
+    public function bulkProducts(Request $request, TelegramProductService $telegram)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['integer'],
+            'action' => ['required', Rule::in(['archive', 'restore', 'activate', 'deactivate', 'resolve'])],
+        ]);
+        $ids = $validated['ids'];
+
+        $done = 0;
+        switch ($validated['action']) {
+            case 'archive':
+                Product::with('category')->whereIn('id', $ids)->get()->each(function (Product $product) use ($telegram, &$done): void {
+                    $product->delete();
+                    $product->openReports()->update(['resolved_at' => now()]);
+                    try {
+                        $telegram->deleteFromChannels($product);
+                    } catch (\Throwable $e) {
+                        Log::warning("Kanal postini o'chirib bo'lmadi: {$e->getMessage()}", ['product_id' => $product->id]);
+                    }
+                    $done++;
+                });
+                break;
+            case 'restore':
+                $done = Product::onlyTrashed()->whereIn('id', $ids)->restore();
+                break;
+            case 'activate':
+                Product::with('category')->whereIn('id', $ids)->get()->each(function (Product $product) use (&$done): void {
+                    $product->forceFill([
+                        'expires_at' => now()->addDays($product->category?->listing_duration_days ?: 30),
+                        'published_at' => now(),
+                    ])->save();
+                    $done++;
+                });
+                break;
+            case 'deactivate':
+                $done = Product::whereIn('id', $ids)->update(['expires_at' => now()->subMinute()]);
+                break;
+            case 'resolve':
+                $done = ProductReport::whereIn('product_id', $ids)->whereNull('resolved_at')->distinct('product_id')->count('product_id');
+                ProductReport::whereIn('product_id', $ids)->whereNull('resolved_at')->update(['resolved_at' => now()]);
+                break;
+        }
+
+        return response()->json(['message' => "{$done} ta e'lon yangilandi."]);
+    }
+
+    /**
+     * Qidiruv statistikasi: eng ko'p qidirilgan so'zlar va natija bermaganlari (talab bor, e'lon yo'q).
+     * Bir so'rovni bir foydalanuvchi ko'p marta yozsa ham "odamlar soni" alohida ko'rinadi.
+     */
+    public function searchStats(Request $request)
+    {
+        $days = (int) ($request->validate(['days' => ['nullable', 'integer', Rule::in([1, 7, 30])]])['days'] ?? 7);
+        $since = now()->subDays($days);
+
+        $aggregate = fn ($query) => $query
+            ->where('created_at', '>=', $since)
+            ->selectRaw('query, COUNT(*) as searches, COUNT(DISTINCT user_id) as users, MAX(created_at) as last_at')
+            ->groupBy('query')
+            ->orderByDesc('searches')
+            ->limit(30)
+            ->get();
+
+        return response()->json([
+            'days' => $days,
+            'total' => DB::table('search_logs')->where('created_at', '>=', $since)->count(),
+            'top' => $aggregate(DB::table('search_logs')->selectRaw('ROUND(AVG(results_count)) as avg_results')),
+            // So'nggi marta ham natija bermagan so'rovlar
+            'not_found' => $aggregate(DB::table('search_logs')->where('results_count', 0)),
+        ]);
+    }
+
+    public function moderationSettings()
+    {
+        return response()->json([
+            'banned_words' => Setting::getValue(Setting::BANNED_WORDS, ''),
+        ]);
+    }
+
+    public function updateModerationSettings(Request $request)
+    {
+        $validated = $request->validate(['banned_words' => ['nullable', 'string', 'max:10000']]);
+        Setting::setValue(Setting::BANNED_WORDS, trim((string) ($validated['banned_words'] ?? '')));
+
+        return response()->json([
+            'message' => "Saqlandi. Yangi e'lonlar shu ro'yxat bo'yicha tekshiriladi.",
+            'count' => count(Setting::bannedWords()),
+        ]);
+    }
+
+    /** Shikoyatlar ko'rib chiqildi: e'lon joyida qoladi, shikoyatlar ro'yxatdan chiqadi */
+    public function resolveReports(int $id)
+    {
+        ProductReport::where('product_id', $id)->whereNull('resolved_at')->update(['resolved_at' => now()]);
+
+        return response()->json(['message' => 'Shikoyatlar yopildi.']);
     }
 
     public function updateProductStatus(Request $request, int $id)
@@ -223,10 +388,18 @@ class AdminController extends Controller
         return response()->json(['message' => "E'lon holati yangilandi."]);
     }
 
-    public function deleteProduct(int $id)
+    public function deleteProduct(int $id, TelegramProductService $telegram)
     {
         $product = Product::findOrFail($id);
         $product->delete();
+
+        // Arxivlash — moderatsiya qarori: shikoyatlar yopiladi, kanaldagi post o'chadi (havola o'lik bo'lib qolmasin)
+        $product->openReports()->update(['resolved_at' => now()]);
+        try {
+            $telegram->deleteFromChannels($product);
+        } catch (\Throwable $e) {
+            Log::warning("Kanal postini o'chirib bo'lmadi: {$e->getMessage()}", ['product_id' => $id]);
+        }
 
         return response()->json(['message' => "E'lon arxivga ko'chirildi."]);
     }
@@ -243,13 +416,13 @@ class AdminController extends Controller
     {
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
-            'role' => ['nullable', Rule::in(['user', 'admin'])],
+            'role' => ['nullable', Rule::in(['user', 'admin', 'blocked'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         return User::query()
             ->with('activeDistrict:id,name')
-            ->withCount('products')
+            ->withCount(['products', 'products as active_products_count' => fn ($query) => $query->active()])
             ->addSelect([
                 'users.*',
                 'last_active_at' => DB::table('personal_access_tokens')
@@ -257,7 +430,8 @@ class AdminController extends Controller
                     ->whereColumn('tokenable_id', 'users.id')
                     ->selectRaw('MAX(last_used_at)'),
             ])
-            ->when(isset($filters['role']), fn ($query) => $query->where('role', $filters['role']))
+            ->when(($filters['role'] ?? null) === 'blocked', fn ($query) => $query->whereNotNull('blocked_at'))
+            ->when(in_array($filters['role'] ?? null, ['user', 'admin'], true), fn ($query) => $query->where('role', $filters['role']))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
                 $search = $filters['search'];
                 $query->where(function ($query) use ($search): void {
@@ -297,6 +471,42 @@ class AdminController extends Controller
         });
 
         return response()->json(['message' => 'Foydalanuvchi roli yangilandi.']);
+    }
+
+    /**
+     * Bloklangan foydalanuvchi ilovadan foydalanaveradi (ko'rish, qidirish), lekin e'lon joylay olmaydi.
+     * Ixtiyoriy: hozirgi e'lonlari ham arxivga ko'chadi (keyin tiklash mumkin).
+     */
+    public function blockUser(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'archive_products' => ['nullable', 'boolean'],
+        ]);
+        $user = User::findOrFail($id);
+
+        abort_if((int) $request->user()->id === (int) $user->id, 422, "O'zingizni bloklay olmaysiz.");
+        abort_if($user->role === 'admin', 422, "Adminni bloklab bo'lmaydi — avval huquqini oling.");
+
+        $archived = 0;
+        DB::transaction(function () use ($user, $validated, &$archived): void {
+            $user->forceFill(['blocked_at' => now()])->save();
+
+            if ($validated['archive_products'] ?? false) {
+                $archived = $user->products()->count();
+                $user->products()->each(fn (Product $product) => $product->delete());
+            }
+        });
+
+        return response()->json([
+            'message' => $archived ? "Foydalanuvchi bloklandi, {$archived} ta e'loni arxivlandi." : 'Foydalanuvchi bloklandi.',
+        ]);
+    }
+
+    public function unblockUser(int $id)
+    {
+        User::findOrFail($id)->forceFill(['blocked_at' => null])->save();
+
+        return response()->json(['message' => 'Foydalanuvchi blokdan chiqarildi.']);
     }
 
     public function getBotSettings()

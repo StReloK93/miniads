@@ -99,6 +99,8 @@ export interface IProduct {
       max: number;
    };
    similar_products?: IProduct[];
+   /** Shu sotuvchining boshqa faol e'lonlari (bot e'lonlarida bo'sh) */
+   seller_products?: IProduct[];
 }
 
 // E'lon yaratish/yangilash uchun API'ga yuboriladigan ma'lumot (multipart/form-data)
@@ -121,8 +123,29 @@ export interface IUser {
    username: string | null;
    telegram_user_id: number | null;
    role: "user" | "admin";
+   /** Admin bloklagan bo'lsa — e'lon joylay/tahrirlay olmaydi */
+   blocked_at?: string | null;
+   /** Bot shaxsiy xabar yubora oladimi (ruxsat bergan yoki /start bosgan) */
+   bot_can_message?: boolean;
+   notify_saved_searches?: boolean;
+   notify_expiry?: boolean;
+   /** Yangi e'lon formasida avtomatik to'ldiriladi */
+   phone?: string | null;
    active_district_id: number | null;
    active_district?: IDistrict | null;
+}
+
+export interface ISavedSearch {
+   id: number;
+   query: string;
+   label: string;
+   /** Ilovadagi filtr oynasi holati (features/filters/listFilters → ListFilters) */
+   filters: Record<string, any> | null;
+   /** Server filtrlari (toQueryParams natijasi) */
+   params: Record<string, any> | null;
+   is_paused: boolean;
+   last_notified_at: string | null;
+   created_at: string;
 }
 
 export interface IParameterValue {

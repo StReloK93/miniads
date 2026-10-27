@@ -273,6 +273,13 @@ class BotAdImportService
             $this->attachImages($product, array_slice($post['images'], 0, 4));
         }
 
+        // Kanallardan kelgan e'lonlar ham taqiqlangan so'zlarga tekshiriladi
+        try {
+            app(\App\Services\ModerationService::class)->scan($product);
+        } catch (\Throwable $e) {
+            Log::warning("Moderatsiya tekshiruvi xatosi: {$e->getMessage()}", ['product_id' => $product->id]);
+        }
+
         return ['imported', null, $product];
     }
 

@@ -87,24 +87,9 @@
          </section>
 
          <section>
-            <button
-               type="button"
-               role="switch"
-               :aria-checked="draft.with_image"
-               class="w-full flex items-center justify-between gap-3 cursor-pointer"
-               @click="draft.with_image = !draft.with_image"
-            >
+            <BaseSwitch v-model="draft.with_image">
                <span class="text-sm font-medium">Faqat rasmli e'lonlar</span>
-               <span
-                  class="relative h-6 w-11 shrink-0 rounded-full transition-colors"
-                  :class="draft.with_image ? 'bg-(--z-primary)' : 'bg-(--z-muted-text)/30'"
-               >
-                  <span
-                     class="absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform"
-                     :class="{ 'translate-x-5': draft.with_image }"
-                  />
-               </span>
-            </button>
+            </BaseSwitch>
          </section>
       </div>
 
@@ -122,6 +107,7 @@ import { ref, watch } from "vue";
 import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
+import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import FilterRange from "@/features/filters/FilterRange.vue";
 import { SORT_OPTIONS, emptyFilters, type ListFilters, type RangeValue } from "@/features/filters/listFilters";
 import { isYearParameter } from "@shared/modules/productSpecs";

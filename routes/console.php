@@ -18,3 +18,12 @@ Schedule::command('products:flush-views')
 Schedule::command('ads:import-telegram')
     ->hourly()
     ->withoutOverlapping(60);
+
+// Bot bildirishnomalari
+Schedule::command('notifications:saved-searches')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping(30);
+
+Schedule::command('notifications:expiring')
+    ->dailyAt('10:00')
+    ->withoutOverlapping();

@@ -16,11 +16,35 @@ export default {
    restoreProduct(id: number) {
       return api.post(`admin/products/${id}/restore`);
    },
+   forceDeleteProduct(id: number) {
+      return api.delete(`admin/products/${id}/force`);
+   },
+   resolveReports(id: number) {
+      return api.post(`admin/products/${id}/reports/resolve`);
+   },
+   bulkProducts(ids: number[], action: "archive" | "restore" | "activate" | "deactivate" | "resolve") {
+      return api.post<{ message: string }>("admin/products/bulk", { ids, action });
+   },
+   searchStats(days: number) {
+      return api.get("admin/search-stats", { params: { days } });
+   },
+   moderation() {
+      return api.get<{ banned_words: string }>("admin/moderation");
+   },
+   updateModeration(bannedWords: string) {
+      return api.post<{ message: string; count: number }>("admin/moderation", { banned_words: bannedWords });
+   },
    users(params?: Record<string, any>) {
       return api.get("admin/users", { params });
    },
    updateUserRole(id: number, role: "admin" | "user") {
       return api.patch(`admin/users/${id}/role`, { role });
+   },
+   blockUser(id: number, archiveProducts: boolean) {
+      return api.post<{ message: string }>(`admin/users/${id}/block`, { archive_products: archiveProducts });
+   },
+   unblockUser(id: number) {
+      return api.post<{ message: string }>(`admin/users/${id}/unblock`);
    },
    channelPostDefaults() {
       return api.get<{ channels: string[]; button_text: string; button_url: string }>("admin/channel-post");

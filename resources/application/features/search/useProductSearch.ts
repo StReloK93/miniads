@@ -1,5 +1,6 @@
 import { computed, ref, watch } from "vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
+import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
 import { IProduct } from "@shared/types";
 import { countActiveFilters, emptyFilters, toQueryParams, type ListFilters } from "@/features/filters/listFilters";
@@ -33,7 +34,22 @@ export function useProductSearch() {
    // pick() matnni o'zi qo'yadi va qidiruvni o'zi boshlaydi — watch uni qayta yubormasin
    let skipNextTextChange = false;
 
-   async function run(text: string) {
+   /*
+      Admin statistikasi ("nima qidirilyapti, nima topilmayapti"): har harf emas, faqat "o'rnashgan" so'rov —
+      Enter/chip darhol, yozib to'xtaganda 2.5 soniyadan keyin. Bir so'rov ketma-ket ikki marta yozilmaydi.
+   */
+   let logTimer: ReturnType<typeof setTimeout> | undefined;
+   let lastLogged = "";
+   function scheduleLog(text: string, count: number, delay: number) {
+      clearTimeout(logTimer);
+      logTimer = setTimeout(() => {
+         if (text === lastLogged) return;
+         lastLogged = text;
+         ProfileRepo.logSearch(text, count).catch(() => {});
+      }, delay);
+   }
+
+   async function run(text: string, commit = false) {
       clearTimeout(debounceTimer);
       const requestId = ++lastRequestId;
       activeSearchText.value = text;
@@ -41,7 +57,10 @@ export function useProductSearch() {
 
       try {
          const { data } = await ProductRepo.search({ search: text, ...toQueryParams(filters.value) });
-         if (requestId === lastRequestId) products.value = data;
+         if (requestId === lastRequestId) {
+            products.value = data;
+            scheduleLog(text, data.length, commit ? 0 : 2500);
+         }
       } catch (error) {
          console.error("Qidiruvda xatolik:", error);
       } finally {
@@ -53,6 +72,7 @@ export function useProductSearch() {
    watch(searchText, (value) => {
       const trimmed = value.trim();
       clearTimeout(debounceTimer);
+      clearTimeout(logTimer);
 
       if (!trimmed) {
          lastRequestId++; // yo'lda qolgan so'rov javobi endi kerak emas
@@ -92,13 +112,13 @@ export function useProductSearch() {
       const trimmed = searchText.value.trim();
       if (!trimmed) return;
       addSearch(trimmed);
-      run(trimmed);
+      run(trimmed, true);
    }
 
    /** Tarix yoki ommabop so'rovdan tanlash */
    function pick(text: string) {
       addSearch(text);
-      run(text);
+      run(text, true);
       if (searchText.value !== text) {
          skipNextTextChange = true;
          searchText.value = text;
@@ -112,6 +132,7 @@ export function useProductSearch() {
    /** Qidiruvdan chiqishda: hammasi boshlang'ich holatga */
    function reset() {
       clearTimeout(debounceTimer);
+      clearTimeout(logTimer);
       lastRequestId++;
       searchText.value = "";
       activeSearchText.value = "";

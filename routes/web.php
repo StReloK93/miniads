@@ -14,6 +14,9 @@ Route::prefix('admin')->group(function () {
     })->where('any', '.*');
 });
 
+// Maxfiylik siyosati va qoidalar: oddiy sahifa (BotFather / Telegram Ads moderatorlari ham ochadi)
+Route::view('/privacy', 'privacy')->name('privacy');
+
 Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');

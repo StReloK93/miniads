@@ -43,7 +43,7 @@
                   class="w-full aspect-21/9 flex flex-col items-center justify-center bg-slate-50 dark:bg-zinc-800/50 border-b border-(--z-border)/30 select-none py-6"
                >
                   <div
-                     :class="categoryVisual.bgClass"
+                     :class="[categoryVisual.tile, categoryVisual.text]"
                      class="size-13 rounded-full flex items-center justify-center mb-2 shadow-xs"
                   >
                      <component :is="categoryVisual.icon" class="size-6" />
@@ -60,21 +60,42 @@
                /> -->
             </main>
             <main class="pt-5 px-4">
-               <!-- Kategoriya (faqat eng oxirgi tegishli bo'lgan kategoriya) -->
-               <div v-if="product?.category" class="mb-3">
+               <!-- Kategoriya chapda, ulashish o'ngda: rasmdan keyingi birinchi qator — ko'rinadi, lekin narxga xalal bermaydi -->
+               <div class="flex items-center justify-between gap-3 mb-2">
                   <button
+                     v-if="product?.category"
                      type="button"
                      @click="router.push({ name: 'category', params: { id: product.category.id } })"
-                     class="text-xs text-(--z-muted-text)"
+                     class="min-w-0 truncate text-xs text-(--z-muted-text)"
                   >
                      <span>{{ product.category.name }}</span>
                   </button>
+                  <span v-else />
+                  <BaseButton
+                     icon-only
+                     rounded
+                     size="sm"
+                     severity="secondary"
+                     class="-my-1 shrink-0"
+                     :aria-label="isLinkCopied ? 'Havola nusxalandi' : 'Ulashish'"
+                     @click="shareProduct"
+                  >
+                     <template #icon><component :is="isLinkCopied ? Check : Share2" class="size-4" /></template>
+                  </BaseButton>
                </div>
+
+               <!--
+                  O'qish tartibi "nima → qancha": sarlavha birinchi, narx ostida.
+                  Ierarxiyani o'lcham emas, qalinlik beradi — ko'z baribir avval narxga tushadi.
+               -->
+               <h1 class="text-lg font-medium leading-snug" :class="product?.price ? 'mb-1.5' : 'mb-4'">
+                  {{ product?.title }}
+               </h1>
 
                <div
                   v-if="product?.price"
-                  class="inline-flex items-center gap-1 font-extrabold text-2xl mb-3"
-                  :class="{ 'flex-row-reverse': product?.price_type.position === 'left' }"
+                  class="flex items-center gap-1 font-extrabold text-2xl tracking-tight tabular-nums mb-4"
+                  :class="{ 'flex-row-reverse justify-end': product?.price_type.position === 'left' }"
                >
                   <span>
                      {{ formatPrice(product?.price) }}
@@ -83,10 +104,6 @@
                      {{ product?.price_type.type }}
                   </span>
                </div>
-
-               <!--  -->
-
-               <h1 class="mb-4 text-xl font-medium">{{ product?.title }}</h1>
 
                <!--  -->
                <div class="text-(--z-muted-text) text-xs flex gap-2 items-center mb-6">
@@ -147,6 +164,36 @@
                      <span v-else class="text-(--z-muted-text) text-xs">Telefon orqali bog'laning</span>
                   </main>
                </div>
+
+               <!-- Shikoyat — kamdan-kam kerak: ko'zga tashlanmaydigan, lekin topiladigan joyda -->
+               <button
+                  v-if="!isOwnProduct"
+                  type="button"
+                  class="mb-2 inline-flex items-center gap-1.5 text-xs text-(--z-muted-text) cursor-pointer active:opacity-70"
+                  @click="openReport"
+               >
+                  <Flag class="size-3.5" />
+                  E'lon ustidan shikoyat qilish
+               </button>
+
+               <!-- Sotuvchining boshqa e'lonlari: ishonch (faol sotuvchi) va qo'shimcha xarid imkoni -->
+               <section v-if="product?.seller_products?.length" class="mt-8">
+                  <h3 class="font-bold text-base mb-3.5">Sotuvchining boshqa e'lonlari</h3>
+                  <swiper
+                     :slides-per-view="1.25"
+                     :space-between="12"
+                     :modules="[FreeMode]"
+                     :breakpoints="{
+                        '480': { slidesPerView: 1.6, spaceBetween: 12 },
+                        '640': { slidesPerView: 2.2, spaceBetween: 14 },
+                     }"
+                     class="w-full -mx-4"
+                  >
+                     <swiper-slide v-for="item in product.seller_products" :key="item.id" class="h-auto">
+                        <ProductCard :product="item" class="h-full" />
+                     </swiper-slide>
+                  </swiper>
+               </section>
 
                <!-- Shunga yaqin (O'xshash) e'lonlar - bitta qator karusel -->
                <section v-if="product?.similar_products?.length" class="mt-8 mb-6">
@@ -297,6 +344,8 @@
          <div class="skeleton size-12"></div>
       </aside>
 
+      <ReportDrawer v-if="product" :open="isReportOpen" :product-id="product.id" @close="isReportOpen = false" />
+
       <ImageLightbox
          v-if="product?.images.length"
          v-model="previewIndex"
@@ -307,8 +356,8 @@
 </template>
 
 <script setup lang="ts">
-import { formatPrice, timeAgo } from "@shared/modules/formatters";
-import { getCategoryVisual } from "@shared/modules/categoryIcons";
+import { formatPrice, formatProductPrice, timeAgo } from "@shared/modules/formatters";
+import { useCategoryTheme } from "@/features/category/categoryTheme";
 import { isTMA } from "@tma.js/bridge";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
@@ -323,12 +372,17 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@shared/modules/helpers";
+import ReportDrawer from "@/features/product/ReportDrawer.vue";
+import { useAuth } from "@shared/store/useAuth";
 import {
    AlertCircle,
    ArrowLeft,
+   Check,
    ChevronRight,
    Expand,
+   Flag,
    Heart,
+   Share2,
    Home,
    MapPin,
    MessageCircle,
@@ -347,7 +401,9 @@ const scrollContainer = ref<HTMLElement | null>(null);
 
 const { data: product, execute: executeProduct, isFirstLoading } = useFetchDecorator<IProduct>(ProductRepo.show);
 
-const categoryVisual = computed(() => getCategoryVisual(product.value?.category?.name));
+// Kartadagi bilan bir xil: asosiy bo'lim belgisi (nomdan taxmin qilinmaydi)
+const categoryTheme = useCategoryTheme();
+const categoryVisual = computed(() => categoryTheme(product.value?.category));
 
 function goBackOrHome() {
    goBack(router);
@@ -416,6 +472,48 @@ const viewCount = computed(() => {
 
    return count;
 });
+
+const authStore = useAuth();
+const isOwnProduct = computed(() => !!product.value && authStore.user?.id === product.value.user_id);
+
+/* ---------- Ulashish va shikoyat ---------- */
+
+// Telegram'da ochiladigan havola: bot e'lonni to'g'ridan-to'g'ri mini app'da ochadi (app.ts → startapp=product_ID)
+const TELEGRAM_APP_URL = import.meta.env.VITE_TELEGRAM_APP_URL || "https://t.me/NavoiyElonBot";
+const isLinkCopied = ref(false);
+const isReportOpen = ref(false);
+
+async function shareProduct() {
+   if (!product.value) return;
+   const url = `${TELEGRAM_APP_URL}?startapp=product_${product.value.id}`;
+   const price = formatProductPrice(product.value.price, product.value.price_type, "");
+   const text = price ? `${product.value.title} — ${price}` : product.value.title;
+
+   // Telegram ichida — tanish "kimga yuborish" oynasi
+   if (isTMA()) {
+      postEvent("web_app_open_tg_link", {
+         path_full: `/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      });
+      return;
+   }
+
+   try {
+      if (navigator.share) {
+         await navigator.share({ title: product.value.title, text, url });
+         return;
+      }
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      isLinkCopied.value = true;
+      setTimeout(() => (isLinkCopied.value = false), 2000);
+   } catch {
+      // Foydalanuvchi ulashish oynasini yopdi — xato emas
+   }
+}
+
+function openReport() {
+   if (!requireAuth()) return;
+   isReportOpen.value = true;
+}
 
 const isFavoriteButtonLoading = ref(false);
 

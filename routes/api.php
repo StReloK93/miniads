@@ -36,6 +36,9 @@ Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\P
     Route::get('/products/custom/search', 'search');
     Route::get('/products/{id}', 'show')->whereNumber('id');
 });
+// Qidiruv statistikasi (mehmonlar ham): ilova so'rov "o'rnashgan"da bir marta yuboradi
+Route::post('/search-log', [App\Http\Controllers\ProfileController::class, 'logSearch'])
+    ->middleware([OptionalSanctumAuth::class, 'throttle:30,1']);
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->only('index', 'show');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class)->only('index', 'show');
 Route::get('categories/{category}/parameters', [App\Http\Controllers\CategoryParameterController::class, 'index']);
@@ -50,8 +53,16 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::patch('products/{id}/status', 'updateProductStatus');
         Route::delete('products/{id}', 'deleteProduct');
         Route::post('products/{id}/restore', 'restoreProduct');
+        Route::delete('products/{id}/force', 'forceDeleteProduct');
+        Route::post('products/{id}/reports/resolve', 'resolveReports');
+        Route::post('products/bulk', 'bulkProducts');
+        Route::get('search-stats', 'searchStats');
+        Route::get('moderation', 'moderationSettings');
+        Route::post('moderation', 'updateModerationSettings');
         Route::get('users', 'users');
         Route::patch('users/{id}/role', 'updateUserRole');
+        Route::post('users/{id}/block', 'blockUser');
+        Route::post('users/{id}/unblock', 'unblockUser');
         Route::get('bot-settings', 'getBotSettings');
         Route::post('bot-settings', 'updateBotSettings');
         Route::post('bot-settings/run-now', 'runBotImport');
@@ -80,6 +91,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
+    Route::post('/products/{id}/report', [App\Http\Controllers\ProductController::class, 'report'])->middleware('throttle:10,1');
+    Route::get('/report-reasons', [App\Http\Controllers\ProductController::class, 'reportReasons']);
+
+    Route::controller(App\Http\Controllers\ProfileController::class)->group(function () {
+        Route::get('/profile', 'show');
+        Route::patch('/profile', 'update');
+        Route::post('/profile/write-access', 'writeAccess');
+    });
+    Route::apiResource('saved-searches', App\Http\Controllers\SavedSearchController::class)->except('update');
+    Route::patch('saved-searches/{id}', [App\Http\Controllers\SavedSearchController::class, 'update']);
     Route::post('/products/{id}', [App\Http\Controllers\ProductController::class, 'update']);
     Route::get('/products/{id}/edit', [App\Http\Controllers\ProductController::class, 'edit']);
 

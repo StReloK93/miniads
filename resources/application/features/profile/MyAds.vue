@@ -5,9 +5,11 @@
          <div class="flex items-start justify-between gap-3 mb-3">
             <div class="min-w-0">
                <h3 class="font-bold text-xl">E'lonlarim</h3>
+               <!-- Yuklanguncha "0 marta" deb yolg'on raqam ko'rsatmaymiz -->
                <p class="mt-0.5 inline-flex items-center gap-1 text-xs text-(--z-muted-text) tabular-nums">
                   <Eye class="size-3.5" />
-                  {{ totalViews }} marta ko'rilgan
+                  <template v-if="products">{{ totalViews }} marta ko'rilgan</template>
+                  <span v-else class="h-3 w-24 rounded-full bg-(--z-muted) animate-pulse" />
                </p>
             </div>
             <RouterLink :to="{ name: 'create-select-category' }" aria-label="Yangi e'lon">
@@ -28,7 +30,7 @@
                @click="activeTab = index"
             >
                {{ tab.label }}
-               <span class="my-chip-count">{{ tab.count }}</span>
+               <span class="my-chip-count">{{ products ? tab.count : "·" }}</span>
             </button>
 
             <button

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use DefStudio\Telegraph\Models\TelegraphBot;
@@ -16,6 +17,15 @@ class TelegramController extends Controller
         // Telegram'dan kelgan barcha ma'lumotlarni olish
         $data = $request->all();
         Log::info('Telegram Webhook Keldi:', $data);
+
+        // Botga yozgan (/start) foydalanuvchiga bot ham yoza oladi; botni to'xtatsa — endi yoza olmaydi
+        if (($data['message']['chat']['type'] ?? null) === 'private') {
+            User::where('telegram_user_id', $data['message']['from']['id'] ?? 0)->update(['bot_can_message' => true]);
+        }
+        if (isset($data['my_chat_member']['new_chat_member']['status']) && ($data['my_chat_member']['chat']['type'] ?? null) === 'private') {
+            User::where('telegram_user_id', $data['my_chat_member']['from']['id'] ?? 0)
+                ->update(['bot_can_message' => $data['my_chat_member']['new_chat_member']['status'] === 'member']);
+        }
 
         // Agar kelgan so'rovda xabar (message) va matn (text) bo'lsa
         if (isset($data['message']['text'])) {

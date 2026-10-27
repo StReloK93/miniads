@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+   MOBILE FIRST: asosiy qoidalar — telefon (admin ko'pincha Telegram ichidan ochiladi).
+   Kattaroq ekranlar uchun faqat "min-width" bo'limlari qo'shimcha qiladi:
+     701px+  — planshet (grid'lar kengayadi)
+     901px+  — kompyuter (yon panel, oddiy jadval, pastki panel yo'q)
+*/
+
 /* Telegram ichida shared/modules/telegramSafeArea.ts bu qiymatlarni bridge hodisalaridan qayta yozadi */
 :root {
    --safe-area-top: env(safe-area-inset-top, 0px);
@@ -18,6 +25,10 @@
    }
 }
 
+/* ==========================================================================
+   KARKAS: qobiq, yon panel (telefonda — chiqib keladigan menyu), yuqori panel
+   ========================================================================== */
+
 .admin-shell {
    --admin-ink: var(--z-foreground);
    --admin-muted: var(--z-muted-text);
@@ -32,14 +43,32 @@
 
 .admin-sidebar {
    position: fixed;
-   z-index: 10;
+   z-index: 40;
    inset: 0 auto 0 0;
    display: flex;
-   width: 250px;
+   width: min(280px, 85vw);
    flex-direction: column;
+   overflow-y: auto;
    border-right: 1px solid var(--admin-border);
-   background: var(--z-card);
-   padding: 25px 16px 18px;
+   background: var(--z-glass-strong);
+   padding: calc(var(--safe-area-top) + 20px) 16px calc(var(--safe-area-bottom) + 18px);
+   transform: translateX(-100%);
+   transition: transform 0.25s ease;
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+.admin-shell.is-menu-open .admin-sidebar {
+   transform: none;
+   box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
+}
+
+.admin-backdrop {
+   position: fixed;
+   z-index: 30;
+   inset: 0;
+   background: rgb(0 0 0 / 0.4);
+   backdrop-filter: blur(2px);
 }
 
 .admin-brand {
@@ -103,27 +132,36 @@
 
 .admin-nav-link {
    display: flex;
-   min-height: 42px;
+   min-height: 46px;
    align-items: center;
    gap: 12px;
    border-radius: 10px;
    padding: 0 11px;
    color: var(--z-muted-text);
-   font-size: 14px;
+   font-size: 15px;
    font-weight: 600;
    text-decoration: none;
    transition: background 0.15s ease, color 0.15s ease;
-}
-
-.admin-nav-link i {
-   width: 16px;
-   font-size: 14px;
 }
 
 .admin-nav-link:hover,
 .admin-nav-link.router-link-exact-active {
    background: var(--z-muted);
    color: var(--admin-accent);
+}
+
+.admin-nav-badge {
+   margin-left: auto;
+   display: grid;
+   min-width: 20px;
+   height: 20px;
+   place-items: center;
+   border-radius: 999px;
+   background: var(--z-danger);
+   padding: 0 6px;
+   color: #fff;
+   font-size: 11px;
+   font-weight: 700;
 }
 
 .admin-sidebar-footer {
@@ -143,6 +181,7 @@
    display: grid;
    width: 34px;
    height: 34px;
+   flex-shrink: 0;
    place-items: center;
    border-radius: 50%;
    background: var(--z-muted);
@@ -188,13 +227,18 @@
    color: var(--admin-accent);
 }
 
+/* Telefonda menyuda "Ilovaga qaytish" bor — yuqorida joy tejaymiz */
+.admin-topbar-link {
+   display: none;
+   gap: 8px;
+}
+
 .admin-main {
    display: flex;
    min-width: 0;
    min-height: 100vh;
    flex: 1;
    flex-direction: column;
-   margin-left: 250px;
 }
 
 .admin-topbar {
@@ -202,12 +246,13 @@
    z-index: 5;
    top: 0;
    display: flex;
-   min-height: 62px;
+   min-height: 56px;
    align-items: center;
    justify-content: space-between;
+   gap: 10px;
    border-bottom: 1px solid var(--admin-border);
    background: var(--z-glass);
-   padding: 0 34px;
+   padding: var(--safe-area-top) 12px 0;
    -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
    backdrop-filter: blur(var(--z-blur)) saturate(170%);
 }
@@ -223,30 +268,179 @@
    display: none;
 }
 
-.admin-topbar-link {
-   gap: 8px;
+/* Telefonda pastki panelda "Menyu" bor — "☰" faqat planshet/kompyuter oralig'i uchun zaxira */
+.admin-menu-button {
+   display: none;
+   width: 38px;
+   height: 38px;
+   align-items: center;
+   justify-content: center;
+   border: 1px solid var(--admin-border);
+   border-radius: 999px;
+   background: var(--z-card);
+   color: var(--admin-ink);
+   cursor: pointer;
 }
 
 .admin-content {
    width: 100%;
    max-width: 1500px;
    margin: 0 auto;
-   padding: 32px 34px 50px;
+   padding: 16px 12px calc(var(--safe-area-bottom) + 100px);
 }
+
+/* Pastki navigatsiya (ilovadagi pastki panel uslubida) */
+.admin-tabbar {
+   position: fixed;
+   z-index: 20;
+   right: 10px;
+   bottom: calc(var(--safe-area-bottom) + 10px);
+   left: 10px;
+   display: grid;
+   grid-template-columns: repeat(5, minmax(0, 1fr));
+   gap: 2px;
+   border: 1px solid var(--admin-border);
+   border-radius: 999px;
+   background: var(--z-glass);
+   padding: 5px;
+   box-shadow: var(--z-glass-shadow);
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+.admin-tab {
+   position: relative;
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 3px;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   padding: 7px 2px;
+   color: var(--admin-muted);
+   font-size: 11px;
+   font-weight: 600;
+   text-decoration: none;
+   cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-tab span {
+   max-width: 100%;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.admin-tab .admin-tab-dot {
+   position: absolute;
+   top: 5px;
+   right: calc(50% - 16px);
+   width: 8px;
+   height: 8px;
+   border: 2px solid var(--z-background);
+   border-radius: 50%;
+   background: var(--z-danger);
+}
+
+.admin-tab.router-link-exact-active,
+.admin-tab.is-active {
+   background: var(--z-muted);
+   color: var(--admin-ink);
+}
+
+@media (min-width: 901px) {
+   .admin-sidebar {
+      z-index: 10;
+      width: 240px;
+      overflow-y: visible;
+      background: var(--z-card);
+      padding: 25px 16px 18px;
+      transform: none;
+      transition: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+   }
+
+   .admin-shell.is-menu-open .admin-sidebar {
+      box-shadow: none;
+   }
+
+   .admin-backdrop,
+   .admin-tabbar {
+      display: none;
+   }
+
+   .admin-nav-link {
+      min-height: 42px;
+      font-size: 14px;
+   }
+
+   .admin-main {
+      margin-left: 240px;
+   }
+
+   .admin-topbar {
+      min-height: 62px;
+      padding: 0 28px;
+   }
+
+   .admin-topbar-link {
+      display: flex;
+   }
+
+   .admin-content {
+      padding: 28px 28px 50px;
+   }
+}
+
+@media (min-width: 1200px) {
+   .admin-sidebar {
+      width: 250px;
+   }
+
+   .admin-main {
+      margin-left: 250px;
+   }
+
+   .admin-topbar {
+      padding: 0 34px;
+   }
+
+   .admin-content {
+      padding: 32px 34px 50px;
+   }
+}
+
+/* ==========================================================================
+   SAHIFA, PANEL, STATISTIKA
+   ========================================================================== */
 
 .admin-page {
    display: grid;
    /* Ustun ichidagi uzun matn yoki jadval sahifani ekrandan kengaytirib yubormasin */
    grid-template-columns: minmax(0, 1fr);
-   gap: 20px;
+   gap: 14px;
 }
 
 .admin-page-heading,
 .admin-section-heading {
    display: flex;
-   align-items: center;
    justify-content: space-between;
-   gap: 20px;
+   gap: 10px;
+}
+
+.admin-page-heading {
+   align-items: flex-start;
+   flex-direction: column;
+}
+
+.admin-section-heading {
+   align-items: center;
+   padding: 16px;
 }
 
 .admin-eyebrow {
@@ -260,16 +454,16 @@
 .admin-page-heading h1 {
    margin: 0;
    color: var(--admin-ink);
-   font-size: clamp(23px, 3vw, 30px);
+   font-size: 22px;
    font-weight: 750;
-   letter-spacing: -0.045em;
+   letter-spacing: -0.04em;
 }
 
 .admin-muted {
-   margin: 6px 0 0;
+   margin: 4px 0 0;
    color: var(--admin-muted);
-   font-size: 14px;
-   line-height: 1.6;
+   font-size: 13px;
+   line-height: 1.45;
 }
 
 .admin-panel {
@@ -281,19 +475,19 @@
 
 .admin-stats-grid {
    display: grid;
-   grid-template-columns: repeat(3, minmax(0, 1fr));
-   gap: 12px;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
 }
 
 .admin-stat-card {
    display: flex;
-   min-height: 118px;
+   min-height: 105px;
    flex-direction: column;
    justify-content: center;
    border: 1px solid var(--admin-border);
    border-radius: var(--z-rounded);
    background: var(--z-card);
-   padding: 18px 20px;
+   padding: 13px;
 }
 
 .admin-stat-label {
@@ -305,7 +499,7 @@
 .admin-stat-card strong {
    margin-top: 8px;
    color: var(--admin-ink);
-   font-size: 25px;
+   font-size: 22px;
    font-weight: 750;
    letter-spacing: -0.04em;
 }
@@ -314,10 +508,6 @@
    margin-top: 4px;
    color: var(--z-muted-text);
    font-size: 12px;
-}
-
-.admin-section-heading {
-   padding: 18px 20px;
 }
 
 .admin-section-heading h2 {
@@ -334,69 +524,60 @@
    text-decoration: none;
 }
 
-.admin-table-wrap {
-   overflow-x: auto;
-   width: 100%;
+@media (min-width: 701px) {
+   .admin-page {
+      gap: 20px;
+   }
+
+   .admin-page-heading {
+      align-items: center;
+      flex-direction: row;
+      gap: 20px;
+   }
+
+   .admin-page-heading h1 {
+      font-size: clamp(23px, 3vw, 30px);
+      letter-spacing: -0.045em;
+   }
+
+   .admin-muted {
+      margin-top: 6px;
+      font-size: 14px;
+      line-height: 1.6;
+   }
+
+   .admin-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+   }
+
+   .admin-stat-card {
+      min-height: 118px;
+      padding: 18px 20px;
+   }
+
+   .admin-stat-card strong {
+      font-size: 25px;
+   }
+
+   .admin-section-heading {
+      padding: 18px 20px;
+   }
 }
 
-.admin-table {
-   width: 100%;
-   border-collapse: collapse;
-   text-align: left;
-   white-space: nowrap;
-}
-
-.admin-table th {
-   border-top: 1px solid var(--admin-border);
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-muted);
-   color: var(--z-muted-text);
-   font-size: 11px;
-   font-weight: 800;
-   letter-spacing: 0.08em;
-   text-transform: uppercase;
-}
-
-.admin-table th,
-.admin-table td {
-   padding: 12px 15px;
-}
-
-.admin-table td {
-   border-bottom: 1px solid var(--admin-border);
-   color: var(--admin-ink);
-   font-size: 13px;
-}
-
-.admin-table tbody tr:last-child td {
-   border-bottom: 0;
-}
-
-.admin-table td strong,
-.admin-table td small {
-   display: block;
-}
-
-.admin-table td strong {
-   max-width: 280px;
-   overflow: hidden;
-   text-overflow: ellipsis;
-}
-
-.admin-table td small,
-.admin-cell-subtitle {
-   margin-top: 4px;
-   color: var(--admin-muted);
-   font-size: 11px;
-}
+/* ==========================================================================
+   NISHONLAR, OGOHLANTIRISHLAR, YUKLANISH
+   ========================================================================== */
 
 .admin-badge {
    display: inline-flex;
    align-items: center;
+   gap: 4px;
    border-radius: 20px;
-   padding: 5px 8px;
+   padding: 4px 8px;
    font-size: 11px;
    font-weight: 700;
+   white-space: nowrap;
 }
 
 .admin-badge-success {
@@ -407,6 +588,11 @@
 .admin-badge-warning {
    background: #fff5df;
    color: #97650d;
+}
+
+.admin-badge-danger {
+   background: #fdecec;
+   color: #b42318;
 }
 
 .admin-badge-muted {
@@ -431,16 +617,50 @@
    font-size: 14px;
 }
 
-.admin-toolbar {
+.admin-alert {
+   border: 1px solid transparent;
+   border-radius: 10px;
+   padding: 11px 14px;
+   font-size: 13px;
+}
+
+.admin-alert-error {
+   border-color: #f3cbcb;
+   background: #fff3f3;
+   color: #9c3434;
+}
+
+.admin-alert-success {
+   border-color: #bee4cf;
+   background: #effaf3;
+   color: #237247;
+}
+
+.admin-alert-warning {
    display: flex;
    align-items: center;
    gap: 10px;
+   border-color: #f5dfa8;
+   background: #fff8e6;
+   color: #8a5a00;
+   text-decoration: none;
+}
+
+/* ==========================================================================
+   FORMALAR, QIDIRUV, TUGMALAR
+   ========================================================================== */
+
+.admin-toolbar {
+   display: flex;
+   align-items: stretch;
+   flex-wrap: wrap;
+   gap: 8px;
    padding: 12px;
 }
 
 .admin-search {
    display: flex;
-   min-width: 220px;
+   min-width: 100%;
    flex: 1;
    align-items: center;
    gap: 9px;
@@ -451,6 +671,7 @@
    color: var(--z-muted-text);
 }
 
+/* iOS 16px'dan kichik maydonda fokusda sahifani kattalashtiradi */
 .admin-search input {
    width: 100%;
    min-height: 37px;
@@ -458,7 +679,7 @@
    outline: 0;
    background: transparent;
    color: var(--admin-ink);
-   font-size: 13px;
+   font-size: 16px;
 }
 
 .admin-select,
@@ -469,8 +690,12 @@
    background: var(--z-field-background);
    padding: 0 10px;
    color: var(--admin-ink);
-   font-size: 13px;
+   font-size: 16px;
    outline-color: var(--z-primary);
+}
+
+.admin-toolbar .admin-select {
+   flex: 1;
 }
 
 .admin-button {
@@ -519,39 +744,6 @@
    font-size: 11px;
 }
 
-.admin-table-panel {
-   overflow: hidden;
-}
-
-.admin-product-cell {
-   display: table-cell;
-   min-width: 220px;
-}
-
-.admin-product-cell img {
-   float: left;
-   width: 38px;
-   height: 38px;
-   margin-right: 10px;
-   border-radius: 10px;
-   background: var(--z-muted);
-   object-fit: cover;
-}
-
-.admin-product-copy {
-   display: block;
-   overflow: hidden;
-   padding-top: 3px;
-}
-
-.admin-actions-heading {
-   text-align: right !important;
-}
-
-.admin-actions {
-   text-align: right;
-}
-
 .admin-icon-button {
    display: inline-grid;
    width: 30px;
@@ -580,6 +772,199 @@
    color: var(--z-danger);
 }
 
+.admin-role-control {
+   display: flex;
+   justify-content: flex-end;
+   gap: 6px;
+}
+
+.admin-select-small {
+   min-height: 30px;
+   padding: 0 6px;
+   font-size: 11px;
+}
+
+.admin-reference-form {
+   display: flex;
+   align-items: stretch;
+   flex-direction: column;
+   gap: 12px;
+   padding: 17px;
+}
+
+.admin-reference-form label {
+   display: grid;
+   min-width: 0;
+   flex: 1;
+   gap: 6px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 700;
+}
+
+.admin-reference-actions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 7px;
+}
+
+.admin-label {
+   color: var(--admin-ink);
+   font-size: 13px;
+   font-weight: 600;
+}
+
+.admin-hint {
+   margin-top: 5px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   line-height: 1.5;
+}
+
+@media (min-width: 701px) {
+   .admin-toolbar {
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 10px;
+   }
+
+   .admin-search {
+      min-width: 220px;
+   }
+
+   .admin-reference-form {
+      align-items: end;
+      flex-direction: row;
+   }
+
+   .admin-reference-form label {
+      min-width: 160px;
+   }
+
+   .admin-reference-actions {
+      flex-wrap: nowrap;
+   }
+}
+
+@media (min-width: 901px) {
+   .admin-search input,
+   .admin-select,
+   .admin-input {
+      font-size: 13px;
+   }
+}
+
+/* ==========================================================================
+   JADVAL PANELI: filtrlar + jadval + sahifalash bitta kartada
+   ========================================================================== */
+
+.admin-table-panel {
+   overflow: hidden;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--z-rounded);
+   background: var(--z-card);
+   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Telefonda filtrlar ixcham: qidiruv to'liq qatorda, tanlovlar yonma-yon */
+.admin-table-panel > .admin-toolbar {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+   border-bottom: 1px solid var(--admin-border);
+   background: var(--z-card);
+   padding: 12px;
+}
+
+.admin-table-panel > .admin-toolbar .admin-search {
+   grid-column: 1 / -1;
+   min-width: 0;
+}
+
+/* Juft sondagi oxirgi element (masalan "Qidirish" tugmasi) yolg'iz qolmasin — to'liq qatorni oladi */
+.admin-table-panel > .admin-toolbar > :last-child:nth-child(even) {
+   grid-column: 1 / -1;
+}
+
+@media (min-width: 901px) {
+   .admin-table-panel > .admin-toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 16px;
+   }
+
+   .admin-table-panel > .admin-toolbar .admin-search {
+      min-width: 220px;
+   }
+}
+
+/* Holat chiplari (Hammasi · Faol · Shikoyat...) — telefonda gorizontal suriladi */
+.admin-filter-chips {
+   display: flex;
+   gap: 6px;
+   overflow-x: auto;
+   border-bottom: 1px solid var(--admin-border);
+   padding: 10px 12px;
+   scrollbar-width: none;
+}
+
+.admin-filter-chips::-webkit-scrollbar {
+   display: none;
+}
+
+.admin-filter-chip {
+   display: inline-flex;
+   height: 32px;
+   flex-shrink: 0;
+   align-items: center;
+   gap: 6px;
+   border: 1px solid var(--z-glass-border, var(--admin-border));
+   border-radius: 999px;
+   background: transparent;
+   padding: 0 8px 0 12px;
+   color: var(--admin-ink);
+   font-size: 12.5px;
+   font-weight: 600;
+   cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-filter-chip span {
+   display: grid;
+   min-width: 20px;
+   height: 20px;
+   place-items: center;
+   border-radius: 999px;
+   background: color-mix(in srgb, currentColor 12%, transparent);
+   padding: 0 5px;
+   font-size: 11px;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-filter-chip.is-active {
+   border-color: transparent;
+   background: var(--z-primary);
+   color: var(--z-primary-foreground);
+}
+
+.admin-filter-chip.is-danger span {
+   background: var(--z-danger);
+   color: #fff;
+}
+
+.admin-filter-note {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 8px;
+   border-bottom: 1px solid var(--admin-border);
+   background: color-mix(in srgb, var(--z-primary) 6%, transparent);
+   padding: 8px 12px;
+   font-size: 12.5px;
+}
+
 .admin-pagination {
    display: flex;
    align-items: center;
@@ -602,286 +987,539 @@
    text-align: center;
 }
 
-.admin-alert {
-   border: 1px solid transparent;
-   border-radius: 10px;
-   padding: 11px 14px;
-   font-size: 13px;
+/* ==========================================================================
+   ODDIY JADVAL (.admin-table): telefonda qatorlar kartaga aylanadi
+   (v-responsive-table har katakka ustun nomini data-label qilib yozadi)
+   ========================================================================== */
+
+.admin-table-wrap {
+   overflow-x: auto;
+   width: 100%;
 }
 
-.admin-alert-error {
-   border-color: #f3cbcb;
-   background: #fff3f3;
-   color: #9c3434;
+.admin-table {
+   display: block;
+   width: 100%;
+   border-collapse: collapse;
+   text-align: left;
+   white-space: normal;
 }
 
-.admin-alert-success {
-   border-color: #bee4cf;
-   background: #effaf3;
-   color: #237247;
+.admin-table thead {
+   display: none;
 }
 
-.admin-role-control {
+.admin-table tbody {
+   display: block;
+}
+
+.admin-table tbody tr {
    display: flex;
-   justify-content: flex-end;
-   gap: 6px;
+   flex-direction: column;
+   gap: 8px;
+   border-bottom: 1px solid var(--admin-border);
+   padding: 14px 16px;
 }
 
-.admin-select-small {
-   min-height: 30px;
-   padding: 0 6px;
+.admin-table tbody tr:last-child {
+   border-bottom: 0;
+}
+
+.admin-table td {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+   justify-content: flex-end;
+   gap: 6px 8px;
+   border: 0;
+   padding: 0;
+   color: var(--admin-ink);
+   font-size: 14px;
+   text-align: right;
+}
+
+/* Yorliq chapda, katakdagi barcha qiymatlar birga o'ngda */
+.admin-table td::before {
+   content: attr(data-label);
+   margin-right: auto;
+   flex-shrink: 0;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 600;
+   text-align: left;
+}
+
+/* Birinchi katak — sarlavha (e'lon nomi, foydalanuvchi): yorliqsiz, to'liq kenglikda */
+.admin-table td:first-child {
+   display: block;
+   font-size: 15px;
+   font-weight: 600;
+   text-align: left;
+}
+
+.admin-table td:first-child::before,
+.admin-table td[data-label=""]::before,
+.admin-table td.admin-actions::before {
+   content: none;
+}
+
+.admin-table td strong,
+.admin-table td small {
+   display: block;
+}
+
+.admin-table td strong {
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.admin-table td:first-child strong {
+   font-size: 15px;
+}
+
+.admin-table td small,
+.admin-cell-subtitle {
+   margin-top: 4px;
+   color: var(--admin-muted);
    font-size: 11px;
 }
 
-.admin-reference-form {
-   display: flex;
-   align-items: end;
-   gap: 12px;
-   padding: 17px;
+/* Amallar — kartaning pastida, alohida qatorda */
+.admin-table td.admin-actions {
+   justify-content: flex-end;
+   margin-top: 2px;
+   border-top: 1px solid var(--admin-border);
+   padding-top: 10px;
 }
 
-.admin-reference-form label {
+.admin-table td.admin-empty-cell {
+   display: block;
+   text-align: center;
+}
+
+.admin-actions-heading {
+   text-align: right !important;
+}
+
+.admin-actions {
+   text-align: right;
+}
+
+.admin-product-cell {
+   min-width: 0;
+}
+
+.admin-product-cell img {
+   float: left;
+   width: 38px;
+   height: 38px;
+   margin-right: 10px;
+   border-radius: 10px;
+   background: var(--z-muted);
+   object-fit: cover;
+}
+
+.admin-product-copy {
+   display: block;
+   overflow: hidden;
+   padding-top: 3px;
+}
+
+@media (min-width: 901px) {
+   .admin-table {
+      display: table;
+      white-space: nowrap;
+   }
+
+   .admin-table thead {
+      display: table-header-group;
+   }
+
+   .admin-table tbody {
+      display: table-row-group;
+   }
+
+   .admin-table tbody tr {
+      display: table-row;
+      padding: 0;
+   }
+
+   .admin-table th {
+      border-top: 1px solid var(--admin-border);
+      border-bottom: 1px solid var(--admin-border);
+      background: var(--z-muted);
+      color: var(--z-muted-text);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+   }
+
+   .admin-table th,
+   .admin-table td {
+      padding: 12px;
+   }
+
+   .admin-table td,
+   .admin-table td:first-child {
+      display: table-cell;
+      border-bottom: 1px solid var(--admin-border);
+      font-size: 13px;
+      font-weight: 400;
+      text-align: left;
+   }
+
+   .admin-table td::before {
+      content: none;
+   }
+
+   .admin-table tbody tr:last-child td {
+      border-bottom: 0;
+   }
+
+   /* Uzun sarlavha ikki qatorga o'tadi — jadval amallar ustunigacha sig'adi */
+   .admin-table td strong,
+   .admin-table td:first-child strong {
+      min-width: 160px;
+      max-width: 280px;
+      font-size: inherit;
+      white-space: normal;
+   }
+
+   .admin-table td.admin-actions {
+      margin: 0;
+      border-top: 0;
+      padding-top: 12px;
+      text-align: right;
+   }
+
+   .admin-product-cell {
+      min-width: 220px;
+   }
+}
+
+/* ==========================================================================
+   ACCORDION JADVAL (.admin-xtable): telefonda ham jadval — asosiy ustunlar ko'rinadi,
+   qator bosilganda ostida qolgan ma'lumotlar va amallar ochiladi.
+   .admin-col-wide — faqat kompyuterda ko'rinadigan ustun; .admin-only-narrow — faqat telefonda.
+   ========================================================================== */
+
+.admin-xtable {
+   width: 100%;
+   border-collapse: collapse;
+   table-layout: auto;
+   text-align: left;
+}
+
+.admin-xtable th {
+   border-bottom: 1px solid var(--admin-border);
+   background: color-mix(in srgb, var(--z-muted) 70%, transparent);
+   padding: 8px 12px;
+   color: var(--z-muted-text);
+   font-size: 10.5px;
+   font-weight: 800;
+   letter-spacing: 0.08em;
+   text-transform: uppercase;
+   white-space: nowrap;
+}
+
+.admin-xtable td {
+   border-bottom: 1px solid var(--admin-border);
+   padding: 10px 12px;
+   color: var(--admin-ink);
+   font-size: 13px;
+   vertical-align: middle;
+}
+
+.admin-xtable th:first-child,
+.admin-xtable td:first-child {
+   padding-left: 12px;
+}
+
+.admin-xtable .admin-col-shrink {
+   width: 1%;
+   white-space: nowrap;
+}
+
+.admin-xtable .admin-col-check {
+   width: 1%;
+   padding-right: 0;
+}
+
+.admin-check {
+   width: 18px;
+   height: 18px;
+   accent-color: var(--z-primary);
+   cursor: pointer;
+   vertical-align: middle;
+}
+
+/* Belgilanganda jadval ustida: nechta tanlangan + amallar */
+.admin-bulk-bar {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   justify-content: space-between;
+   gap: 8px;
+   border-bottom: 1px solid var(--admin-border);
+   background: var(--z-glass-strong);
+   padding: 8px 12px;
+   font-size: 13px;
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   animation: admin-expand 0.18s ease;
+}
+
+.admin-col-wide {
+   display: none;
+}
+
+.admin-xrow {
+   cursor: pointer;
+   transition: background-color 0.15s ease;
+   -webkit-tap-highlight-color: transparent;
+}
+
+.admin-xrow:hover td {
+   background: color-mix(in srgb, var(--z-muted) 35%, transparent);
+}
+
+.admin-xrow.is-open td {
+   border-bottom-color: transparent;
+   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+}
+
+.admin-xrow.is-muted .admin-xtitle,
+.admin-xrow.is-muted .admin-xthumb {
+   opacity: 0.55;
+}
+
+.admin-xmain {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+   gap: 10px;
+}
+
+.admin-xthumb {
    display: grid;
-   min-width: 160px;
-   flex: 1;
-   gap: 6px;
+   width: 44px;
+   height: 44px;
+   flex-shrink: 0;
+   place-items: center;
+   overflow: hidden;
+   border-radius: 10px;
+   background: var(--z-muted);
    color: var(--admin-muted);
-   font-size: 12px;
+   object-fit: cover;
+}
+
+.admin-xtitle {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 2;
+   line-clamp: 2;
+   font-size: 13.5px;
+   font-weight: 600;
+   line-height: 1.3;
+   overflow-wrap: anywhere;
+}
+
+.admin-xmeta {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 2px 8px;
+   margin-top: 3px;
+   color: var(--admin-muted);
+   font-size: 11.5px;
+}
+
+.admin-xmeta b {
+   color: var(--admin-ink);
    font-weight: 700;
 }
 
-.admin-reference-actions {
-   display: flex;
-   gap: 7px;
+.admin-xchevron {
+   color: var(--admin-muted);
+   transition: transform 0.2s ease;
 }
 
-@media (max-width: 950px) {
-   .admin-sidebar {
-      width: 210px;
-   }
-
-   .admin-main {
-      margin-left: 210px;
-   }
-
-   .admin-content {
-      padding: 25px 20px 40px;
-   }
-
-   .admin-topbar {
-      padding: 0 20px;
-   }
+.admin-xrow.is-open .admin-xchevron {
+   transform: rotate(180deg);
 }
 
-@media (max-width: 700px) {
-   .admin-topbar {
-      min-height: 54px;
-      padding: 0 13px;
-   }
+.admin-xdetail > td {
+   padding: 0;
+   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+}
 
-   .admin-content {
-      padding: 21px 13px 32px;
-   }
+.admin-xdetail-inner {
+   display: grid;
+   gap: 14px;
+   padding: 2px 12px 14px;
+   animation: admin-expand 0.22s var(--page-ease, ease);
+}
 
-   .admin-stats-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-   }
-
-   .admin-stat-card {
-      min-height: 105px;
-      padding: 13px;
-   }
-
-   .admin-stat-card strong {
-      font-size: 22px;
-   }
-
-   .admin-page-heading {
-      align-items: flex-start;
-      flex-direction: column;
-   }
-
-   .admin-toolbar {
-      align-items: stretch;
-      flex-wrap: wrap;
-   }
-
-   .admin-search {
-      min-width: 100%;
-   }
-
-   .admin-toolbar .admin-select {
-      flex: 1;
-   }
-
-   .admin-reference-form {
-      align-items: stretch;
-      flex-direction: column;
-   }
-
-   .admin-reference-form label {
-      min-width: 0;
-   }
-
-   .admin-reference-actions {
-      flex-wrap: wrap;
+@keyframes admin-expand {
+   from {
+      opacity: 0;
+      transform: translateY(-6px);
    }
 }
 
-/* ==========================================================================
-   DARK THEME REFINEMENTS
-   Soft, eye-friendly, comfortable dark theme aesthetics (Linear/GitHub inspired)
-   ========================================================================== */
-
-html.dark .admin-shell {
-   color-scheme: dark;
-   --admin-ink: var(--z-foreground);
-   --admin-muted: var(--z-muted-text);
-   --admin-border: var(--z-border);
-}
-
-/* Badges in dark mode - translucent, soft glow, no blinding neon glare */
-html.dark .admin-badge-success {
-   background: rgba(34, 197, 94, 0.14);
-   color: #4ade80;
-   border: 1px solid rgba(34, 197, 94, 0.22);
-}
-
-html.dark .admin-badge-warning {
-   background: rgba(245, 158, 11, 0.14);
-   color: #fbbf24;
-   border: 1px solid rgba(245, 158, 11, 0.22);
-}
-
-html.dark .admin-badge-danger {
-   background: rgba(239, 68, 68, 0.14);
-   color: #f87171;
-   border: 1px solid rgba(239, 68, 68, 0.22);
-}
-
-html.dark .admin-badge-info {
-   background: rgba(59, 130, 246, 0.14);
-   color: #60a5fa;
-   border: 1px solid rgba(59, 130, 246, 0.22);
-}
-
-html.dark .admin-badge-muted {
-   background: rgba(148, 163, 184, 0.12);
-   color: #94a3b8;
-   border: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-/* Alerts in dark mode */
-html.dark .admin-alert-error {
-   border-color: rgba(239, 68, 68, 0.35);
-   background: rgba(239, 68, 68, 0.12);
-   color: #fca5a5;
-}
-
-html.dark .admin-alert-success {
-   border-color: rgba(34, 197, 94, 0.35);
-   background: rgba(34, 197, 94, 0.12);
-   color: #86efac;
-}
-
-/* Tables and cards */
-html.dark .admin-panel {
-   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
-}
-
-html.dark .admin-table th {
-   color: var(--z-muted-text);
-}
-
-html.dark .admin-table tbody tr {
-   transition: background-color 0.15s ease;
-}
-
-html.dark .admin-table tbody tr:hover td {
-   background: color-mix(in srgb, var(--z-muted) 60%, transparent);
-}
-
-html.dark .admin-product-cell img {
-   background: var(--z-muted);
-}
-
-html.dark .admin-stat-card {
-   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
-
-html.dark .admin-stat-detail,
-html.dark .admin-topbar-label {
-   color: var(--z-muted-text);
-}
-
-html.dark .admin-brand-mark {
-   background: color-mix(in srgb, var(--admin-accent) 15%, var(--z-muted));
-   color: var(--admin-accent);
-}
-
-html.dark .admin-search {
-   color: var(--z-muted-text);
-}
-
-html.dark .admin-search input::placeholder {
-   color: color-mix(in srgb, var(--z-muted-text) 70%, transparent);
-}
-
-/* Dark mode smooth scrollbars */
-html.dark ::-webkit-scrollbar {
-   width: 8px;
-   height: 8px;
-}
-
-html.dark ::-webkit-scrollbar-track {
-   background: var(--z-background);
-}
-
-html.dark ::-webkit-scrollbar-thumb {
-   background: var(--z-muted);
-   border-radius: 4px;
-   border: 2px solid var(--z-background);
-}
-
-html.dark ::-webkit-scrollbar-thumb:hover {
-   background: color-mix(in srgb, var(--z-muted-text) 50%, var(--z-muted));
-}
-
-/* ==========================================================================
-   UNIFIED TABLE CARD & INTEGRATED TOOLBAR
-   ========================================================================== */
-.admin-table-panel {
-   border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
-   background: var(--z-card);
-   overflow: hidden;
-   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.admin-table-panel > .admin-toolbar {
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-card);
-   padding: 12px 16px;
-   gap: 12px;
-   display: flex;
-   align-items: center;
-   flex-wrap: wrap;
-}
-
-/* ==========================================================================
-   DASHBOARD ANALYTICS & WIDGETS
-   ========================================================================== */
-.admin-dashboard-grid {
+/* Ma'lumotlar ro'yxati: telefonda 2 ustun */
+.admin-dl {
    display: grid;
    grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 10px 14px;
+   margin: 0;
+}
+
+.admin-dl dt {
+   color: var(--admin-muted);
+   font-size: 11px;
+   font-weight: 600;
+}
+
+.admin-dl dd {
+   margin: 2px 0 0;
+   font-size: 13px;
+   font-weight: 600;
+   overflow-wrap: anywhere;
+}
+
+.admin-dl dd a {
+   color: var(--admin-accent);
+   text-decoration: none;
+}
+
+.admin-xsection-title {
+   margin: 0 0 6px;
+   color: var(--admin-muted);
+   font-size: 11px;
+   font-weight: 800;
+   letter-spacing: 0.08em;
+   text-transform: uppercase;
+}
+
+.admin-xdescription {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 6;
+   line-clamp: 6;
+   margin: 0;
+   font-size: 13px;
+   line-height: 1.55;
+   white-space: pre-line;
+   overflow-wrap: anywhere;
+}
+
+.admin-thumbs {
+   display: flex;
+   gap: 6px;
+   overflow-x: auto;
+   scrollbar-width: none;
+}
+
+.admin-thumbs a {
+   flex-shrink: 0;
+}
+
+.admin-thumbs img {
+   display: block;
+   width: 72px;
+   height: 72px;
+   border-radius: 10px;
+   background: var(--z-muted);
+   object-fit: cover;
+}
+
+.admin-report-list {
+   display: grid;
+   gap: 6px;
+}
+
+.admin-report {
+   border-left: 3px solid #f59e0b;
+   border-radius: 8px;
+   background: color-mix(in srgb, #f59e0b 9%, transparent);
+   padding: 8px 10px;
+   font-size: 12.5px;
+}
+
+.admin-report small {
+   display: block;
+   margin-top: 2px;
+   color: var(--admin-muted);
+   font-size: 11px;
+}
+
+.admin-xactions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   border-top: 1px solid var(--admin-border);
+   padding-top: 12px;
+}
+
+@media (min-width: 701px) {
+   .admin-dl {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+   }
+}
+
+@media (min-width: 901px) {
+   .admin-col-wide {
+      display: table-cell;
+   }
+
+   .admin-only-narrow {
+      display: none !important;
+   }
+
+   .admin-xtable th,
+   .admin-xtable td {
+      padding-right: 14px;
+      padding-left: 14px;
+   }
+
+   .admin-xtable td {
+      padding-top: 11px;
+      padding-bottom: 11px;
+   }
+
+   .admin-xdetail-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px 24px;
+      padding: 4px 20px 18px 68px;
+   }
+
+   .admin-xdetail-inner > .admin-xfull {
+      grid-column: 1 / -1;
+   }
+
+   .admin-dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+   }
+}
+
+/* ==========================================================================
+   BOSH SAHIFA: grafiklar va vidjetlar
+   ========================================================================== */
+
+.admin-dashboard-grid {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr);
    gap: 16px;
    margin-bottom: 20px;
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 1025px) {
    .admin-dashboard-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
    }
 }
 
@@ -891,8 +1529,14 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    border: 1px solid var(--admin-border);
    border-radius: var(--z-rounded);
    background: var(--z-card);
-   padding: 20px;
+   padding: 16px;
    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 701px) {
+   .admin-chart-card {
+      padding: 20px;
+   }
 }
 
 .admin-card-header {
@@ -1043,317 +1687,112 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    background: var(--z-muted);
 }
 
-
 /* ==========================================================================
-   FORMA YORLIQLARI (barcha admin formalari uchun bir xil)
+   QORONG'I MAVZU: yumshoq, ko'zni qamashtirmaydigan ranglar
    ========================================================================== */
 
-.admin-label {
-   color: var(--admin-ink);
-   font-size: 13px;
-   font-weight: 600;
+html.dark .admin-shell {
+   color-scheme: dark;
 }
 
-.admin-hint {
-   margin-top: 5px;
-   color: var(--admin-muted);
-   font-size: 12px;
-   line-height: 1.5;
+html.dark .admin-badge-success {
+   background: rgba(34, 197, 94, 0.14);
+   color: #4ade80;
+   border: 1px solid rgba(34, 197, 94, 0.22);
 }
 
-/* ==========================================================================
-   MOBIL: yon panel "☰" tugmasi bilan ochiladigan menyuga aylanadi
-   ========================================================================== */
-
-.admin-menu-button {
-   display: none;
-   width: 38px;
-   height: 38px;
-   align-items: center;
-   justify-content: center;
-   border: 1px solid var(--admin-border);
-   border-radius: 999px;
-   background: var(--z-card);
-   color: var(--admin-ink);
-   cursor: pointer;
+html.dark .admin-badge-warning {
+   background: rgba(245, 158, 11, 0.14);
+   color: #fbbf24;
+   border: 1px solid rgba(245, 158, 11, 0.22);
 }
 
-.admin-backdrop {
-   position: fixed;
-   z-index: 30;
-   inset: 0;
-   background: rgb(0 0 0 / 0.4);
-   backdrop-filter: blur(2px);
+html.dark .admin-badge-danger {
+   background: rgba(239, 68, 68, 0.14);
+   color: #f87171;
+   border: 1px solid rgba(239, 68, 68, 0.22);
 }
 
-@media (max-width: 900px) {
-   .admin-sidebar {
-      z-index: 40;
-      width: min(280px, 85vw);
-      padding-top: calc(var(--safe-area-top) + 20px);
-      overflow-y: auto;
-      transform: translateX(-100%);
-      transition: transform 0.25s ease;
-      background: var(--z-glass-strong);
-      -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-      backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   }
-
-   .admin-shell.is-menu-open .admin-sidebar {
-      transform: none;
-      box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
-   }
-
-   .admin-main {
-      margin-left: 0;
-   }
-
-   .admin-menu-button {
-      display: inline-flex;
-   }
-
-   /* Menyuda "Ilovaga qaytish" bor — tor ekranda joy tejaymiz */
-   .admin-topbar-link {
-      display: none;
-   }
-
-   .admin-topbar {
-      gap: 10px;
-      padding: var(--safe-area-top) 12px 0;
-   }
-
-   .admin-content {
-      padding: 16px 12px 40px;
-   }
-
-   .admin-nav-link {
-      min-height: 46px;
-      font-size: 15px;
-   }
-
-   /* iOS 16px'dan kichik maydonda fokusda sahifani kattalashtiradi */
-   .admin-input,
-   .admin-select,
-   .admin-search input {
-      font-size: 16px;
-   }
+html.dark .admin-badge-info {
+   background: rgba(59, 130, 246, 0.14);
+   color: #60a5fa;
+   border: 1px solid rgba(59, 130, 246, 0.22);
 }
 
-/* ==========================================================================
-   MOBIL: pastki navigatsiya paneli (ilovadagi pastki panel uslubida)
-   ========================================================================== */
-
-.admin-tabbar {
-   display: none;
+html.dark .admin-badge-muted {
+   background: rgba(148, 163, 184, 0.12);
+   color: #94a3b8;
+   border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
-@media (max-width: 900px) {
-   .admin-tabbar {
-      position: fixed;
-      z-index: 20;
-      right: 10px;
-      bottom: calc(var(--safe-area-bottom) + 10px);
-      left: 10px;
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 2px;
-      border: 1px solid var(--admin-border);
-      border-radius: 999px;
-      background: var(--z-glass);
-      padding: 5px;
-      box-shadow: var(--z-glass-shadow);
-      -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-      backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   }
-
-   .admin-tab {
-      display: flex;
-      min-width: 0;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      padding: 7px 2px;
-      color: var(--admin-muted);
-      font-size: 11px;
-      font-weight: 600;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
-   }
-
-   .admin-tab span {
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-   }
-
-   .admin-tab.router-link-exact-active,
-   .admin-tab.is-active {
-      background: var(--z-muted);
-      color: var(--admin-ink);
-   }
-
-   /* Pastki panel bor — yuqoridagi "☰" kerak emas */
-   .admin-menu-button {
-      display: none;
-   }
-
-   .admin-content {
-      padding-bottom: calc(var(--safe-area-bottom) + 100px);
-   }
-
-   .admin-topbar {
-      min-height: 56px;
-   }
-
-   /* Sarlavhalar ixchamroq: kontent ko'proq ko'rinadi */
-   .admin-page {
-      gap: 14px;
-   }
-
-   .admin-page-heading {
-      gap: 10px;
-   }
-
-   .admin-page-heading h1 {
-      font-size: 22px;
-   }
-
-   .admin-muted {
-      margin-top: 4px;
-      font-size: 13px;
-      line-height: 1.45;
-   }
+html.dark .admin-alert-error {
+   border-color: rgba(239, 68, 68, 0.35);
+   background: rgba(239, 68, 68, 0.12);
+   color: #fca5a5;
 }
 
-/* ==========================================================================
-   MOBIL JADVAL: har bir qator kartaga aylanadi (v-responsive-table yorliqlari bilan)
-   ========================================================================== */
-
-@media (max-width: 900px) {
-   .admin-table,
-   .admin-table tbody {
-      display: block;
-      white-space: normal;
-   }
-
-   .admin-table thead {
-      display: none;
-   }
-
-   .admin-table tbody tr {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-bottom: 1px solid var(--admin-border);
-      padding: 14px 16px;
-   }
-
-   .admin-table tbody tr:last-child {
-      border-bottom: 0;
-   }
-
-   .admin-table td,
-   .admin-table tbody tr:last-child td {
-      display: flex;
-      min-width: 0;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 6px 8px;
-      border: 0;
-      padding: 0;
-      font-size: 14px;
-      text-align: right;
-   }
-
-   /* Yorliq chapda, katakdagi barcha qiymatlar birga o'ngda */
-   .admin-table td::before {
-      content: attr(data-label);
-      margin-right: auto;
-      flex-shrink: 0;
-      color: var(--admin-muted);
-      font-size: 12px;
-      font-weight: 600;
-      text-align: left;
-   }
-
-   /* Birinchi katak — sarlavha (e'lon nomi, foydalanuvchi): yorliqsiz, to'liq kenglikda */
-   .admin-table td:first-child {
-      display: block;
-      text-align: left;
-   }
-
-   .admin-table td:first-child::before,
-   .admin-table td[data-label=""]::before,
-   .admin-table td.admin-actions::before {
-      content: none;
-   }
-
-   .admin-table td:first-child strong {
-      max-width: none;
-      font-size: 15px;
-      white-space: normal;
-   }
-
-   /* Amallar — kartaning pastida, alohida qatorda */
-   .admin-table td.admin-actions {
-      justify-content: flex-end;
-      margin-top: 2px;
-      border-top: 1px solid var(--admin-border);
-      padding-top: 10px;
-   }
-
-   .admin-table td.admin-empty-cell {
-      display: block;
-      text-align: center;
-   }
-
-   .admin-product-cell {
-      min-width: 0;
-   }
+html.dark .admin-alert-success {
+   border-color: rgba(34, 197, 94, 0.35);
+   background: rgba(34, 197, 94, 0.12);
+   color: #86efac;
 }
 
-/* Telefonda filtrlar ixcham: qidiruv to'liq qatorda, tanlovlar yonma-yon */
-@media (max-width: 900px) {
-   .admin-table-panel > .admin-toolbar:has(.admin-search) {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-   }
-
-   .admin-table-panel > .admin-toolbar .admin-search {
-      grid-column: 1 / -1;
-      min-width: 0;
-   }
-
-   /* Juft sondagi oxirgi element (masalan "Qidirish" tugmasi) yolg'iz qolmasin — to'liq qatorni oladi */
-   .admin-table-panel > .admin-toolbar:has(.admin-search) > :last-child:nth-child(even) {
-      grid-column: 1 / -1;
-   }
+html.dark .admin-alert-warning {
+   border-color: rgba(245, 158, 11, 0.35);
+   background: rgba(245, 158, 11, 0.12);
+   color: #fcd34d;
 }
 
-/* Kompyuterda: uzun sarlavha ikki qatorga o'tadi — jadval amallar ustunigacha sig'adi */
-@media (min-width: 901px) {
-   .admin-table th,
-   .admin-table td {
-      padding: 12px;
-   }
-
-   .admin-table td strong {
-      min-width: 160px;
-      white-space: normal;
-   }
+html.dark .admin-panel {
+   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
 }
 
-/* Telefonda karta sarlavhasi (birinchi katak) har doim ajralib tursin */
-@media (max-width: 900px) {
-   .admin-table td:first-child {
-      font-size: 15px;
-      font-weight: 600;
+html.dark .admin-table tbody tr {
+   transition: background-color 0.15s ease;
+}
+
+html.dark .admin-table tbody tr:hover td {
+   background: color-mix(in srgb, var(--z-muted) 60%, transparent);
+}
+
+html.dark .admin-stat-card {
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+html.dark .admin-stat-detail,
+html.dark .admin-topbar-label {
+   color: var(--z-muted-text);
+}
+
+html.dark .admin-brand-mark {
+   background: color-mix(in srgb, var(--admin-accent) 15%, var(--z-muted));
+}
+
+html.dark .admin-search input::placeholder {
+   color: color-mix(in srgb, var(--z-muted-text) 70%, transparent);
+}
+
+html.dark ::-webkit-scrollbar {
+   width: 8px;
+   height: 8px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+   background: var(--z-background);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+   background: var(--z-muted);
+   border-radius: 4px;
+   border: 2px solid var(--z-background);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+   background: color-mix(in srgb, var(--z-muted-text) 50%, var(--z-muted));
+}
+
+@media (prefers-reduced-motion: reduce) {
+   .admin-xdetail-inner {
+      animation: none;
    }
 }

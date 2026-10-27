@@ -197,7 +197,7 @@ const positionOptions = [
 ];
 
 const items = ref<ReferenceItem[]>([]);
-const loading = ref(false);
+const loading = ref(true);
 const saving = ref(false);
 const editingId = ref<number | null>(null);
 const drawerOpen = ref(false);

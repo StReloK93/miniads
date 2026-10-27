@@ -1,5 +1,7 @@
 <template>
-   <main v-if="category" class="h-full flex flex-col">
+   <!-- Admin bloklagan hisob tahrirlay ham olmaydi (admin o'zi tahrirlasa — cheklov yo'q) -->
+   <BlockedNotice v-if="authStore.user?.blocked_at && authStore.user.role !== 'admin'" />
+   <main v-else-if="category" class="h-full flex flex-col">
       <aside class="-mx-4 px-4 pb-3 border-b border-(--z-border)">
          <!-- Input fokus olganda klaviaturaga joy bo'shatish uchun yig'iladi -->
          <main :class="[hasFocusedInput ? 'max-h-0' : 'max-h-40']" class="transition-all overflow-hidden">
@@ -32,6 +34,8 @@ import { buildBreadcrumb } from "@shared/modules/helpers";
 import { useFocusedInput } from "@shared/composables/useFocusInput";
 import { ICategory, InputConfig } from "@shared/types";
 import ProductFormSkeleton from "@/features/product/ProductFormSkeleton.vue";
+import BlockedNotice from "@/features/auth/BlockedNotice.vue";
+import { useAuth } from "@shared/store/useAuth";
 
 /**
  * E'lon formasi karkasi: sarlavha, kategoriya yo'li va forma. Yaratish va tahrirlash sahifalari uchun umumiy.
@@ -47,6 +51,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (e: "submitted"): void }>();
 
+const authStore = useAuth();
 const { hasFocusedInput } = useFocusedInput();
 const breadcrumb = computed(() => buildBreadcrumb(props.category));
 </script>

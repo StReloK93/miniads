@@ -57,4 +57,12 @@ export default {
    delete(id: string | number) {
       return api.delete(`${baseURL}/${id}`);
    },
+
+   report(id: string | number, payload: { reason: string; comment?: string }) {
+      return api.post<{ message: string }>(`${baseURL}/${id}/report`, payload);
+   },
+
+   reportReasons() {
+      return api.get<{ id: string; label: string }[]>("report-reasons");
+   },
 };

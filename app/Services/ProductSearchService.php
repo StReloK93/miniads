@@ -21,9 +21,40 @@ class ProductSearchService
      */
     public function search(Request $request): Collection
     {
+        $ids = $this->matchingIds($request);
+        if (empty($ids)) {
+            return collect();
+        }
+
+        // To'liq ma'lumot (rasmlar, parametrlar...) faqat ko'rsatiladiganlar uchun
+        $query = Product::withExists([
+            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
+        ])->whereIn('id', $ids);
+
+        // Foydalanuvchi saralashni tanlagan bo'lsa (arzon, qimmat...) — o'sha tartib; aks holda moslik bo'yicha
+        $sort = $request->input('sort');
+        if (in_array($sort, ProductFilters::SORTS, true)) {
+            return ProductFilters::sort($query, $sort)->get();
+        }
+
+        $order = array_flip($ids);
+
+        return $query->get()
+            ->sortBy(fn (Product $product) => $order[$product->id])
+            ->values();
+    }
+
+    /**
+     * Mos faol e'lonlar id'lari (moslik bo'yicha tartiblangan). Qidiruv ham, kuzatuvlar ham shu mantiqdan foydalanadi:
+     * $scope bilan nomzodlar toraytiriladi (masalan, faqat oxirgi tekshiruvdan keyingi yangi e'lonlar).
+     *
+     * @return int[]
+     */
+    public function matchingIds(Request $request, ?\Closure $scope = null): array
+    {
         $terms = preg_split('/\s+/u', UzbekText::normalize((string) $request->input('search', '')), -1, PREG_SPLIT_NO_EMPTY);
         if (empty($terms)) {
-            return collect();
+            return [];
         }
 
         // 1. Identify category matches
@@ -55,6 +86,7 @@ class ProductSearchService
             ->active()
             ->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id))
             ->tap(fn ($q) => ProductFilters::apply($q, $request))
+            ->when($scope, fn ($q) => $scope($q))
             ->latest('published_at')
             ->latest('id')
             ->toBase()
@@ -159,26 +191,6 @@ class ProductSearchService
             return $b['score'] <=> $a['score'];
         });
 
-        $ids = array_column(array_slice($scored, 0, self::RESULT_LIMIT), 'id');
-        if (empty($ids)) {
-            return collect();
-        }
-
-        // 4. To'liq ma'lumot (rasmlar, parametrlar...) faqat ko'rsatiladiganlar uchun
-        $query = Product::withExists([
-            'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
-        ])->whereIn('id', $ids);
-
-        // Foydalanuvchi saralashni tanlagan bo'lsa (arzon, qimmat...) — o'sha tartib; aks holda moslik bo'yicha
-        $sort = $request->input('sort');
-        if (in_array($sort, ProductFilters::SORTS, true)) {
-            return ProductFilters::sort($query, $sort)->get();
-        }
-
-        $order = array_flip($ids);
-
-        return $query->get()
-            ->sortBy(fn (Product $product) => $order[$product->id])
-            ->values();
+        return array_column(array_slice($scored, 0, self::RESULT_LIMIT), 'id');
     }
 }

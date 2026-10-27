@@ -17,6 +17,17 @@
       <div v-if="loading" class="admin-panel admin-loading">Ma'lumotlar yuklanmoqda…</div>
 
       <template v-else-if="dashboard">
+         <!-- Moderatsiya navbati: ko'rib chiqilmagan shikoyatlar birinchi ko'zga tashlansin -->
+         <RouterLink
+            v-if="dashboard.stats.reported_products"
+            :to="{ name: 'admin-products', query: { status: 'reported' } }"
+            class="admin-alert admin-alert-warning mb-1"
+         >
+            <Flag class="size-4 shrink-0" />
+            <span class="grow"><b>{{ dashboard.stats.reported_products }} ta e'lon</b> ustidan shikoyat bor — ko'rib chiqing</span>
+            <ChevronRight class="size-4 shrink-0" />
+         </RouterLink>
+
          <!-- KPI Cards Grid -->
          <div class="admin-stats-grid mb-5">
             <article class="admin-stat-card">
@@ -360,7 +371,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from "vue";
-import { FileText, Layers, Eye, Users, FolderTree, Calendar, MapPin, Tag, Activity, Flame } from "lucide-vue-next";
+import { FileText, Layers, Eye, Users, FolderTree, Calendar, MapPin, Tag, Activity, Flame, Flag, ChevronRight } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import { formatProductPrice, formatDate, timeAgo } from "@shared/modules/formatters";

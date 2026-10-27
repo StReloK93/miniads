@@ -27,6 +27,12 @@ class AuthService
          ['name' => trim("$first_name $last_name"), 'username' => $username],
       );
 
+      // initData: foydalanuvchi botga yozishga ruxsat bergan (yoki botni ishga tushirgan). false — o'zgartirmaymiz:
+      // bu maydon hamma klientda kelavermaydi
+      if (!empty($telegram_user['allows_write_to_pm']) && !$user->bot_can_message) {
+         $user->forceFill(['bot_can_message' => true])->save();
+      }
+
       if (Auth::loginUsingId($user->id)) {
          $user->tokens()->delete();
 

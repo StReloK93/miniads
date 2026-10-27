@@ -301,4 +301,20 @@ class ProductService
         // Soft delete: admin tiklay olishi uchun rasmlar saqlanib qoladi
         $product->delete();
     }
+
+    /** Butunlay o'chirish (admin, arxivdan): rasm fayllari ham diskdan o'chadi */
+    public function forceDelete(Product $product): void
+    {
+        foreach ($product->images()->get() as $image) {
+            $this->deleteProductImageFile($image->src);
+            $this->deleteProductImageFile($image->thumb_src);
+            $this->deleteProductImageFile($image->crop_src);
+        }
+
+        DB::transaction(function () use ($product): void {
+            // favorites jadvalida cascade yo'q — avval o'zimiz tozalaymiz
+            $product->favorites()->delete();
+            $product->forceDelete();
+        });
+    }
 }

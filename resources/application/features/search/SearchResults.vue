@@ -6,9 +6,12 @@
    <div>
       <!-- Natija bor bo'lsa — u joyida qoladi (yangi so'rovda faqat xiralashadi); skelet faqat birinchi qidiruvda -->
       <template v-if="search.products?.length">
-         <p class="pb-2.5 text-xs text-(--z-muted-text) tabular-nums">
-            {{ search.isLoading ? "Qidirilmoqda…" : `${search.products.length} ta e'lon topildi` }}
-         </p>
+         <div class="pb-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+            <p class="text-xs text-(--z-muted-text) tabular-nums">
+               {{ search.isLoading ? "Qidirilmoqda…" : `${search.products.length} ta e'lon topildi` }}
+            </p>
+            <WatchSearchButton :query="search.activeSearchText" :filters="search.filters" />
+         </div>
          <div class="flex flex-col gap-2.5 transition-opacity duration-200" :class="{ 'opacity-50': search.isLoading }">
             <ProductCard v-for="product in search.products" :key="product.id" :product="product" />
          </div>
@@ -27,7 +30,9 @@
             "<b>{{ search.activeSearchText }}</b>" bo'yicha e'lon yo'q. Boshqacha yozib ko'ring
             <template v-if="search.hasFilters"> yoki filtrlarni tozalang</template>.
          </p>
-         <BaseButton v-if="search.hasFilters" severity="secondary" size="sm" class="mt-4" @click="search.resetFilters()">
+         <!-- Topilmadi — eng yaxshi payt kuzatuv taklif qilish uchun: talab bor, e'lon hali yo'q -->
+         <WatchSearchButton class="mt-5" variant="cta" :query="search.activeSearchText" :filters="search.filters" />
+         <BaseButton v-if="search.hasFilters" severity="secondary" size="sm" class="mt-3" @click="search.resetFilters()">
             Filtrlarni tozalash
          </BaseButton>
       </div>
@@ -98,6 +103,7 @@ import { History, SearchX, Sparkles, X } from "lucide-vue-next";
 import ProductCard from "@/features/product/ProductCard.vue";
 import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
+import WatchSearchButton from "@/features/notifications/WatchSearchButton.vue";
 import { POPULAR_TAGS, type ProductSearch } from "@/features/search/useProductSearch";
 
 defineProps<{ search: UnwrapNestedRefs<ProductSearch> }>();

@@ -27,6 +27,16 @@ export const routes: RouteRecordRaw[] = [
             name: "admin-users",
          },
          {
+            path: "search-stats",
+            component: () => import("@admin/pages/AdminSearchStatsPage.vue"),
+            name: "admin-search-stats",
+         },
+         {
+            path: "moderation",
+            component: () => import("@admin/pages/AdminModerationPage.vue"),
+            name: "admin-moderation",
+         },
+         {
             path: "bot",
             component: () => import("@admin/pages/AdminBotPage.vue"),
             name: "admin-bot",

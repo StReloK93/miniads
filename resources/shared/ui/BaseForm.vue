@@ -51,6 +51,8 @@
          :class="[hasFocusedInput ? 'max-h-0 py-0' : 'py-4  max-h-40 border-t']"
          class="flex flex-col gap-3 px-4 pb-0 border-(--z-border) overflow-hidden transition-all"
       >
+         <!-- Server rad etsa (bloklangan, validatsiya, tarmoq) — jim qolmaymiz -->
+         <p v-if="submitError" class="text-sm text-(--z-danger) text-center" role="alert">{{ submitError }}</p>
          <BaseButton type="submit" class="w-full" :loading="buttonLoader">
             <template #icon>
                <CheckCircle class="w-5 h-5 mr-2" />
@@ -124,14 +126,23 @@ const schema = computed(() => {
 
 const validationSchema = toTypedSchema(schema.value);
 
+const submitError = ref("");
+
 const onSubmit: any = async (values) => {
    buttonLoader.value = true;
+   submitError.value = "";
 
-   await props.submit(values).finally(() => {
+   try {
+      await props.submit(values);
+   } catch (error: any) {
+      console.error("Formani yuborib bo'lmadi.", error);
+      submitError.value = error?.response?.data?.message || "Saqlab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.";
+      return;
+   } finally {
       setTimeout(() => {
          buttonLoader.value = false;
       }, 500);
-   });
+   }
    emit("submit", values);
 };
 </script>

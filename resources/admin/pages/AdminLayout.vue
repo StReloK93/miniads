@@ -92,7 +92,9 @@ import {
    FileText,
    MapPin,
    Menu,
+   SearchCheck,
    Send,
+   ShieldAlert,
    SlidersHorizontal,
    Tags,
    Users,
@@ -115,6 +117,8 @@ const mainLinks = [
    { name: "admin-home", label: "Umumiy ko'rinish", icon: ChartPie },
    { name: "admin-products", label: "E'lonlar", icon: FileText },
    { name: "admin-users", label: "Foydalanuvchilar", icon: Users },
+   { name: "admin-moderation", label: "Moderatsiya", icon: ShieldAlert },
+   { name: "admin-search-stats", label: "Qidiruvlar", icon: SearchCheck },
    { name: "admin-channel-post", label: "Kanalga post", icon: Send },
    { name: "admin-bot", label: "Avto-e'lonlar (Bot)", icon: Bot },
 ];

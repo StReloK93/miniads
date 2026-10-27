@@ -64,6 +64,7 @@ class Product extends Model
 
     protected $hidden = [
         'expires_at',
+        'expiry_reminded_for',
     ];
 
     #[Scope]
@@ -118,6 +119,17 @@ class Product extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(ProductReport::class);
+    }
+
+    /** Admin hali ko'rib chiqmagan shikoyatlar */
+    public function openReports()
+    {
+        return $this->hasMany(ProductReport::class)->whereNull('resolved_at');
     }
 
 

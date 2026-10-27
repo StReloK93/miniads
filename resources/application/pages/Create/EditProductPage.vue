@@ -19,12 +19,13 @@
 import ProductFormShell from "@/features/product/ProductFormShell.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ICategory, InputConfig } from "@shared/types";
 import { onMounted, ref, shallowRef } from "vue";
 import { buildProductFormInputs, buildProductPayload } from "@/features/product/useProductForm";
 
 const router = useRouter();
+const route = useRoute();
 
 const props = defineProps<{
    product_id: number;
@@ -44,6 +45,11 @@ async function submitForm(values: Record<string, any>) {
 }
 
 function onSubmit() {
+   // Admin paneldan kelgan bo'lsa — o'sha yerga qaytadi (admin — alohida ilova, to'liq o'tish)
+   if (route.query.from === "admin") {
+      window.location.href = "/admin/products";
+      return;
+   }
    router.push({ name: "my-ads" });
 }
 

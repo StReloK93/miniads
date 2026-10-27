@@ -36,6 +36,8 @@ return [
         // Kanal postidagi "E'lon joylash" tugmasi uchun standart havola
         'mini_app_url' => env('TELEGRAM_MINI_APP_URL', 'https://t.me/NavoiyElonBot'),
         'admin_chat_id' => env('TELEGRAM_ADMIN_CHAT_ID') ?: env('TELEGRAM_CHANNEL'),
+        // Profildagi "Admin bilan bog'lanish" (username, @siz). Bo'sh bo'lsa tugma ko'rinmaydi
+        'support_username' => ltrim((string) env('TELEGRAM_SUPPORT_USERNAME', ''), '@') ?: null,
     ],
 
     // E'lon importi uchun AI. Model aniq nom bilan yoziladi ("-latest" alias emas),

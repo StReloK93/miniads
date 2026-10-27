@@ -97,6 +97,8 @@ import SearchResults from "@/features/search/SearchResults.vue";
 import ProductFilterDrawer from "@/features/filters/ProductFilterDrawer.vue";
 import { useProductSearch } from "@/features/search/useProductSearch";
 import { pushBackHandler } from "@/modules/navigation";
+import { emptyFilters } from "@/features/filters/listFilters";
+import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
 
 const route = useRoute();
 const router = useRouter();
@@ -250,10 +252,26 @@ watch(loadMoreTrigger, (el) => {
    }
 });
 
+/** Bot xabaridagi "Hammasini ko'rish" (startapp=ss_ID): kuzatuvni so'rovi va filtrlari bilan ochadi */
+async function openSavedSearch(id: string) {
+   try {
+      const { data } = await ProfileRepo.savedSearch(id);
+      enterSearch();
+      search.filters = { ...emptyFilters(), ...(data.filters ?? {}) };
+      search.pick(data.query);
+   } catch (error) {
+      console.error("Kuzatuvni ochib bo'lmadi.", error);
+   }
+}
+
 onMounted(() => {
    loadProducts(true);
-   // Eski /search havolasi (bot, tarix) bosh sahifaning qidiruv rejimini ochadi
-   if (route.query.search) {
+   if (route.query.saved) {
+      const id = String(route.query.saved);
+      router.replace({ name: "home" });
+      openSavedSearch(id);
+   } else if (route.query.search) {
+      // Eski /search havolasi (bot, tarix) bosh sahifaning qidiruv rejimini ochadi
       router.replace({ name: "home" });
       nextTick(() => searchBar.value?.focus());
    }

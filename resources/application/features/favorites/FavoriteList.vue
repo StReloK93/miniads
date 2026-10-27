@@ -6,21 +6,29 @@
                <h3 class="font-bold text-xl">Sevimlilar</h3>
             </div>
             <p class="text-sm text-(--z-muted-text)">
-               Sizda sevimlilar ro'yhatida {{ favorites?.length ?? 0 }} ta e'lon mavjud.
+               <template v-if="favorites">Sizda sevimlilar ro'yhatida {{ favorites.length }} ta e'lon mavjud.</template>
+               <template v-else>Yuklanmoqda…</template>
             </p>
          </aside>
       </template>
       <template #content>
+         <!-- Avval yuklanish (rasmlar ham tayyor bo'lguncha), keyin ro'yxat yoki bo'sh holat -->
          <Transition mode="out-in">
-            <main v-if="fullLoadingImages && favorites?.length" class="flex flex-col gap-2.5">
-               <ProductCard v-for="product in favorites" :product="product" :key="product.id" />
-            </main>
-            <div v-else-if="favorites?.length == 0" class="font-bold h-full flex items-center justify-center">
-               Hech nima topilmadi
-            </div>
-            <main v-else class="flex flex-col gap-2.5">
+            <main v-if="isLoading || !imagesReady" class="flex flex-col gap-2.5">
                <ProductCardSkeleton v-for="n in 3" :key="n" />
             </main>
+            <main v-else-if="favorites?.length" class="flex flex-col gap-2.5">
+               <ProductCard v-for="product in favorites" :product="product" :key="product.id" />
+            </main>
+            <div v-else class="flex flex-col justify-center items-center py-14 text-center">
+               <div class="size-14 mb-3 rounded-full grid place-items-center bg-(--z-card) border border-(--z-border)">
+                  <Heart class="size-6 text-(--z-muted-text)" />
+               </div>
+               <h3 class="font-semibold mb-1">Sevimlilar bo'sh</h3>
+               <p class="text-sm text-(--z-muted-text) max-w-64">
+                  Yoqqan e'lonlarni yurakcha bilan belgilang — ular shu yerda saqlanadi.
+               </p>
+            </div>
          </Transition>
       </template>
    </NavigationPageDecorator>
@@ -34,25 +42,23 @@ import { preloadImages } from "@shared/modules/helpers";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { IProduct } from "@shared/types";
+import { Heart } from "lucide-vue-next";
 import { onMounted, ref } from "vue";
 
-const fullLoadingImages = ref<boolean>(false);
+const imagesReady = ref(false);
 
-const { data: favorites, execute: executeLatest, isFirstLoading } = useFetchDecorator<IProduct[]>(FavoriteRepo.index);
+const { data: favorites, execute: executeLatest, isLoading } = useFetchDecorator<IProduct[]>(FavoriteRepo.index);
 
 onMounted(async () => {
-   await executeLatest();
-
-   const images = <any[]>[];
-   favorites.value
-      ?.filter((product) => product.images.length > 0)
-      .forEach((product) => {
-         const imageUrls = `/storage/${product.images[0].src}`;
-         images.push(imageUrls);
-      });
-
-   await preloadImages(images);
-
-   fullLoadingImages.value = true;
+   try {
+      await executeLatest();
+      // Kartada kichik nusxa ko'rsatiladi — shuni oldindan yuklaymiz
+      const images = (favorites.value ?? [])
+         .filter((product) => product.images?.length)
+         .map((product) => `/storage/${product.images[0].thumb_src || product.images[0].src}`);
+      await preloadImages(images);
+   } finally {
+      imagesReady.value = true;
+   }
 });
 </script>

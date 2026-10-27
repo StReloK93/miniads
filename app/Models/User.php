@@ -17,8 +17,27 @@ class User extends Authenticatable
         'telegram_user_id',
         'active_district_id',
         'role',
+        'phone',
+        'notify_saved_searches',
+        'notify_expiry',
     ];
 
+    protected $casts = [
+        'blocked_at' => 'datetime',
+        'bot_can_message' => 'boolean',
+        'notify_saved_searches' => 'boolean',
+        'notify_expiry' => 'boolean',
+    ];
+
+    public function savedSearches()
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->blocked_at !== null;
+    }
 
     public function activeDistrict()
     {

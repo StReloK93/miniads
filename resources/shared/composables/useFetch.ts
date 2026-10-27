@@ -9,7 +9,8 @@ const api = axios.create({
 
 function useFetchDecorator<T>(fetchFn) {
    const data = ref<T | null>(null);
-   const isLoading = ref(false);
+   // Sahifalar ma'lumotni mount'da so'raydi: birinchi kadrda "bo'sh" holat emas, yuklanish ko'rinsin
+   const isLoading = ref(true);
    const isFirstLoading = ref(true); // Dastlab true bo'ladi
    const error = ref<any>(null);
 

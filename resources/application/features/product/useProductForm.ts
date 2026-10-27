@@ -38,6 +38,10 @@ export async function buildProductFormInputs(
    const phoneInput = baseInputs.find((input) => input.name === "phone");
    if (phoneInput) {
       phoneInput.class = parameters.length ? ["mb-3"] : [];
+      // Yangi e'lon: profildagi asosiy raqam (birinchi e'londa avtomatik saqlanadi, profilda o'zgartiriladi)
+      if (!product && authStore.user?.phone) {
+         phoneInput.value = authStore.user.phone;
+      }
    }
 
    const parameterInputs: InputConfig[] = parameters.map((parameter, index) => ({

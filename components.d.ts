@@ -17,6 +17,7 @@ declare module 'vue' {
     BaseDrawer: typeof import('./resources/shared/ui/BaseDrawer.vue')['default']
     BaseForm: typeof import('./resources/shared/ui/BaseForm.vue')['default']
     BaseModal: typeof import('./resources/shared/ui/BaseModal.vue')['default']
+    BaseSwitch: typeof import('./resources/shared/ui/BaseSwitch.vue')['default']
     BaseTabs: typeof import('./resources/shared/ui/BaseTabs.vue')['default']
     BaseTree: typeof import('./resources/shared/ui/BaseTree.vue')['default']
     BaseTreeNode: typeof import('./resources/shared/ui/BaseTreeNode.vue')['default']

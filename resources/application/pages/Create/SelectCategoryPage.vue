@@ -16,8 +16,9 @@
          </div>
       </aside>
 
+      <BlockedNotice v-if="authStore.user?.blocked_at" class="flex-1" />
       <CategorySelector
-         v-if="CategoryStore.parentCategories"
+         v-else-if="CategoryStore.parentCategories"
          :activeCategoryId="activeCategoryId"
          :categories="CategoryStore.parentCategories"
          class="flex-1 min-h-0"
@@ -30,6 +31,8 @@
 
 <script setup lang="ts">
 import CategorySelector from "@/features/category/CategorySelector.vue";
+import BlockedNotice from "@/features/auth/BlockedNotice.vue";
+import { useAuth } from "@shared/store/useAuth";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useRoute } from "vue-router";
 import { computed, onMounted } from "vue";
@@ -40,6 +43,7 @@ const activeCategoryId = computed(() => {
    return route.query.category_id ? Number(route.query.category_id) : null;
 });
 const CategoryStore = useCategory();
+const authStore = useAuth();
 
 onMounted(() => {
    import("@pages/Create/CreateProductPage.vue");

@@ -16,7 +16,9 @@ const authStore = useAuth();
 
 const initApp = async () => {
    let userData: ReturnType<typeof retrieveLaunchParams> | null = null;
-   let startRoute: { name: "product-id"; params: { id: string } } | { name: "create-select-category" } | null = null;
+   let startRoute: Parameters<typeof router.push>[0] | null = null;
+   // Bot xabaridan admin panelga (startapp=admin_reported): admin — alohida ilova, kirishdan keyin to'liq o'tiladi
+   let startUrl: string | null = null;
 
    try {
       const tma = isTMA();
@@ -29,10 +31,17 @@ const initApp = async () => {
          userData = launchParams;
          const startParam = launchParams.tgWebAppStartParam;
          const productStartParam = /^product_(\d+)$/.exec(startParam ?? "");
+         const savedSearchParam = /^ss_(\d+)$/.exec(startParam ?? "");
          if (productStartParam) {
             startRoute = { name: "product-id", params: { id: productStartParam[1] } };
+         } else if (savedSearchParam) {
+            startRoute = { name: "home", query: { saved: savedSearchParam[1] } };
          } else if (startParam === "create") {
             startRoute = { name: "create-select-category" };
+         } else if (startParam === "my_ads") {
+            startRoute = { name: "my-ads" };
+         } else if (startParam === "admin_reported") {
+            startUrl = "/admin/products?status=reported";
          }
 
          try {
@@ -69,7 +78,9 @@ const initApp = async () => {
 
          // Bot havolasi (startapp=product_123 / create): bosh sahifa ustiga ochamiz (replace emas),
          // shunda "orqaga" bosilganda foydalanuvchi bosh sahifaga qaytadi
-         if (startRoute) {
+         if (startUrl && authStore.user?.role === "admin") {
+            window.location.href = startUrl;
+         } else if (startRoute) {
             await router.push(startRoute);
          }
       } catch (error) {

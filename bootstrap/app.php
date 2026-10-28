@@ -19,7 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->trustProxies(at: '*');
         // Ilova tili (X-Locale): server xabarlari va bazadagi nomlar (kategoriya, parametr...) shu tilda
-        $middleware->api(append: \App\Http\Middleware\SetLocale::class);
+        $middleware->api(append: [
+            \App\Http\Middleware\SetLocale::class,
+            // Faollik statistikasi: ma'noli so'rovlar javobdan keyin faylga yoziladi
+            \App\Http\Middleware\TrackActivity::class,
+        ]);
         $middleware->validateCsrfTokens(except: [
             'api/telegraph/*',
         ]);

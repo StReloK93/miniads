@@ -15,6 +15,10 @@ Schedule::command('products:flush-views')
     ->everyFiveMinutes()
     ->withoutOverlapping();
 
+Schedule::command('activity:aggregate')
+    ->everyTenMinutes()
+    ->withoutOverlapping();
+
 Schedule::command('ads:import-telegram')
     ->hourly()
     ->withoutOverlapping(60);

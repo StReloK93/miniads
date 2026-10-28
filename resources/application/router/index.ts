@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { routes } from "./routes";
 import { useAuth } from "@shared/store/useAuth";
+import { track } from "@/modules/activity";
 import { postEvent } from "@tma.js/bridge";
 import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
 const router = createRouter({
@@ -15,6 +16,11 @@ router.afterEach((to) => {
    postEvent("web_app_setup_back_button", { is_visible: to.name !== "home" });
    // Forma to'ldirilayotganda tasodifan yopib yubormaslik uchun tasdiq so'raladi; boshqa sahifalarda — yo'q
    postEvent("web_app_setup_closing_behavior", { need_confirmation: Boolean(to.meta.confirmClose) });
+});
+
+// Faollik statistikasi: qaysi sahifalar ochilyapti (navbatga qo'shiladi, paket bo'lib fonda ketadi)
+router.afterEach((to, from, failure) => {
+   if (!failure && to.name) track("page", String(to.name));
 });
 
 router.beforeEach(async (to, from, next) => {

@@ -9,6 +9,7 @@ import { initTheme } from "@shared/composables/useTheme";
 import { applyLocale, detectLocale, i18n } from "@shared/i18n";
 import { api } from "@shared/composables/useFetch";
 import { reportClientError } from "@shared/modules/clientErrors";
+import { startActivityTracking, track } from "@/modules/activity";
 import "@shared/css/ui.scss";
 
 initTheme();
@@ -23,6 +24,7 @@ try {
 applyLocale(detectLocale(telegramLanguage));
 // Server xato xabarlarida qayerdan kirilgani ko'rinsin (Telegram mini app yoki brauzer)
 api.defaults.headers.common["X-Client"] = isTMA() ? "telegram" : "browser";
+startActivityTracking();
 
 const app = createApp(App);
 // Kutilmagan JS xatolari ham admin chatiga borsin (bir xili bir marta)
@@ -59,6 +61,8 @@ const initApp = async () => {
          const startParam = launchParams.tgWebAppStartParam;
          const productStartParam = /^product_(\d+)$/.exec(startParam ?? "");
          const savedSearchParam = /^ss_(\d+)$/.exec(startParam ?? "");
+         // Qayerdan kirildi: kanal/ulashilgan e'lon havolasi (product), bot xabari (ss, my_ads), oddiy ochilish (direct)
+         track("app_open", startParam ? startParam.replace(/_\d+$/, "") : "direct");
          if (productStartParam) {
             startRoute = { name: "product-id", params: { id: productStartParam[1] } };
          } else if (savedSearchParam) {
@@ -80,6 +84,7 @@ const initApp = async () => {
             await authStore.getUser().catch(() => {});
          }
       } else {
+         track("app_open", "browser");
          try {
             await authStore.getUser();
          } catch (error) {

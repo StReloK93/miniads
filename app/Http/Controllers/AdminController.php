@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductReport;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\ActivityLog;
 use App\Services\ProductService;
 use App\Services\TelegramProductService;
 use Illuminate\Http\Request;
@@ -336,6 +337,74 @@ class AdminController extends Controller
             'top' => $aggregate(DB::table('search_logs')->selectRaw('ROUND(AVG(results_count)) as avg_results')),
             // So'nggi marta ham natija bermagan so'rovlar
             'not_found' => $aggregate(DB::table('search_logs')->where('results_count', 0)),
+        ]);
+    }
+
+    /**
+     * Foydalanuvchilar faolligi (activity_stats). Bugungi ma'lumot sahifa ochilganda yangilanadi.
+     * "kishi" har kun alohida sanaladi: ko'p kunlik oraliqda — kunlik noyob tashrifchilar yig'indisi.
+     */
+    public function activity(Request $request)
+    {
+        $days = (int) ($request->validate(['days' => ['nullable', 'integer', Rule::in([1, 7, 30])]])['days'] ?? 7);
+        $since = now()->subDays($days - 1)->toDateString();
+
+        ActivityLog::aggregate(now()->toDateString());
+
+        $base = fn () => DB::table('activity_stats')->where('date', '>=', $since);
+        $grouped = fn (string $event, int $limit = 10) => $base()
+            ->where('event', $event)
+            ->selectRaw('ref, SUM(hits) as hits, SUM(users) as users')
+            ->groupBy('ref')
+            ->orderByDesc('hits')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => ['ref' => $row->ref, 'hits' => (int) $row->hits, 'users' => (int) $row->users]);
+        $hits = fn (string $event, ?string $ref = null) => (int) $base()->where('event', $event)
+            ->when($ref !== null, fn ($q) => $q->where('ref', $ref))->sum('hits');
+        $users = fn (string $event, ?string $ref = null) => (int) $base()->where('event', $event)
+            ->when($ref !== null, fn ($q) => $q->where('ref', $ref))->sum('users');
+
+        $daily = $base()->where('event', 'visitors')->orderBy('date')->get(['date', 'hits', 'users'])
+            ->map(fn ($row) => ['date' => (string) $row->date, 'users' => (int) $row->users, 'hits' => (int) $row->hits]);
+
+        $categories = $grouped('category_open');
+        $categoryNames = Category::withTrashed()->whereIn('id', $categories->pluck('ref'))->pluck('name', 'id');
+        $products = $grouped('product_view');
+        $productTitles = Product::withTrashed()->whereIn('id', $products->pluck('ref'))->pluck('title', 'id');
+        $visitors = $users('visitors');
+
+        return response()->json([
+            'days' => $days,
+            'summary' => [
+                'visitors' => $visitors,
+                'avg_daily' => $daily->count() ? (int) round($visitors / $daily->count()) : 0,
+                'registered' => $users('visitors_registered'),
+                'app_opens' => $hits('app_open'),
+                'page_views' => $hits('page'),
+                'product_views' => $hits('product_view'),
+                'contacts' => $hits('contact_phone') + $hits('contact_telegram'),
+                'favorites' => $hits('favorite_add'),
+                'saved_searches' => $hits('saved_search_add'),
+                'reports' => $hits('report'),
+            ],
+            // E'lon qo'yish formasini ochganlar va oxiriga yetkazganlar
+            'funnel' => [
+                'started' => $users('page', 'create-product'),
+                'created' => $users('ad_created'),
+                'ads' => $hits('ad_created'),
+            ],
+            'daily' => $daily,
+            'pages' => $grouped('page', 15),
+            'categories' => $categories->map(fn ($row) => [...$row, 'label' => $categoryNames[$row['ref']] ?? "#{$row['ref']}"]),
+            'products' => $products->map(fn ($row) => [...$row, 'label' => $productTitles[$row['ref']] ?? "#{$row['ref']}"]),
+            'contacts' => [
+                'phone' => $hits('contact_phone'),
+                'telegram' => $hits('contact_telegram'),
+            ],
+            'sources' => $grouped('app_open'),
+            'clients' => $grouped('client'),
+            'locales' => $grouped('locale'),
         ]);
     }
 

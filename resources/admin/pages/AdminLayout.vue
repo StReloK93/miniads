@@ -85,6 +85,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAuth } from "@shared/store/useAuth";
 import {
+   Activity,
    ArrowLeft,
    ArrowUpRight,
    Bot,
@@ -118,6 +119,7 @@ const mainLinks = [
    { name: "admin-products", label: "E'lonlar", icon: FileText },
    { name: "admin-users", label: "Foydalanuvchilar", icon: Users },
    { name: "admin-moderation", label: "Moderatsiya", icon: ShieldAlert },
+   { name: "admin-activity", label: "Faollik", icon: Activity },
    { name: "admin-search-stats", label: "Qidiruvlar", icon: SearchCheck },
    { name: "admin-channel-post", label: "Kanalga post", icon: Send },
    { name: "admin-bot", label: "Avto-e'lonlar (Bot)", icon: Bot },

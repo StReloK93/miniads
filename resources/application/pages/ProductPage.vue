@@ -394,6 +394,7 @@ import {
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { requireAuth } from "@/features/auth/requireAuth";
 import { goBack } from "@/modules/navigation";
+import { track } from "@/modules/activity";
 import { postEvent } from "@tma.js/bridge";
 
 const route = useRoute();
@@ -425,6 +426,7 @@ function openImagePreview(index: number) {
 }
 
 function callPhone(phone: string) {
+   track("contact_phone", product.value?.id);
    if (isTMA()) {
       window.open(`tel:${phone}`);
    } else {
@@ -442,6 +444,7 @@ function openSellerChat(product: IProduct) {
    const username = product.user.username?.trim().replace(/^@/, "");
 
    if (!username) return;
+   track("contact_telegram", product.id);
 
    const text = t("product.chatGreeting", { title: product.title });
 

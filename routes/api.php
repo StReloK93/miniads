@@ -42,6 +42,9 @@ Route::post('/search-log', [App\Http\Controllers\ProfileController::class, 'logS
 // Ilovadagi xatolar (forma yuborilmadi, JS xatosi) — admin chatiga ogohlantirish
 Route::post('/client-errors', [App\Http\Controllers\ClientErrorController::class, 'store'])
     ->middleware([OptionalSanctumAuth::class, 'throttle:20,1']);
+// Faollik statistikasi: ilova ~30 soniyada bir paket yuboradi (ilova ochilishi, sahifalar, aloqa tugmalari)
+Route::post('/activity', [App\Http\Controllers\ActivityController::class, 'store'])
+    ->middleware([OptionalSanctumAuth::class, 'throttle:30,1']);
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->only('index', 'show');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class)->only('index', 'show');
 Route::get('categories/{category}/parameters', [App\Http\Controllers\CategoryParameterController::class, 'index']);
@@ -60,6 +63,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('products/{id}/reports/resolve', 'resolveReports');
         Route::post('products/bulk', 'bulkProducts');
         Route::get('search-stats', 'searchStats');
+        Route::get('activity', 'activity');
         Route::get('moderation', 'moderationSettings');
         Route::post('moderation', 'updateModerationSettings');
         Route::get('users', 'users');

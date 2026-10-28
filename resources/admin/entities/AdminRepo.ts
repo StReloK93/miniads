@@ -28,6 +28,9 @@ export default {
    searchStats(days: number) {
       return api.get("admin/search-stats", { params: { days } });
    },
+   activity(days: number) {
+      return api.get("admin/activity", { params: { days } });
+   },
    moderation() {
       return api.get<{ banned_words: string }>("admin/moderation");
    },

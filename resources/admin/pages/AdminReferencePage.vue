@@ -96,7 +96,7 @@
             <TriangleAlert class="size-5 text-(--z-danger)" />
          </template>
          <p class="text-sm text-(--z-muted-text)">
-            Ushbu amalni ortga qaytarib bo'lmaydi. Tegishli e'lonlar mazkur parametrga bog'langan bo'lishi mumkin.
+            Ushbu amalni ortga qaytarib bo'lmaydi. Unga bog'langan e'lonlar bo'lishi mumkin.
          </p>
       </BaseModal>
 
@@ -114,62 +114,31 @@
 
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
 
-      <!-- Table Panel -->
-      <section class="admin-panel admin-table-panel">
+      <!-- Ro'yxat: telefonda ham bitta qatorda nom, tarjimalar va amallar -->
+      <section class="admin-chart-card py-1!">
          <div v-if="loading" class="admin-loading">Ro'yxat yuklanmoqda…</div>
-         <div v-else class="admin-table-wrap">
-            <table v-responsive-table class="admin-table">
-               <thead>
-                  <tr>
-                     <th>Nomi</th>
-                     <th v-if="kind === 'price-types'">Ko'rinishi</th>
-                     <th v-if="kind === 'price-types'">Joylashuvi</th>
-                     <th class="admin-actions-heading">Amallar</th>
-                  </tr>
-               </thead>
-               <tbody>
-                  <tr v-for="item in items" :key="item.id">
-                     <td>
-                        <strong>{{ item.name }}</strong>
-                     </td>
-                     <td v-if="kind === 'price-types'">
-                        <span class="admin-badge admin-badge-info">{{ item.type || "—" }}</span>
-                     </td>
-                     <td v-if="kind === 'price-types'">
-                        {{ item.position === "left" ? "Chap tomonda" : "O'ng tomonda" }}
-                     </td>
-                     <td class="admin-actions">
-                        <div class="flex items-center justify-end gap-1.5">
-                           <BaseButton
-                              size="xs"
-                              severity="secondary"
-                              icon-only
-                              title="Tahrirlash"
-                              :aria-label="`${item.name} ni tahrirlash`"
-                              @click="edit(item)"
-                           >
-                              <template #icon><Pencil class="size-3.5" /></template>
-                           </BaseButton>
-                           <BaseButton
-                              size="xs"
-                              severity="danger"
-                              icon-only
-                              title="O'chirish"
-                              :aria-label="`${item.name} ni o'chirish`"
-                              @click="itemToDelete = item"
-                           >
-                              <template #icon><Trash2 class="size-3.5" /></template>
-                           </BaseButton>
-                        </div>
-                     </td>
-                  </tr>
-                  <tr v-if="items.length === 0">
-                     <td :colspan="kind === 'price-types' ? 4 : 2" class="admin-empty-cell">
-                        Hozircha hech qanday {{ itemLabel.toLowerCase() }} qo'shilmagan.
-                     </td>
-                  </tr>
-               </tbody>
-            </table>
+         <div v-else class="admin-list">
+            <div v-for="item in items" :key="item.id" class="admin-list-row">
+               <span class="admin-list-main">
+                  <span class="admin-list-title">
+                     {{ item.name }}
+                     <span v-if="kind === 'price-types'" class="admin-badge admin-badge-info ml-1">{{ item.type || "—" }}</span>
+                  </span>
+                  <span class="admin-list-meta">
+                     <template v-if="kind === 'price-types'">{{ item.position === "left" ? "Narxdan oldin" : "Narxdan keyin" }} · </template>
+                     ru: {{ item[`${translatedField}_ru`] || "—" }} · en: {{ item[`${translatedField}_en`] || "—" }}
+                  </span>
+               </span>
+               <BaseButton size="xs" severity="secondary" icon-only title="Tahrirlash" @click="edit(item)">
+                  <template #icon><Pencil class="size-3.5" /></template>
+               </BaseButton>
+               <BaseButton size="xs" severity="danger" icon-only title="O'chirish" @click="itemToDelete = item">
+                  <template #icon><Trash2 class="size-3.5" /></template>
+               </BaseButton>
+            </div>
+            <p v-if="!items.length" class="admin-muted py-3">
+               Hozircha hech qanday {{ itemLabel.toLowerCase() }} qo'shilmagan.
+            </p>
          </div>
       </section>
    </section>

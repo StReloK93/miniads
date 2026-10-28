@@ -592,13 +592,27 @@ class AdminController extends Controller
                 'today_imported_count' => $setting->today_imported_count,
                 'daily_limit' => $setting->daily_limit,
                 'hourly_limit' => $setting->hourly_limit,
-                'last_run_at' => $setting->last_run_at?->diffForHumans() ?: 'Hali ishga tushmagan',
+                // ISO: vaqt ilovada lotincha formatlanadi (Carbon'ning "uz" tili kirillcha)
+                'last_run_at' => $setting->last_run_at?->toISOString(),
                 'ai_usage' => \App\Services\Bot\AdAiParserService::todayUsage(),
                 'ai_model' => match ($setting->ai_provider) {
                     'gemini' => config('services.gemini.model'),
                     'openai' => config('services.openai.model'),
                     default => null,
                 },
+                'ai_models' => [
+                    'gemini' => config('services.gemini.model'),
+                    'openai' => config('services.openai.model'),
+                ],
+                'ai_keys' => [
+                    'gemini' => filled(config('services.gemini.api_key')),
+                    'openai' => filled(config('services.openai.api_key')),
+                ],
+                // Bugun kanallardan ko'rilgan postlar nima bo'ldi: qo'shildi / filtrlandi / dublikat / AI rad etdi / eski
+                'today_seen' => \App\Models\BotSeenPost::where('created_at', '>=', now()->startOfDay())
+                    ->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status'),
             ],
         ]);
     }

@@ -481,33 +481,40 @@
 
 .admin-stat-card {
    display: flex;
-   min-height: 105px;
+   min-width: 0;
    flex-direction: column;
    justify-content: center;
    border: 1px solid var(--admin-border);
    border-radius: var(--z-rounded);
    background: var(--z-card);
-   padding: 13px;
+   padding: 11px 12px;
 }
 
 .admin-stat-label {
+   overflow: hidden;
    color: var(--admin-muted);
-   font-size: 13px;
+   font-size: 12px;
    font-weight: 600;
+   text-overflow: ellipsis;
+   white-space: nowrap;
 }
 
 .admin-stat-card strong {
-   margin-top: 8px;
+   margin-top: 4px;
    color: var(--admin-ink);
-   font-size: 22px;
+   font-size: 21px;
+   line-height: 1.15;
    font-weight: 750;
    letter-spacing: -0.04em;
 }
 
 .admin-stat-detail {
-   margin-top: 4px;
+   overflow: hidden;
+   margin-top: 3px;
    color: var(--z-muted-text);
-   font-size: 12px;
+   font-size: 11.5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
 }
 
 .admin-section-heading h2 {
@@ -552,8 +559,7 @@
    }
 
    .admin-stat-card {
-      min-height: 118px;
-      padding: 18px 20px;
+      padding: 16px 18px;
    }
 
    .admin-stat-card strong {
@@ -692,6 +698,11 @@
    color: var(--admin-ink);
    font-size: 16px;
    outline-color: var(--z-primary);
+}
+
+textarea.admin-input {
+   padding: 8px 10px;
+   line-height: 1.5;
 }
 
 .admin-toolbar .admin-select {
@@ -1513,8 +1524,7 @@
 .admin-dashboard-grid {
    display: grid;
    grid-template-columns: minmax(0, 1fr);
-   gap: 16px;
-   margin-bottom: 20px;
+   gap: 12px;
 }
 
 @media (min-width: 1025px) {
@@ -1529,7 +1539,7 @@
    border: 1px solid var(--admin-border);
    border-radius: var(--z-rounded);
    background: var(--z-card);
-   padding: 16px;
+   padding: 14px;
    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
@@ -1543,7 +1553,7 @@
    display: flex;
    align-items: flex-start;
    justify-content: space-between;
-   margin-bottom: 16px;
+   margin-bottom: 12px;
    gap: 12px;
 }
 
@@ -1555,8 +1565,8 @@
 }
 
 .admin-card-subtitle {
-   margin: 3px 0 0;
-   font-size: 13px;
+   margin: 2px 0 0;
+   font-size: 12px;
    color: var(--admin-muted);
 }
 
@@ -1564,34 +1574,43 @@
 .admin-rank-list {
    display: flex;
    flex-direction: column;
-   gap: 12px;
+   gap: 10px;
 }
 
 .admin-rank-item {
    display: flex;
+   min-width: 0;
    flex-direction: column;
-   gap: 5px;
+   gap: 4px;
 }
 
 .admin-rank-header {
    display: flex;
+   min-width: 0;
    align-items: center;
    justify-content: space-between;
-   font-size: 14px;
-}
-
-.admin-rank-name {
-   font-weight: 600;
-   color: var(--admin-ink);
-}
-
-.admin-rank-count {
-   color: var(--admin-muted);
+   gap: 10px;
    font-size: 13px;
 }
 
+.admin-rank-name {
+   min-width: 0;
+   overflow: hidden;
+   font-weight: 600;
+   color: var(--admin-ink);
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.admin-rank-count {
+   flex-shrink: 0;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-variant-numeric: tabular-nums;
+}
+
 .admin-rank-track {
-   height: 6px;
+   height: 5px;
    width: 100%;
    background: var(--z-muted);
    border-radius: 999px;
@@ -1609,10 +1628,11 @@
 .admin-bar-chart {
    display: flex;
    align-items: flex-end;
-   gap: 8px;
-   height: 160px;
-   padding-top: 24px;
-   padding-bottom: 24px;
+   gap: 4px;
+   height: 118px;
+   padding-top: 20px;
+   padding-bottom: 20px;
+   margin-bottom: 4px;
    border-bottom: 1px solid var(--admin-border);
    position: relative;
 }
@@ -1643,8 +1663,8 @@
 
 .admin-bar-label {
    position: absolute;
-   bottom: -20px;
-   font-size: 11px;
+   bottom: -18px;
+   font-size: 10px;
    font-weight: 600;
    color: var(--admin-muted);
    white-space: nowrap;
@@ -1685,6 +1705,218 @@
 
 .admin-user-activity-item:hover {
    background: var(--z-muted);
+}
+
+/* ==========================================================================
+   TABLAR VA IXCHAM RO'YXAT (telefon uchun: bir ekranda ko'proq ma'lumot)
+   ========================================================================== */
+
+/* Sahifa ichidagi bo'limlar — yuqoriga yopishib turadi, telefonda gorizontal suriladi */
+.admin-tabs {
+   position: sticky;
+   z-index: 4;
+   top: calc(var(--safe-area-top) + 56px);
+   display: flex;
+   gap: 4px;
+   overflow-x: auto;
+   margin: 0 -12px;
+   border-bottom: 1px solid var(--admin-border);
+   background: var(--z-glass);
+   padding: 8px 12px;
+   scrollbar-width: none;
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+.admin-tabs::-webkit-scrollbar {
+   display: none;
+}
+
+.admin-tabs-item {
+   display: inline-flex;
+   height: 34px;
+   flex-shrink: 0;
+   align-items: center;
+   gap: 6px;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   padding: 0 14px;
+   color: var(--admin-muted);
+   font-size: 13px;
+   font-weight: 650;
+   cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-tabs-item span {
+   display: grid;
+   min-width: 18px;
+   height: 18px;
+   place-items: center;
+   border-radius: 999px;
+   background: color-mix(in srgb, currentColor 14%, transparent);
+   padding: 0 5px;
+   font-size: 10.5px;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-tabs-item.is-active {
+   background: var(--z-primary);
+   color: var(--z-primary-foreground);
+}
+
+.admin-tabs-item.is-danger span {
+   background: var(--z-danger);
+   color: #fff;
+}
+
+@media (min-width: 901px) {
+   .admin-tabs {
+      top: 62px;
+      margin: 0;
+      border: 1px solid var(--admin-border);
+      border-radius: 999px;
+      padding: 5px;
+      width: fit-content;
+   }
+}
+
+/* Ixcham ro'yxat: bitta qatorda nom, ostida qisqa ma'lumot, o'ngda holat/amal */
+.admin-list {
+   display: flex;
+   flex-direction: column;
+}
+
+.admin-list-row {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+   gap: 10px;
+   border-bottom: 1px solid var(--admin-border);
+   padding: 10px 0;
+   color: inherit;
+   text-decoration: none;
+}
+
+.admin-list-row:last-child {
+   border-bottom: 0;
+}
+
+.admin-list-main {
+   display: flex;
+   min-width: 0;
+   flex: 1;
+   flex-direction: column;
+   gap: 2px;
+}
+
+.admin-list-title {
+   overflow: hidden;
+   color: var(--admin-ink);
+   font-size: 13.5px;
+   font-weight: 650;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.admin-list-meta {
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 12px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+/* Kichik ko'rsatkichlar qatori (3 ta raqam yonma-yon) */
+.admin-mini-stats {
+   display: grid;
+   grid-template-columns: repeat(3, minmax(0, 1fr));
+   gap: 6px;
+   margin-bottom: 10px;
+}
+
+.admin-mini-stats > div {
+   border-radius: 10px;
+   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+   padding: 8px 6px;
+   text-align: center;
+}
+
+.admin-mini-stats small {
+   display: block;
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 10.5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.admin-mini-stats strong {
+   color: var(--admin-ink);
+   font-size: 15px;
+   font-weight: 750;
+}
+
+/* Sozlamalar formasi: yorliq, maydon, izoh */
+.admin-field {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+}
+
+.admin-field > label,
+.admin-field-label {
+   color: var(--admin-ink);
+   font-size: 12.5px;
+   font-weight: 650;
+}
+
+.admin-field-hint {
+   color: var(--admin-muted);
+   font-size: 11.5px;
+   line-height: 1.45;
+}
+
+/* Saqlanmagan o'zgarishlar paneli: pastki navigatsiya ustida yopishib turadi */
+.admin-savebar {
+   position: sticky;
+   z-index: 6;
+   bottom: calc(var(--safe-area-bottom) + 86px);
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--z-rounded);
+   background: var(--z-glass);
+   padding: 8px 8px 8px 14px;
+   color: var(--admin-ink);
+   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.12);
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+@media (min-width: 901px) {
+   .admin-savebar {
+      bottom: 16px;
+   }
+}
+
+.admin-switch-row {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 12px;
+}
+
+.admin-switch-row > :first-child {
+   min-width: 0;
+   flex: 1;
+}
+
+.admin-switch-row > :last-child {
+   flex-shrink: 0;
 }
 
 /* ==========================================================================

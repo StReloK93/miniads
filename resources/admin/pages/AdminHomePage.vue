@@ -3,14 +3,8 @@
       <header class="admin-page-heading">
          <div>
             <h1>Boshqaruv paneli</h1>
-            <p class="admin-muted">E'lonlar statistikasi, hududlar taqsimoti, kunlik dinamika va faol foydalanuvchilar.</p>
+            <p class="admin-muted">E'lonlar, hududlar va foydalanuvchilar bo'yicha qisqa ko'rinish.</p>
          </div>
-         <RouterLink :to="{ name: 'admin-products' }">
-            <BaseButton size="sm">
-               <template #icon><FileText class="size-4" /></template>
-               E'lonlarni boshqarish
-            </BaseButton>
-         </RouterLink>
       </header>
 
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
@@ -21,360 +15,195 @@
          <RouterLink
             v-if="dashboard.stats.reported_products"
             :to="{ name: 'admin-products', query: { status: 'reported' } }"
-            class="admin-alert admin-alert-warning mb-1"
+            class="admin-alert admin-alert-warning"
          >
             <Flag class="size-4 shrink-0" />
-            <span class="grow"><b>{{ dashboard.stats.reported_products }} ta e'lon</b> ustidan shikoyat bor — ko'rib chiqing</span>
+            <span class="grow"><b>{{ dashboard.stats.reported_products }} ta e'lon</b> ustidan shikoyat bor</span>
             <ChevronRight class="size-4 shrink-0" />
          </RouterLink>
 
-         <!-- KPI Cards Grid -->
-         <div class="admin-stats-grid mb-5">
-            <article class="admin-stat-card">
-               <div class="flex items-center justify-between">
-                  <span class="admin-stat-label">Jami e'lonlar</span>
-                  <Layers class="size-4 text-(--z-primary)" />
-               </div>
-               <strong>{{ dashboard.stats.products?.toLocaleString() ?? 0 }}</strong>
-               <div class="flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                     <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                     {{ dashboard.stats.active_products ?? 0 }} faol
-                  </span>
-                  <span class="text-[11px] text-(--z-muted-text)">·</span>
-                  <span class="text-[11px] text-(--z-muted-text)">
-                     {{ dashboard.stats.expired_products ?? 0 }} muddati tugagan
-                  </span>
-               </div>
-               <span class="admin-stat-detail">Arxivda yana {{ dashboard.stats.deleted_products ?? 0 }} ta</span>
-            </article>
+         <AdminTabs v-model="tab" :tabs="tabs" />
 
-            <article class="admin-stat-card">
-               <div class="flex items-center justify-between">
-                  <span class="admin-stat-label">Jami ko'rishlar</span>
-                  <Eye class="size-4 text-sky-500" />
-               </div>
-               <strong>{{ (dashboard.stats.total_views ?? 0).toLocaleString() }}</strong>
-               <span class="admin-stat-detail">E'lonlar bo'yicha auditoriya qamrovi</span>
-            </article>
-
-            <article class="admin-stat-card">
-               <div class="flex items-center justify-between">
+         <!-- UMUMIY: asosiy raqamlar va 14 kunlik dinamika -->
+         <template v-if="tab === 'overview'">
+            <div class="admin-stats-grid">
+               <article class="admin-stat-card">
+                  <span class="admin-stat-label">E'lonlar</span>
+                  <strong>{{ num(dashboard.stats.products) }}</strong>
+                  <span class="admin-stat-detail">
+                     <b class="text-emerald-600">{{ num(dashboard.stats.active_products) }} faol</b>
+                     · {{ num(dashboard.stats.expired_products) }} tugagan
+                  </span>
+               </article>
+               <article class="admin-stat-card">
+                  <span class="admin-stat-label">Bugun qo'shildi</span>
+                  <strong>{{ num(todayAds) }}</strong>
+                  <span class="admin-stat-detail">14 kunda {{ num(totalAds14) }} ta</span>
+               </article>
+               <article class="admin-stat-card">
                   <span class="admin-stat-label">Foydalanuvchilar</span>
-                  <Users class="size-4 text-violet-500" />
-               </div>
-               <strong>{{ dashboard.stats.users?.toLocaleString() ?? 0 }}</strong>
-               <div class="flex items-center gap-2 mt-1">
-                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                     <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                     {{ dashboard.stats.active_users_today ?? 0 }} bugun faol
+                  <strong>{{ num(dashboard.stats.users) }}</strong>
+                  <span class="admin-stat-detail">
+                     <b class="text-emerald-600">{{ num(dashboard.stats.active_users_today) }} bugun</b>
+                     · +{{ num(dashboard.stats.new_users_week) }} hafta
                   </span>
-                  <span class="text-[11px] text-(--z-muted-text)">·</span>
-                  <span class="text-[11px] text-(--z-muted-text)">
-                     +{{ dashboard.stats.new_users_week ?? 0 }} bu hafta
-                  </span>
-               </div>
-            </article>
+               </article>
+               <article class="admin-stat-card">
+                  <span class="admin-stat-label">Ko'rishlar</span>
+                  <strong>{{ num(dashboard.stats.total_views) }}</strong>
+                  <span class="admin-stat-detail">barcha e'lonlar bo'yicha</span>
+               </article>
+            </div>
 
-            <article class="admin-stat-card">
-               <div class="flex items-center justify-between">
-                  <span class="admin-stat-label">Katalog bo'limlari</span>
-                  <FolderTree class="size-4 text-amber-500" />
-               </div>
-               <strong>{{ dashboard.stats.categories ?? 0 }}</strong>
-               <span class="admin-stat-detail">Katalogdagi barcha bo'limlar</span>
-            </article>
-         </div>
-
-         <!-- Row 1: Kunlik e'lonlar dinamikasi & Hududlar kesimi -->
-         <div class="admin-dashboard-grid">
-            <!-- Kunlik e'lonlar Bar Chart -->
             <section class="admin-chart-card">
                <div class="admin-card-header">
                   <div>
-                     <h2 class="admin-card-title flex items-center gap-2">
-                        <Calendar class="size-4 text-(--z-primary)" />
-                        E'lonlar dinamikasi
-                     </h2>
-                     <p class="admin-card-subtitle">So'nggi 14 kunda qo'shilgan e'lonlar va hafta kunlari bo'yicha taqsimot</p>
+                     <h2 class="admin-card-title">Kunlik yangi e'lonlar</h2>
+                     <p class="admin-card-subtitle">So'nggi 14 kun</p>
                   </div>
-                  <span
-                     v-if="dashboard.stats.busiest_day"
-                     class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-(--z-muted) text-(--z-primary)">
-                     <Flame class="size-3.5 text-amber-500" />
-                     {{ dashboard.stats.busiest_day }} ko'proq
+                  <span v-if="dashboard.stats.busiest_day" class="admin-badge admin-badge-muted shrink-0">
+                     <Flame class="size-3 text-amber-500" /> {{ dashboard.stats.busiest_day }}
                   </span>
                </div>
 
-               <!-- Bar Chart -->
-               <div class="admin-bar-chart mt-auto">
+               <div class="admin-bar-chart">
                   <div
                      v-for="day in dashboard.daily_ads"
                      :key="day.date"
-                     class="admin-bar-col group"
+                     class="admin-bar-col"
                      :class="{ 'is-peak': isPeakDay(day.count) }"
                      :title="`${day.day_label}: ${day.count} ta`"
                   >
-                     <span class="admin-bar-tooltip">{{ day.count }} ta</span>
-                     <div
-                        class="admin-bar-pill"
-                        :style="{ height: getBarHeight(day.count) }"
-                     ></div>
-                     <span class="admin-bar-label">{{ day.day_name }}</span>
-                  </div>
-               </div>
-
-               <!-- Haftalik xulosa pills -->
-               <div class="mt-8 pt-3 border-t border-(--z-border) flex items-center justify-between text-xs text-(--z-muted-text) flex-wrap gap-2">
-                  <div
-                     v-for="item in dashboard.weekly_distribution"
-                     :key="item.day"
-                     class="flex items-center gap-1"
-                  >
-                     <span class="font-medium" :class="item.day === dashboard.stats.busiest_day ? 'text-(--z-primary) font-bold' : ''">{{ item.day.slice(0, 2) }}:</span>
-                     <span class="font-semibold text-(--z-foreground)">{{ item.count }}</span>
+                     <span class="admin-bar-tooltip">{{ day.count }}</span>
+                     <div class="admin-bar-pill" :style="{ height: getBarHeight(day.count) }" />
+                     <span class="admin-bar-label">{{ day.day_name.slice(0, 2) }}</span>
                   </div>
                </div>
             </section>
 
-            <!-- Hududlar / Tumanlar taqsimoti -->
+            <RouterLink :to="{ name: 'admin-activity' }" class="admin-panel admin-list-row px-3.5!">
+               <Activity class="size-4.5 text-(--z-primary) shrink-0" />
+               <span class="admin-list-main">
+                  <span class="admin-list-title">Faollik statistikasi</span>
+                  <span class="admin-list-meta">Odamlar nimani ko'ryapti va qayerdan kelyapti</span>
+               </span>
+               <ChevronRight class="size-4 text-(--admin-muted) shrink-0" />
+            </RouterLink>
+         </template>
+
+         <!-- E'LONLAR: so'nggilari va taqsimot -->
+         <template v-else-if="tab === 'ads'">
             <section class="admin-chart-card">
                <div class="admin-card-header">
-                  <div>
-                     <h2 class="admin-card-title flex items-center gap-2">
-                        <MapPin class="size-4 text-emerald-600" />
-                        Hududlar kesimida e'lonlar
-                     </h2>
-                     <p class="admin-card-subtitle">Qaysi hudud yoki tumanda e'lonlar ko'proq joylanayotgani</p>
-                  </div>
-                  <span class="text-xs text-(--z-muted-text) font-semibold">
-                     {{ dashboard.districts_breakdown.length }} ta hudud
-                  </span>
+                  <h2 class="admin-card-title">So'nggi e'lonlar</h2>
+                  <RouterLink class="admin-text-link" :to="{ name: 'admin-products' }">Hammasi</RouterLink>
                </div>
-
-               <div class="admin-rank-list overflow-y-auto max-h-55 pr-1">
-                  <div
-                     v-for="(district, index) in dashboard.districts_breakdown"
-                     :key="district.name"
-                     class="admin-rank-item"
+               <div class="admin-list">
+                  <RouterLink
+                     v-for="product in dashboard.recent_products"
+                     :key="product.id"
+                     :to="{ name: 'admin-products', query: { search: `#${product.id}` } }"
+                     class="admin-list-row"
                   >
-                     <div class="admin-rank-header">
-                        <span class="admin-rank-name flex items-center gap-2">
-                           <span class="size-5 rounded-md text-[10px] font-bold flex items-center justify-center bg-(--z-muted) text-(--z-muted-text)">
-                              {{ index + 1 }}
-                           </span>
-                           {{ district.name }}
+                     <span class="admin-list-main">
+                        <span class="admin-list-title">{{ product.title }}</span>
+                        <span class="admin-list-meta">
+                           {{ [product.category?.name, product.district?.name, priceOf(product)].filter(Boolean).join(" · ") }}
                         </span>
-                        <div class="flex items-center gap-2">
-                           <span class="font-bold text-(--z-foreground)">{{ district.count }} ta</span>
-                           <span class="admin-rank-count">({{ district.percentage }}%)</span>
-                        </div>
-                     </div>
-                     <div class="admin-rank-track">
-                        <div
-                           class="admin-rank-fill"
-                           :style="{ width: `${district.percentage}%` }"
-                        ></div>
-                     </div>
-                  </div>
-
-                  <p v-if="dashboard.districts_breakdown.length === 0" class="text-xs text-(--z-muted-text) py-4 text-center">
-                     Hududlar bo'yicha ma'lumot topilmadi.
-                  </p>
-               </div>
-            </section>
-         </div>
-
-         <!-- Row 2: Kategoriyalar taqsimoti & Foydalanuvchilar faolligi -->
-         <div class="admin-dashboard-grid">
-            <!-- Kategoriyalar taqsimoti -->
-            <section class="admin-chart-card">
-               <div class="admin-card-header">
-                  <div>
-                     <h2 class="admin-card-title flex items-center gap-2">
-                        <Tag class="size-4 text-sky-500" />
-                        Kategoriyalar bo'yicha taqsimot
-                     </h2>
-                     <p class="admin-card-subtitle">Eng ko'p e'lon berilayotgan katalog bo'limlari</p>
-                  </div>
-                  <RouterLink :to="{ name: 'admin-categories' }" class="admin-text-link">
-                     Barcha bo'limlar
+                        <span class="admin-list-meta">
+                           #{{ product.id }} · {{ product.user?.name || "—" }} · {{ timeAgo(product.created_at) }} ·
+                           {{ num(product.views_count) }} ko'rish
+                        </span>
+                     </span>
+                     <span class="admin-badge shrink-0" :class="statusOf(product).class">{{ statusOf(product).label }}</span>
                   </RouterLink>
-               </div>
-
-               <div class="admin-rank-list overflow-y-auto max-h-65 pr-1">
-                  <div
-                     v-for="(cat, index) in dashboard.categories_breakdown"
-                     :key="cat.id"
-                     class="admin-rank-item"
-                  >
-                     <div class="admin-rank-header">
-                        <span class="admin-rank-name flex items-center gap-2">
-                           <span class="size-5 rounded-md text-[10px] font-bold flex items-center justify-center bg-(--z-muted) text-(--z-muted-text)">
-                              {{ index + 1 }}
-                           </span>
-                           {{ cat.name }}
-                        </span>
-                        <div class="flex items-center gap-2">
-                           <span class="font-bold text-(--z-foreground)">{{ cat.count }} ta</span>
-                           <span class="admin-rank-count">({{ cat.percentage }}%)</span>
-                        </div>
-                     </div>
-                     <div class="admin-rank-track">
-                        <div
-                           class="admin-rank-fill bg-sky-500!"
-                           :style="{ width: `${cat.percentage}%` }"
-                        ></div>
-                     </div>
-                  </div>
-
-                  <p v-if="dashboard.categories_breakdown.length === 0" class="text-xs text-(--z-muted-text) py-4 text-center">
-                     Kategoriyalar bo'yicha e'lonlar topilmadi.
-                  </p>
+                  <p v-if="!dashboard.recent_products.length" class="admin-muted">Hozircha e'lonlar yo'q.</p>
                </div>
             </section>
 
-            <!-- Foydalanuvchilar faolligi va yangi a'zolar -->
             <section class="admin-chart-card">
                <div class="admin-card-header">
+                  <h2 class="admin-card-title">Kategoriyalar</h2>
+                  <RouterLink :to="{ name: 'admin-categories' }" class="admin-text-link">Katalog</RouterLink>
+               </div>
+               <AdminRankList
+                  :rows="dashboard.categories_breakdown.map((c) => ({ label: c.name, value: c.count, detail: `${c.count} ta · ${c.percentage}%` }))"
+                  empty="Hali e'lonlar yo'q."
+               />
+            </section>
+
+            <section class="admin-chart-card">
+               <div class="admin-card-header">
+                  <h2 class="admin-card-title">Hududlar</h2>
+               </div>
+               <AdminRankList
+                  :rows="dashboard.districts_breakdown.map((d) => ({ label: d.name, value: d.count, detail: `${d.count} ta · ${d.percentage}%` }))"
+                  empty="Hududlar bo'yicha ma'lumot yo'q."
+                  color="#10b981"
+               />
+            </section>
+         </template>
+
+         <!-- ODAMLAR: faollik va so'nggi kirganlar -->
+         <template v-else>
+            <section class="admin-chart-card">
+               <div class="admin-mini-stats">
                   <div>
-                     <h2 class="admin-card-title flex items-center gap-2">
-                        <Activity class="size-4 text-violet-500" />
-                        Foydalanuvchilar faolligi
-                     </h2>
-                     <p class="admin-card-subtitle">So'nggi faol bo'lgan foydalanuvchilar va ularning vaqtlari</p>
+                     <small>Bugun faol</small>
+                     <strong class="text-emerald-600!">{{ num(dashboard.stats.active_users_today) }}</strong>
                   </div>
-                  <RouterLink :to="{ name: 'admin-users' }" class="admin-text-link">
-                     Barcha userlar
-                  </RouterLink>
-               </div>
-
-               <div class="grid grid-cols-3 gap-2 mb-3 pb-3 border-b border-(--z-border) text-center">
-                  <div class="p-2 rounded-lg bg-(--z-muted)/40">
-                     <span class="text-[10px] text-(--z-muted-text) block">Bugun faol</span>
-                     <strong class="text-sm font-bold text-emerald-600">{{ dashboard.stats.active_users_today ?? 0 }}</strong>
+                  <div>
+                     <small>7 kunda faol</small>
+                     <strong>{{ num(dashboard.stats.active_users_week) }}</strong>
                   </div>
-                  <div class="p-2 rounded-lg bg-(--z-muted)/40">
-                     <span class="text-[10px] text-(--z-muted-text) block">7 kunda faol</span>
-                     <strong class="text-sm font-bold text-(--z-foreground)">{{ dashboard.stats.active_users_week ?? 0 }}</strong>
-                  </div>
-                  <div class="p-2 rounded-lg bg-(--z-muted)/40">
-                     <span class="text-[10px] text-(--z-muted-text) block">Yangi qo'shilgan</span>
-                     <strong class="text-sm font-bold text-violet-600">+{{ dashboard.stats.new_users_week ?? 0 }}</strong>
+                  <div>
+                     <small>Yangi (hafta)</small>
+                     <strong>+{{ num(dashboard.stats.new_users_week) }}</strong>
                   </div>
                </div>
 
-               <div class="admin-user-activity-list overflow-y-auto max-h-47.5 pr-1">
-                  <div
-                     v-for="user in dashboard.recent_users"
-                     :key="user.id"
-                     class="admin-user-activity-item"
-                  >
-                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="relative shrink-0">
-                           <div class="size-8 rounded-full bg-(--z-muted) text-(--z-foreground) font-bold text-xs flex items-center justify-center">
-                              {{ user.name?.charAt(0)?.toUpperCase() || 'U' }}
-                           </div>
-                           <span
-                              class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-(--z-card)"
-                              :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'"
-                           ></span>
-                        </div>
-                        <div class="min-w-0">
-                           <strong class="text-xs font-semibold block truncate text-(--z-foreground)">
-                              {{ user.name }}
-                           </strong>
-                           <small class="text-[10px] text-(--z-muted-text) block truncate">
-                              {{ user.username ? `@${user.username}` : `ID: ${user.id}` }}
-                              <span v-if="user.district_name"> · {{ user.district_name }}</span>
-                           </small>
-                        </div>
-                     </div>
-
-                     <div class="text-right shrink-0">
-                        <span class="text-[11px] font-semibold text-(--z-foreground) block">
-                           {{ timeAgo(user.last_active_at) || 'Hozirgina' }}
+               <div class="admin-card-header mb-0!">
+                  <h2 class="admin-card-title">So'nggi kirganlar</h2>
+                  <RouterLink :to="{ name: 'admin-users' }" class="admin-text-link">Hammasi</RouterLink>
+               </div>
+               <div class="admin-list">
+                  <div v-for="user in dashboard.recent_users" :key="user.id" class="admin-list-row">
+                     <span class="relative shrink-0">
+                        <span class="admin-avatar size-8! text-xs!">{{ user.name?.charAt(0)?.toUpperCase() || "U" }}</span>
+                        <span
+                           class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-(--z-card)"
+                           :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'"
+                        />
+                     </span>
+                     <span class="admin-list-main">
+                        <span class="admin-list-title">{{ user.name }}</span>
+                        <span class="admin-list-meta">
+                           {{ user.username ? `@${user.username}` : `ID: ${user.id}` }}
+                           <template v-if="user.district_name"> · {{ user.district_name }}</template>
                         </span>
-                        <small class="text-[10px] text-(--z-muted-text) block">
-                           {{ user.products_count }} ta e'lon
-                        </small>
-                     </div>
+                     </span>
+                     <span class="text-right shrink-0">
+                        <span class="admin-list-title block text-xs!">
+                           {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
+                        </span>
+                        <span class="admin-list-meta block">{{ user.products_count }} ta e'lon</span>
+                     </span>
                   </div>
-
-                  <p v-if="dashboard.recent_users.length === 0" class="text-xs text-(--z-muted-text) py-4 text-center">
-                     Foydalanuvchilar topilmadi.
-                  </p>
+                  <p v-if="!dashboard.recent_users.length" class="admin-muted">Foydalanuvchilar yo'q.</p>
                </div>
             </section>
-         </div>
-
-         <!-- Row 3: So'nggi kiritilgan e'lonlar jadvali -->
-         <section class="admin-panel admin-table-panel">
-            <div class="admin-toolbar flex items-center justify-between border-b border-(--z-border) px-4 py-3">
-               <div>
-                  <h2 class="font-bold text-sm text-(--z-foreground)">So'nggi joylangan e'lonlar</h2>
-                  <p class="text-xs text-(--z-muted-text)">Oxirgi kiritilgan e'lonlar va ularning moderatsiya holati.</p>
-               </div>
-               <RouterLink class="admin-text-link text-xs font-bold" :to="{ name: 'admin-products' }">
-                  Barcha e'lonlarni ko'rish →
-               </RouterLink>
-            </div>
-
-            <div class="admin-table-wrap">
-               <table v-responsive-table class="admin-table">
-                  <thead>
-                     <tr>
-                        <th>E'lon</th>
-                        <th>Muallif</th>
-                        <th>Kategoriya</th>
-                        <th>Hudud</th>
-                        <th>Narx</th>
-                        <th>Ko'rishlar</th>
-                        <th>Holati</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     <tr v-for="product in dashboard.recent_products" :key="product.id">
-                        <td>
-                           <strong>{{ product.title }}</strong>
-                           <small>#{{ product.id }} · {{ formatDate(product.created_at) }}</small>
-                        </td>
-                        <td>{{ product.user?.name || "—" }}</td>
-                        <td>{{ product.category?.name || "—" }}</td>
-                        <td>{{ product.district?.name || "Navoiy viloyati" }}</td>
-                        <td>{{ formatProductPrice(product.price, product.price_type) }}</td>
-                        <td>
-                           <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-(--z-foreground)">
-                              <Eye class="size-3.5 text-sky-500" />
-                              {{ (product.views_count ?? 0).toLocaleString() }}
-                           </span>
-                        </td>
-                        <td>
-                           <span
-                              class="admin-badge"
-                              :class="product.deleted_at ? 'admin-badge-muted' : product.is_active ? 'admin-badge-success' : 'admin-badge-warning'"
-                           >
-                              {{ product.deleted_at ? "Arxivlangan" : product.is_active ? "Faol" : "Muddati tugagan" }}
-                           </span>
-                        </td>
-                     </tr>
-                     <tr v-if="dashboard.recent_products.length === 0">
-                        <td colspan="7" class="admin-empty-cell">Hozircha e'lonlar yo'q.</td>
-                     </tr>
-                  </tbody>
-               </table>
-            </div>
-         </section>
+         </template>
       </template>
    </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from "vue";
-import { FileText, Layers, Eye, Users, FolderTree, Calendar, MapPin, Tag, Activity, Flame, Flag, ChevronRight } from "lucide-vue-next";
-import BaseButton from "@shared/ui/BaseButton.vue";
+import { computed, onMounted, ref } from "vue";
+import { Activity, ChevronRight, Flag, Flame } from "lucide-vue-next";
 import AdminRepo from "@admin/entities/AdminRepo";
-import { formatProductPrice, formatDate, timeAgo } from "@shared/modules/formatters";
+import AdminTabs from "@admin/components/AdminTabs.vue";
+import AdminRankList from "@admin/components/AdminRankList.vue";
+import { formatProductPrice, timeAgo } from "@shared/modules/formatters";
 
 type Dashboard = {
    stats: Record<string, any>;
@@ -386,20 +215,27 @@ type Dashboard = {
    recent_products: Array<Record<string, any>>;
 };
 
+const tabs = [
+   { value: "overview", label: "Umumiy" },
+   { value: "ads", label: "E'lonlar" },
+   { value: "people", label: "Odamlar" },
+];
+const tab = ref("overview");
+
 const dashboard = ref<Dashboard | null>(null);
 const loading = ref(true);
 const error = ref("");
 
-const maxDailyCount = computed(() => {
-   if (!dashboard.value?.daily_ads?.length) return 1;
-   const max = Math.max(...dashboard.value.daily_ads.map((d) => d.count));
-   return max > 0 ? max : 1;
-});
+const num = (value: number | null | undefined) => Number(value ?? 0).toLocaleString("ru-RU");
+
+const todayAds = computed(() => dashboard.value?.daily_ads.at(-1)?.count ?? 0);
+const totalAds14 = computed(() => dashboard.value?.daily_ads.reduce((sum, day) => sum + day.count, 0) ?? 0);
+
+const maxDailyCount = computed(() => Math.max(1, ...(dashboard.value?.daily_ads ?? []).map((d) => d.count)));
 
 function getBarHeight(count: number): string {
-   if (count <= 0) return "6px";
-   const pct = Math.max(10, Math.round((count / maxDailyCount.value) * 100));
-   return `${pct}%`;
+   if (count <= 0) return "4px";
+   return `${Math.max(8, Math.round((count / maxDailyCount.value) * 100))}%`;
 }
 
 function isPeakDay(count: number): boolean {
@@ -408,8 +244,18 @@ function isPeakDay(count: number): boolean {
 
 function isRecentlyActive(dateString: string | null | undefined): boolean {
    if (!dateString) return false;
-   const diffMs = Date.now() - new Date(dateString).getTime();
-   return diffMs < 1000 * 60 * 60 * 24; // Oxirgi 24 soat ichida
+   return Date.now() - new Date(dateString).getTime() < 1000 * 60 * 60 * 24;
+}
+
+function priceOf(product: Record<string, any>) {
+   return product.price ? formatProductPrice(product.price, product.price_type) : "";
+}
+
+function statusOf(product: Record<string, any>) {
+   if (product.deleted_at) return { label: "Arxiv", class: "admin-badge-muted" };
+   return product.is_active
+      ? { label: "Faol", class: "admin-badge-success" }
+      : { label: "Tugagan", class: "admin-badge-warning" };
 }
 
 onMounted(async () => {

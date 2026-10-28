@@ -6,6 +6,7 @@ use App\Models\BotSetting;
 use App\Models\Category;
 use App\Models\District;
 use App\Models\PriceType;
+use App\Services\ErrorAlert;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
@@ -325,39 +326,16 @@ PROMPT;
      */
     private function notifyTelegramFailure(string $provider, string $errorMessage): void
     {
-        // Don't spam Telegram: send only once every 15 minutes per unique error
-        $cacheKey = 'ai_error_alert_' . md5($provider . $errorMessage);
-        if (Cache::has($cacheKey)) {
-            return;
-        }
-        Cache::put($cacheKey, true, now()->addMinutes(15));
-
-        $botToken = config('services.telegram.bot_token');
-        $chatId = config('services.telegram.admin_chat_id');
-
-        if (empty($botToken) || empty($chatId)) {
-            Log::warning("Telegramga ogohlantirish yuborilmadi: TELEGRAM_BOT_TOKEN yoki TELEGRAM_ADMIN_CHAT_ID bo'sh.");
-            return;
-        }
-
-        try {
-            $shortError = Str::limit(strip_tags($errorMessage), 350);
-            $timeNow = now()->format('Y-m-d H:i:s');
-
-            $message = "⚠️ <b>AI E'lon Tahlilida Xatolik!</b>\n\n"
-                . "🤖 <b>Provayder:</b> " . htmlspecialchars($provider, ENT_QUOTES, 'UTF-8') . "\n"
-                . "❌ <b>Xatolik sababi:</b>\n<code>" . htmlspecialchars($shortError, ENT_QUOTES, 'UTF-8') . "</code>\n\n"
-                . "⏰ <b>Vaqt:</b> {$timeNow}\n\n"
-                . "⛔ <b>Eslatma:</b> AI ishlamay qolgani sababli import to'xtatildi. Postlar keyingi importda qayta tahlil qilinadi.";
-
-            Http::timeout(5)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                'chat_id' => $chatId,
-                'text' => $message,
-                'parse_mode' => 'HTML',
-            ]);
-        } catch (\Throwable $e) {
-            Log::error("Telegramga AI ogohlantirishini yuborishda xatolik: " . $e->getMessage());
-        }
+        // Adminlarning o'ziga shaxsan (kanalga emas); bir xil xato 10 daqiqada bir marta
+        ErrorAlert::send(
+            "ai:{$provider}:{$errorMessage}",
+            "AI e'lon tahlilida xatolik",
+            [
+                'Provayder' => $provider,
+                'Xato' => Str::limit(strip_tags($errorMessage), 350),
+                'Eslatma' => "Import to'xtatildi. Postlar keyingi importda qayta tahlil qilinadi.",
+            ],
+        );
     }
 
     /**

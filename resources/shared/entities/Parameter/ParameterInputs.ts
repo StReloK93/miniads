@@ -79,21 +79,6 @@ function translationInputs(): InputConfig[] {
    );
 }
 
-// Birinchi ustun — nom: telefonda jadval kartaga aylanganda u karta sarlavhasi bo'ladi
-export const parameterColumns = [
-   { field: "title", header: "Nomi" },
-   { field: "placeholder", header: "Namuna matn" },
-   { field: "component", header: "Input turi" },
-   { field: "type", header: "Ma'lumot turi" },
-   { field: "unit", header: "O'lchov birligi" },
-   {
-      field: "options",
-      header: "Variantlar",
-      formatter: (items: any[]): any[] => items,
-   },
-   { field: "id", header: "ID" },
-];
-
 export const superRefine = (data: Record<string, unknown>, ctx: z.RefinementCtx) => {
    const isSelect = data.component === "FieldSelect";
    const options = Array.isArray(data.options) ? data.options : [];

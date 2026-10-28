@@ -437,8 +437,9 @@ const statusChips: { value: Status; label: string }[] = [
 const products = ref<AdminProduct[]>([]);
 const pagination = ref<Pagination | null>(null);
 const counts = ref<Partial<Record<Status, number>>>({});
-const searchInput = ref("");
-const searchValue = ref("");
+// Boshqa sahifadan aniq e'longa havola: /admin/products?search=#12
+const searchInput = ref(typeof route.query.search === "string" ? route.query.search : "");
+const searchValue = ref(searchInput.value);
 const status = ref<Status>((route.query.status as Status) || "all");
 const isBot = ref("all");
 const sort = ref("new");

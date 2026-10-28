@@ -242,7 +242,8 @@ export const ZodTypeMapping: Record<string, (required: boolean) => any> = {
    number: (required) => {
       const n = z.coerce.number({ message: t("form.required") }).min(1, t("form.required"));
 
-      return required ? n : n.optional().nullable();
+      // Bo'sh maydon ("" — tahrirlashda to'ldirilmagan parametr) 0 ga aylanib "majburiy" xatosini bermasin
+      return required ? n : z.preprocess((v) => (v === "" ? undefined : v), n.optional().nullable());
    },
    boolean: (required) => {
       const b = z.coerce.boolean();

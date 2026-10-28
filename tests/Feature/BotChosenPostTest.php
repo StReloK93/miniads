@@ -54,9 +54,10 @@ function jpegBytes(): string
 }
 
 beforeEach(function () {
-    $jobs = Category::create(['name' => 'Ish', 'listing_duration_days' => 30]);
-    Category::create(['name' => 'Doimiy ish', 'parent_id' => $jobs->id, 'is_page' => true, 'listing_duration_days' => 30]);
-    Category::create(['name' => 'Boshqa', 'is_page' => true, 'listing_duration_days' => 30]);
+    // Ilovadagi kabi: ishda rasm o'chirilgan (with_image = false), boshqasida yoqilgan
+    $jobs = Category::create(['name' => 'Ish', 'with_image' => false, 'listing_duration_days' => 30]);
+    Category::create(['name' => 'Doimiy ish', 'parent_id' => $jobs->id, 'is_page' => true, 'with_image' => false, 'listing_duration_days' => 30]);
+    Category::create(['name' => 'Boshqa', 'is_page' => true, 'with_image' => true, 'listing_duration_days' => 30]);
     // AdAiParserService::guessDistrictId hududlarni haqiqiy bazadagi id'lar bo'yicha taniydi (Navoiy = 3)
     foreach (['Uchquduq', 'Zarafshon', 'Navoiy', 'Karmana', 'Qiziltepa'] as $name) {
         District::create(['name' => $name]);
@@ -107,7 +108,7 @@ test('the same chosen post is not imported twice', function () {
         ->and(Product::count())->toBe(1);
 });
 
-test('chosen post keeps its photos, except job ads', function (int $categoryId, int $expectedImages) {
+test('chosen post keeps photos only where the category allows them', function (int $categoryId, int $expectedImages) {
     fakeChosenPost(chosenPost(['https://cdn.telegram.test/a.jpg', 'https://cdn.telegram.test/b.jpg']));
     Http::fake(fn (Request $request) => str_contains($request->url(), 'cdn.telegram.test')
         ? Http::response(jpegBytes())
@@ -125,8 +126,8 @@ test('chosen post keeps its photos, except job ads', function (int $categoryId, 
         }
     }
 })->with([
-    "ish e'loni — rasmsiz" => [2, 0],
-    "boshqa e'lon — rasmlari bilan" => [3, 2],
+    "rasmi o'chirilgan kategoriya (Doimiy ish)" => [2, 0],
+    "rasmi bor kategoriya" => [3, 2],
 ]);
 
 test('private links and missing posts are rejected with a reason', function () {

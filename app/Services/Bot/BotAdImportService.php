@@ -250,8 +250,8 @@ class BotAdImportService
         $product = $this->createProduct($post, $channel, $parsed, $contactPhone, $sourceHash, $botUser);
         $category = $product->category;
 
-        // Download and attach images (up to 4 images), but omit for Jobs and Services
-        if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
+        // Rasmlar (4 tagacha) — faqat rasmi bor kategoriyalarda
+        if (!empty($post['images']) && $this->acceptsImages($category)) {
             $this->attachImages($product, array_slice($post['images'], 0, 4));
         }
 
@@ -268,7 +268,7 @@ class BotAdImportService
     /**
      * Admin havola orqali o'zi tanlagan post (t.me/kanal/123): hech qanday filtr, moderatsiya va "e'lon emas"
      * rad etishi yo'q — e'lon albatta joylanadi. AI faqat sarlavha, tavsif, narx, kategoriya va hududni ajratadi;
-     * rasmlar olinadi (ish e'lonlaridan tashqari). Bir post ikki marta qo'shilmaydi.
+     * rasmlar olinadi (kategoriyada rasm o'chirilmagan bo'lsa). Bir post ikki marta qo'shilmaydi.
      *
      * @return array{status: string, message: string, product?: Product, parsed_by?: string}
      */
@@ -298,8 +298,7 @@ class BotAdImportService
         $contact = ($parsed['phone'] ?? null) ?: $this->extractPhone($contactText) ?: ($username ? '@' . $username : null);
 
         $product = $this->createProduct($post, $channel, $parsed, $contact, $this->generateContentFingerprint($text), User::getBotUser());
-        // Ish e'lonlariga rasm kerak emas
-        if (!empty($post['images']) && !$this->isJobCategory($product->category)) {
+        if (!empty($post['images']) && $this->acceptsImages($product->category)) {
             $this->attachImages($product, array_slice($post['images'], 0, 10));
         }
         BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
@@ -396,33 +395,12 @@ class BotAdImportService
     }
 
     /**
-     * Check if category represents Jobs or Services where images should be omitted.
+     * Ilovadagi kabi: kategoriyada rasm o'chirilgan bo'lsa (with_image, admin panel → Kategoriyalar) — rasm olinmaydi.
+     * Hozir: Ish (Doimiy, Kunlik, Masofaviy ish, Xizmat takliflari) va Ta'lim (Kurslar, Repetitor, Online darslar).
      */
-    /** "Ish" bo'limi (Doimiy, Kunlik, Masofaviy ish...): bo'limning o'zi yoki uning ichidagi kategoriya */
-    protected function isJobCategory(?Category $category): bool
+    protected function acceptsImages(?Category $category): bool
     {
-        if (!$category) {
-            return false;
-        }
-        $section = $category->parent ?? $category;
-
-        return $section->id === 22 || mb_strtolower(trim($section->name)) === 'ish';
-    }
-
-    protected function isJobOrServiceCategory(?Category $category): bool
-    {
-        if (!$category) {
-            return false;
-        }
-
-        // Job parent ID: 22, Service parent ID: 27
-        $jobOrServiceParentIds = [22, 27];
-        if (in_array($category->id, $jobOrServiceParentIds, true) || in_array($category->parent_id, $jobOrServiceParentIds, true)) {
-            return true;
-        }
-
-        $lowerName = mb_strtolower($category->name);
-        return str_contains($lowerName, 'ish') || str_contains($lowerName, 'xizmat') || str_contains($lowerName, 'vakansiya');
+        return !$category || $category->with_image !== false;
     }
 
     /**

@@ -19,7 +19,7 @@
                <h2 class="admin-card-title">Post havolasidan e'lon</h2>
                <p class="admin-card-subtitle">
                   O'zingiz tanlagan postlar filtrsiz joylanadi: AI kategoriya, hudud, sarlavha va narxni aniqlaydi,
-                  rasmlarni oladi (ish e'lonlariga rasm qo'yilmaydi).
+                  rasmlarni oladi (rasmi o'chirilgan kategoriyalarda — Ish, Ta'lim — rasmsiz).
                </p>
             </div>
             <textarea
@@ -160,7 +160,10 @@
                   AI e'lonmi-yo'qmi aniqlaydi va sarlavha, narx, kategoriya, hududni ajratadi. AI kaliti bo'lmasa yoki
                   "AI'siz" tanlangan bo'lsa — qoidalar bo'yicha, faqat taklif aniq bo'lgan postlar olinadi.
                </li>
-               <li>Rasmlar (4 tagacha) WebP qilib saqlanadi; ish va xizmat e'lonlariga rasm olinmaydi.</li>
+               <li>
+                  Rasmlar (4 tagacha) WebP qilib saqlanadi. Rasmi o'chirilgan kategoriyalarga (Kategoriyalar bo'limida,
+                  hozir: Ish va Ta'lim) rasm olinmaydi.
+               </li>
                <li>Taqiqlangan so'zlar (Moderatsiya bo'limi) bot e'lonlariga ham qo'llanadi.</li>
                <li>Bir siklda ko'pi bilan 1 ta bot e'loni sizning kanalingizga chiqadi (Sozlamalar → Kanalga chiqarish).</li>
             </ol>

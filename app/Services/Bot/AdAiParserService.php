@@ -73,6 +73,35 @@ class AdAiParserService
     }
 
     /**
+     * Admin havola orqali o'zi tanlagan post: hech qanday filtr yo'q va rad etilmaydi.
+     * AI faqat sarlavha, tavsif, narx, kategoriya va hududni ajratadi. AI yo'q yoki ishlamasa —
+     * qoidalar bo'yicha (e'lon baribir joylanadi).
+     */
+    public function parseChosen(string $rawText, BotSetting $setting, ?string $channel = null): array
+    {
+        $rawText = trim($rawText);
+        $provider = $setting->ai_provider ?: 'gemini';
+        $apiKey = $setting->ai_api_key ?: config($provider === 'openai' ? 'services.openai.api_key' : 'services.gemini.api_key');
+
+        if ($provider !== 'regex' && !empty($apiKey)) {
+            try {
+                $this->ensureWithinDailyTokenLimit();
+                $aiResult = $provider === 'openai'
+                    ? $this->callOpenAi($rawText, $apiKey, $channel, chosen: true)
+                    : $this->callGemini($rawText, $apiKey, $channel, chosen: true);
+
+                if (!empty($aiResult['title'])) {
+                    return $this->normalizeParsedData($aiResult, $rawText, $channel) + ['parsed_by' => 'ai'];
+                }
+            } catch (AiUnavailableException $e) {
+                Log::warning("Tanlangan post AI'siz joylanadi: {$e->getMessage()}");
+            }
+        }
+
+        return $this->normalizeParsedData($this->fallbackParse($rawText, $channel), $rawText, $channel) + ['parsed_by' => 'rules'];
+    }
+
+    /**
      * Bugun AI'ga sarflangan tokenlar.
      */
     public static function todayUsage(): array
@@ -182,9 +211,12 @@ PROMPT;
     /**
      * Har bir postga xos qism (kanal, hudud, matn) — keshlanadigan ko'rsatmalardan keyin yuboriladi.
      */
-    private function userPrompt(string $rawText, ?string $channel): string
+    private function userPrompt(string $rawText, ?string $channel, bool $chosen = false): string
     {
-        $prompt = '';
+        // Admin o'zi tanlagan post: 1-qadam (e'lonmi?) yo'q — faqat maydonlarni to'ldirish
+        $prompt = $chosen
+            ? "MUHIM: bu postni admin o'zi tanlagan, u albatta e'lon. 1-QADAMni o'tkazib yubor: is_valid doim true, barcha maydonlarni to'ldir.\n"
+            : '';
 
         if (!empty($channel)) {
             $prompt .= "Manba kanal: @{$channel}\n";
@@ -242,7 +274,7 @@ PROMPT;
     /**
      * Call Google Gemini API. Bitta aniq model, fikrlash (thinking) minimal — bu vazifa uchun keragi yo'q va qimmat.
      */
-    private function callGemini(string $rawText, string $apiKey, ?string $channel = null): array
+    private function callGemini(string $rawText, string $apiKey, ?string $channel = null, bool $chosen = false): array
     {
         $model = config('services.gemini.model');
 
@@ -261,7 +293,7 @@ PROMPT;
                 ->withHeaders(['x-goog-api-key' => $apiKey])
                 ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", [
                     'systemInstruction' => ['parts' => [['text' => $this->systemPrompt()]]],
-                    'contents' => [['role' => 'user', 'parts' => [['text' => $this->userPrompt($rawText, $channel)]]]],
+                    'contents' => [['role' => 'user', 'parts' => [['text' => $this->userPrompt($rawText, $channel, $chosen)]]]],
                     'generationConfig' => $generationConfig,
                 ]);
         } catch (\Throwable $e) {
@@ -285,7 +317,7 @@ PROMPT;
     /**
      * Call OpenAI API.
      */
-    private function callOpenAi(string $rawText, string $apiKey, ?string $channel = null): array
+    private function callOpenAi(string $rawText, string $apiKey, ?string $channel = null, bool $chosen = false): array
     {
         $model = config('services.openai.model');
 
@@ -298,7 +330,7 @@ PROMPT;
                     'model' => $model,
                     'messages' => [
                         ['role' => 'system', 'content' => $this->systemPrompt()],
-                        ['role' => 'user', 'content' => $this->userPrompt($rawText, $channel)],
+                        ['role' => 'user', 'content' => $this->userPrompt($rawText, $channel, $chosen)],
                     ],
                     'response_format' => ['type' => 'json_object'],
                     'temperature' => 0.1,

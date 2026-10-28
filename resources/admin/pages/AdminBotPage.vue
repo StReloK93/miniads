@@ -3,7 +3,7 @@
       <header class="admin-page-heading">
          <div>
             <h1>Avto-e'lonlar</h1>
-            <p class="admin-muted">Bot ochiq Telegram kanallardagi e'lonlarni har soatda o'qib, ilovaga qo'shadi.</p>
+            <p class="admin-muted">Telegram kanallardagi e'lonlarni havola orqali yoki har soatda avtomatik qo'shish.</p>
          </div>
       </header>
 
@@ -12,8 +12,76 @@
 
       <AdminTabs v-model="tab" :tabs="tabs" />
 
+      <!-- QO'SHISH: admin tanlagan postlar — filtrsiz, albatta joylanadi -->
+      <template v-if="tab === 'link'">
+         <section class="admin-chart-card flex flex-col gap-3">
+            <div>
+               <h2 class="admin-card-title">Post havolasidan e'lon</h2>
+               <p class="admin-card-subtitle">
+                  O'zingiz tanlagan postlar filtrsiz joylanadi: AI kategoriya, hudud, sarlavha va narxni aniqlaydi,
+                  rasmlarni oladi.
+               </p>
+            </div>
+            <textarea
+               v-model="linksInput"
+               rows="4"
+               class="admin-input font-mono"
+               placeholder="https://t.me/kanal/1234&#10;Bir nechta bo'lsa — har qatorda bittadan"
+               :disabled="importing"
+            />
+            <BaseSwitch v-model="publishToChannel" :disabled="importing">
+               <span class="admin-card-title block text-sm!">Kanalga ham chiqarish</span>
+               <span class="admin-card-subtitle block">Joylangach, Telegram kanalingizga yuboriladi</span>
+            </BaseSwitch>
+            <BaseButton :disabled="importing || !links.length" @click="importLinks">
+               <template #icon><Link2 class="size-4" :class="{ 'animate-pulse': importing }" /></template>
+               {{ importing ? `Joylanmoqda… ${importDone}/${importTotal}` : links.length > 1 ? `${links.length} ta e'lonni joylash` : "Joylash" }}
+            </BaseButton>
+            <p class="admin-field-hint">
+               Faqat ochiq kanal posti (t.me/kanal/123). Guruh va yopiq kanaldan o'qib bo'lmaydi. Bir post ikki marta
+               qo'shilmaydi.
+            </p>
+         </section>
+
+         <section v-if="importResults.length" class="admin-chart-card">
+            <div class="admin-card-header">
+               <h2 class="admin-card-title">Natijalar</h2>
+            </div>
+            <div class="admin-list">
+               <div v-for="(result, index) in importResults" :key="index" class="admin-list-row items-start!">
+                  <img
+                     v-if="result.product?.images?.[0]"
+                     :src="result.product.images[0]"
+                     class="size-12 rounded-lg object-cover shrink-0"
+                     alt=""
+                  />
+                  <span v-else class="size-12 rounded-lg bg-(--z-muted) grid place-items-center shrink-0">
+                     <ImageOff class="size-4 text-(--admin-muted)" />
+                  </span>
+                  <span class="admin-list-main">
+                     <span class="admin-list-title">{{ result.product?.title || result.url }}</span>
+                     <span v-if="result.product" class="admin-list-meta">
+                        {{ [result.product.category, result.product.district, result.product.price ? num(result.product.price) : null, `${result.product.images.length} rasm`].filter(Boolean).join(" · ") }}
+                     </span>
+                     <span class="admin-list-meta whitespace-normal!">
+                        {{ result.message }}
+                        <template v-if="result.parsed_by === 'rules'"> AI ishlamadi — qoidalar bo'yicha ajratildi, tekshirib chiqing.</template>
+                     </span>
+                     <span v-if="result.product" class="flex gap-3 mt-1">
+                        <a class="admin-text-link" :href="`/product/${result.product.id}`" target="_blank">Ko'rish</a>
+                        <a class="admin-text-link" :href="`/edit-product/${result.product.id}`" target="_blank">Tahrirlash</a>
+                     </span>
+                  </span>
+                  <span class="admin-badge shrink-0" :class="STATUS[result.status]?.class ?? 'admin-badge-danger'">
+                     {{ STATUS[result.status]?.label ?? "Xato" }}
+                  </span>
+               </div>
+            </div>
+         </section>
+      </template>
+
       <!-- HOLAT: bot ishlayaptimi va bugun nima bo'ldi -->
-      <template v-if="tab === 'status'">
+      <template v-else-if="tab === 'status'">
          <section class="admin-chart-card">
             <div class="admin-switch-row">
                <div class="flex items-center gap-2.5 min-w-0">
@@ -230,7 +298,7 @@
       </template>
 
       <!-- Saqlanmagan o'zgarishlar bo'lsa — pastda doim ko'rinadi -->
-      <div v-if="dirty && tab !== 'status'" class="admin-savebar">
+      <div v-if="dirty && ['settings', 'channels', 'ai'].includes(tab)" class="admin-savebar">
          <span class="text-xs font-semibold">Saqlanmagan o'zgarishlar bor</span>
          <BaseButton size="sm" :disabled="saving" @click="saveSettings">
             <template #icon><Save class="size-4" /></template>
@@ -242,7 +310,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { ChevronDown, RefreshCw, Save } from "lucide-vue-next";
+import { ChevronDown, ImageOff, Link2, RefreshCw, Save } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import AdminTabs from "@admin/components/AdminTabs.vue";
@@ -274,12 +342,61 @@ interface IBotSetting {
 }
 
 const tabs = [
+   { value: "link", label: "Qo'shish" },
    { value: "status", label: "Holat" },
    { value: "settings", label: "Sozlamalar" },
    { value: "channels", label: "Kanallar" },
    { value: "ai", label: "AI" },
 ];
-const tab = ref("status");
+const tab = ref("link");
+
+/* ---------- Havoladan qo'shish ---------- */
+
+type ImportResult = {
+   url: string;
+   status: string;
+   message: string;
+   parsed_by?: "ai" | "rules" | null;
+   product?: { id: number; title: string; price: number | null; category: string | null; district: string | null; images: string[] } | null;
+};
+const STATUS: Record<string, { label: string; class: string }> = {
+   imported: { label: "Qo'shildi", class: "admin-badge-success" },
+   exists: { label: "Avval qo'shilgan", class: "admin-badge-muted" },
+};
+
+const linksInput = ref("");
+const publishToChannel = ref(true);
+const importing = ref(false);
+const importDone = ref(0);
+const importTotal = ref(0);
+const importResults = ref<ImportResult[]>([]);
+const links = computed(() => [...new Set(linksInput.value.split(/\s+/).map((line) => line.trim()).filter(Boolean))]);
+
+// Bittadan ketma-ket: har biri AI va rasm yuklashni kutadi; muvaffaqiyatlisi maydondan olib tashlanadi
+async function importLinks() {
+   const queue = links.value;
+   importing.value = true;
+   importDone.value = 0;
+   importTotal.value = queue.length;
+   const failed: string[] = [];
+
+   for (const url of queue) {
+      try {
+         const { data } = await api.post("admin/bot-import-url", { url, publish: publishToChannel.value });
+         importResults.value.unshift({ url, ...data });
+      } catch (e: any) {
+         const data = e?.response?.data ?? {};
+         importResults.value.unshift({ url, status: data.status ?? "error", message: data.message || "Joylab bo'lmadi." });
+         failed.push(url);
+      } finally {
+         importDone.value++;
+      }
+   }
+
+   linksInput.value = failed.join("\n");
+   importing.value = false;
+   loadSettings();
+}
 
 const defaults: IBotSetting = {
    is_enabled: false,

@@ -640,6 +640,34 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Admin tanlagan post havolasi (t.me/kanal/123) — filtrsiz, albatta e'lon bo'lib joylanadi.
+     */
+    public function importBotPost(Request $request, \App\Services\Bot\BotAdImportService $service)
+    {
+        $validated = $request->validate([
+            'url' => ['required', 'string', 'max:300'],
+            'publish' => ['boolean'],
+        ]);
+
+        $result = $service->importChosen($validated['url'], (bool) ($validated['publish'] ?? false));
+        $product = $result['product'] ?? null;
+
+        return response()->json([
+            'status' => $result['status'],
+            'message' => $result['message'],
+            'parsed_by' => $result['parsed_by'] ?? null,
+            'product' => $product ? [
+                'id' => $product->id,
+                'title' => $product->title,
+                'price' => $product->price,
+                'category' => $product->category?->name,
+                'district' => $product->district?->name,
+                'images' => $product->images->map(fn ($image) => '/storage/' . ($image->thumb_src ?: $image->src))->values(),
+            ] : null,
+        ], in_array($result['status'], ['imported', 'exists'], true) ? 200 : 422);
+    }
+
     public function runBotImport(\App\Services\Bot\BotAdImportService $service)
     {
         $setting = \App\Models\BotSetting::current();

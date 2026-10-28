@@ -247,26 +247,8 @@ class BotAdImportService
         // Agar telefon raqam topilmagan bo'lsa, username ni kontakt sifatida saqlaymiz
         $contactPhone = $phone ?: ($telegramUsername ? '@' . $telegramUsername : null);
 
-        $category = Category::find($parsed['category_id']);
-        $durationDays = $category?->listing_duration_days ?? 30;
-
-        $product = Product::create([
-            'title' => $parsed['title'] ?? 'E\'lon',
-            'description' => $parsed['description'] ?? $text,
-            'category_id' => $parsed['category_id'] ?? 1,
-            'district_id' => $parsed['district_id'] ?? null,
-            'user_id' => $botUser->id,
-            'phone' => $contactPhone,
-            'price' => $parsed['price'] ?? null,
-            'price_type_id' => $parsed['price_type_id'] ?? 1,
-            'back_color_id' => 1,
-            'is_bot' => true,
-            'source_channel' => $channel,
-            'source_message_id' => $post['message_id'],
-            'source_hash' => $sourceHash,
-            'published_at' => now(),
-            'expires_at' => now()->addDays($durationDays),
-        ]);
+        $product = $this->createProduct($post, $channel, $parsed, $contactPhone, $sourceHash, $botUser);
+        $category = $product->category;
 
         // Download and attach images (up to 4 images), but omit for Jobs and Services
         if (!empty($post['images']) && !$this->isJobOrServiceCategory($category)) {
@@ -281,6 +263,84 @@ class BotAdImportService
         }
 
         return ['imported', null, $product];
+    }
+
+    /**
+     * Admin havola orqali o'zi tanlagan post (t.me/kanal/123): hech qanday filtr, moderatsiya va "e'lon emas"
+     * rad etishi yo'q — e'lon albatta joylanadi. AI faqat sarlavha, tavsif, narx, kategoriya va hududni ajratadi;
+     * rasmlar har qanday kategoriyada olinadi. Bir post ikki marta qo'shilmaydi.
+     *
+     * @return array{status: string, message: string, product?: Product, parsed_by?: string}
+     */
+    public function importChosen(string $url, bool $publish = false): array
+    {
+        $ref = TelegramChannelScraperService::parsePostUrl($url);
+        if (!$ref) {
+            return ['status' => 'invalid', 'message' => "Havola noto'g'ri. Ochiq kanal posti kerak: t.me/kanal/123"];
+        }
+        [$channel, $messageId] = $ref;
+
+        $existing = Product::where('source_channel', $channel)->where('source_message_id', $messageId)->first();
+        if ($existing) {
+            return ['status' => 'exists', 'message' => "Bu post allaqachon qo'shilgan (#{$existing->id}).", 'product' => $existing];
+        }
+
+        $post = $this->scraper->fetchPost($channel, $messageId);
+        $text = trim($post['text'] ?? '');
+        if (!$post || $text === '') {
+            return ['status' => 'not_found', 'message' => "Post topilmadi yoki matni yo'q (kanal yopiq yoki post o'chirilgan)."];
+        }
+
+        $parsed = $this->aiParser->parseChosen($text, BotSetting::current(), $channel);
+
+        $contactText = $this->prefilter->stripChannelNoise($text, $channel);
+        $username = $this->extractTelegramUsername($contactText);
+        $contact = ($parsed['phone'] ?? null) ?: $this->extractPhone($contactText) ?: ($username ? '@' . $username : null);
+
+        $product = $this->createProduct($post, $channel, $parsed, $contact, $this->generateContentFingerprint($text), User::getBotUser());
+        if (!empty($post['images'])) {
+            $this->attachImages($product, array_slice($post['images'], 0, 10));
+        }
+        BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
+
+        if ($publish) {
+            try {
+                $this->telegramService->publish($product);
+            } catch (\Throwable $e) {
+                Log::error("Tanlangan e'lonni kanalga chiqarib bo'lmadi: {$e->getMessage()}", ['product_id' => $product->id]);
+            }
+        }
+
+        return [
+            'status' => 'imported',
+            'message' => "E'lon qo'shildi (#{$product->id}).",
+            'product' => $product->load('images', 'category', 'district'),
+            'parsed_by' => $parsed['parsed_by'] ?? 'ai',
+        ];
+    }
+
+    protected function createProduct(array $post, string $channel, array $parsed, ?string $contactPhone, string $sourceHash, User $botUser): Product
+    {
+        $category = Category::find($parsed['category_id'] ?? null);
+        $durationDays = $category?->listing_duration_days ?? 30;
+
+        return Product::create([
+            'title' => $parsed['title'] ?? 'E\'lon',
+            'description' => $parsed['description'] ?? trim($post['text'] ?? ''),
+            'category_id' => $parsed['category_id'] ?? 1,
+            'district_id' => $parsed['district_id'] ?? null,
+            'user_id' => $botUser->id,
+            'phone' => $contactPhone,
+            'price' => $parsed['price'] ?? null,
+            'price_type_id' => $parsed['price_type_id'] ?? 1,
+            'back_color_id' => 1,
+            'is_bot' => true,
+            'source_channel' => $channel,
+            'source_message_id' => $post['message_id'],
+            'source_hash' => $sourceHash,
+            'published_at' => now(),
+            'expires_at' => now()->addDays($durationDays),
+        ]);
     }
 
     /**

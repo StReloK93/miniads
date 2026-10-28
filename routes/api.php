@@ -73,6 +73,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('bot-settings', 'getBotSettings');
         Route::post('bot-settings', 'updateBotSettings');
         Route::post('bot-settings/run-now', 'runBotImport');
+        Route::post('bot-import-url', 'importBotPost');
         Route::get('channel-post', 'channelPostDefaults');
         Route::post('channel-post', 'sendChannelPost');
     });

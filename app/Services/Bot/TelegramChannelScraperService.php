@@ -72,6 +72,44 @@ class TelegramChannelScraperService
     }
 
     /**
+     * Post havolasidan kanal va xabar raqami: t.me/kanal/123, t.me/s/kanal/123, telegram.me/kanal/123?single.
+     * Yopiq kanal (t.me/c/...) va guruh havolalarini o'qib bo'lmaydi — null.
+     *
+     * @return array{0: string, 1: int}|null
+     */
+    public static function parsePostUrl(string $url): ?array
+    {
+        $url = trim($url);
+        if (!preg_match('~^(?:https?://)?(?:www\.)?(?:t|telegram)\.me/(?:s/)?([A-Za-z][A-Za-z0-9_]{3,})/(\d+)(?:[/?#].*)?$~i', $url, $m)) {
+            return null;
+        }
+        if (strtolower($m[1]) === 'c') {
+            return null;
+        }
+
+        return [$m[1], (int) $m[2]];
+    }
+
+    /**
+     * Ochiq kanaldagi bitta post (embed sahifasi orqali; rasmlari va albomi bilan).
+     */
+    public function fetchPost(string $channel, int $messageId): ?array
+    {
+        $html = $this->fetchUrl("https://t.me/{$channel}/{$messageId}?embed=1&mode=tme");
+        if (empty($html)) {
+            return null;
+        }
+
+        foreach ($this->parseHtml($html, $channel, 5) as $post) {
+            if ((int) $post['message_id'] === $messageId) {
+                return $post;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Fetch HTML with timeout, headers and proxy if configured.
      */
     protected function fetchUrl(string $url): ?string

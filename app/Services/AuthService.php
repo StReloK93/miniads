@@ -46,14 +46,16 @@ class AuthService
    }
 
    /**
-    * Har kirishda hamma tokenni o'chirish boshqa qurilma/oynadagi sessiyani buzardi (telefon + kompyuter,
-    * kanaldagi e'lon havolasidan ikkinchi marta ochilish) — u yerda e'lon qo'yishda 401 chiqardi.
-    * Shuning uchun faqat eng so'nggi bir nechtasi qoldiriladi.
+    * Ishlatilayotgan sessiya hech qachon o'chirilmaydi: aks holda boshqa qurilma/oynada (telefon + kompyuter,
+    * kanaldagi e'lon havolasidan qayta ochilish) foydalanuvchi ilovadan chiqib ketadi.
+    * Faqat uzoq vaqt ishlatilmagan, tashlab ketilgan tokenlar tozalanadi.
     */
-   private function pruneTokens(User $user, int $keep = 4): void
+   private function pruneTokens(User $user, int $unusedDays = 30): void
    {
-      $recent = $user->tokens()->latest('id')->limit($keep)->pluck('id');
-      $user->tokens()->whereNotIn('id', $recent)->delete();
+      $user->tokens()
+         ->where(fn ($q) => $q->where('last_used_at', '<', now()->subDays($unusedDays))
+            ->orWhere(fn ($q) => $q->whereNull('last_used_at')->where('created_at', '<', now()->subDays($unusedDays))))
+         ->delete();
    }
 
 

@@ -7,6 +7,8 @@ import { setupTMAUI } from "@/modules/InitApp";
 import { useAuth } from "@shared/store/useAuth";
 import { initTheme } from "@shared/composables/useTheme";
 import { applyLocale, detectLocale, i18n } from "@shared/i18n";
+import { api } from "@shared/composables/useFetch";
+import { reportClientError } from "@shared/modules/clientErrors";
 import "@shared/css/ui.scss";
 
 initTheme();
@@ -19,8 +21,22 @@ try {
    telegramLanguage = undefined;
 }
 applyLocale(detectLocale(telegramLanguage));
+// Server xato xabarlarida qayerdan kirilgani ko'rinsin (Telegram mini app yoki brauzer)
+api.defaults.headers.common["X-Client"] = isTMA() ? "telegram" : "browser";
 
 const app = createApp(App);
+// Kutilmagan JS xatolari ham admin chatiga borsin (bir xili bir marta)
+app.config.errorHandler = (error: any, _instance, info) => {
+   console.error(error);
+   reportClientError("js", error?.message ?? String(error), { info, stack: String(error?.stack ?? "").slice(0, 800) });
+};
+window.addEventListener("unhandledrejection", (event) => {
+   // So'rov xatolari o'z joyida ko'rsatiladi/yuboriladi — bu yerda faqat kod xatolari
+   if (event.reason?.isAxiosError) return;
+   reportClientError("js", event.reason?.message ?? String(event.reason), {
+      stack: String(event.reason?.stack ?? "").slice(0, 800),
+   });
+});
 app.use(createPinia());
 app.use(i18n);
 const authStore = useAuth();

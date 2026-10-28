@@ -39,6 +39,9 @@ Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\P
 // Qidiruv statistikasi (mehmonlar ham): ilova so'rov "o'rnashgan"da bir marta yuboradi
 Route::post('/search-log', [App\Http\Controllers\ProfileController::class, 'logSearch'])
     ->middleware([OptionalSanctumAuth::class, 'throttle:30,1']);
+// Ilovadagi xatolar (forma yuborilmadi, JS xatosi) — admin chatiga ogohlantirish
+Route::post('/client-errors', [App\Http\Controllers\ClientErrorController::class, 'store'])
+    ->middleware([OptionalSanctumAuth::class, 'throttle:20,1']);
 Route::apiResource('categories', App\Http\Controllers\CategoryController::class)->only('index', 'show');
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class)->only('index', 'show');
 Route::get('categories/{category}/parameters', [App\Http\Controllers\CategoryParameterController::class, 'index']);

@@ -88,6 +88,7 @@ import type { InputConfig } from "@shared/types";
 import { z } from "zod";
 import { CheckCircle, ChevronRight } from "lucide-vue-next";
 import { t } from "@shared/i18n";
+import { reportRequestError } from "@shared/modules/clientErrors";
 
 const { hasFocusedInput } = useFocusedInput();
 
@@ -137,6 +138,7 @@ const onSubmit: any = async (values) => {
       await props.submit(values);
    } catch (error: any) {
       console.error("Formani yuborib bo'lmadi.", error);
+      reportRequestError(error, "Forma yuborilmadi");
       submitError.value = error?.response?.data?.message || t("common.saveError");
       return;
    } finally {

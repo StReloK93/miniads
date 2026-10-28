@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->string('type');
             $table->enum('position', ['right', 'left'])->default('right');
             $table->timestamps();
+            // ru/en tarjimalari (App\Models\Concerns\HasTranslations)
+            $table->json('translations')->nullable();
         });
     }
 

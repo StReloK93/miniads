@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Bazadagi mavjud kontent tarjimasi (o'zbekcha nom → ru/en). 2026_10_30_100001 migratsiyasi ishlatadi.
+ * Bazadagi mavjud kontent tarjimasi (o'zbekcha nom → ru/en). ContentTranslationSeeder ishlatadi (php artisan db:seed --class=ContentTranslationSeeder).
  * Yangi kategoriya/parametr tarjimalari admin panelda kiritiladi.
  * Parametrlar: options tartibi asl (o'zbekcha) ro'yxat bilan bir xil bo'lishi shart.
  */

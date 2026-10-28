@@ -12,21 +12,15 @@ use Illuminate\Support\Str;
 uses(Tests\TestCase::class);
 
 test('product images can store crop metadata', function () {
-    Schema::create('product_images', function (Blueprint $table) {
-        $table->id();
-        $table->string('src');
-        $table->foreignId('product_id');
-    });
-
     try {
-        $migration = require database_path('migrations/2026_10_07_000000_add_crop_metadata_to_product_images_table.php');
+        $migration = require database_path('migrations/2026_01_17_171349_create_product_images_table.php');
         $migration->up();
 
-        expect(Schema::hasColumns('product_images', ['crop_src', 'crop_x', 'crop_y', 'crop_scale']))->toBeTrue();
+        expect(Schema::hasColumns('product_images', ['thumb_src', 'crop_src', 'crop_x', 'crop_y', 'crop_scale']))->toBeTrue();
 
         $migration->down();
 
-        expect(Schema::hasColumns('product_images', ['crop_src', 'crop_x', 'crop_y', 'crop_scale']))->toBeFalse();
+        expect(Schema::hasTable('product_images'))->toBeFalse();
     } finally {
         Schema::dropIfExists('product_images');
     }
@@ -148,6 +142,7 @@ test('adding an image stores its original and crop metadata without a derivative
         $table->id();
         $table->foreignId('product_id');
         $table->string('src');
+        $table->string('thumb_src')->nullable();
         $table->string('crop_src')->nullable();
         $table->unsignedTinyInteger('crop_x')->default(50);
         $table->unsignedTinyInteger('crop_y')->default(50);

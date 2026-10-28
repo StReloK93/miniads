@@ -13,6 +13,8 @@ return new class extends Migration {
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            // ru/en tarjimalari (App\Models\Concerns\HasTranslations)
+            $table->json('translations')->nullable();
         });
     }
 

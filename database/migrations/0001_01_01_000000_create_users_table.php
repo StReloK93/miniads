@@ -17,6 +17,16 @@ return new class extends Migration {
             $table->bigInteger('telegram_user_id')->nullable()->unique(); // TG user uchun asosiy ID
             $table->foreignId('active_district_id')->nullable()->constrained('districts')->nullOnDelete();
             $table->enum('role', ['user', 'admin'])->default('user'); // Rollarni ajratish
+            // Admin bloklagan foydalanuvchi e'lonlarni ko'ra oladi, lekin joylay/tahrirlay olmaydi
+            $table->timestamp('blocked_at')->nullable();
+            // Bot faqat ruxsat bergan (yoki /start bosgan) foydalanuvchiga yoza oladi
+            $table->boolean('bot_can_message')->default(false);
+            $table->boolean('notify_saved_searches')->default(true);
+            $table->boolean('notify_expiry')->default(true);
+            // Yangi e'lon formasida avtomatik to'ldiriladigan raqam
+            $table->string('phone', 32)->nullable();
+            // Bot xabarlari shu tilda yuboriladi (ilova X-Locale sarlavhasidan yangilanadi)
+            $table->string('language', 2)->default('uz');
             $table->timestamps();
         });
 

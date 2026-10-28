@@ -1,15 +1,17 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
+class ContentTranslationSeeder extends Seeder
 {
     /**
      * Mavjud kategoriya, parametr, shahar va narx turlarini ru/en tiliga to'ldiradi (database/data/content_translations.php).
      * Faqat tarjimasi bo'sh qatorlar: admin keyin o'zgartirgan tarjimalar qayta yozilmaydi.
      */
-    public function up(): void
+    public function run(): void
     {
         $data = require database_path('data/content_translations.php');
 
@@ -44,13 +46,6 @@ return new class extends Migration
         }
     }
 
-    public function down(): void
-    {
-        foreach (['categories', 'districts', 'price_types', 'parameters'] as $table) {
-            DB::table($table)->update(['translations' => null]);
-        }
-    }
-
     private function fillSimple(string $table, string $field, array $map): void
     {
         foreach (DB::table($table)->whereNull('translations')->get(['id', $field]) as $row) {
@@ -80,4 +75,4 @@ return new class extends Migration
 
         return null;
     }
-};
+}

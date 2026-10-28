@@ -14,6 +14,11 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('category_id')->constrained()->onDelete('cascade'); // Faqat is_page = true bo'lganlar
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            // Telegram kanallardan avtomatik import qilingan e'lonlar (ads:import-telegram)
+            $table->boolean('is_bot')->default(false);
+            $table->string('source_channel')->nullable();
+            $table->unsignedBigInteger('source_message_id')->nullable();
+            $table->string('source_hash')->nullable();
 
             $table->string('title'); // E'lon sarlavhasi
             $table->text('description')->nullable(); // Batafsil ma'lumot
@@ -33,9 +38,17 @@ return new class extends Migration {
             $table->foreignId('price_type_id')->nullable()->constrained()->onDelete('cascade');
 
             $table->timestamp('expires_at')->useCurrent(); // E'lonning amal qilish muddati
+            // Qaysi muddat uchun eslatildi: e'lon uzaytirilsa expires_at o'zgaradi va yana eslatiladi
+            $table->timestamp('expiry_reminded_for')->nullable();
             $table->timestamp('published_at')->useCurrent();
             $table->timestamps();
             $table->softDeletes();
+
+            // Bir xil e'lon qayta import qilinmasin (BotAdImportService)
+            $table->index('source_hash');
+            // "Faol e'lon" = expires_at >= now(): kategoriya bo'yicha soni/ro'yxati va lenta
+            $table->index(['category_id', 'expires_at']);
+            $table->index('expires_at');
         });
     }
 

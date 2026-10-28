@@ -18,6 +18,8 @@ return new class extends Migration {
             $table->string('component');  // number, text, select
             $table->string('unit')->nullable(); // masalan: "kv/m"
             $table->json('options')->nullable();
+            // ru/en tarjimalari, variantlar tartib bo'yicha (App\Models\Parameter::optionLabels)
+            $table->json('translations')->nullable();
         });
     }
 

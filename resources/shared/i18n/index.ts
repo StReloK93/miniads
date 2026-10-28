@@ -18,6 +18,10 @@ export const LOCALES = [
 export type Locale = (typeof LOCALES)[number]["code"];
 
 const STORAGE_KEY = "locale";
+/** Qo'lda tanlangan paytdagi tizim (Telegram) tili — u o'zgarsa, tanlov eskirgan hisoblanadi */
+const SYSTEM_KEY = "locale_system";
+
+let systemLocale: Locale = "uz";
 
 declare module "vue-i18n" {
    // t("...") kalitlarini tekshirish va avtoto'ldirish uchun
@@ -63,21 +67,26 @@ function normalize(code: string | null | undefined): Locale | null {
 /**
  * Tartib: foydalanuvchi o'zi tanlagan til → Telegram tili (tizim) → brauzer tili → o'zbekcha.
  * Boshqa tillar (turk, nemis...) — inglizcha.
+ * Qo'lda tanlangan til Telegram tili o'zgarmaguncha amal qiladi: Telegram'da til almashtirilsa,
+ * ilova ham unga ergashadi (tepadagi Telegram tugmalari bilan bir tilda bo'lsin).
  */
 export function detectLocale(telegramLanguageCode?: string | null): Locale {
+   const source = telegramLanguageCode || navigator.language;
+   systemLocale = source ? (normalize(source) ?? "en") : "uz";
+
    let saved: string | null = null;
+   let savedSystem: string | null = null;
    try {
       saved = localStorage.getItem(STORAGE_KEY);
+      savedSystem = localStorage.getItem(SYSTEM_KEY);
    } catch {
       // Maxfiy rejim — saqlab bo'lmaydi, avtomatik aniqlaymiz
    }
 
    const fromSaved = normalize(saved);
-   if (fromSaved) return fromSaved;
+   if (fromSaved && savedSystem === systemLocale) return fromSaved;
 
-   const source = telegramLanguageCode || navigator.language;
-   if (!source) return "uz";
-   return normalize(source) ?? "en";
+   return systemLocale;
 }
 
 /** Tilni qo'llash: matnlar, <html lang>, server javoblari (X-Locale) */
@@ -89,6 +98,7 @@ export function applyLocale(locale: Locale, remember = false) {
    if (remember) {
       try {
          localStorage.setItem(STORAGE_KEY, locale);
+         localStorage.setItem(SYSTEM_KEY, systemLocale);
       } catch {
          // saqlab bo'lmasa ham joriy sessiyada ishlaydi
       }

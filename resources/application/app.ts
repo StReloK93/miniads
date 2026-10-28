@@ -60,6 +60,8 @@ const initApp = async () => {
             router.push({ name: "home" });
          } catch (error) {
             console.error("Telegram Mini App authentication failed.", error);
+            // Tarmoq uzilishi yoki eskirgan initData: avvalgi saqlangan sessiya bilan davom etamiz
+            await authStore.getUser().catch(() => {});
          }
       } else {
          try {

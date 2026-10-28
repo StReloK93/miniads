@@ -16,6 +16,9 @@ interface IAuthResponse {
 export const useAuth = defineStore("useAuth", () => {
    const user: Ref<IUser | null> = ref(null);
    const token: Ref<string | null> = ref(null);
+   // Telegram ichida: token bekor bo'lsa, shu initData bilan jimgina qayta kiramiz
+   let telegramInitData: string | null = null;
+   let reauth: Promise<void> | null = null;
 
    function setSession(result: IAuthResponse) {
       const value = `${result.type} ${result.token}`;
@@ -32,11 +35,24 @@ export const useAuth = defineStore("useAuth", () => {
       user.value = null;
    }
 
-   // Token eskirgan yoki bekor qilingan bo'lsa — mehmon rejimiga o'tamiz
+   // Token eskirgan yoki bekor qilingan bo'lsa: Telegram ichida qayta kirib so'rovni takrorlaymiz,
+   // bo'lmasa — mehmon rejimiga o'tamiz
    api.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
+         const config = error.config;
          if (error.response?.status === 401 && token.value) {
+            if (telegramInitData && config && !config._retried && !String(config.url).includes("telegram/sign-in")) {
+               config._retried = true;
+               try {
+                  reauth ??= signInTelegram(telegramInitData).finally(() => (reauth = null));
+                  await reauth;
+                  config.headers.Authorization = token.value;
+                  return api(config);
+               } catch {
+                  // initData ham eskirgan — quyida mehmon rejimiga o'tamiz
+               }
+            }
             clearSession();
          }
          return Promise.reject(error);
@@ -65,6 +81,7 @@ export const useAuth = defineStore("useAuth", () => {
          )
          .then(async (result) => {
             setSession(result.data);
+            telegramInitData = initDataRaw;
          });
    }
 

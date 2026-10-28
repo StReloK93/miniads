@@ -34,7 +34,7 @@ class AuthService
       }
 
       if (Auth::loginUsingId($user->id)) {
-         $user->tokens()->delete();
+         $this->pruneTokens($user);
 
          $token = $user->createToken('mini-app')->plainTextToken;
 
@@ -43,6 +43,17 @@ class AuthService
       }
 
       return response()->json(['message' => 'Login failed'], 500);
+   }
+
+   /**
+    * Har kirishda hamma tokenni o'chirish boshqa qurilma/oynadagi sessiyani buzardi (telefon + kompyuter,
+    * kanaldagi e'lon havolasidan ikkinchi marta ochilish) — u yerda e'lon qo'yishda 401 chiqardi.
+    * Shuning uchun faqat eng so'nggi bir nechtasi qoldiriladi.
+    */
+   private function pruneTokens(User $user, int $keep = 4): void
+   {
+      $recent = $user->tokens()->latest('id')->limit($keep)->pluck('id');
+      $user->tokens()->whereNotIn('id', $recent)->delete();
    }
 
 
@@ -79,7 +90,7 @@ class AuthService
 
       // 4. Token generatsiya qilish (Sanctum)
       if ($user) {
-         $user->tokens()->delete();
+         $this->pruneTokens($user);
 
          $token = $user->createToken('mini-app')->plainTextToken;
          return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);

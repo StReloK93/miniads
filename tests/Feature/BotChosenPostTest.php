@@ -54,7 +54,8 @@ function jpegBytes(): string
 }
 
 beforeEach(function () {
-    Category::create(['name' => 'Doimiy ish', 'is_page' => true, 'listing_duration_days' => 30]);
+    $jobs = Category::create(['name' => 'Ish', 'listing_duration_days' => 30]);
+    Category::create(['name' => 'Doimiy ish', 'parent_id' => $jobs->id, 'is_page' => true, 'listing_duration_days' => 30]);
     Category::create(['name' => 'Boshqa', 'is_page' => true, 'listing_duration_days' => 30]);
     // AdAiParserService::guessDistrictId hududlarni haqiqiy bazadagi id'lar bo'yicha taniydi (Navoiy = 3)
     foreach (['Uchquduq', 'Zarafshon', 'Navoiy', 'Karmana', 'Qiziltepa'] as $name) {
@@ -68,7 +69,7 @@ beforeEach(function () {
 test('chosen post is imported without filters and AI is told not to reject it', function () {
     fakeChosenPost(chosenPost());
     Http::fake(fn () => Http::response(chosenGeminiReply([
-        'is_valid' => true, 'title' => 'Zavodga svarchik va malyar kerak', 'description' => 'Ish bor', 'category_id' => 1, 'district_id' => 1,
+        'is_valid' => true, 'title' => 'Zavodga svarchik va malyar kerak', 'description' => 'Ish bor', 'category_id' => 2, 'district_id' => 1,
     ])));
 
     $result = app(BotAdImportService::class)->importChosen('https://t.me/Navoiy_kerak_ishchi/4253');
@@ -96,7 +97,7 @@ test('chosen post is still imported when AI rejects it', function () {
 
 test('the same chosen post is not imported twice', function () {
     fakeChosenPost(chosenPost());
-    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Ish', 'category_id' => 1])));
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Ish', 'category_id' => 2])));
     $service = app(BotAdImportService::class);
 
     $service->importChosen('https://t.me/Navoiy_kerak_ishchi/4253');
@@ -106,23 +107,27 @@ test('the same chosen post is not imported twice', function () {
         ->and(Product::count())->toBe(1);
 });
 
-test('chosen post keeps its photos even in a job category', function () {
+test('chosen post keeps its photos, except job ads', function (int $categoryId, int $expectedImages) {
     fakeChosenPost(chosenPost(['https://cdn.telegram.test/a.jpg', 'https://cdn.telegram.test/b.jpg']));
     Http::fake(fn (Request $request) => str_contains($request->url(), 'cdn.telegram.test')
         ? Http::response(jpegBytes())
-        : Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Ish', 'category_id' => 1])));
+        : Http::response(chosenGeminiReply(['is_valid' => true, 'title' => "E'lon", 'category_id' => $categoryId])));
 
     $result = app(BotAdImportService::class)->importChosen('https://t.me/Navoiy_kerak_ishchi/4253');
 
     try {
-        expect($result['product']->images)->toHaveCount(2);
+        expect($result['product']->category_id)->toBe($categoryId)
+            ->and($result['product']->images)->toHaveCount($expectedImages);
     } finally {
         foreach ($result['product']->images as $image) {
             File::delete(public_path('storage/' . $image->src));
             File::delete(public_path('storage/' . $image->thumb_src));
         }
     }
-});
+})->with([
+    "ish e'loni — rasmsiz" => [2, 0],
+    "boshqa e'lon — rasmlari bilan" => [3, 2],
+]);
 
 test('private links and missing posts are rejected with a reason', function () {
     fakeChosenPost(null);

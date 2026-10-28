@@ -268,7 +268,7 @@ class BotAdImportService
     /**
      * Admin havola orqali o'zi tanlagan post (t.me/kanal/123): hech qanday filtr, moderatsiya va "e'lon emas"
      * rad etishi yo'q — e'lon albatta joylanadi. AI faqat sarlavha, tavsif, narx, kategoriya va hududni ajratadi;
-     * rasmlar har qanday kategoriyada olinadi. Bir post ikki marta qo'shilmaydi.
+     * rasmlar olinadi (ish e'lonlaridan tashqari). Bir post ikki marta qo'shilmaydi.
      *
      * @return array{status: string, message: string, product?: Product, parsed_by?: string}
      */
@@ -298,7 +298,8 @@ class BotAdImportService
         $contact = ($parsed['phone'] ?? null) ?: $this->extractPhone($contactText) ?: ($username ? '@' . $username : null);
 
         $product = $this->createProduct($post, $channel, $parsed, $contact, $this->generateContentFingerprint($text), User::getBotUser());
-        if (!empty($post['images'])) {
+        // Ish e'lonlariga rasm kerak emas
+        if (!empty($post['images']) && !$this->isJobCategory($product->category)) {
             $this->attachImages($product, array_slice($post['images'], 0, 10));
         }
         BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
@@ -397,6 +398,17 @@ class BotAdImportService
     /**
      * Check if category represents Jobs or Services where images should be omitted.
      */
+    /** "Ish" bo'limi (Doimiy, Kunlik, Masofaviy ish...): bo'limning o'zi yoki uning ichidagi kategoriya */
+    protected function isJobCategory(?Category $category): bool
+    {
+        if (!$category) {
+            return false;
+        }
+        $section = $category->parent ?? $category;
+
+        return $section->id === 22 || mb_strtolower(trim($section->name)) === 'ish';
+    }
+
     protected function isJobOrServiceCategory(?Category $category): bool
     {
         if (!$category) {

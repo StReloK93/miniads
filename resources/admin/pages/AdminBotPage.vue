@@ -19,7 +19,7 @@
                <h2 class="admin-card-title">Post havolasidan e'lon</h2>
                <p class="admin-card-subtitle">
                   O'zingiz tanlagan postlar filtrsiz joylanadi: AI kategoriya, hudud, sarlavha va narxni aniqlaydi,
-                  rasmlarni oladi.
+                  rasmlarni oladi (ish e'lonlariga rasm qo'yilmaydi).
                </p>
             </div>
             <textarea

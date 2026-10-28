@@ -54,6 +54,21 @@ class TelegramNotifier
         return $chatId ? $this->send((string) $chatId, $html, $buttons) : false;
     }
 
+    /**
+     * Admin rolidagi foydalanuvchilarning o'ziga shaxsan (texnik ogohlantirishlar kanal/guruhga ketmasin).
+     * bot_can_message tekshirilmaydi: admin xabarni o'tkazib yubormasin — botni ishga tushirmagan bo'lsa Telegram o'zi rad etadi.
+     */
+    public function toAdminUsers(string $html): bool
+    {
+        $sent = false;
+        User::where('role', 'admin')->whereNotNull('telegram_user_id')->pluck('telegram_user_id')
+            ->each(function ($chatId) use ($html, &$sent) {
+                $sent = $this->send((string) $chatId, $html, []) || $sent;
+            });
+
+        return $sent;
+    }
+
     private function send(string $chatId, string $html, array $buttons, ?string $photoUrl = null, ?string &$description = null): bool
     {
         try {

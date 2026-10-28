@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Xatolik bo'lsa admin chatiga bot orqali ogohlantirish (+ logga yoziladi).
+ * Xatolik bo'lsa adminlarning o'ziga bot orqali shaxsan ogohlantirish (+ logga yoziladi). Kanalga yuborilmaydi.
  * Bir xil xato spam bo'lmasin: har turi 10 daqiqada bir marta yuboriladi, oradagilar sanab boriladi.
  * Xabar javob qaytarilgandan keyin yuboriladi — foydalanuvchi kutmaydi.
  */
@@ -50,7 +50,7 @@ class ErrorAlert
         // Xatolik javobidan keyin ham ishlashi uchun always: true (defer odatda faqat muvaffaqiyatli javobda ishlaydi)
         defer(function () use ($html) {
             try {
-                app(TelegramNotifier::class)->toAdmins($html);
+                app(TelegramNotifier::class)->toAdminUsers($html);
             } catch (\Throwable $e) {
                 Log::warning("ErrorAlert yuborilmadi: {$e->getMessage()}");
             }

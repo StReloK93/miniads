@@ -159,9 +159,7 @@
                   </div>
                   <main class="leading-4">
                      <h3 class="font-medium">{{ product.user.name }}</h3>
-                     <span v-if="!isBotProduct && product.user.username" class="text-(--z-muted-text) text-xs"
-                        >@{{ product.user.username }}</span
-                     >
+                     <span v-if="chatUsername" class="text-(--z-muted-text) text-xs">@{{ chatUsername }}</span>
                      <span v-else class="text-(--z-muted-text) text-xs">{{ $t("product.contactByPhone") }}</span>
                   </main>
                </div>
@@ -295,9 +293,9 @@
       </aside>
 
       <aside v-if="product" class="px-4 pt-4 border-t border-(--z-border) flex gap-4">
-         <template v-if="product.phone">
+         <template v-if="phoneNumber">
             <BaseButton
-               v-if="!isBotProduct && product.user.username"
+               v-if="chatUsername"
                severity="secondary"
                @click="openSellerChat(product)"
                iconOnly
@@ -307,14 +305,14 @@
                   <MessageCircle class="size-5 inline" />
                </template>
             </BaseButton>
-            <BaseButton @click="callPhone(product.phone)" severity="primary" class="grow">
+            <BaseButton @click="callPhone(phoneNumber)" severity="primary" class="grow">
                <template #icon>
                   <Phone class="size-4 inline" />
                </template>
                {{ $t("product.call") }}
             </BaseButton>
          </template>
-         <template v-else-if="!isBotProduct && product.user.username">
+         <template v-else-if="chatUsername">
             <BaseButton @click="openSellerChat(product)" severity="primary" class="grow">
                <template #icon>
                   <MessageCircle class="size-4 inline" />
@@ -439,9 +437,19 @@ const isBotProduct = computed(() => {
    return username === "telegramassistent" || username === "telegram_bot";
 });
 
+// Kanaldan olingan e'londa raqam bo'lmasa, "telefon" o'rnida muallifning @nick'i turadi
+const contactNick = computed(() => {
+   const phone = product.value?.phone?.trim() ?? "";
+   return phone.startsWith("@") ? phone.slice(1) : null;
+});
+const phoneNumber = computed(() => (product.value?.phone && !contactNick.value ? product.value.phone : null));
+// Kimga yozish: e'londagi @nick, bo'lmasa e'lon egasining username'i (bot akkauntiga emas)
+const chatUsername = computed(
+   () => contactNick.value || (!isBotProduct.value ? product.value?.user?.username?.trim().replace(/^@/, "") : null) || null,
+);
+
 function openSellerChat(product: IProduct) {
-   if (isBotProduct.value) return;
-   const username = product.user.username?.trim().replace(/^@/, "");
+   const username = chatUsername.value;
 
    if (!username) return;
    track("contact_telegram", product.id);

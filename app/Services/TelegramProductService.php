@@ -153,9 +153,13 @@ class TelegramProductService
                 return $title.' - <b>'.$value.$unit.'</b>';
             });
 
-        $contactText = filled($product->phone)
-            ? '📱 <code>'.e($product->phone).'</code>'
-            : (filled($product->user?->username) ? '💬 @'.e(ltrim($product->user->username, '@')) : "📱 <code>Raqam ko'rsatilmagan</code>");
+        // Kanaldan olingan e'londa raqam o'rnida @nick bo'lishi mumkin — u bosiladigan havola bo'lib chiqsin
+        $contactText = match (true) {
+            str_starts_with((string) $product->phone, '@') => '💬 @'.e(ltrim($product->phone, '@')),
+            filled($product->phone) => '📱 <code>'.e($product->phone).'</code>',
+            filled($product->user?->username) => '💬 @'.e(ltrim($product->user->username, '@')),
+            default => "📱 <code>Raqam ko'rsatilmagan</code>",
+        };
 
         $footer = "\n\n".$contactText;
 

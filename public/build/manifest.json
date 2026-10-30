@@ -351,6 +351,13 @@
       "_createLucideIcon-_T2Xg_dM.js"
     ]
   },
+  "_image-plus-DfwC6nwQ.js": {
+    "file": "assets/image-plus-DfwC6nwQ.js",
+    "name": "image-plus",
+    "imports": [
+      "_createLucideIcon-_T2Xg_dM.js"
+    ]
+  },
   "_inputs-BZ41ZSQm.js": {
     "file": "assets/inputs-BZ41ZSQm.js",
     "name": "inputs",
@@ -560,7 +567,7 @@
     ]
   },
   "resources/admin/adminApp.css": {
-    "file": "assets/adminApp-nJYj4zX3.css",
+    "file": "assets/adminApp-D6iz97x7.css",
     "src": "resources/admin/adminApp.css",
     "isEntry": true,
     "name": "adminApp",
@@ -569,7 +576,7 @@
     ]
   },
   "resources/admin/adminApp.ts": {
-    "file": "assets/adminApp-CoAb2POi.js",
+    "file": "assets/adminApp-B73niMtN.js",
     "name": "adminApp",
     "src": "resources/admin/adminApp.ts",
     "isEntry": true,
@@ -611,7 +618,7 @@
     ]
   },
   "resources/admin/pages/AdminBotPage.vue": {
-    "file": "assets/AdminBotPage-h9rxkLT5.js",
+    "file": "assets/AdminBotPage-BG-mzkiy.js",
     "name": "AdminBotPage",
     "src": "resources/admin/pages/AdminBotPage.vue",
     "isDynamicEntry": true,
@@ -622,15 +629,19 @@
       "_AdminTabs.vue_vue_type_script_setup_true_lang-B8cN9J4w.js",
       "_AdminRankList.vue_vue_type_script_setup_true_lang-Bf05WZR5.js",
       "_formatters-CKgDf61P.js",
+      "_x-DasKGbXI.js",
+      "_image-plus-DfwC6nwQ.js",
+      "_plus-C64uvsjt.js",
+      "_sparkles-e8nXGSKS.js",
       "_createLucideIcon-_T2Xg_dM.js",
-      "_image-off-Bl_RCrJe.js",
       "_chevron-down-C2n5TjtW.js",
+      "_image-off-Bl_RCrJe.js",
       "_save-BbdYWTUt.js",
       "_loader-circle-DypxjjWV.js"
     ]
   },
   "resources/admin/pages/AdminCategoriesPage.vue": {
-    "file": "assets/AdminCategoriesPage-DHYj-OiK.js",
+    "file": "assets/AdminCategoriesPage-B7smW4I_.js",
     "name": "AdminCategoriesPage",
     "src": "resources/admin/pages/AdminCategoriesPage.vue",
     "isDynamicEntry": true,
@@ -667,7 +678,7 @@
     ]
   },
   "resources/admin/pages/AdminChannelPostPage.vue": {
-    "file": "assets/AdminChannelPostPage-CToT3HqS.js",
+    "file": "assets/AdminChannelPostPage-4NP3xEOa.js",
     "name": "AdminChannelPostPage",
     "src": "resources/admin/pages/AdminChannelPostPage.vue",
     "isDynamicEntry": true,
@@ -676,10 +687,11 @@
       "_BaseButton.vue_vue_type_script_setup_true_lang-DvUjM6vm.js",
       "_BaseModal.vue_vue_type_script_setup_true_lang-CcSYWHzD.js",
       "_AdminRepo-BM07LlkW.js",
-      "_createLucideIcon-_T2Xg_dM.js",
+      "_image-plus-DfwC6nwQ.js",
       "_send-DNF8D3bN.js",
       "resources/admin/adminApp.ts",
       "_loader-circle-DypxjjWV.js",
+      "_createLucideIcon-_T2Xg_dM.js",
       "_transition-Dj4Qnens.js",
       "__plugin-vue_export-helper-DlAUqK2U.js",
       "_ThemeSwitcher.vue_vue_type_script_setup_true_lang-BYK5GsBA.js",
@@ -689,7 +701,7 @@
     ]
   },
   "resources/admin/pages/AdminHomePage.vue": {
-    "file": "assets/AdminHomePage-DTdFX35c.js",
+    "file": "assets/AdminHomePage-CJ_ohogL.js",
     "name": "AdminHomePage",
     "src": "resources/admin/pages/AdminHomePage.vue",
     "isDynamicEntry": true,
@@ -763,7 +775,7 @@
     ]
   },
   "resources/admin/pages/AdminProductsPage.vue": {
-    "file": "assets/AdminProductsPage-9l4_2UXz.js",
+    "file": "assets/AdminProductsPage-DRkxSPG5.js",
     "name": "AdminProductsPage",
     "src": "resources/admin/pages/AdminProductsPage.vue",
     "isDynamicEntry": true,
@@ -834,7 +846,7 @@
     ]
   },
   "resources/admin/pages/AdminUsersPage.vue": {
-    "file": "assets/AdminUsersPage-C2UKdyGG.js",
+    "file": "assets/AdminUsersPage-mzddpp-q.js",
     "name": "AdminUsersPage",
     "src": "resources/admin/pages/AdminUsersPage.vue",
     "isDynamicEntry": true,
@@ -861,7 +873,7 @@
     ]
   },
   "resources/application/app.css": {
-    "file": "assets/app-DvGugLJs.css",
+    "file": "assets/app-d09p4L-L.css",
     "src": "resources/application/app.css",
     "isEntry": true,
     "name": "app",

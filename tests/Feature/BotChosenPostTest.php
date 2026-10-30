@@ -5,12 +5,15 @@ use App\Models\Category;
 use App\Models\District;
 use App\Models\PriceType;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\Bot\BotAdImportService;
 use App\Services\Bot\TelegramChannelScraperService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Laravel\Sanctum\Sanctum;
 
 uses(RefreshDatabase::class);
 
@@ -137,4 +140,61 @@ test('private links and missing posts are rejected with a reason', function () {
     expect($service->importChosen('https://t.me/c/123/45')['status'])->toBe('invalid')
         ->and($service->importChosen('https://t.me/Navoiy_kerak_ishchi/999')['status'])->toBe('not_found')
         ->and(Product::count())->toBe(0);
+});
+
+/** Guruhdan nusxalangan e'lon: kanal yo'q, kontakt faqat @nick */
+const PASTED_TEXT = "Sotiladi: Lacetti 2012, oq rang, holati zo'r. Narxi 9500\$. Navoiy shahri. Murojaat: @muhtasham_hr";
+
+function postPastedAd(array $images = []): \Illuminate\Testing\TestResponse
+{
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    return test()->post('/api/admin/bot-import-text', ['text' => PASTED_TEXT, 'images' => $images, 'publish' => '0'], ['Accept' => 'application/json']);
+}
+
+test('pasted text becomes an ad with uploaded photos and the nick as contact', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Lacetti 2012', 'price' => 9500, 'category_id' => 3])));
+
+    $response = postPastedAd([
+        UploadedFile::fake()->createWithContent('a.jpg', jpegBytes()),
+        UploadedFile::fake()->createWithContent('b.jpg', jpegBytes()),
+    ]);
+    $product = Product::with('images')->first();
+
+    try {
+        $response->assertOk()->assertJsonPath('status', 'imported')->assertJsonCount(2, 'product.images');
+        expect($product->title)->toBe('Lacetti 2012')
+            ->and($product->phone)->toBe('@muhtasham_hr')
+            ->and($product->is_bot)->toBeTrue()
+            ->and($product->source_channel)->toBeNull();
+    } finally {
+        foreach ($product?->images ?? [] as $image) {
+            File::delete(public_path('storage/' . $image->src));
+            File::delete(public_path('storage/' . $image->thumb_src));
+        }
+    }
+});
+
+test('pasted text drops photos in a category without images', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Svarchik kerak', 'category_id' => 2])));
+
+    postPastedAd([UploadedFile::fake()->createWithContent('a.jpg', jpegBytes())])
+        ->assertOk()
+        ->assertJsonPath('product.category', 'Doimiy ish')
+        ->assertJsonCount(0, 'product.images');
+});
+
+test('the same pasted text is not added twice', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Lacetti', 'category_id' => 3])));
+
+    postPastedAd()->assertOk();
+    postPastedAd()->assertOk()->assertJsonPath('status', 'exists');
+
+    expect(Product::count())->toBe(1);
+});
+
+test('only admins can import pasted text', function () {
+    Sanctum::actingAs(User::create(['name' => 'User', 'role' => 'user']));
+
+    $this->postJson('/api/admin/bot-import-text', ['text' => PASTED_TEXT])->assertForbidden();
 });

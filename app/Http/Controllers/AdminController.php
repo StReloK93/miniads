@@ -650,7 +650,30 @@ class AdminController extends Controller
             'publish' => ['boolean'],
         ]);
 
-        $result = $service->importChosen($validated['url'], (bool) ($validated['publish'] ?? false));
+        return $this->chosenImportResponse(
+            $service->importChosen($validated['url'], (bool) ($validated['publish'] ?? false))
+        );
+    }
+
+    /**
+     * Admin guruhdan nusxalagan e'lon matni va o'zi qo'ygan rasmlar — importBotPost kabi filtrsiz joylanadi.
+     */
+    public function importBotText(Request $request, \App\Services\Bot\BotAdImportService $service)
+    {
+        $validated = $request->validate([
+            'text' => ['required', 'string', 'max:4096'],
+            'images' => ['array', 'max:10'],
+            'images.*' => ['image', 'mimes:jpeg,png,webp', 'max:10240'],
+            'publish' => ['boolean'],
+        ]);
+
+        return $this->chosenImportResponse(
+            $service->importText($validated['text'], $request->file('images', []), $request->boolean('publish'))
+        );
+    }
+
+    private function chosenImportResponse(array $result)
+    {
         $product = $result['product'] ?? null;
 
         return response()->json([

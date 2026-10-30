@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\User;
 use App\Services\TelegramProductService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -291,6 +292,40 @@ class BotAdImportService
             return ['status' => 'not_found', 'message' => "Post topilmadi yoki matni yo'q (kanal yopiq yoki post o'chirilgan)."];
         }
 
+        $result = $this->storeChosen($post, $channel, $post['images'] ?? [], $publish);
+        BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
+
+        return $result;
+    }
+
+    /**
+     * Admin guruhdan nusxalab joylagan matn (va o'zi qo'ygan rasmlar) — importChosen kabi filtrsiz, albatta joylanadi.
+     * Aynan shu matn avval qo'shilgan bo'lsa, qayta qo'shilmaydi.
+     *
+     * @param  UploadedFile[]  $images
+     * @return array{status: string, message: string, product?: Product, parsed_by?: string}
+     */
+    public function importText(string $text, array $images = [], bool $publish = false): array
+    {
+        $text = trim($text);
+        if (mb_strlen($text) < 10) {
+            return ['status' => 'invalid', 'message' => "Matn juda qisqa."];
+        }
+
+        $existing = Product::where('source_hash', $this->generateContentFingerprint($text))->first();
+        if ($existing) {
+            return ['status' => 'exists', 'message' => "Bu matn allaqachon qo'shilgan (#{$existing->id}).", 'product' => $existing];
+        }
+
+        return $this->storeChosen(['text' => $text, 'message_id' => null], null, $images, $publish);
+    }
+
+    /**
+     * @param  array<string|UploadedFile>  $images  post rasmlari havolasi yoki admin yuklagan fayllar
+     */
+    protected function storeChosen(array $post, ?string $channel, array $images, bool $publish): array
+    {
+        $text = trim($post['text']);
         $parsed = $this->aiParser->parseChosen($text, BotSetting::current(), $channel);
 
         $contactText = $this->prefilter->stripChannelNoise($text, $channel);
@@ -298,10 +333,9 @@ class BotAdImportService
         $contact = ($parsed['phone'] ?? null) ?: $this->extractPhone($contactText) ?: ($username ? '@' . $username : null);
 
         $product = $this->createProduct($post, $channel, $parsed, $contact, $this->generateContentFingerprint($text), User::getBotUser());
-        if (!empty($post['images']) && $this->acceptsImages($product->category)) {
-            $this->attachImages($product, array_slice($post['images'], 0, 10));
+        if ($images && $this->acceptsImages($product->category)) {
+            $this->attachImages($product, array_slice($images, 0, 10));
         }
-        BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
 
         if ($publish) {
             try {
@@ -319,7 +353,7 @@ class BotAdImportService
         ];
     }
 
-    protected function createProduct(array $post, string $channel, array $parsed, ?string $contactPhone, string $sourceHash, User $botUser): Product
+    protected function createProduct(array $post, ?string $channel, array $parsed, ?string $contactPhone, string $sourceHash, User $botUser): Product
     {
         $category = Category::find($parsed['category_id'] ?? null);
         $durationDays = $category?->listing_duration_days ?? 30;
@@ -345,20 +379,29 @@ class BotAdImportService
 
     /**
      * Download and save images for a product.
+     *
+     * @param  array<string|UploadedFile>  $images
      */
-    protected function attachImages(Product $product, array $imageUrls): void
+    protected function attachImages(Product $product, array $images): void
     {
-        foreach ($imageUrls as $url) {
-            try {
-                $response = Http::timeout(8)
-                    ->withHeaders(['User-Agent' => 'Mozilla/5.0'])
-                    ->get($url);
+        foreach ($images as $image) {
+            $url = $image instanceof UploadedFile ? $image->getClientOriginalName() : $image;
 
-                if (!$response->successful()) {
-                    continue;
+            try {
+                if ($image instanceof UploadedFile) {
+                    $contents = (string) $image->get();
+                } else {
+                    $response = Http::timeout(8)
+                        ->withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                        ->get($image);
+
+                    if (!$response->successful()) {
+                        continue;
+                    }
+
+                    $contents = $response->body();
                 }
 
-                $contents = $response->body();
                 if (strlen($contents) < 1000) {
                     continue;
                 }

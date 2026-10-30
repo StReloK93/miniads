@@ -54,12 +54,13 @@ class AdPrefilter
      * Kanalning o'z imzosi va havolalarini olib tashlaydi.
      * Yangilik kanallari postlari oxirida "@KanalNomi" turadi — u bog'lanish manzili emas.
      */
-    public function stripChannelNoise(string $text, string $channel): string
+    public function stripChannelNoise(string $text, ?string $channel): string
     {
-        $channel = preg_quote(ltrim($channel, '@'), '/');
-
         $text = preg_replace('/(?:https?:\/\/)?t\.me\/\S+/iu', '', $text);
-        $text = preg_replace('/@' . $channel . '\b/iu', '', $text);
+        // Admin joylagan matnda kanal noma'lum — sotuvchining @nick'i o'chib ketmasin
+        if (filled($channel)) {
+            $text = preg_replace('/@' . preg_quote(ltrim($channel, '@'), '/') . '\b/iu', '', $text);
+        }
         // Bot / kanal imzolari (masalan @navoiy_elon_bot) ham kontakt hisoblanmaydi
         $text = preg_replace('/@\w+bot\b/iu', '', $text);
 

@@ -3,7 +3,7 @@
       <header class="admin-page-heading">
          <div>
             <h1>Avto-e'lonlar</h1>
-            <p class="admin-muted">Telegram kanallardagi e'lonlarni havola orqali yoki har soatda avtomatik qo'shish.</p>
+            <p class="admin-muted">Guruh va kanallardagi e'lonlarni matn yoki havola orqali, yoki har soatda avtomatik qo'shish.</p>
          </div>
       </header>
 
@@ -12,8 +12,94 @@
 
       <AdminTabs v-model="tab" :tabs="tabs" />
 
-      <!-- QO'SHISH: admin tanlagan postlar — filtrsiz, albatta joylanadi -->
-      <template v-if="tab === 'link'">
+      <!-- MATNDAN: guruhdan nusxalangan e'lon matni + rasmlar — filtrsiz, albatta joylanadi -->
+      <template v-if="tab === 'text'">
+         <section class="admin-chart-card flex flex-col gap-1">
+            <h2 class="admin-card-title">Matndan e'lon</h2>
+            <p class="admin-card-subtitle">
+               Guruhdagi e'lon matnini nusxalab joylang, rasmlarini shu yerga Ctrl+V qiling yoki tanlang. AI sarlavha,
+               narx, kategoriya va hududni o'zi ajratadi. Rasmi o'chirilgan kategoriyalarda (Ish, Ta'lim) rasm olinmaydi.
+            </p>
+         </section>
+
+         <section
+            v-for="(draft, index) in drafts"
+            :key="draft.id"
+            class="admin-chart-card flex flex-col gap-2.5"
+            @paste="onPaste(draft, $event)"
+            @dragover.prevent
+            @drop.prevent="addImages(draft, $event.dataTransfer?.files)"
+         >
+            <div class="flex items-center justify-between gap-2">
+               <span class="admin-card-title text-sm!">E'lon {{ index + 1 }}</span>
+               <button
+                  v-if="drafts.length > 1"
+                  type="button"
+                  class="admin-icon-button"
+                  title="Olib tashlash"
+                  :disabled="importing"
+                  @click="removeDraft(draft)"
+               >
+                  <X class="size-4" />
+               </button>
+            </div>
+            <textarea
+               v-model="draft.text"
+               rows="6"
+               class="admin-input"
+               placeholder="E'lon matnini shu yerga joylang"
+               :disabled="importing"
+            />
+            <div class="flex flex-wrap gap-2">
+               <span v-for="(image, imageIndex) in draft.images" :key="image.url" class="relative">
+                  <img :src="image.url" class="size-16 rounded-lg object-cover" alt="" />
+                  <button
+                     type="button"
+                     class="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-rose-500 text-white grid place-items-center"
+                     title="Rasmni olib tashlash"
+                     :disabled="importing"
+                     @click="removeImage(draft, imageIndex)"
+                  >
+                     <X class="size-3" />
+                  </button>
+               </span>
+               <label
+                  v-if="draft.images.length < MAX_IMAGES"
+                  class="size-16 rounded-lg border border-dashed border-(--admin-border) grid place-items-center cursor-pointer text-(--admin-muted)"
+                  title="Rasm qo'shish"
+               >
+                  <ImagePlus class="size-5" />
+                  <input
+                     type="file"
+                     accept="image/*"
+                     multiple
+                     class="hidden"
+                     :disabled="importing"
+                     @change="onPick(draft, $event)"
+                  />
+               </label>
+            </div>
+         </section>
+
+         <section class="admin-chart-card flex flex-col gap-3">
+            <BaseButton severity="secondary" :disabled="importing" @click="addDraft">
+               <template #icon><Plus class="size-4" /></template>
+               Yana e'lon qo'shish
+            </BaseButton>
+            <BaseSwitch v-model="publishToChannel" :disabled="importing">
+               <span class="admin-card-title block text-sm!">Kanalga ham chiqarish</span>
+               <span class="admin-card-subtitle block">Joylangach, Telegram kanalingizga yuboriladi</span>
+            </BaseSwitch>
+            <BaseButton :disabled="importing || !readyDrafts.length" @click="importDrafts">
+               <template #icon><Sparkles class="size-4" :class="{ 'animate-pulse': importing }" /></template>
+               {{ importing ? `Joylanmoqda… ${importDone}/${importTotal}` : readyDrafts.length > 1 ? `${readyDrafts.length} ta e'lonni joylash` : "Joylash" }}
+            </BaseButton>
+            <p class="admin-field-hint">Aynan shu matn avval qo'shilgan bo'lsa, qayta qo'shilmaydi.</p>
+         </section>
+      </template>
+
+      <!-- HAVOLADAN: admin tanlagan postlar — filtrsiz, albatta joylanadi -->
+      <template v-else-if="tab === 'link'">
          <section class="admin-chart-card flex flex-col gap-3">
             <div>
                <h2 class="admin-card-title">Post havolasidan e'lon</h2>
@@ -41,42 +127,6 @@
                Faqat ochiq kanal posti (t.me/kanal/123). Guruh va yopiq kanaldan o'qib bo'lmaydi. Bir post ikki marta
                qo'shilmaydi.
             </p>
-         </section>
-
-         <section v-if="importResults.length" class="admin-chart-card">
-            <div class="admin-card-header">
-               <h2 class="admin-card-title">Natijalar</h2>
-            </div>
-            <div class="admin-list">
-               <div v-for="(result, index) in importResults" :key="index" class="admin-list-row items-start!">
-                  <img
-                     v-if="result.product?.images?.[0]"
-                     :src="result.product.images[0]"
-                     class="size-12 rounded-lg object-cover shrink-0"
-                     alt=""
-                  />
-                  <span v-else class="size-12 rounded-lg bg-(--z-muted) grid place-items-center shrink-0">
-                     <ImageOff class="size-4 text-(--admin-muted)" />
-                  </span>
-                  <span class="admin-list-main">
-                     <span class="admin-list-title">{{ result.product?.title || result.url }}</span>
-                     <span v-if="result.product" class="admin-list-meta">
-                        {{ [result.product.category, result.product.district, result.product.price ? num(result.product.price) : null, `${result.product.images.length} rasm`].filter(Boolean).join(" · ") }}
-                     </span>
-                     <span class="admin-list-meta whitespace-normal!">
-                        {{ result.message }}
-                        <template v-if="result.parsed_by === 'rules'"> AI ishlamadi — qoidalar bo'yicha ajratildi, tekshirib chiqing.</template>
-                     </span>
-                     <span v-if="result.product" class="flex gap-3 mt-1">
-                        <a class="admin-text-link" :href="`/product/${result.product.id}`" target="_blank">Ko'rish</a>
-                        <a class="admin-text-link" :href="`/edit-product/${result.product.id}`" target="_blank">Tahrirlash</a>
-                     </span>
-                  </span>
-                  <span class="admin-badge shrink-0" :class="STATUS[result.status]?.class ?? 'admin-badge-danger'">
-                     {{ STATUS[result.status]?.label ?? "Xato" }}
-                  </span>
-               </div>
-            </div>
          </section>
       </template>
 
@@ -300,6 +350,43 @@
          </section>
       </template>
 
+      <!-- Matndan va havoladan qo'shish natijalari -->
+      <section v-if="importResults.length && ['text', 'link'].includes(tab)" class="admin-chart-card">
+         <div class="admin-card-header">
+            <h2 class="admin-card-title">Natijalar</h2>
+         </div>
+         <div class="admin-list">
+            <div v-for="(result, index) in importResults" :key="index" class="admin-list-row items-start!">
+               <img
+                  v-if="result.product?.images?.[0]"
+                  :src="result.product.images[0]"
+                  class="size-12 rounded-lg object-cover shrink-0"
+                  alt=""
+               />
+               <span v-else class="size-12 rounded-lg bg-(--z-muted) grid place-items-center shrink-0">
+                  <ImageOff class="size-4 text-(--admin-muted)" />
+               </span>
+               <span class="admin-list-main">
+                  <span class="admin-list-title">{{ result.product?.title || result.url }}</span>
+                  <span v-if="result.product" class="admin-list-meta">
+                     {{ [result.product.category, result.product.district, result.product.price ? num(result.product.price) : null, `${result.product.images.length} rasm`].filter(Boolean).join(" · ") }}
+                  </span>
+                  <span class="admin-list-meta whitespace-normal!">
+                     {{ result.message }}
+                     <template v-if="result.parsed_by === 'rules'"> AI ishlamadi — qoidalar bo'yicha ajratildi, tekshirib chiqing.</template>
+                  </span>
+                  <span v-if="result.product" class="flex gap-3 mt-1">
+                     <a class="admin-text-link" :href="`/product/${result.product.id}`" target="_blank">Ko'rish</a>
+                     <a class="admin-text-link" :href="`/edit-product/${result.product.id}`" target="_blank">Tahrirlash</a>
+                  </span>
+               </span>
+               <span class="admin-badge shrink-0" :class="STATUS[result.status]?.class ?? 'admin-badge-danger'">
+                  {{ STATUS[result.status]?.label ?? "Xato" }}
+               </span>
+            </div>
+         </div>
+      </section>
+
       <!-- Saqlanmagan o'zgarishlar bo'lsa — pastda doim ko'rinadi -->
       <div v-if="dirty && ['settings', 'channels', 'ai'].includes(tab)" class="admin-savebar">
          <span class="text-xs font-semibold">Saqlanmagan o'zgarishlar bor</span>
@@ -313,7 +400,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { ChevronDown, ImageOff, Link2, RefreshCw, Save } from "lucide-vue-next";
+import { ChevronDown, ImageOff, ImagePlus, Link2, Plus, RefreshCw, Save, Sparkles, X } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import AdminTabs from "@admin/components/AdminTabs.vue";
@@ -345,13 +432,14 @@ interface IBotSetting {
 }
 
 const tabs = [
-   { value: "link", label: "Qo'shish" },
+   { value: "text", label: "Matndan" },
+   { value: "link", label: "Havoladan" },
    { value: "status", label: "Holat" },
    { value: "settings", label: "Sozlamalar" },
    { value: "channels", label: "Kanallar" },
    { value: "ai", label: "AI" },
 ];
-const tab = ref("link");
+const tab = ref("text");
 
 /* ---------- Havoladan qo'shish ---------- */
 
@@ -397,6 +485,102 @@ async function importLinks() {
    }
 
    linksInput.value = failed.join("\n");
+   importing.value = false;
+   loadSettings();
+}
+
+/* ---------- Matndan qo'shish ---------- */
+
+const MAX_IMAGES = 10;
+type DraftImage = { file: File; url: string };
+type Draft = { id: number; text: string; images: DraftImage[] };
+
+let draftSeq = 0;
+const newDraft = (): Draft => ({ id: ++draftSeq, text: "", images: [] });
+const drafts = ref<Draft[]>([newDraft()]);
+const readyDrafts = computed(() => drafts.value.filter((draft) => draft.text.trim().length >= 10));
+
+function addDraft() {
+   drafts.value.push(newDraft());
+}
+
+function removeDraft(draft: Draft) {
+   draft.images.forEach((image) => URL.revokeObjectURL(image.url));
+   drafts.value = drafts.value.filter((item) => item.id !== draft.id);
+}
+
+function removeImage(draft: Draft, index: number) {
+   URL.revokeObjectURL(draft.images[index].url);
+   draft.images.splice(index, 1);
+}
+
+// Telefon rasmlari va nusxalangan PNG'lar katta — yuborishdan oldin 1600px JPEG'ga kichraytiriladi
+async function shrinkImage(file: File): Promise<File> {
+   try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.85));
+      return blob ? new File([blob], "image.jpg", { type: "image/jpeg" }) : file;
+   } catch {
+      return file;
+   }
+}
+
+async function addImages(draft: Draft, files?: FileList | File[] | null) {
+   const images = [...(files ?? [])].filter((file) => file.type.startsWith("image/"));
+   for (const file of images.slice(0, MAX_IMAGES - draft.images.length)) {
+      const shrunk = await shrinkImage(file);
+      if (draft.images.length < MAX_IMAGES) {
+         draft.images.push({ file: shrunk, url: URL.createObjectURL(shrunk) });
+      }
+   }
+}
+
+function onPick(draft: Draft, event: Event) {
+   const input = event.target as HTMLInputElement;
+   addImages(draft, input.files);
+   input.value = "";
+}
+
+// Ctrl+V: rasm bo'lsa — rasmlarga qo'shiladi, matn esa odatdagidek maydonga tushadi
+function onPaste(draft: Draft, event: ClipboardEvent) {
+   const files = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/"));
+   if (!files.length) return;
+   if (!event.clipboardData?.getData("text/plain")) event.preventDefault();
+   addImages(draft, files);
+}
+
+async function importDrafts() {
+   const queue = readyDrafts.value;
+   importing.value = true;
+   importDone.value = 0;
+   importTotal.value = queue.length;
+
+   for (const draft of queue) {
+      const label = draft.text.trim().split("\n")[0].slice(0, 80);
+      const body = new FormData();
+      body.append("text", draft.text);
+      body.append("publish", publishToChannel.value ? "1" : "0");
+      draft.images.forEach((image) => body.append("images[]", image.file));
+
+      try {
+         const { data } = await api.post("admin/bot-import-text", body, { headers: { "Content-Type": "multipart/form-data" } });
+         importResults.value.unshift({ url: label, ...data });
+         removeDraft(draft);
+      } catch (e: any) {
+         const data = e?.response?.data ?? {};
+         importResults.value.unshift({ url: label, status: data.status ?? "error", message: data.message || "Joylab bo'lmadi." });
+      } finally {
+         importDone.value++;
+      }
+   }
+
+   if (!drafts.value.length) drafts.value.push(newDraft());
    importing.value = false;
    loadSettings();
 }

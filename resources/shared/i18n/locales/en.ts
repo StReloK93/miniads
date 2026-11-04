@@ -72,6 +72,7 @@ const en: MessageSchema = {
       title: "Categories",
       subtitle: "What are you looking for? Pick a category",
       all: "All categories",
+      featured: "Quick sections",
       category: "Category",
       count: "{n} section | {n} sections",
       emptyHint: "There are no active ads in this category yet.",
@@ -97,6 +98,8 @@ const en: MessageSchema = {
    },
    filters: {
       reset: "Reset filters",
+      showCount: "Show {n} ad | Show {n} ads",
+      noneLeft: "No matching ads",
       sort: "Sort by",
       any: "Any",
       withImage: "With photos only",
@@ -186,6 +189,7 @@ const en: MessageSchema = {
       expired: "Expired",
       endsToday: "Ends today",
       daysLeft: "{n} day left | {n} days left",
+      permanent: "No expiry",
    },
    favorites: {
       count: "{n} ad in favorites | {n} ads in favorites",

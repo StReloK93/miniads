@@ -49,6 +49,19 @@ class CategoryController extends Controller
 		});
 	}
 
+	/**
+	 * Bosh sahifadagi "Tezkor bo'limlar": admin belgilagan kategoriyalar (istalgan darajadagi), tartib bo'yicha.
+	 */
+	public function featured()
+	{
+		return Cache::remember('categories:v' . Category::cacheVersion() . ':featured', now()->addMinutes(15), function () {
+			return Category::where('is_featured', true)
+				->orderBy('featured_order')
+				->orderBy('id')
+				->get(['id', 'name', 'translations', 'image', 'parent_id', 'is_page', 'is_permanent']);
+		});
+	}
+
 	public function store(Request $request)
 	{
 		$validated = $request->validate([
@@ -65,10 +78,13 @@ class CategoryController extends Controller
 			],
 			'name' => 'required|string',
 			'image' => 'sometimes|mimes:svg',
+			'listing_duration_days' => 'nullable|integer|min:1|max:365',
+			'featured_order' => 'nullable|integer|min:0|max:999',
 			...Category::translationRules(),
 		]);
 
 		$validated['is_page'] = $request->boolean('is_page');
+		$validated = [...$validated, ...self::flags($request)];
 		if ($request->hasFile('image')) {
 			$file = $request->file('image');
 			// Fayl nomini xavfsiz qilish (Original nomda keraksiz belgilar bo'lishi mumkin)
@@ -96,13 +112,17 @@ class CategoryController extends Controller
 		$request->validate([
 			'name' => 'string',
 			'image' => 'sometimes|mimes:svg', // image ekanligini ham tekshirish yaxshi
+			'listing_duration_days' => 'sometimes|nullable|integer|min:1|max:365',
+			'featured_order' => 'sometimes|nullable|integer|min:0|max:999',
 			...Category::translationRules(),
 		]);
 
 		$data = $request->all(); // Barcha ma'lumotlarni o'zgaruvchiga olamiz
 		$data['is_page'] = $request->boolean('is_page');
-		$data['with_price'] = $request->boolean('with_price');
-		$data['with_image'] = $request->boolean('with_image');
+		$data = [...$data, ...self::flags($request)];
+		if (! $request->filled('listing_duration_days')) {
+			unset($data['listing_duration_days']);
+		}
 
 		if ($request->hasFile('image')) {
 			// 1. Eski faylni o'chirish logikasi
@@ -125,7 +145,46 @@ class CategoryController extends Controller
 
 		$category->fill($data)->fillTranslations($request->all())->save();
 
+		if ($category->wasChanged('is_permanent')) {
+			self::syncPermanentListings($category);
+		}
+
 		return response()->json($category, 200);
+	}
+
+	/** Formadagi kalitlar: multipart'da "true"/"false" satr bo'lib keladi */
+	private static function flags(Request $request): array
+	{
+		return [
+			'with_price' => $request->boolean('with_price'),
+			'with_image' => $request->boolean('with_image'),
+			// Kalit umuman kelmasa — sarlavha so'raladi (eski xatti-harakat)
+			'with_title' => $request->has('with_title') ? $request->boolean('with_title') : true,
+			'is_permanent' => $request->boolean('is_permanent'),
+			'is_featured' => $request->boolean('is_featured'),
+			'featured_order' => (int) $request->input('featured_order', 0),
+			// Bo'sh qoldirilsa — joriy (yoki bazadagi standart) muddat o'zgarmaydi
+			...($request->filled('listing_duration_days')
+				? ['listing_duration_days' => (int) $request->input('listing_duration_days')]
+				: []),
+		];
+	}
+
+	/**
+	 * "Muddatsiz" yoqilsa — faol e'lonlar muddatsiz bo'ladi; o'chirilsa — muddatsizlar oddiy muddat oladi.
+	 * Muddati o'tib bo'lgan e'lonlarga tegilmaydi.
+	 */
+	private static function syncPermanentListings(Category $category): void
+	{
+		if ($category->is_permanent) {
+			Product::where('category_id', $category->id)->active()
+				->update(['expires_at' => Product::permanentUntil()]);
+			return;
+		}
+
+		Product::where('category_id', $category->id)
+			->where('expires_at', '>=', Product::permanentUntil())
+			->update(['expires_at' => $category->listingExpiresAt()]);
 	}
 
 	public function changeParent($id, Request $request)

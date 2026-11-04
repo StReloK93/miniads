@@ -32,6 +32,7 @@ export async function buildProductFormInputs(
    const baseInputs = productInputs({
       withPrice: category.with_price !== false,
       withImage: category.with_image !== false,
+      withTitle: category.with_title !== false,
       hasTelegramUsername: Boolean(authStore.user?.username),
       telegramUsername: authStore.user?.username,
       districts: cityStore.cities || undefined,
@@ -51,27 +52,33 @@ export async function buildProductFormInputs(
       }
    }
 
-   const parameterInputs: InputConfig[] = parameters.map((parameter, index) => ({
-      component: Inputs[parameter.component] as Component,
-      name: `parameter_${parameter.id}`,
-      class: index === parameters.length - 1 ? [] : ["mb-3"],
-      required: false,
-      optional: true,
-      value: product ? product.parameter_values?.find((p) => p.parameter_id === parameter.id)?.value || "" : undefined,
-      props: {
-         title: parameter.title,
-         placeholder: parameter.placeholder,
-         // Ko'rinishi foydalanuvchi tilida, qiymati asl (o'zbekcha) — filtrlar shunga tayanadi
-         options: (parameter.options || []).map((option, i) => ({
-            value: option,
-            label: parameter.option_labels?.[i] ?? option,
-         })),
-         inputmode: parameter.type === "number" ? "numeric" : undefined,
-         // Yil "2 022" bo'lib ko'rinmasin; kelajak yilini ham yozib bo'lmaydi
-         ...(isYearParameter(parameter) ? { grouping: false, max: new Date().getFullYear() + 1 } : {}),
-      },
-      schema: ZodTypeMapping[parameter.type](false),
-   }));
+   const parameterInputs: InputConfig[] = parameters.map((parameter, index) => {
+      // Admin "majburiy" deb belgilagan parametr (masalan Naqd-Plastik: yo'nalish va summa)
+      const required = Boolean(parameter.pivot?.is_required);
+      return {
+         component: Inputs[parameter.component] as Component,
+         name: `parameter_${parameter.id}`,
+         class: index === parameters.length - 1 ? [] : ["mb-3"],
+         required,
+         optional: !required,
+         value: product
+            ? product.parameter_values?.find((p) => p.parameter_id === parameter.id)?.value || ""
+            : undefined,
+         props: {
+            title: parameter.title,
+            placeholder: parameter.placeholder,
+            // Ko'rinishi foydalanuvchi tilida, qiymati asl (o'zbekcha) — filtrlar shunga tayanadi
+            options: (parameter.options || []).map((option, i) => ({
+               value: option,
+               label: parameter.option_labels?.[i] ?? option,
+            })),
+            inputmode: parameter.type === "number" ? "numeric" : undefined,
+            // Yil "2 022" bo'lib ko'rinmasin; kelajak yilini ham yozib bo'lmaydi
+            ...(isYearParameter(parameter) ? { grouping: false, max: new Date().getFullYear() + 1 } : {}),
+         },
+         schema: ZodTypeMapping[parameter.type](required),
+      };
+   });
 
    if (product) {
       baseInputs.forEach((input) => {

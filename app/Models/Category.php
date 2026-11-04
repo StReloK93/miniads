@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 class Category extends Model
 {
@@ -18,7 +19,11 @@ class Category extends Model
         'is_page',
         'with_price',
         'with_image',
+        'with_title',
         'listing_duration_days',
+        'is_permanent',
+        'is_featured',
+        'featured_order',
         'translations',
     ];
 
@@ -26,8 +31,56 @@ class Category extends Model
         'is_page' => 'boolean',
         'with_price' => 'boolean',
         'with_image' => 'boolean',
+        'with_title' => 'boolean',
         'listing_duration_days' => 'integer',
+        'is_permanent' => 'boolean',
+        'is_featured' => 'boolean',
+        'featured_order' => 'integer',
     ];
+
+    /**
+     * Sarlavha so'ralmaydigan kategoriya (with_title = false) uchun sarlavha: parametr qiymatlari tartib bo'yicha.
+     * Masalan Naqd-Plastik: "Naqd → Plastik · 1 000 000 so'm". Qiymat bo'lmasa — kategoriya nomi.
+     *
+     * @param array<int|string, mixed> $values parameter_id → qiymat (asl, o'zbekcha)
+     */
+    public function autoTitle(array $values): string
+    {
+        $parts = $this->parameters()
+            ->orderBy('category_parameters.sort_order')
+            ->get()
+            ->map(function (Parameter $parameter) use ($values) {
+                $value = trim((string) ($values[$parameter->id] ?? ''));
+                if ($value === '') {
+                    return null;
+                }
+                if ($parameter->type === 'number' && is_numeric($value)) {
+                    $value = number_format((float) $value, 0, '.', ' ');
+                }
+
+                return trim($value . ' ' . ($parameter->getRawOriginal('unit') ?? ''));
+            })
+            ->filter()
+            ->values();
+
+        return mb_substr($parts->isEmpty() ? $this->getRawOriginal('name') : $parts->implode(' · '), 0, 255);
+    }
+
+    /** Muddati ko'rsatilmagan kategoriyalarda e'lon shuncha kun turadi */
+    public const DEFAULT_LISTING_DAYS = 30;
+
+    /**
+     * Shu kategoriyada hozir joylangan (yoki qayta faollashtirilgan) e'lon qachongacha turadi.
+     * Muddatsiz kategoriyada — juda uzoq sana: "faol" so'rovlari (expires_at >= now) o'zgarishsiz ishlaydi.
+     */
+    public function listingExpiresAt(): Carbon
+    {
+        if ($this->is_permanent) {
+            return Product::permanentUntil();
+        }
+
+        return now()->addDays($this->listing_duration_days ?: self::DEFAULT_LISTING_DAYS);
+    }
     protected static function booted(): void
     {
         // Kategoriya o'zgarsa unga bog'liq keshlarni yangilaymiz
@@ -85,7 +138,7 @@ class Category extends Model
     public function children()
     {
         // Bu podkategoriyalarni olish uchun
-        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'translations', 'image', 'parent_id', 'is_page', 'listing_duration_days');
+        return $this->hasMany(Category::class, 'parent_id')->with('children')->select('id', 'name', 'translations', 'image', 'parent_id', 'is_page', 'listing_duration_days', 'is_permanent', 'is_featured');
     }
 
     public function parent()

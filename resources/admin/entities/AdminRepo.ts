@@ -57,6 +57,15 @@ export default {
          headers: { "Content-Type": "multipart/form-data" },
       });
    },
+   /** Kanaldagi qadalgan "jonli" post (tezkor bo'limlardagi faol e'lonlar soni) */
+   channelLivePost() {
+      return api.get<{ enabled: boolean; posted: boolean; channels: string[]; preview: string; buttons: string[] }>(
+         "admin/channel-live-post",
+      );
+   },
+   updateChannelLivePost(enabled: boolean) {
+      return api.post<{ message: string }>("admin/channel-live-post", { enabled });
+   },
    reference(kind: "districts" | "price-types") {
       return api.get(kind);
    },

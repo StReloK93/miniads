@@ -76,6 +76,7 @@ const uz = {
       title: "Bo'limlar",
       subtitle: "Nima izlayapsiz? Mos kategoriyani tanlang",
       all: "Barcha bo'limlar",
+      featured: "Tezkor bo'limlar",
       category: "Bo'lim",
       count: "{n} ta bo'lim",
       emptyHint: "Bu bo'limda hozircha faol e'lonlar yo'q.",
@@ -102,6 +103,8 @@ const uz = {
    },
    filters: {
       reset: "Filtrlarni tozalash",
+      showCount: "{n} ta e'lonni ko'rsatish",
+      noneLeft: "Mos e'lon yo'q",
       sort: "Saralash",
       any: "Farqi yo'q",
       withImage: "Faqat rasmli e'lonlar",
@@ -191,6 +194,7 @@ const uz = {
       expired: "Muddati tugagan",
       endsToday: "Bugun tugaydi",
       daysLeft: "{n} kun qoldi",
+      permanent: "Muddatsiz",
    },
    favorites: {
       count: "Sevimlilar ro'yxatida {n} ta e'lon",

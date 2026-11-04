@@ -47,10 +47,13 @@
          <div class="flex min-w-0 flex-1 items-center gap-2">
             <span class="min-w-0 truncate text-sm font-semibold text-(--z-foreground)">{{ node.label }}</span>
             <span v-if="node.is_page" class="shrink-0 rounded-md bg-blue-500/12 px-1.5 py-0.5 text-[10px] font-semibold text-blue-500">
-               {{ node.listing_duration_days ? `${node.listing_duration_days} kun` : "E'lon sahifasi" }}
+               {{ node.is_permanent ? "Muddatsiz" : node.listing_duration_days ? `${node.listing_duration_days} kun` : "E'lon sahifasi" }}
             </span>
             <span v-else-if="node.children?.length" class="shrink-0 rounded-md bg-(--z-muted) px-1.5 py-0.5 text-[10px] font-semibold text-(--z-muted-text)">
                {{ node.children.length }} ta
+            </span>
+            <span v-if="node.is_featured" class="shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-600">
+               Tezkor
             </span>
          </div>
 

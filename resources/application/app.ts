@@ -61,12 +61,19 @@ const initApp = async () => {
          const startParam = launchParams.tgWebAppStartParam;
          const productStartParam = /^product_(\d+)$/.exec(startParam ?? "");
          const savedSearchParam = /^ss_(\d+)$/.exec(startParam ?? "");
+         // Kanaldagi jonli post tugmalari: cat_ID — e'lonlar sahifasi, cats_ID — ichki bo'limlari bor kategoriya
+         const categoryParam = /^cat_(\d+)$/.exec(startParam ?? "");
+         const categoryTreeParam = /^cats_(\d+)$/.exec(startParam ?? "");
          // Qayerdan kirildi: kanal/ulashilgan e'lon havolasi (product), bot xabari (ss, my_ads), oddiy ochilish (direct)
          track("app_open", startParam ? startParam.replace(/_\d+$/, "") : "direct");
          if (productStartParam) {
             startRoute = { name: "product-id", params: { id: productStartParam[1] } };
          } else if (savedSearchParam) {
             startRoute = { name: "home", query: { saved: savedSearchParam[1] } };
+         } else if (categoryParam) {
+            startRoute = { name: "category", params: { id: categoryParam[1] } };
+         } else if (categoryTreeParam) {
+            startRoute = { name: "categories", query: { category_id: categoryTreeParam[1] } };
          } else if (startParam === "create") {
             startRoute = { name: "create-select-category" };
          } else if (startParam === "my_ads") {

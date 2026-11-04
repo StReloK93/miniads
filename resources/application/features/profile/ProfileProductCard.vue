@@ -10,7 +10,12 @@
       <!-- Qolgan kunlar va amallar -->
       <template #footer>
          <div class="mt-3 pt-3 border-t border-(--z-border) flex items-center justify-between gap-3" @click.stop>
-            <ListingDaysLeft v-if="product.days" :current="product.days.current" :max="product.days.max" />
+            <ListingDaysLeft
+               v-if="product.days"
+               :current="product.days.current"
+               :max="product.days.max"
+               :permanent="product.days.permanent"
+            />
             <BaseButtonGroup class="shrink-0 ml-auto" size="sm" :options="options" />
          </div>
       </template>

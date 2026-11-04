@@ -26,6 +26,7 @@ if (app()->environment('local')) {
 Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
     Route::get('/categories/parents/{id?}', 'parents');
     Route::get('/categories/counts', 'counts');
+    Route::get('/categories/featured', 'featured');
     Route::get('categories/{id}/products', 'products')->middleware(OptionalSanctumAuth::class);
 });
 
@@ -34,6 +35,7 @@ Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\P
     Route::get('/products/custom/feed', 'feed');
     Route::get('/products/custom/latest_ten', 'latestTen');
     Route::get('/products/custom/search', 'search');
+    Route::get('/products/custom/count', 'count');
     Route::get('/products/{id}', 'show')->whereNumber('id');
 });
 // Qidiruv statistikasi (mehmonlar ham): ilova so'rov "o'rnashgan"da bir marta yuboradi
@@ -77,6 +79,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('bot-import-text', 'importBotText');
         Route::get('channel-post', 'channelPostDefaults');
         Route::post('channel-post', 'sendChannelPost');
+        Route::get('channel-live-post', 'channelLivePost');
+        Route::post('channel-live-post', 'updateChannelLivePost');
     });
 
     Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {

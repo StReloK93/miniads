@@ -10,6 +10,12 @@ export interface ICategory {
    is_page: boolean;
    with_price: boolean;
    with_image: boolean;
+   /** false — e'lon formasida sarlavha so'ralmaydi */
+   with_title?: boolean;
+   /** E'lonlari hech qachon tugamaydi */
+   is_permanent?: boolean;
+   /** Bosh sahifadagi "Tezkor bo'limlar" qatorida chiqadi */
+   is_featured?: boolean;
    parent: ICategory;
    parent_id: number | null;
    /** Asosiy bo'lim id'si (Uy-joy, Avto...) — server hisoblaydi */
@@ -103,6 +109,8 @@ export interface IProduct {
    days: {
       current: number;
       max: number;
+      /** Muddatsiz e'lon — "N kun qoldi" o'rniga "Muddatsiz" */
+      permanent?: boolean;
    };
    similar_products?: IProduct[];
    /** Shu sotuvchining boshqa faol e'lonlari (bot e'lonlarida bo'sh) */

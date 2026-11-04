@@ -96,20 +96,31 @@
       <template #footer>
          <div class="grid grid-cols-2 gap-3">
             <BaseButton severity="secondary" class="w-full" @click="reset">{{ $t("common.clear") }}</BaseButton>
-            <BaseButton class="w-full" @click="apply">{{ $t("common.show") }}</BaseButton>
+            <!-- Filtr o'zgarishi bilan: nechta e'lon qolayotgani darhol tugmada ko'rinadi -->
+            <BaseButton class="w-full" :class="{ 'opacity-70': isCounting }" @click="apply">
+               {{ buttonLabel }}
+            </BaseButton>
          </div>
       </template>
    </BaseDrawer>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import ProductRepo from "@shared/entities/Product/ProductRepo";
 import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import FilterRange from "@/features/filters/FilterRange.vue";
-import { SORT_OPTIONS, emptyFilters, type ListFilters, type RangeValue } from "@/features/filters/listFilters";
+import {
+   SORT_OPTIONS,
+   emptyFilters,
+   toQueryParams,
+   type ListFilters,
+   type RangeValue,
+} from "@/features/filters/listFilters";
 import { displayUnit, isYearParameter } from "@shared/modules/productSpecs";
 import { useCity } from "@shared/entities/District/useCity";
 import { useCategory } from "@shared/entities/Category/useCategory";
@@ -126,8 +137,13 @@ const props = withDefaults(
       /** Qidiruvda: bo'lim tanlash (kategoriya sahifasida kerak emas) */
       withCategory?: boolean;
       withPrice?: boolean;
+      /**
+       * Qaysi ro'yxat filtrlanyapti: { category_id } yoki { search }. Berilsa — filtr o'zgarganda
+       * nechta e'lon qolishi so'raladi va tugmada ko'rsatiladi. null — son ko'rsatilmaydi.
+       */
+      countScope?: Record<string, unknown> | null;
    }>(),
-   { parameters: () => [], withCategory: false, withPrice: true },
+   { parameters: () => [], withCategory: false, withPrice: true, countScope: null },
 );
 
 const emit = defineEmits<{
@@ -137,6 +153,7 @@ const emit = defineEmits<{
 
 const cityStore = useCity();
 const categoryStore = useCategory();
+const { t } = useI18n();
 
 const draft = ref<ListFilters>(emptyFilters());
 
@@ -148,6 +165,47 @@ watch(
    },
    { immediate: true },
 );
+
+/* ===== Jonli son: "12 ta e'lonni ko'rsatish" ===== */
+const COUNT_DEBOUNCE_MS = 300;
+const liveCount = ref<number | null>(null);
+const isCounting = ref(false);
+let countTimer: ReturnType<typeof setTimeout> | undefined;
+let lastCountRequest = 0;
+
+async function refreshCount() {
+   if (!props.countScope) return;
+   const requestId = ++lastCountRequest;
+   isCounting.value = true;
+   try {
+      const { data } = await ProductRepo.count({ ...props.countScope, ...toQueryParams(draft.value) });
+      // Kech kelgan eski javob yangisini bosib ketmasin
+      if (requestId === lastCountRequest) liveCount.value = data.count;
+   } catch (error) {
+      console.error("Filter count failed.", error);
+      if (requestId === lastCountRequest) liveCount.value = null;
+   } finally {
+      if (requestId === lastCountRequest) isCounting.value = false;
+   }
+}
+
+watch(
+   [draft, () => props.open, () => props.countScope],
+   () => {
+      clearTimeout(countTimer);
+      if (!props.open || !props.countScope) return;
+      isCounting.value = true;
+      countTimer = setTimeout(refreshCount, COUNT_DEBOUNCE_MS);
+   },
+   { deep: true },
+);
+
+onBeforeUnmount(() => clearTimeout(countTimer));
+
+const buttonLabel = computed(() => {
+   if (!props.countScope || liveCount.value === null) return t("common.show");
+   return liveCount.value === 0 ? t("filters.noneLeft") : t("filters.showCount", liveCount.value);
+});
 
 function toRawDeep<T>(value: T): T {
    return JSON.parse(JSON.stringify(value ?? {}));

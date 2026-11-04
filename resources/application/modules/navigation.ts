@@ -21,6 +21,75 @@ export function goBack(router: Router, fallback: RouteLocationRaw = { name: "hom
 }
 
 /**
+ * E'lon joylash bosqichlari. E'lon joylangandan keyin ular tarixdan olib tashlanadi,
+ * shunda "orqaga" bosilganda to'ldirilgan forma qayta ochilmaydi.
+ */
+const CREATE_FLOW_ROUTES = new Set(["create-select-city", "create-select-category", "create-product"]);
+
+/** Bosqichlarning birinchisi tarixning qaysi o'rnida turibdi (vue-router `state.position`) */
+let createFlowStart: number | null = null;
+
+function isCreateFlowRoute(name: unknown): boolean {
+   return CREATE_FLOW_ROUTES.has(String(name));
+}
+
+export function trackCreateFlow(router: Router) {
+   router.afterEach((to, from, failure) => {
+      if (failure) return;
+      if (!isCreateFlowRoute(to.name)) {
+         createFlowStart = null;
+         return;
+      }
+      // Bosqichlarga tashqaridan kirildi — boshlanish nuqtasi shu yozuv
+      if (createFlowStart === null || !isCreateFlowRoute(from.name)) {
+         const position = window.history.state?.position;
+         createFlowStart = typeof position === "number" ? position : null;
+      }
+   });
+}
+
+/** Tarixda `delta` qadam yuradi va navigatsiya tugashini kutadi */
+function historyGo(router: Router, delta: number): Promise<void> {
+   return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+         if (done) return;
+         done = true;
+         removeHook();
+         resolve();
+      };
+      const removeHook = router.afterEach(finish);
+      // WebView popstate yubormasa ham osilib qolmaslik uchun
+      setTimeout(finish, 1000);
+      router.go(delta);
+   });
+}
+
+/**
+ * E'lon joylash bosqichlaridan chiqadi: ularni tarixdan olib tashlab, `target`ga o'tadi.
+ * Natija: [bosh sahifa, e'lon] — e'londan "orqaga" bosilsa forma emas, kirishdan oldingi sahifa ochiladi.
+ */
+export async function leaveCreateFlow(router: Router, target: RouteLocationRaw) {
+   const start = createFlowStart;
+   const position = window.history.state?.position;
+   if (start === null || typeof position !== "number" || position < start) {
+      await router.push(target);
+      return;
+   }
+   createFlowStart = null;
+
+   // Bosqichlardan oldingi yozuvga qaytamiz; ilova to'g'ridan-to'g'ri forma bilan ochilgan bo'lsa — birinchi bosqichga
+   const landing = Math.max(start - 1, 0);
+   if (position > landing) await historyGo(router, landing - position);
+
+   if (start === 0) {
+      await router.replace(target);
+   } else {
+      await router.push(target);
+   }
+}
+
+/**
  * Ochiq oynalar (rasm preview, modal) uchun "orqaga" ushlagichlari.
  * Telegram'ning orqaga tugmasi avval eng oxirgi ochilgan oynani yopadi, sahifani emas.
  */

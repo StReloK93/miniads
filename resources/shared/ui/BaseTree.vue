@@ -35,6 +35,8 @@ export type TreeNodeData = {
    children?: TreeNodeData[];
    is_page?: boolean;
    listing_duration_days?: number;
+   is_permanent?: boolean;
+   is_featured?: boolean;
    image?: string;
 };
 

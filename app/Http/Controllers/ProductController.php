@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
 use App\Services\TelegramProductService;
 use App\Services\ProductSearchService;
+use App\Services\ProductFilters;
 use App\Http\Requests\SaveProductRequest;
 class ProductController extends Controller
 {
@@ -55,6 +56,8 @@ class ProductController extends Controller
         return response()->json([
             'message' => __('messages.ad_created'),
             'id' => $product->id,
+            // Sarlavha so'ralmaydigan kategoriyada server yasagan sarlavha (muvaffaqiyat oynasi uchun)
+            'title' => $product->title,
         ], 201);
     }
 
@@ -232,6 +235,22 @@ class ProductController extends Controller
     public function search(Request $request, ProductSearchService $searchService)
     {
         return $searchService->search($request);
+    }
+
+    /**
+     * Filtr oynasi uchun: shu filtrlar bilan nechta faol e'lon qoladi ("12 ta e'lonni ko'rsatish").
+     * search berilsa — qidiruv mantig'i bilan, aks holda kategoriya (category_id) + filtrlar bo'yicha.
+     */
+    public function count(Request $request, ProductSearchService $searchService)
+    {
+        if (filled($request->input('search'))) {
+            return ['count' => count($searchService->matchingIds($request))];
+        }
+
+        $query = Product::query()->setEagerLoads([])->active()
+            ->when($request->integer('category_id'), fn ($q, int $id) => $q->where('products.category_id', $id));
+
+        return ['count' => ProductFilters::apply($query, $request)->count()];
     }
 
 

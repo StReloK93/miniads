@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -42,6 +43,19 @@ class Product extends Model
     ];
 
 
+    /** Muddatsiz e'lonlarning tugash sanasi: shundan keyingi har qanday sana "muddatsiz" hisoblanadi */
+    public const PERMANENT_UNTIL = '2099-12-31 23:59:59';
+
+    public static function permanentUntil(): Carbon
+    {
+        return Carbon::parse(self::PERMANENT_UNTIL);
+    }
+
+    public function isPermanent(): bool
+    {
+        return $this->expires_at && Carbon::parse($this->expires_at)->gte(self::permanentUntil());
+    }
+
     public function getDaysAttribute()
     {
         if (!$this->expires_at)
@@ -52,6 +66,8 @@ class Product extends Model
         return [
             'current' => round($hours, 2),
             'max' => $this->category->listing_duration_days,
+            // Ilova "N kun qoldi" o'rniga "Muddatsiz" yozadi
+            'permanent' => $this->isPermanent(),
         ];
     }
 

@@ -22,6 +22,7 @@
             :open="isFilterOpen"
             :parameters="category?.parameters ?? []"
             :with-price="category?.with_price !== false"
+            :count-scope="countScope"
             @close="isFilterOpen = false"
          />
 
@@ -75,6 +76,8 @@ const filters = ref<ListFilters>(emptyFilters());
 const isFilterOpen = ref(false);
 const activeCount = computed(() => countActiveFilters(filters.value));
 const breadcrumb = computed(() => buildBreadcrumb(category.value));
+// Filtr oynasi shu bo'lim ichida nechta e'lon qolishini sanaydi
+const countScope = computed(() => ({ category_id: Number(route.params.id) }));
 
 function load() {
    return execute(route.params.id, toQueryParams(filters.value));

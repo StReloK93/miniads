@@ -4,10 +4,14 @@ import { useAuth } from "@shared/store/useAuth";
 import { track } from "@/modules/activity";
 import { postEvent } from "@tma.js/bridge";
 import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
+import { trackCreateFlow } from "@/modules/navigation";
 const router = createRouter({
    history: createWebHistory(),
    routes,
 });
+
+// E'lon joylangandan keyin forma sahifalarini tarixdan olib tashlash uchun
+trackCreateFlow(router);
 
 // Telegram tugmalari yakuniy sahifaga qarab sozlanadi (yo'naltirishlardan keyin)
 router.afterEach((to) => {

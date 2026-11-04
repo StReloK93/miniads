@@ -296,7 +296,7 @@ class AdminController extends Controller
             case 'activate':
                 Product::with('category')->whereIn('id', $ids)->get()->each(function (Product $product) use (&$done): void {
                     $product->forceFill([
-                        'expires_at' => now()->addDays($product->category?->listing_duration_days ?: 30),
+                        'expires_at' => $product->category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
                         'published_at' => now(),
                     ])->save();
                     $done++;
@@ -447,7 +447,7 @@ class AdminController extends Controller
             $product->loadMissing('category');
             // published_at $fillable'da yo'q — update() uni jim tashlab yuborardi, e'lon lenta boshiga chiqmasdi
             $product->forceFill([
-                'expires_at' => now()->addDays($product->category?->listing_duration_days ?: 30),
+                'expires_at' => $product->category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
                 'published_at' => now(),
             ])->save();
         } else {
@@ -713,6 +713,49 @@ class AdminController extends Controller
             'button_text' => "E'lon joylash",
             'button_url' => rtrim(config('services.telegram.mini_app_url'), '/') . '?startapp=create',
         ]);
+    }
+
+    /** Kanaldagi qadalgan "jonli" post: holati va oldindan ko'rish */
+    public function channelLivePost(\App\Services\ChannelLivePostService $service)
+    {
+        $content = $service->content();
+
+        return response()->json([
+            'enabled' => \App\Services\ChannelLivePostService::enabled(),
+            'posted' => \App\Services\ChannelLivePostService::isPosted(),
+            'channels' => \App\Services\TelegramProductService::channels(),
+            'preview' => $content['body'],
+            'buttons' => array_map(fn (array $button) => $button[0], $content['buttons']),
+        ]);
+    }
+
+    /**
+     * Yoqish: post darhol yoziladi/yangilanadi va qadaladi. O'chirish: post kanaldan olib tashlanadi.
+     * refresh=1 — yoqilgan holatda hozir yangilash.
+     */
+    public function updateChannelLivePost(Request $request, \App\Services\ChannelLivePostService $service)
+    {
+        $validated = $request->validate(['enabled' => ['required', 'boolean']]);
+
+        if (empty(\App\Services\TelegramProductService::channels())) {
+            return response()->json(['message' => "Kanal sozlanmagan: .env faylida TELEGRAM_CHANNELS bo'sh."], 422);
+        }
+
+        \App\Services\ChannelLivePostService::setEnabled($validated['enabled']);
+
+        if (! $validated['enabled']) {
+            $service->remove();
+            return response()->json(['message' => "Jonli post o'chirildi va kanaldan olib tashlandi."]);
+        }
+
+        $results = $service->sync(force: true);
+        if (in_array('failed', $results, true)) {
+            return response()->json([
+                'message' => "Kanalga yozib bo'lmadi. Bot kanalda admin ekanini (xabar yozish, tahrirlash va qadash huquqi) tekshiring.",
+            ], 422);
+        }
+
+        return response()->json(['message' => "Jonli post kanalda turibdi va har 15 daqiqada yangilanadi."]);
     }
 
     /**

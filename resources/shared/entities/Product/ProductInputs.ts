@@ -28,6 +28,8 @@ export async function getDistricts() {
 export interface ProductInputOptions {
    withPrice?: boolean;
    withImage?: boolean;
+   /** false — sarlavha so'ralmaydi, server uni parametrlardan yasaydi (masalan Naqd-Plastik) */
+   withTitle?: boolean;
    priceTypes?: any[];
    hasTelegramUsername?: boolean;
    telegramUsername?: string | null;
@@ -71,18 +73,23 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       });
    }
 
-   // Sarlavha
-   inputs.push({
-      component: Inputs["FieldText"],
-      name: "title",
-      required: true,
-      props: {
-         title: t("form.title"),
-         placeholder: getDynamicTitlePlaceholder(options.rootIcon),
-      },
-      schema: z.string({ message: t("form.required") }).trim().min(5, t("form.minChars", { n: 5 })),
-      class: ["mb-3"],
-   });
+   // Sarlavha (kategoriya so'ramasa — umuman chiqmaydi)
+   if (options.withTitle !== false) {
+      inputs.push({
+         component: Inputs["FieldText"],
+         name: "title",
+         required: true,
+         props: {
+            title: t("form.title"),
+            placeholder: getDynamicTitlePlaceholder(options.rootIcon),
+         },
+         schema: z
+            .string({ message: t("form.required") })
+            .trim()
+            .min(5, t("form.minChars", { n: 5 })),
+         class: ["mb-3"],
+      });
+   }
 
    // Narx va Narx turi
    if (options.withPrice !== false) {
@@ -144,7 +151,11 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          maxHeight: 150,
          placeholder: t("form.descriptionPlaceholder"),
       },
-      schema: z.string({ message: t("form.required") }).trim().optional().nullable(),
+      schema: z
+         .string({ message: t("form.required") })
+         .trim()
+         .optional()
+         .nullable(),
       class: ["mb-3"],
    });
 

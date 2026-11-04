@@ -124,7 +124,8 @@ const submit = ref<(values: Record<string, unknown>) => Promise<void>>(async () 
 
 function resetInputs() {
    inputConfigs.value.forEach((input) => {
-      input.value = undefined;
+      // Yangi kategoriyada sarlavha odatdagidek so'raladi
+      input.value = input.name === "with_title" ? true : undefined;
    });
    formKey.value += 1;
 }

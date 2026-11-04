@@ -18,6 +18,10 @@ export default {
    async parents() {
       return await api.get<ICategory[]>(`${baseURL}/parents`);
    },
+   /** Bosh sahifadagi "Tezkor bo'limlar" (admin belgilagan, tartib bo'yicha) */
+   featured() {
+      return api.get<ICategory[]>(`${baseURL}/featured`);
+   },
    /** Har bir kategoriyadagi faol e'lonlar soni: { [category_id]: soni } */
    counts() {
       return api.get<Record<number, number>>(`${baseURL}/counts`);

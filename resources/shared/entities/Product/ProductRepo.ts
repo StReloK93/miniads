@@ -7,7 +7,7 @@ export default {
       return api.get<IProduct[]>(`${baseURL}`);
    },
    store(formData: IProductPayload) {
-      return api.post<{ message: string; id: number }>(`${baseURL}`, formData, {
+      return api.post<{ message: string; id: number; title?: string }>(`${baseURL}`, formData, {
          headers: {
             "Content-Type": "multipart/form-data",
          },
@@ -52,6 +52,11 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/search`, {
          params,
       });
+   },
+
+   /** Shu filtrlar bilan nechta faol e'lon qoladi (filtr oynasidagi "12 ta e'lonni ko'rsatish" uchun) */
+   count(params: Record<string, unknown>) {
+      return api.get<{ count: number }>(`${baseURL}/custom/count`, { params });
    },
 
    delete(id: string | number) {

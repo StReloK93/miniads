@@ -50,7 +50,7 @@ class ProductService
                     'user_id' => $request->user()->id,
                 ]);
 
-                $product->expires_at = now()->addDays($product->category->listing_duration_days ?: 30);
+                $product->expires_at = $product->category->listingExpiresAt();
                 $product->save();
 
                 if ($request->has('parameters')) {
@@ -281,7 +281,7 @@ class ProductService
 
     public function activate(Product $product): Product
     {
-        $product->expires_at = now()->addDays($product->category->listing_duration_days);
+        $product->expires_at = $product->category->listingExpiresAt();
         $product->published_at = now();
         $product->save();
 

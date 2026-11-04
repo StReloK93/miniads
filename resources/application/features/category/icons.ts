@@ -1,9 +1,11 @@
 import {
+   ArrowLeftRight,
    Armchair,
    BadgeQuestionMark,
    Bell,
    BriefcaseBusiness,
    Car,
+   CarTaxiFront,
    Cat,
    ChevronDown,
    Gift,
@@ -13,15 +15,18 @@ import {
    Megaphone,
    MonitorSmartphone,
    Shirt,
+   UtensilsCrossed,
    Wrench,
 } from "lucide-vue-next";
 
 export default {
+   ArrowLeftRight,
    Armchair,
    BadgeQuestionMark,
    Bell,
    BriefcaseBusiness,
    Car,
+   CarTaxiFront,
    Cat,
    ChevronDown,
    Gift,
@@ -31,5 +36,6 @@ export default {
    Megaphone,
    MonitorSmartphone,
    Shirt,
+   UtensilsCrossed,
    Wrench,
 };

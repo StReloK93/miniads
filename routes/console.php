@@ -31,3 +31,8 @@ Schedule::command('notifications:saved-searches')
 Schedule::command('notifications:expiring')
     ->dailyAt('10:00')
     ->withoutOverlapping();
+
+// Kanaldagi qadalgan "jonli" post: tahrirlanadi (bildirishnomasiz), raqamlar o'zgarmasa so'rov ketmaydi
+Schedule::command('channel:live-post')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping(10);

@@ -10,4 +10,12 @@ return [
     'extend' => 'Extend',
     'welcome' => "<b>Welcome!</b>\n\nFind and post classified ads across Navoi region with ease.\n\n• Post ads yourself — no admin needed\n• Posting is <b>free</b>\n• Everything stays inside Telegram\n• Contact sellers directly\n\n<b>👇 Tap the button below to open the Mini App.</b>",
     'open_app' => '🚀 Open the ads app',
+
+    // Pinned "live" channel post (ChannelLivePostService)
+    'live_title' => '🔥 <b>Active right now</b>',
+    'live_line' => ':emoji <b>:name</b> — :count',
+    'live_today' => ' · today +:count',
+    'live_total' => 'Total: <b>:count</b> active ads',
+    'live_updated' => '🕐 <i>Updated: :time</i>',
+    'live_post_ad' => '📢 Post an ad',
 ];

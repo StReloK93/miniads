@@ -28,6 +28,8 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(ParameterSeeder::class);
         $this->call(CategoryParameterSeeder::class);
+        // Bosh sahifadagi tezkor bo'limlar (o'z tarjimalari bilan)
+        $this->call(FeaturedCategorySeeder::class);
 
         $this->call(PriceTypeSeeder::class);
         // ru/en tarjimalari — kategoriya, parametr, shahar va narx turlari yaratilgandan keyin

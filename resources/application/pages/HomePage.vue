@@ -23,7 +23,13 @@
       </template>
 
       <template #content>
-         <ProductFilterDrawer v-model="search.filters" :open="isFilterOpen" with-category @close="isFilterOpen = false" />
+         <ProductFilterDrawer
+            v-model="search.filters"
+            :open="isFilterOpen"
+            with-category
+            :count-scope="filterCountScope"
+            @close="isFilterOpen = false"
+         />
 
          <!-- Almashinuv: natijalar tez so'nadi (joy band qilmay), lenta biroz kechikib pastdan ko'tariladi -->
          <Transition name="search-swap">
@@ -33,6 +39,9 @@
          <!-- Lenta qidiruv paytida yashiriladi (v-show): qaytganda qayta yuklanmaydi, joyi saqlanadi -->
          <Transition name="feed-return">
          <div v-show="!searching" ref="feed">
+         <!-- Tezkor bo'limlar: kategoriyalar qatori tagida, lenta bilan birga suriladi -->
+         <FeaturedCategories />
+
          <!-- Dastlabki yuklanish skeletlari -->
          <main v-if="isLoadingInitial" class="flex flex-col gap-2.5">
             <ProductCardSkeleton v-for="n in 3" :key="`skeleton-${n}`" />
@@ -82,13 +91,14 @@
 import DistrictSwitcher from "@/features/district/DistrictSwitcher.vue";
 import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import CategoriesSlider from "@/features/category/CategoriesSlider.vue";
+import FeaturedCategories from "@/features/category/FeaturedCategories.vue";
 import HomeSearchBar from "@/features/search/HomeSearchBar.vue";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import ProductCard from "@/features/product/ProductCard.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { IProduct } from "@shared/types";
 import { PackageOpen } from "lucide-vue-next";
-import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { isTMA, postEvent } from "@tma.js/bridge";
 import SearchResults from "@/features/search/SearchResults.vue";
@@ -106,6 +116,8 @@ const router = useRouter();
 const search = reactive(useProductSearch());
 const searching = ref(false);
 const isFilterOpen = ref(false);
+// Qidiruv so'zi bo'lsa — filtr oynasi shu so'rov natijalaridan nechtasi qolishini ko'rsatadi
+const filterCountScope = computed(() => (search.activeSearchText ? { search: search.activeSearchText } : null));
 const searchBar = ref<InstanceType<typeof HomeSearchBar> | null>(null);
 const feed = ref<HTMLElement | null>(null);
 

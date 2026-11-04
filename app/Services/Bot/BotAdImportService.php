@@ -356,7 +356,6 @@ class BotAdImportService
     protected function createProduct(array $post, ?string $channel, array $parsed, ?string $contactPhone, string $sourceHash, User $botUser): Product
     {
         $category = Category::find($parsed['category_id'] ?? null);
-        $durationDays = $category?->listing_duration_days ?? 30;
 
         return Product::create([
             'title' => $parsed['title'] ?? 'E\'lon',
@@ -373,7 +372,7 @@ class BotAdImportService
             'source_message_id' => $post['message_id'],
             'source_hash' => $sourceHash,
             'published_at' => now(),
-            'expires_at' => now()->addDays($durationDays),
+            'expires_at' => $category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
         ]);
     }
 

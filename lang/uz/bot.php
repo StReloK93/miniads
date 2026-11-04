@@ -11,4 +11,12 @@ return [
     'extend' => 'Uzaytirish',
     'welcome' => "<b>Xush kelibsiz!</b>\n\nNavoiy viloyati bo'yicha e'lonlarni qulay tarzda qidiring va joylashtiring.\n\n• E'lonni admin bilan bog'lanmasdan o'zingiz joylashtiring\n• E'lon joylashtirish — <b>bepul</b>\n• Telegramdan chiqmasdan foydalaning\n• Sotuvchi bilan bevosita bog'laning\n\n<b>👇 Mini App'ni ochish uchun quyidagi tugmani bosing.</b>",
     'open_app' => "🚀 E'lonlar ilovasini ochish",
+
+    // Kanaldagi qadalgan "jonli" post (ChannelLivePostService)
+    'live_title' => "🔥 <b>Hozir faol e'lonlar</b>",
+    'live_line' => ':emoji <b>:name</b> — :count ta',
+    'live_today' => ' · bugun +:count',
+    'live_total' => "Jami: <b>:count</b> ta faol e'lon",
+    'live_updated' => '🕐 <i>Yangilandi: :time</i>',
+    'live_post_ad' => "📢 E'lon berish",
 ];

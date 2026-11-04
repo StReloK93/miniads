@@ -80,11 +80,12 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
 import { ICategory, InputConfig } from "@shared/types";
-import { onMounted, ref, shallowRef } from "vue";
+import { onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import { buildProductFormInputs, buildProductPayload } from "@/features/product/useProductForm";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
 import { CheckCircle2, Eye, Plus, User } from "lucide-vue-next";
 import { useAuth } from "@shared/store/useAuth";
+import { leaveCreateFlow, pushBackHandler } from "@/modules/navigation";
 
 const authStore = useAuth();
 const route = useRoute();
@@ -110,7 +111,8 @@ async function submitForm(values: Record<string, any>) {
    }
    createdProduct.value = {
       id: res.data?.id,
-      title: values.title,
+      // Sarlavha so'ralmaydigan kategoriyada uni server yasaydi
+      title: res.data?.title ?? values.title,
    };
 }
 
@@ -118,23 +120,32 @@ function onSubmit() {
    showSuccessModal.value = true;
 }
 
+// Muvaffaqiyat oynasi ochiq turganda Telegram'ning "orqaga" tugmasi formaga emas, e'lonning o'ziga olib boradi
+let releaseBackHandler: (() => void) | null = null;
+watch(showSuccessModal, (open) => {
+   releaseBackHandler?.();
+   releaseBackHandler = open ? pushBackHandler(viewCreatedProduct) : null;
+});
+onUnmounted(() => releaseBackHandler?.());
+
+// E'lon joylandi — forma sahifalari tarixdan olib tashlanadi, "orqaga" ularni qayta ochmaydi
 function viewCreatedProduct() {
    showSuccessModal.value = false;
    if (createdProduct.value?.id) {
-      router.push({ name: "product-id", params: { id: String(createdProduct.value.id) } });
+      leaveCreateFlow(router, { name: "product-id", params: { id: String(createdProduct.value.id) } });
    } else {
-      router.push({ name: "my-ads" });
+      leaveCreateFlow(router, { name: "my-ads" });
    }
 }
 
 function createAnother() {
    showSuccessModal.value = false;
-   router.push({ name: "create-select-category" });
+   leaveCreateFlow(router, { name: "create-select-category" });
 }
 
 function goToProfile() {
    showSuccessModal.value = false;
-   router.push({ name: "my-ads" });
+   leaveCreateFlow(router, { name: "my-ads" });
 }
 
 onMounted(async () => {

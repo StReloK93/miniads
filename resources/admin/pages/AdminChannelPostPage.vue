@@ -10,6 +10,70 @@
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
       <p v-if="success" class="admin-alert admin-alert-success">{{ success }}</p>
 
+      <!-- Jonli post: kanal tepasida qadalgan, har 15 daqiqada tahrirlanadi (bildirishnomasiz) -->
+      <section v-if="live" class="admin-panel p-4 sm:p-5 mb-5 grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
+         <div class="lg:col-span-3 flex flex-col gap-3">
+            <label class="flex items-center justify-between gap-3 cursor-pointer">
+               <span>
+                  <span class="admin-label flex items-center gap-1.5">
+                     <Radio class="size-4" /> Jonli post
+                     <span
+                        v-if="live.enabled && live.posted"
+                        class="rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600"
+                     >
+                        Kanalda turibdi
+                     </span>
+                  </span>
+                  <span class="admin-hint mt-1! block">
+                     Kanal tepasiga bitta post qadab qo'yiladi: tezkor bo'limlarda nechta faol e'lon borligi. Har 15
+                     daqiqada yangilanadi. Yangi post yozilmaydi, o'sha post tahrirlanadi, shuning uchun a'zolarga
+                     bildirishnoma bormaydi. O'chirilsa, post kanaldan olib tashlanadi.
+                  </span>
+               </span>
+               <span class="relative inline-flex shrink-0">
+                  <input
+                     :checked="live.enabled"
+                     type="checkbox"
+                     class="sr-only peer"
+                     :disabled="liveSaving"
+                     @change="toggleLive(($event.target as HTMLInputElement).checked)"
+                  />
+                  <span
+                     class="w-11 h-6 bg-(--z-muted) rounded-full peer-checked:bg-(--z-primary) peer-disabled:opacity-60 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"
+                  ></span>
+               </span>
+            </label>
+            <p v-if="!live.channels.length" class="admin-hint text-(--z-danger)!">
+               Kanal sozlanmagan: .env faylida TELEGRAM_CHANNELS bo'sh.
+            </p>
+            <p class="admin-hint">
+               Qaysi bo'limlar chiqishi: Kategoriyalar → "Tezkor bo'limlarda chiqadi".
+            </p>
+         </div>
+
+         <!-- Hozirgi holat bilan oldindan ko'rish -->
+         <div class="lg:col-span-2">
+            <div class="rounded-(--z-rounded) bg-(--z-muted) p-3">
+               <div class="max-w-80 mx-auto">
+                  <!-- Matn serverda tayyorlanadi, nomlar ekranlangan; faqat <b>/<i> teglari -->
+                  <p
+                     class="rounded-2xl rounded-bl-md bg-(--z-card) border border-(--z-border) px-3 py-2.5 text-sm whitespace-pre-line"
+                     v-html="live.preview"
+                  ></p>
+                  <div class="mt-1 grid grid-cols-2 gap-1">
+                     <span
+                        v-for="button in live.buttons"
+                        :key="button"
+                        class="rounded-xl bg-(--z-card) border border-(--z-border) py-1.5 px-2 text-center text-xs font-medium truncate"
+                     >
+                        {{ button }}
+                     </span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
          <!-- Forma -->
          <form class="lg:col-span-3 admin-panel p-4 sm:p-5 flex flex-col gap-5" @submit.prevent="askConfirm">
@@ -144,7 +208,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { ArrowUpRight, ImagePlus, Send } from "lucide-vue-next";
+import { ArrowUpRight, ImagePlus, Radio, Send } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
@@ -224,6 +288,34 @@ async function send() {
    }
 }
 
+/* ===== Jonli post ===== */
+const live = ref<{ enabled: boolean; posted: boolean; channels: string[]; preview: string; buttons: string[] } | null>(
+   null,
+);
+const liveSaving = ref(false);
+
+async function loadLive() {
+   const { data } = await AdminRepo.channelLivePost();
+   live.value = data;
+}
+
+async function toggleLive(enabled: boolean) {
+   if (!live.value) return;
+   error.value = null;
+   success.value = null;
+   liveSaving.value = true;
+   try {
+      const { data } = await AdminRepo.updateChannelLivePost(enabled);
+      success.value = data.message;
+   } catch (err: any) {
+      error.value = err.response?.data?.message ?? "Saqlab bo'lmadi.";
+   } finally {
+      liveSaving.value = false;
+      // Kalit holati serverdagi haqiqiy holatga qaytadi (xato bo'lsa ham)
+      await loadLive().catch(() => {});
+   }
+}
+
 // Oxirgi ishlatilgan tugma eslab qolinadi
 watch([buttonText, buttonUrl], ([label, url]) => {
    try {
@@ -234,6 +326,7 @@ watch([buttonText, buttonUrl], ([label, url]) => {
 });
 
 onMounted(async () => {
+   loadLive().catch((err) => console.error("Live post state failed.", err));
    const { data } = await AdminRepo.channelPostDefaults();
    defaults.value = data;
 

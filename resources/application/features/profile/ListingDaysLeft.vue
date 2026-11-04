@@ -1,10 +1,10 @@
 <template>
    <div class="min-w-0 grow">
       <p class="inline-flex items-center gap-1 text-xs font-medium" :class="tone.text">
-         <component :is="expired ? CircleOff : Timer" class="size-3.5" />
+         <component :is="permanent ? InfinityIcon : expired ? CircleOff : Timer" class="size-3.5" />
          {{ label }}
       </p>
-      <div v-if="!expired" class="mt-1.5 h-1 w-full max-w-40 rounded-full bg-(--z-muted) overflow-hidden">
+      <div v-if="!expired && !permanent" class="mt-1.5 h-1 w-full max-w-40 rounded-full bg-(--z-muted) overflow-hidden">
          <div
             class="h-full rounded-full transition-[width] duration-500"
             :class="tone.bar"
@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { CircleOff, Timer } from "lucide-vue-next";
+import { CircleOff, Infinity as InfinityIcon, Timer } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 
 /**
@@ -26,15 +26,18 @@ import { useI18n } from "vue-i18n";
 const props = defineProps<{
    current: number;
    max: number;
+   /** Muddatsiz kategoriya (masalan Kafe-restoranlar): kun sanalmaydi */
+   permanent?: boolean;
 }>();
 
 const { t } = useI18n();
 const WARNING_DAYS = 2;
 
-const expired = computed(() => props.current <= 0);
+const expired = computed(() => !props.permanent && props.current <= 0);
 const daysLeft = computed(() => Math.floor(props.current));
 
 const label = computed(() => {
+   if (props.permanent) return t("listing.permanent");
    if (expired.value) return t("listing.expired");
    if (daysLeft.value < 1) return t("listing.endsToday");
    return t("listing.daysLeft", daysLeft.value);

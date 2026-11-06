@@ -314,6 +314,8 @@ class ProductService
         DB::transaction(function () use ($product): void {
             // favorites jadvalida cascade yo'q — avval o'zimiz tozalaymiz
             $product->favorites()->delete();
+            // Kanal posti identifikatorlari (jadvalda foreign key yo'q — o'zimiz tozalaymiz)
+            \App\Models\ProductTelegramId::where('product_id', $product->id)->delete();
             $product->forceDelete();
         });
     }

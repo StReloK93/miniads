@@ -43,3 +43,8 @@ Schedule::command('queue:work --sleep=1 --tries=3 --max-time=55')
     ->everyMinute()
     ->withoutOverlapping(2)
     ->runInBackground();
+
+// Eski arxiv va muddati ancha o'tgan e'lonlar rasmlari bilan o'chiriladi (disk to'lmasin) — tunda
+Schedule::command('products:prune')
+    ->dailyAt('04:00')
+    ->withoutOverlapping(60);

@@ -11,15 +11,14 @@ use App\Services\ProductService;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
-use App\Services\TelegramProductService;
 use App\Services\ProductSearchService;
 use App\Services\ProductFilters;
 use App\Http\Requests\SaveProductRequest;
+use App\Jobs\SyncProductToTelegram;
 class ProductController extends Controller
 {
     public function __construct(
         protected ProductService $productService,
-        protected TelegramProductService $telegramProductService
     ) {
     }
 
@@ -44,14 +43,8 @@ class ProductController extends Controller
         }
         $this->scanAfterResponse($product);
 
-        try {
-            $this->telegramProductService->publish($product);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Telegram nashr qilish xatosi: " . $e->getMessage(), [
-                'product_id' => $product->id,
-                'exception' => $e,
-            ]);
-        }
+        // Kanalga fonda chiqadi: foydalanuvchi Telegram javobini kutmaydi, xato bo'lsa job qayta urinadi
+        SyncProductToTelegram::dispatch($product->id, SyncProductToTelegram::PUBLISH);
 
         return response()->json([
             'message' => __('messages.ad_created'),
@@ -82,14 +75,7 @@ class ProductController extends Controller
             $this->scanAfterResponse($product);
         }
 
-        try {
-            $this->telegramProductService->synchronize($product, $previouslyHadImage);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Telegram sinxronizatsiya xatosi: " . $e->getMessage(), [
-                'product_id' => $product->id,
-                'exception' => $e,
-            ]);
-        }
+        SyncProductToTelegram::dispatch($product->id, SyncProductToTelegram::UPDATE, $previouslyHadImage);
 
         return response()->json([
             'message' => __('messages.ad_updated'),
@@ -306,14 +292,7 @@ class ProductController extends Controller
 
         $this->productService->delete($product);
 
-        try {
-            $this->telegramProductService->deleteFromChannels($product);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Telegram postni o'chirish xatosi: " . $e->getMessage(), [
-                'product_id' => $product->id,
-                'exception' => $e,
-            ]);
-        }
+        SyncProductToTelegram::dispatch($product->id, SyncProductToTelegram::DELETE);
 
         return response()->json([
             'message' => __('messages.ad_deleted'),

@@ -33,8 +33,13 @@ class TelegramProductService
     {
         $this->loadProductRelations($product);
 
+        // Allaqachon chiqqan kanalga qayta yubormaymiz: fon job'i qayta ursa ham post ikkilanmaydi
+        $published = ProductTelegramId::where('product_id', $product->id)->pluck('channel_id')->map(fn ($id) => (string) $id);
+
         foreach (self::channels() as $channelId) {
-            $this->publishToChannel($product, $channelId);
+            if (! $published->contains((string) $channelId)) {
+                $this->publishToChannel($product, $channelId);
+            }
         }
     }
 

@@ -36,3 +36,10 @@ Schedule::command('notifications:expiring')
 Schedule::command('channel:live-post')
     ->everyFifteenMinutes()
     ->withoutOverlapping(10);
+
+// Fon vazifalari (e'lonni kanalga chiqarish, narx tushgani haqida xabar...): har daqiqa ~55 soniya ishlaydigan ishchi.
+// Alohida supervisor kerak emas — scheduler o'zi ishga tushiradi; withoutOverlapping ikkinchisini ochmaydi
+Schedule::command('queue:work --sleep=1 --tries=3 --max-time=55')
+    ->everyMinute()
+    ->withoutOverlapping(2)
+    ->runInBackground();

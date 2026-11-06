@@ -285,6 +285,8 @@ const uz = {
       notifySavedHint: "Ko'pi bilan 15 daqiqada bir marta",
       notifyExpiry: "E'lon muddati tugayotganda",
       notifyExpiryHint: "Tugashidan 2 kun oldin eslatadi",
+      notifyPriceDrop: "Sevimli e'lon arzonlasa",
+      notifyPriceDropHint: "Narx tushganini bot darhol aytadi",
       phone: "Asosiy telefon raqam",
       phoneHint: "Yangi e'lon formasida avtomatik to'ldiriladi.",
       settings: "Sozlamalar",

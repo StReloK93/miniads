@@ -12,7 +12,7 @@ export default {
       return api.get<IProfileSummary>("profile");
    },
 
-   update(values: Partial<Pick<IUser, "phone" | "notify_saved_searches" | "notify_expiry">>) {
+   update(values: Partial<Pick<IUser, "phone" | "notify_saved_searches" | "notify_expiry" | "notify_price_drop">>) {
       return api.patch<IUser>("profile", values);
    },
 

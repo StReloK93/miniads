@@ -34,6 +34,7 @@ class ProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:32'],
             'notify_saved_searches' => ['sometimes', 'boolean'],
             'notify_expiry' => ['sometimes', 'boolean'],
+            'notify_price_drop' => ['sometimes', 'boolean'],
         ]);
 
         $user = $request->user();

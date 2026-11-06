@@ -29,4 +29,7 @@ return [
     'admin_info' => "ℹ️ <b>Administratsiyadan xabar</b>",
     'admin_about_ad' => "E'lon: <b>:title</b>",
     'open_ad' => "E'lonni ochish",
+
+    // Sevimlilardagi e'lon arzonladi (NotifyPriceDrop)
+    'price_drop' => "📉 <b>Sevimli e'loningiz arzonladi!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
 ];

@@ -153,6 +153,8 @@ export interface IUser {
    bot_can_message?: boolean;
    notify_saved_searches?: boolean;
    notify_expiry?: boolean;
+   /** Sevimlilardagi e'lon arzonlasa bot xabar beradi */
+   notify_price_drop?: boolean;
    /** Yangi e'lon formasida avtomatik to'ldiriladi */
    phone?: string | null;
    active_district_id: number | null;

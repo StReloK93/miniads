@@ -280,6 +280,8 @@ const en: MessageSchema = {
       notifySavedHint: "At most once every 15 minutes",
       notifyExpiry: "When an ad is about to expire",
       notifyExpiryHint: "Reminder 2 days before",
+      notifyPriceDrop: "When a saved ad gets cheaper",
+      notifyPriceDropHint: "The bot tells you as soon as the price drops",
       phone: "Main phone number",
       phoneHint: "Filled in automatically in the new ad form.",
       settings: "Settings",

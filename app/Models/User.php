@@ -20,6 +20,7 @@ class User extends Authenticatable
         'phone',
         'notify_saved_searches',
         'notify_expiry',
+        'notify_price_drop',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class User extends Authenticatable
         'bot_can_message' => 'boolean',
         'notify_saved_searches' => 'boolean',
         'notify_expiry' => 'boolean',
+        'notify_price_drop' => 'boolean',
     ];
 
     public function savedSearches()

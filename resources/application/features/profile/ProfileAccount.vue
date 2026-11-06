@@ -79,6 +79,16 @@
                         <span class="block text-xs text-(--z-muted-text)">{{ $t("profile.notifyExpiryHint") }}</span>
                      </BaseSwitch>
                   </div>
+                  <div class="px-4 py-3">
+                     <BaseSwitch
+                        :model-value="authStore.user?.notify_price_drop !== false"
+                        :disabled="savingField === 'notify_price_drop'"
+                        @update:model-value="saveSetting('notify_price_drop', $event)"
+                     >
+                        <span class="block text-sm font-medium">{{ $t("profile.notifyPriceDrop") }}</span>
+                        <span class="block text-xs text-(--z-muted-text)">{{ $t("profile.notifyPriceDropHint") }}</span>
+                     </BaseSwitch>
+                  </div>
                </div>
             </section>
 
@@ -247,7 +257,7 @@ async function allowMessages() {
    }
 }
 
-async function saveSetting(field: "notify_saved_searches" | "notify_expiry" | "phone", value: boolean | string | null) {
+async function saveSetting(field: "notify_saved_searches" | "notify_expiry" | "notify_price_drop" | "phone", value: boolean | string | null) {
    savingField.value = field;
    try {
       const { data } = await ProfileRepo.update({ [field]: value });

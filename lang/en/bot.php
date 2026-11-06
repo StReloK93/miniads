@@ -27,4 +27,6 @@ return [
     'admin_info' => 'ℹ️ <b>Message from the administration</b>',
     'admin_about_ad' => 'Ad: <b>:title</b>',
     'open_ad' => 'Open the ad',
+
+    'price_drop' => "📉 <b>A saved ad got cheaper!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
 ];

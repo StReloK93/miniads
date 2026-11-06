@@ -109,7 +109,17 @@ class ProductService
             unset($productAttributes['category_id']);
         }
 
+        $oldPrice = $product->price;
+        $oldPriceType = $product->price_type_id;
+
         $product->update($productAttributes);
+
+        // Arzonladi (o'sha valyutada) — sevimlilarga qo'shganlarga fonda xabar
+        if ($oldPrice !== null && $product->price !== null
+            && (int) $product->price < (int) $oldPrice
+            && (int) $product->price_type_id === (int) $oldPriceType) {
+            \App\Jobs\NotifyPriceDrop::dispatch($product->id, (int) $oldPrice);
+        }
 
         $parameters = $request->input('parameters', []);
 

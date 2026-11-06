@@ -280,6 +280,8 @@ const ru: MessageSchema = {
       notifySavedHint: "Не чаще раза в 15 минут",
       notifyExpiry: "Когда истекает срок объявления",
       notifyExpiryHint: "Напомним за 2 дня",
+      notifyPriceDrop: "Когда избранное дешевеет",
+      notifyPriceDropHint: "Бот сразу сообщит о снижении цены",
       phone: "Основной телефон",
       phoneHint: "Подставляется в форму нового объявления.",
       settings: "Настройки",

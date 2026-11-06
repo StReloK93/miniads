@@ -42,6 +42,8 @@ class ErrorAlert
                 continue;
             }
             $value = is_scalar($value) ? (string) $value : json_encode($value, JSON_UNESCAPED_UNICODE);
+            // Telegram so'rov manzilida bot tokeni bo'ladi (…/bot123:ABC/sendMessage) — chatga chiqmasin
+            $value = preg_replace('/bot\d+:[\w-]+/', 'bot***', $value);
             $lines[] = "<b>" . e($name) . ":</b> " . e(mb_strimwidth($value, 0, 600, '…'));
         }
         $lines[] = "🕒 " . now()->format('d.m.Y H:i:s');

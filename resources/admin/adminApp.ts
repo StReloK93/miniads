@@ -9,6 +9,7 @@ import { responsiveTable } from "@admin/modules/responsiveTable";
 import { isTMA } from "@tma.js/bridge";
 import { setupTelegramSafeArea } from "@shared/modules/telegramSafeArea";
 import { i18n } from "@shared/i18n";
+import { setupStaleChunkReload } from "@shared/modules/staleChunks";
 initTheme();
 if (isTMA()) setupTelegramSafeArea();
 const app = createApp(App);
@@ -17,6 +18,7 @@ app.use(createPinia());
 app.use(i18n);
 // Telefonda jadval qatorlari kartaga aylanadi
 app.directive("responsive-table", responsiveTable);
+setupStaleChunkReload(router);
 
 // 3. Asosiy yuklanish logikasi (Auth + Mount)
 const initApp = async () => {

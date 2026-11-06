@@ -327,11 +327,11 @@ function getMaskMaxLength() {
    return getMaskSlots().length;
 }
 
-function extractRaw(value = "") {
-   return value.replace(/[^a-zA-Z0-9]/g, "");
+function extractRaw(value: string | null = "") {
+   return (value ?? "").replace(/[^a-zA-Z0-9]/g, "");
 }
 
-function normalizeRawByMask(value = "") {
+function normalizeRawByMask(value: string | null = "") {
    const raw = extractRaw(value);
    const result: string[] = [];
    const maskSlots = getMaskSlots();
@@ -355,7 +355,7 @@ function normalizeRawByMask(value = "") {
    return result.join("").slice(0, getMaskMaxLength());
 }
 
-function formatValue(raw = "") {
+function formatValue(raw: string | null = "") {
    if (raw === "telegram") return "";
    const normalized = normalizeRawByMask(raw);
    if (!normalized) return "";

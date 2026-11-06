@@ -139,6 +139,7 @@ const ru: MessageSchema = {
       favorite: "Добавить в избранное",
       unfavorite: "Убрать из избранного",
       share: "Поделиться",
+      openInTelegram: "Открыть в приложении Telegram",
       copied: "Ссылка скопирована",
       details: "Характеристики",
       contactByPhone: "Связь по телефону",

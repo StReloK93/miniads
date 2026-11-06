@@ -144,6 +144,7 @@ const uz = {
       favorite: "Sevimlilarga qo'shish",
       unfavorite: "Sevimlilardan olib tashlash",
       share: "Ulashish",
+      openInTelegram: "Telegram ilovada ochish",
       copied: "Havola nusxalandi",
       details: "Qo'shimcha ma'lumot",
       contactByPhone: "Telefon orqali bog'laning",

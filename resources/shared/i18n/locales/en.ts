@@ -139,6 +139,7 @@ const en: MessageSchema = {
       favorite: "Add to favorites",
       unfavorite: "Remove from favorites",
       share: "Share",
+      openInTelegram: "Open in the Telegram app",
       copied: "Link copied",
       details: "Details",
       contactByPhone: "Contact by phone",

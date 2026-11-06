@@ -6,7 +6,19 @@
 	<meta name="viewport"
 		content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin />
-	<title>Telegram mini app</title>
+	@php($meta = $meta ?? \App\Support\PageMeta::default())
+	<title>{{ $meta['title'] }}</title>
+	{{-- Havola ulashilganda (Telegram, ijtimoiy tarmoqlar) chiqadigan karta: PageMeta --}}
+	<meta name="description" content="{{ $meta['description'] }}">
+	<meta property="og:site_name" content="{{ \App\Support\PageMeta::SITE_NAME }}">
+	<meta property="og:type" content="{{ $meta['type'] }}">
+	<meta property="og:title" content="{{ $meta['title'] }}">
+	<meta property="og:description" content="{{ $meta['description'] }}">
+	<meta property="og:url" content="{{ $meta['url'] }}">
+	@if ($meta['image'])
+	<meta property="og:image" content="{{ $meta['image'] }}">
+	<meta name="twitter:card" content="summary_large_image">
+	@endif
 	<style>
 		@font-face {
 			font-family: InterVariable;

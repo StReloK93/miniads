@@ -517,9 +517,12 @@ const isReportOpen = ref(false);
 
 async function shareProduct() {
    if (!product.value) return;
-   const url = `${TELEGRAM_APP_URL}?startapp=product_${product.value.id}`;
+   // Asosiy havola — sayt sahifasi: Telegram undan rasm, sarlavha va narxli karta yasaydi (server: PageMeta).
+   // Matnda mini app havolasi ham bor — Telegram ichida bir bosishda ilovada ochiladi
+   const url = `${window.location.origin}/product/${product.value.id}`;
+   const appUrl = `${TELEGRAM_APP_URL}?startapp=product_${product.value.id}`;
    const price = formatProductPrice(product.value.price, product.value.price_type, "");
-   const text = price ? `${product.value.title} — ${price}` : product.value.title;
+   const text = `${price ? `${product.value.title} — ${price}` : product.value.title}\n📱 ${t("product.openInTelegram")}: ${appUrl}`;
 
    // Telegram ichida — tanish "kimga yuborish" oynasi
    if (isTMA()) {

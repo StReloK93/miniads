@@ -35,3 +35,17 @@ test('pausing for another reason is not counted as sold', function () {
     $this->postJson("/api/products/{$product->id}/deactivate")->assertOk();
     expect($product->fresh()->sold_at)->toBeNull();
 });
+
+test('re-activated ad shows the re-activation time, not the original posting time', function () {
+    $owner = User::create(['name' => 'Sotuvchi', 'role' => 'user']);
+    $category = Category::create(['name' => 'Telefonlar', 'is_page' => true]);
+    $product = Product::create(['title' => 'iPhone 13', 'category_id' => $category->id, 'user_id' => $owner->id, 'expires_at' => now()->subDay()]);
+    $product->forceFill(['published_at' => now()->subDays(20)])->save();
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/products/{$product->id}/activate")->assertOk();
+
+    $published = $this->getJson("/api/products/{$product->id}")->assertOk()->json('published_at');
+    expect($published)->toContain('T') // ISO — iOS Safari ham o'qiydi
+        ->and(\Illuminate\Support\Carbon::parse($published)->diffInMinutes(now(), true))->toBeLessThan(2);
+});

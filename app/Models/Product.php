@@ -40,6 +40,9 @@ class Product extends Model
 
     protected $casts = [
         'is_bot' => 'boolean',
+        // ISO formatda ketadi: ilova "N kun oldin" ni shundan hisoblaydi (xom "Y-m-d H:i:s" ni iOS Safari o'qimaydi)
+        'published_at' => 'datetime',
+        'sold_at' => 'datetime',
     ];
 
 

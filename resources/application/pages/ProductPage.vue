@@ -112,7 +112,7 @@
                <!--  -->
                <div class="text-(--z-muted-text) text-xs flex gap-2 items-center mb-6">
                   <span class="capitalize">
-                     {{ timeAgo(product?.created_at!) }}
+                     {{ timeAgo((product?.published_at || product?.created_at)!) }}
                   </span>
                   <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
                   <span class="flex items-center gap-1">{{ $t("common.views", { n: viewCount }, product?.views_count ?? 0) }}</span>

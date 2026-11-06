@@ -129,7 +129,7 @@ const props = withDefaults(
       showCategory: true,
       showViews: false,
       inactive: false,
-      timeField: "created_at",
+      timeField: "published_at",
    },
 );
 

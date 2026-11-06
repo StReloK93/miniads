@@ -5,7 +5,7 @@
       :show-category="false"
       show-views
       :inactive="!isActive"
-      time-field="created_at"
+      time-field="published_at"
    >
       <!-- Qolgan kunlar va amallar -->
       <template #footer>

@@ -269,7 +269,7 @@ class ProductController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $this->productService->deActivate($product);
+        $this->productService->deActivate($product, $request->boolean('sold'));
 
         return response()->json([
             'message' => __('messages.ad_deactivated'),

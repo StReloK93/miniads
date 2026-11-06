@@ -53,6 +53,12 @@
                   <strong>{{ num(dashboard.stats.total_views) }}</strong>
                   <span class="admin-stat-detail">barcha e'lonlar bo'yicha</span>
                </article>
+               <!-- Egasi e'lonni to'xtatayotganda "Ha, sotildi" deb belgilaganlar -->
+               <article class="admin-stat-card">
+                  <span class="admin-stat-label">Sotildi</span>
+                  <strong>{{ num(dashboard.stats.sold_products_month ?? 0) }}</strong>
+                  <span class="admin-stat-detail">oxirgi 30 kunda · jami {{ num(dashboard.stats.sold_products ?? 0) }}</span>
+               </article>
             </div>
 
             <section class="admin-chart-card">

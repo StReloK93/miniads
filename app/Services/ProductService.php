@@ -283,14 +283,18 @@ class ProductService
     {
         $product->expires_at = $product->category->listingExpiresAt();
         $product->published_at = now();
+        // Qayta sotuvga chiqdi — "Sotildi" belgisi olinadi
+        $product->sold_at = null;
         $product->save();
 
         return $product;
     }
 
-    public function deActivate(Product $product): Product
+    /** $sold — egasi "Sotildi" deb to'xtatdi (platforma orqali sotilganlar statistikasi) */
+    public function deActivate(Product $product, bool $sold = false): Product
     {
         $product->expires_at = now()->subMinute();
+        $product->sold_at = $sold ? now() : null;
         $product->save();
 
         return $product;

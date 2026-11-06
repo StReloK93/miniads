@@ -10,8 +10,12 @@
       <!-- Qolgan kunlar va amallar -->
       <template #footer>
          <div class="mt-3 pt-3 border-t border-(--z-border) flex items-center justify-between gap-3" @click.stop>
+            <!-- Egasi "Sotildi" deb to'xtatgan (qayta faollashtirsa yo'qoladi) -->
+            <p v-if="product.sold_at && !isActive" class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+               <CircleCheck class="size-3.5" /> {{ $t("myAds.soldBadge") }}
+            </p>
             <ListingDaysLeft
-               v-if="product.days"
+               v-else-if="product.days"
                :current="product.days.current"
                :max="product.days.max"
                :permanent="product.days.permanent"
@@ -24,7 +28,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { Pen, Eye, EyeOff, Trash2 } from "lucide-vue-next";
+import { Pen, Eye, EyeOff, Trash2, CircleCheck } from "lucide-vue-next";
 import BaseButtonGroup, { ButtonOption } from "@shared/ui/BaseButtonGroup.vue";
 import ListingDaysLeft from "@/features/profile/ListingDaysLeft.vue";
 import ProductCard from "@/features/product/ProductCard.vue";

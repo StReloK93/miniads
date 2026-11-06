@@ -35,8 +35,9 @@ export default {
       return api.get<IProduct[]>(`${baseURL}/custom/latest_ten`);
    },
 
-   deactivate(id: string | number) {
-      return api.post(`${baseURL}/${id}/deactivate`, {});
+   /** sold — egasi "Sotildi" deb to'xtatdi */
+   deactivate(id: string | number, sold = false) {
+      return api.post(`${baseURL}/${id}/deactivate`, { sold });
    },
 
    activate(id: string | number) {

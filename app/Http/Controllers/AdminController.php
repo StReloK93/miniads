@@ -149,6 +149,9 @@ class AdminController extends Controller
                 'expired_products' => Product::passive()->count(),
                 'deleted_products' => Product::onlyTrashed()->count(),
                 'total_views' => (int) Product::sum('views_count'),
+                // Egasi "Sotildi" deb to'xtatgan e'lonlar (eskilari products:prune bilan o'chadi — asosiysi 30 kunlik son)
+                'sold_products' => Product::withTrashed()->whereNotNull('sold_at')->count(),
+                'sold_products_month' => Product::withTrashed()->where('sold_at', '>=', now()->subDays(30))->count(),
                 'users' => User::count(),
                 'new_users_week' => $newUsersWeek,
                 'active_users_today' => $activeUsersToday,
@@ -298,6 +301,7 @@ class AdminController extends Controller
                     $product->forceFill([
                         'expires_at' => $product->category ? $product->category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
                         'published_at' => now(),
+                        'sold_at' => null,
                     ])->save();
                     $done++;
                 });
@@ -449,6 +453,7 @@ class AdminController extends Controller
             $product->forceFill([
                 'expires_at' => $product->category ? $product->category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
                 'published_at' => now(),
+                'sold_at' => null,
             ])->save();
         } else {
             $product->update(['expires_at' => now()->subMinute()]);

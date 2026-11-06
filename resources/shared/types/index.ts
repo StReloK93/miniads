@@ -109,6 +109,8 @@ export interface IProduct {
    published_at: string;
    user: IUser;
    user_id: number;
+   /** Egasi "Sotildi" deb to'xtatgan vaqt */
+   sold_at?: string | null;
    /** Muddatsiz e'lon (expires_at = null) — sahifada "Muddatsiz" belgisi */
    is_permanent?: boolean;
    /** Telegram assistent (bot) kanaldan olgan e'lon */

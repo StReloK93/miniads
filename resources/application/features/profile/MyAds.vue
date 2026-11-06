@@ -67,6 +67,7 @@
             :confirm-text="modalParams.confirmText"
             :cancel-text="modalParams.cancelText"
             :danger="modalParams.status === 'delete'"
+            :show-buttons="modalParams.status !== 'deActivate'"
             @close="closeModal"
             @confirm="modalParams.confirm"
          >
@@ -90,6 +91,18 @@
                >
                   {{ modalParams.product?.title }}
                </h3>
+               <!-- To'xtatishda: sotildimi yoki boshqa sabab (platforma orqali sotilganlar statistikasi) -->
+               <div v-if="modalParams.status === 'deActivate'" class="flex flex-col gap-2 mt-2">
+                  <BaseButton class="w-full" type="button" :loading="isDeactivating" @click="confirmDeactivate(true)">
+                     ✅ {{ $t("myAds.sold") }}
+                  </BaseButton>
+                  <BaseButton class="w-full" type="button" severity="glass" :loading="isDeactivating" @click="confirmDeactivate(false)">
+                     {{ $t("myAds.otherReason") }}
+                  </BaseButton>
+                  <button type="button" class="h-9 text-sm text-(--z-muted-text) cursor-pointer" @click="closeModal">
+                     {{ $t("common.cancel") }}
+                  </button>
+               </div>
             </div>
          </BaseModal>
 
@@ -258,21 +271,32 @@ function deActivateProduct(product: IProduct) {
    modalParams.value = {
       status: "deActivate",
       title: t("myAds.deactivateTitle"),
-      description: t("myAds.deactivateText"),
-      showButtons: true,
+      description: t("myAds.soldQuestion"),
+      showButtons: false,
       icon: EyeOff,
       confirmText: t("myAds.deactivate"),
       product: product,
       cancelText: t("common.cancel"),
-
-      confirm: async () => {
-         await ProductRepo.deactivate(product.id);
-         await reload();
-         isOpen.value = false;
-      },
+      // Tugmalar modal ichida: confirmDeactivate(sold)
+      confirm: async () => {},
    };
    nextTick();
    isOpen.value = true;
+}
+
+const isDeactivating = ref(false);
+
+async function confirmDeactivate(sold: boolean) {
+   const product = modalParams.value.product;
+   if (!product) return;
+   isDeactivating.value = true;
+   try {
+      await ProductRepo.deactivate(product.id, sold);
+      await reload();
+      isOpen.value = false;
+   } finally {
+      isDeactivating.value = false;
+   }
 }
 
 function activateProduct(product: IProduct) {

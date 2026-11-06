@@ -6,6 +6,8 @@ import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
 import { isYearParameter } from "@shared/modules/productSpecs";
 import { useCategory } from "@shared/entities/Category/useCategory";
+import { t } from "@shared/i18n";
+import z from "zod";
 
 /** Asosiy bo'lim ikonkasi (House, Car...) — sarlavha namunasi shundan tanlanadi */
 function rootIconOf(category: ICategory): string | null {
@@ -80,6 +82,13 @@ export async function buildProductFormInputs(
       };
    });
 
+   // Telegram assistent e'loni: aloqa — "@nick" (raqam emas). Admin tahrirlaganda telefon maskasi uni o'chirib yubormasin
+   if (product?.phone?.startsWith("@") && phoneInput) {
+      phoneInput.component = Inputs["FieldText"];
+      phoneInput.props = { title: t("form.contact"), placeholder: "@username" };
+      phoneInput.schema = z.string({ message: t("form.phoneRequired") }).trim().min(2, t("form.phoneRequired"));
+   }
+
    if (product) {
       baseInputs.forEach((input) => {
          const value = product[input.name as keyof IProduct];
@@ -112,7 +121,8 @@ export function buildProductPayload(
       phone: values.phone === "telegram" || !values.phone ? null : values.phone,
       back_color_id: values.back_color_id,
       description: values.description,
-      price: values.price,
+      // Bo'sh narx — "Kelishiladi": null yuboramiz (tahrirlashda eski narx tozalansin)
+      price: values.price ?? null,
       price_type_id: values.price_type_id,
       category_id: options.categoryId,
       parameters,

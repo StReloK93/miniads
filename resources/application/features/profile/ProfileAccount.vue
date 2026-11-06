@@ -43,6 +43,8 @@
          </BaseModal>
 
          <div class="flex flex-col gap-5 pb-4">
+            <AdminMessageList />
+
             <section>
                <h4 class="section-title">{{ $t("profile.savedSearches") }}</h4>
                <SavedSearchList />
@@ -193,6 +195,7 @@ import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import ThemeSwitcher from "@shared/ui/ThemeSwitcher.vue";
 import LanguageSwitcher from "@shared/ui/LanguageSwitcher.vue";
 import SavedSearchList from "@/features/notifications/SavedSearchList.vue";
+import AdminMessageList from "@/features/notifications/AdminMessageList.vue";
 import { useSavedSearches } from "@/features/notifications/useSavedSearches";
 import { useBotAccess } from "@/features/notifications/useBotAccess";
 import ProfileRepo, { type IProfileSummary } from "@shared/entities/Profile/ProfileRepo";

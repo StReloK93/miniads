@@ -296,7 +296,7 @@ class AdminController extends Controller
             case 'activate':
                 Product::with('category')->whereIn('id', $ids)->get()->each(function (Product $product) use (&$done): void {
                     $product->forceFill([
-                        'expires_at' => $product->category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
+                        'expires_at' => $product->category ? $product->category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
                         'published_at' => now(),
                     ])->save();
                     $done++;
@@ -447,7 +447,7 @@ class AdminController extends Controller
             $product->loadMissing('category');
             // published_at $fillable'da yo'q — update() uni jim tashlab yuborardi, e'lon lenta boshiga chiqmasdi
             $product->forceFill([
-                'expires_at' => $product->category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
+                'expires_at' => $product->category ? $product->category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
                 'published_at' => now(),
             ])->save();
         } else {
@@ -455,6 +455,44 @@ class AdminController extends Controller
         }
 
         return response()->json(['message' => "E'lon holati yangilandi."]);
+    }
+
+    /**
+     * E'lon muddati: "days" — N kun, "permanent" — muddatsiz (expires_at = null), "category" — kategoriya bo'yicha.
+     * Telegram assistent e'lonlari ham shu yerda boshqariladi.
+     */
+    private const EXPIRY_RULES = [
+        'duration' => ['nullable', 'in:category,days,permanent'],
+        'days' => ['nullable', 'required_if:duration,days', 'integer', 'min:1', 'max:3650'],
+    ];
+
+    /**  array{0: bool, 1: ?Carbon} [muddat berildimi, expires_at] — "category"/bo'sh bo'lsa [false, null] */
+    private static function expiryFromInput(array $input): array
+    {
+        return match ($input['duration'] ?? null) {
+            'permanent' => [true, null],
+            'days' => [true, now()->addDays((int) $input['days'])],
+            default => [false, null],
+        };
+    }
+
+    public function updateProductExpiry(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            ...self::EXPIRY_RULES,
+            'duration' => ['required', 'in:category,days,permanent'],
+        ]);
+
+        $product = Product::with('category')->findOrFail($id);
+        [$given, $expiresAt] = self::expiryFromInput($validated);
+        if (! $given) {
+            $expiresAt = $product->category ? $product->category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS);
+        }
+        $product->forceFill(['expires_at' => $expiresAt])->save();
+
+        return response()->json([
+            'message' => $expiresAt ? "E'lon " . $expiresAt->format('d.m.Y H:i') . " gacha turadi." : "E'lon endi muddatsiz.",
+        ]);
     }
 
     public function deleteProduct(int $id, TelegramProductService $telegram)
@@ -571,6 +609,50 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * E'lon muallifiga (product_id) yoki foydalanuvchining o'ziga (user_id) ogohlantirish/tushuntirish yuborish.
+     * Bot orqali yuboriladi va ilovada Profil bo'limida turadi (o'qilmagani menyuda belgi bo'lib ko'rinadi).
+     */
+    public function sendUserMessage(Request $request, \App\Services\AdminMessageService $service)
+    {
+        $validated = $request->validate([
+            'product_id' => ['nullable', 'integer', 'required_without:user_id'],
+            'user_id' => ['nullable', 'integer', 'required_without:product_id'],
+            'type' => ['required', Rule::in(\App\Models\AdminMessage::TYPES)],
+            'body' => ['required', 'string', 'min:3', 'max:2000'],
+        ]);
+
+        $product = filled($validated['product_id'] ?? null)
+            ? Product::withTrashed()->with('user')->findOrFail($validated['product_id'])
+            : null;
+        $recipient = $product?->user ?? User::findOrFail($validated['user_id']);
+
+        abort_if(
+            $recipient->id === User::getBotUser()->id,
+            422,
+            "Bu e'lonni Telegram assistent qo'ygan — asl muallifi ilovada yo'q.",
+        );
+
+        $message = $service->send($recipient, $request->user(), $validated['type'], $validated['body'], $product);
+
+        return response()->json([
+            'message' => $message->telegram_sent
+                ? "Xabar yuborildi: botga yetkazildi va ilovada Profil bo'limida ham turadi."
+                : "Xabar saqlandi: botga yetkazib bo'lmadi (botni ishga tushirmagan) — ilovada Profil bo'limida ko'radi.",
+            'item' => $message,
+        ]);
+    }
+
+    /** Foydalanuvchiga avval yuborilgan xabarlar (oxirgi 20 ta) — yozish oynasida tarix sifatida */
+    public function userMessages(int $id)
+    {
+        return \App\Models\AdminMessage::where('user_id', $id)
+            ->with(['product:id,title', 'sender:id,name'])
+            ->latest('id')
+            ->take(20)
+            ->get();
+    }
+
     public function unblockUser(int $id)
     {
         User::findOrFail($id)->forceFill(['blocked_at' => null])->save();
@@ -665,10 +747,16 @@ class AdminController extends Controller
             'images' => ['array', 'max:10'],
             'images.*' => ['image', 'mimes:jpeg,png,webp', 'max:10240'],
             'publish' => ['boolean'],
+            ...self::EXPIRY_RULES,
         ]);
 
         return $this->chosenImportResponse(
-            $service->importText($validated['text'], $request->file('images', []), $request->boolean('publish'))
+            $service->importText(
+                $validated['text'],
+                $request->file('images', []),
+                $request->boolean('publish'),
+                self::expiryFromInput($validated),
+            )
         );
     }
 
@@ -804,7 +892,6 @@ class AdminController extends Controller
     private function isActive(Product $product): bool
     {
         return ! $product->trashed()
-            && filled($product->expires_at)
-            && Carbon::parse($product->expires_at)->isFuture();
+            && ($product->isPermanent() || Carbon::parse($product->expires_at)->isFuture());
     }
 }

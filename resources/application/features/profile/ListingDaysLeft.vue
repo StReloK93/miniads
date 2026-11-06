@@ -24,17 +24,17 @@ import { useI18n } from "vue-i18n";
  * `current` — qolgan kunlar (kasr bo'lishi mumkin, muddati o'tgan bo'lsa manfiy), `max` — to'liq muddat.
  */
 const props = defineProps<{
-   current: number;
-   max: number;
-   /** Muddatsiz kategoriya (masalan Kafe-restoranlar): kun sanalmaydi */
+   current: number | null;
+   max: number | null;
+   /** Muddatsiz e'lon (kategoriya yoki admin shunday qo'ygan): kun sanalmaydi */
    permanent?: boolean;
 }>();
 
 const { t } = useI18n();
 const WARNING_DAYS = 2;
 
-const expired = computed(() => !props.permanent && props.current <= 0);
-const daysLeft = computed(() => Math.floor(props.current));
+const expired = computed(() => !props.permanent && (props.current ?? 0) <= 0);
+const daysLeft = computed(() => Math.floor(props.current ?? 0));
 
 const label = computed(() => {
    if (props.permanent) return t("listing.permanent");
@@ -45,12 +45,12 @@ const label = computed(() => {
 
 const percent = computed(() => {
    if (!props.max) return 0;
-   return Math.max(4, Math.min(100, (props.current / props.max) * 100));
+   return Math.max(4, Math.min(100, ((props.current ?? 0) / props.max) * 100));
 });
 
 const tone = computed(() => {
    if (expired.value) return { text: "text-(--z-muted-text)", bar: "" };
-   if (props.current <= WARNING_DAYS) return { text: "text-amber-600 dark:text-amber-400", bar: "bg-amber-500" };
+   if ((props.current ?? 0) <= WARNING_DAYS) return { text: "text-amber-600 dark:text-amber-400", bar: "bg-amber-500" };
    return { text: "text-(--z-muted-text)", bar: "bg-(--z-primary)" };
 });
 </script>

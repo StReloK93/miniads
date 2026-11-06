@@ -7,6 +7,7 @@
  */
 const uz = {
    common: {
+      optional: "ixtiyoriy",
       save: "Saqlash",
       cancel: "Bekor qilish",
       close: "Yopish",
@@ -166,6 +167,8 @@ const uz = {
       error: "Yuborib bo'lmadi. Qayta urinib ko'ring.",
    },
    myAds: {
+      ownerBot: "Telegram assistent",
+      ownerMe: "Meniki",
       title: "E'lonlarim",
       viewed: "{n} marta ko'rilgan",
       new: "Yangi e'lon",
@@ -216,6 +219,7 @@ const uz = {
       another: "Yana e'lon berish",
    },
    form: {
+      priceHint: "Bo'sh qoldirsangiz — «Kelishiladi» deb ko'rsatiladi",
       photos: "Rasmlar",
       title: "Sarlavha",
       contact: "Bog'lanish uchun",
@@ -294,6 +298,14 @@ const uz = {
       dark: "Qorong'i",
       system: "Tizim",
       toggle: "Mavzuni almashtirish",
+   },
+   adminMessage: {
+      title: "Administratsiyadan xabarlar",
+      warning: "Ogohlantirish",
+      info: "Tushuntirish",
+      new: "{n} ta yangi",
+      aboutAd: "E'lon: {title}",
+      showAll: "Hammasini ko'rsatish ({n})",
    },
    listingPrice: {
       negotiable: "Kelishiladi",

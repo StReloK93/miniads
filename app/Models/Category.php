@@ -71,12 +71,12 @@ class Category extends Model
 
     /**
      * Shu kategoriyada hozir joylangan (yoki qayta faollashtirilgan) e'lon qachongacha turadi.
-     * Muddatsiz kategoriyada — juda uzoq sana: "faol" so'rovlari (expires_at >= now) o'zgarishsiz ishlaydi.
+     * Muddatsiz kategoriyada — null (e'lon hech qachon o'chmaydi, Product::isPermanent).
      */
-    public function listingExpiresAt(): Carbon
+    public function listingExpiresAt(): ?Carbon
     {
         if ($this->is_permanent) {
-            return Product::permanentUntil();
+            return null;
         }
 
         return now()->addDays($this->listing_duration_days ?: self::DEFAULT_LISTING_DAYS);

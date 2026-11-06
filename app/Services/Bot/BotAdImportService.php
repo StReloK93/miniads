@@ -303,9 +303,10 @@ class BotAdImportService
      * Aynan shu matn avval qo'shilgan bo'lsa, qayta qo'shilmaydi.
      *
      * @param  UploadedFile[]  $images
+     * @param  array{0: bool, 1: ?\Illuminate\Support\Carbon}  $expiry  admin tanlagan muddat: [berildimi, expires_at (null — muddatsiz)]
      * @return array{status: string, message: string, product?: Product, parsed_by?: string}
      */
-    public function importText(string $text, array $images = [], bool $publish = false): array
+    public function importText(string $text, array $images = [], bool $publish = false, array $expiry = [false, null]): array
     {
         $text = trim($text);
         if (mb_strlen($text) < 10) {
@@ -317,13 +318,13 @@ class BotAdImportService
             return ['status' => 'exists', 'message' => "Bu matn allaqachon qo'shilgan (#{$existing->id}).", 'product' => $existing];
         }
 
-        return $this->storeChosen(['text' => $text, 'message_id' => null], null, $images, $publish);
+        return $this->storeChosen(['text' => $text, 'message_id' => null], null, $images, $publish, $expiry);
     }
 
     /**
      * @param  array<string|UploadedFile>  $images  post rasmlari havolasi yoki admin yuklagan fayllar
      */
-    protected function storeChosen(array $post, ?string $channel, array $images, bool $publish): array
+    protected function storeChosen(array $post, ?string $channel, array $images, bool $publish, array $expiry = [false, null]): array
     {
         $text = trim($post['text']);
         $parsed = $this->aiParser->parseChosen($text, BotSetting::current(), $channel);
@@ -333,7 +334,12 @@ class BotAdImportService
         $contact = ($parsed['phone'] ?? null) ?: $this->extractPhone($contactText) ?: ($username ? '@' . $username : null);
 
         $product = $this->createProduct($post, $channel, $parsed, $contact, $this->generateContentFingerprint($text), User::getBotUser());
-        if ($images && $this->acceptsImages($product->category)) {
+        if ($expiry[0]) {
+            $product->forceFill(['expires_at' => $expiry[1]])->save();
+        }
+        // Admin o'zi yuklagan rasmlar har qanday kategoriyada qoladi; kanal postidan olinganlari — kategoriya sozlamasiga ko'ra
+        $adminUploaded = ($images[0] ?? null) instanceof UploadedFile;
+        if ($images && ($adminUploaded || $this->acceptsImages($product->category))) {
             $this->attachImages($product, array_slice($images, 0, 10));
         }
 
@@ -372,7 +378,7 @@ class BotAdImportService
             'source_message_id' => $post['message_id'],
             'source_hash' => $sourceHash,
             'published_at' => now(),
-            'expires_at' => $category?->listingExpiresAt() ?? now()->addDays(Category::DEFAULT_LISTING_DAYS),
+            'expires_at' => $category ? $category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
         ]);
     }
 

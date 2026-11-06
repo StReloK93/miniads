@@ -1,6 +1,23 @@
 import { api } from "@shared/composables/useFetch";
 
+/** Admin foydalanuvchiga yozgan ogohlantirish/tushuntirish */
+export type AdminMessageItem = {
+   id: number;
+   type: "warning" | "info";
+   body: string;
+   telegram_sent: boolean;
+   read_at: string | null;
+   created_at: string;
+   product: { id: number; title: string } | null;
+};
+
 export default {
+   sendMessage(payload: { product_id?: number; user_id?: number; type: "warning" | "info"; body: string }) {
+      return api.post<{ message: string; item: AdminMessageItem }>("admin/messages", payload);
+   },
+   userMessages(userId: number) {
+      return api.get<AdminMessageItem[]>(`admin/users/${userId}/messages`);
+   },
    dashboard() {
       return api.get("admin/dashboard");
    },
@@ -9,6 +26,10 @@ export default {
    },
    updateProductStatus(id: number, status: "active" | "inactive") {
       return api.patch(`admin/products/${id}/status`, { status });
+   },
+   /** Muddat: N kun, muddatsiz (expires_at = null) yoki kategoriya bo'yicha */
+   updateProductExpiry(id: number, duration: "category" | "days" | "permanent", days?: number) {
+      return api.patch<{ message: string }>(`admin/products/${id}/expiry`, { duration, days });
    },
    deleteProduct(id: number) {
       return api.delete(`admin/products/${id}`);

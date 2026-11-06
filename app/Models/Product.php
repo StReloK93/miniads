@@ -43,31 +43,51 @@ class Product extends Model
     ];
 
 
-    /** Muddatsiz e'lonlarning tugash sanasi: shundan keyingi har qanday sana "muddatsiz" hisoblanadi */
-    public const PERMANENT_UNTIL = '2099-12-31 23:59:59';
-
-    public static function permanentUntil(): Carbon
-    {
-        return Carbon::parse(self::PERMANENT_UNTIL);
-    }
-
+    /**
+     * Muddatsiz e'lon: expires_at = null — hech qachon o'chmaydi (kategoriya "muddatsiz" yoki admin shunday qo'ygan).
+     * Faol/arxiv so'rovlari active()/passive() scope'lari orqali — null'ni hisobga oladi.
+     */
     public function isPermanent(): bool
     {
-        return $this->expires_at && Carbon::parse($this->expires_at)->gte(self::permanentUntil());
+        // Ustun tanlanmagan bo'lsa (select'da yo'q) — muddatsiz deb hisoblamaymiz
+        return array_key_exists('expires_at', $this->attributes) && $this->attributes['expires_at'] === null;
+    }
+
+    protected static function booted(): void
+    {
+        // expires_at umuman berilmagan yangi e'lon muddatsiz (null) bo'lib qolmasin — kategoriya muddatini oladi.
+        // Muddatsiz qilish uchun expires_at => null ataylab beriladi
+        static::creating(function (Product $product): void {
+            if (! array_key_exists('expires_at', $product->getAttributes())) {
+                $category = $product->category_id ? Category::find($product->category_id) : null;
+                $product->expires_at = $category
+                    ? $category->listingExpiresAt()
+                    : now()->addDays(Category::DEFAULT_LISTING_DAYS);
+            }
+        });
+    }
+
+    /** Ilova "Muddatsiz e'lon" belgisini ko'rsatadi (expires_at yashirin) */
+    protected $appends = ['is_permanent'];
+
+    public function getIsPermanentAttribute(): bool
+    {
+        return $this->isPermanent();
     }
 
     public function getDaysAttribute()
     {
-        if (!$this->expires_at)
-            return null;
+        if ($this->isPermanent()) {
+            return ['current' => null, 'max' => null, 'permanent' => true];
+        }
 
         $hours = now()->diffInDays($this->expires_at, false);
 
         return [
             'current' => round($hours, 2),
-            'max' => $this->category->listing_duration_days,
-            // Ilova "N kun qoldi" o'rniga "Muddatsiz" yozadi
-            'permanent' => $this->isPermanent(),
+            // Admin kategoriyadagidan uzunroq muddat qo'ygan bo'lishi mumkin
+            'max' => max((int) $this->category?->listing_duration_days, (int) ceil($hours)),
+            'permanent' => false,
         ];
     }
 
@@ -86,13 +106,13 @@ class Product extends Model
     #[Scope]
     protected function active(Builder $query): void
     {
-        $query->where('expires_at', '>=', now());
+        $query->where(fn (Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>=', now()));
     }
 
     #[Scope]
     protected function passive(Builder $query): void
     {
-        $query->where('expires_at', '<=', now());
+        $query->whereNotNull('expires_at')->where('expires_at', '<=', now());
     }
 
 

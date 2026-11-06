@@ -17,6 +17,14 @@
          <p class="text-sm text-(--z-muted-text)">{{ confirmState?.note }}</p>
       </BaseModal>
 
+      <AdminMessageDialog
+         :open="messageTarget !== null"
+         :recipient="messageTarget?.user ?? null"
+         :product="messageTarget"
+         @close="messageTarget = null"
+         @sent="(text) => (notice = text)"
+      />
+
       <header class="admin-page-heading">
          <div>
             <h1>E'lonlar</h1>
@@ -262,7 +270,21 @@
                                  </div>
                                  <div>
                                     <dt>Muddati</dt>
-                                    <dd>{{ product.expires_at ? formatDateTime(product.expires_at) : "—" }}</dd>
+                                    <dd>
+                                       {{ product.is_permanent ? "Muddatsiz" : product.expires_at ? formatDateTime(product.expires_at) : "—" }}
+                                       <!-- Har qanday e'lon (Telegram assistentniki ham): N kun, muddatsiz yoki kategoriya bo'yicha -->
+                                       <select
+                                          v-if="!product.deleted_at"
+                                          class="admin-input mt-1 h-8! py-0! text-xs"
+                                          :disabled="busyId === product.id"
+                                          @change="changeExpiry(product, $event)"
+                                       >
+                                          <option value="">Muddatni o'zgartirish…</option>
+                                          <option v-for="option in EXPIRY_OPTIONS" :key="option.value" :value="option.value">
+                                             {{ option.label }}
+                                          </option>
+                                       </select>
+                                    </dd>
                                  </div>
                                  <div v-if="product.is_bot">
                                     <dt>Manba</dt>
@@ -306,6 +328,16 @@
                                           <component :is="product.is_active ? PauseCircle : PlayCircle" class="size-3.5" />
                                        </template>
                                        {{ product.is_active ? "To'xtatish" : "Faollashtirish" }}
+                                    </BaseButton>
+                                    <!-- Muallifga ogohlantirish/tushuntirish (Telegram assistent e'lonida asl muallif yo'q) -->
+                                    <BaseButton
+                                       v-if="!product.is_bot && product.user"
+                                       size="sm"
+                                       severity="secondary"
+                                       @click="messageTarget = product"
+                                    >
+                                       <template #icon><MessageSquare class="size-3.5" /></template>
+                                       Muallifga yozish
                                     </BaseButton>
                                     <BaseButton
                                        v-if="product.open_reports_count"
@@ -383,6 +415,7 @@ import {
    Eye,
    Flag,
    ImageOff,
+   MessageSquare,
    PauseCircle,
    Pencil,
    PlayCircle,
@@ -397,6 +430,7 @@ import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
+import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
 import { formatDateTime, formatProductPrice, timeAgo } from "@shared/modules/formatters";
 
 type Status = "all" | "active" | "expired" | "reported" | "deleted";
@@ -452,6 +486,8 @@ const notice = ref("");
 const openId = ref<number | null>(null);
 const busyId = ref<number | null>(null);
 const confirmState = ref<ConfirmState | null>(null);
+// "Muallifga yozish" oynasi ochilgan e'lon
+const messageTarget = ref<AdminProduct | null>(null);
 
 async function load(page = 1) {
    loading.value = true;
@@ -538,6 +574,26 @@ function changeStatus(product: AdminProduct) {
       () => AdminRepo.updateProductStatus(product.id, next),
       next === "active" ? "E'lon faollashtirildi va lenta boshiga chiqdi." : "E'lon to'xtatildi.",
       "E'lon holatini o'zgartirib bo'lmadi.",
+   );
+}
+
+const EXPIRY_OPTIONS = [
+   ...[1, 3, 7, 15, 30, 60, 90, 180, 365].map((days) => ({ value: String(days), label: `Bugundan ${days} kun` })),
+   { value: "permanent", label: "Muddatsiz (o'chmaydi)" },
+   { value: "category", label: "Kategoriya muddati bo'yicha" },
+];
+
+function changeExpiry(product: AdminProduct, event: Event) {
+   const select = event.target as HTMLSelectElement;
+   const value = select.value;
+   select.value = "";
+   if (!value) return;
+   const duration = value === "permanent" || value === "category" ? value : "days";
+   return act(
+      product,
+      () => AdminRepo.updateProductExpiry(product.id, duration, duration === "days" ? Number(value) : undefined),
+      value === "permanent" ? "E'lon endi muddatsiz." : "E'lon muddati yangilandi.",
+      "Muddatni o'zgartirib bo'lmadi.",
    );
 }
 

@@ -5,7 +5,7 @@
          Izoh TransitionRoot'dan tashqarida: as="template" ichida faqat bitta element bo'lishi shart.
       -->
       <TransitionRoot appear :show="open" as="template">
-         <Dialog as="div" class="fixed inset-0 z-200 overflow-hidden" @close="close">
+         <Dialog as="div" class="fixed inset-0 z-200 overflow-hidden app-frame-fixed" @close="close">
             <TransitionChild
                as="template"
                enter="transition-opacity duration-200 ease-out"
@@ -15,10 +15,10 @@
                leave-from="opacity-100"
                leave-to="opacity-0"
             >
-               <div class="fixed inset-0 z-overlay" />
+               <div class="fixed inset-0 z-overlay app-frame-fixed" />
             </TransitionChild>
 
-            <div class="fixed inset-0 z-1 flex justify-end overflow-hidden pointer-events-none">
+            <div class="fixed inset-0 z-1 flex justify-end overflow-hidden pointer-events-none app-frame-fixed">
                <TransitionChild
                   as="template"
                   enter="transition duration-200 ease-out"

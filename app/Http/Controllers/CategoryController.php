@@ -178,12 +178,12 @@ class CategoryController extends Controller
 	{
 		if ($category->is_permanent) {
 			Product::where('category_id', $category->id)->active()
-				->update(['expires_at' => Product::permanentUntil()]);
+				->update(['expires_at' => null]);
 			return;
 		}
 
 		Product::where('category_id', $category->id)
-			->where('expires_at', '>=', Product::permanentUntil())
+			->whereNull('expires_at')
 			->update(['expires_at' => $category->listingExpiresAt()]);
 	}
 

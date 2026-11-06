@@ -11,10 +11,10 @@
             leave-from="opacity-100"
             leave-to="opacity-0"
          >
-            <div class="fixed inset-0 z-overlay z-100" />
+            <div class="fixed inset-0 z-overlay z-100 app-frame-fixed" />
          </TransitionChild>
 
-         <div class="fixed inset-0 overflow-y-auto z-200">
+         <div class="fixed inset-0 overflow-y-auto z-200 app-frame-fixed">
             <div class="flex min-h-full justify-center p-4 items-center overflow-hidden">
                <!-- Panel -->
                <TransitionChild

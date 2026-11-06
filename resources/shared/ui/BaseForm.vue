@@ -26,7 +26,7 @@
                         v-if="input.optional || input.required === false"
                         class="text-[11px] font-normal text-(--z-muted-text)/80"
                      >
-                        (ixtiyoriy)
+                        ({{ $t("common.optional") }})
                      </span>
                   </div>
                   <main class="relative" :class="input.teleport_parent_class">
@@ -38,6 +38,7 @@
                      />
                   </main>
 
+                  <p v-if="input.hint" class="text-[11px] text-(--z-muted-text) px-1 mt-1">{{ input.hint }}</p>
                   <ErrorMessage :name="input.name" v-slot="{ message }">
                      <p class="text-sm text-(--z-danger) mt-1">
                         {{ message }}

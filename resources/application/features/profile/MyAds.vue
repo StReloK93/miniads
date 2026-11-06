@@ -19,6 +19,20 @@
             </RouterLink>
          </div>
 
+         <!-- Faqat admin: o'z e'lonlari yoki Telegram assistent qo'ygan e'lonlar -->
+         <div v-if="isAdmin" class="flex gap-1 p-1 mb-3 rounded-full bg-(--z-muted)/60 text-xs font-medium">
+            <button
+               v-for="item in (['me', 'bot'] as const)"
+               :key="item"
+               type="button"
+               class="flex-1 h-8 rounded-full cursor-pointer transition"
+               :class="owner === item ? 'bg-(--z-card) text-(--z-foreground) shadow-sm' : 'text-(--z-muted-text)'"
+               @click="owner = item"
+            >
+               {{ item === "me" ? $t("myAds.ownerMe") : $t("myAds.ownerBot") }}
+            </button>
+         </div>
+
          <!-- Holat chiplari (bosh sahifadagi bo'lim chiplari kabi) + saralash -->
          <nav class="flex items-center gap-2 pb-3">
             <button
@@ -157,6 +171,7 @@ import { IProduct } from "@shared/types";
 import { ArrowDownUp, Clock, Eye, EyeOff, Megaphone, Plus, Search, Trash2 } from "lucide-vue-next";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useAuth } from "@shared/store/useAuth";
 
 const { t } = useI18n();
 
@@ -170,16 +185,26 @@ const sort = ref<"new" | "views" | "expiring">("new");
 
 // Bitta so'rov: barcha e'lonlar; tablar va statistika shundan hisoblanadi (tab almashganda kutish yo'q)
 const { data: products, execute: fetchProducts, isLoading } = useFetchDecorator<IProduct[]>(ProductRepo.myAds);
-const reload = () => fetchProducts("all");
 
-const isActive = (product: IProduct) => (product.days?.current ?? 0) > 0;
+// Admin Telegram assistent (bot) qo'ygan e'lonlarni ham shu yerda boshqaradi
+const authStore = useAuth();
+const isAdmin = computed(() => authStore.user?.role === "admin");
+const owner = ref<"me" | "bot">("me");
+const reload = () => fetchProducts("all", owner.value === "bot" ? "bot" : undefined);
+watch(owner, () => {
+   searchText.value = "";
+   products.value = null;
+   reload();
+});
+
+const isActive = (product: IProduct) => Boolean(product.days?.permanent) || (product.days?.current ?? 0) > 0;
+// Muddatsiz e'lonning muddati tugamaydi — "tugashi yaqin" tartibida oxirida turadi
+const daysLeft = (product: IProduct) => (product.days?.permanent ? Infinity : (product.days?.current ?? 0));
 const activeProducts = computed(() => (products.value ?? []).filter(isActive));
 const expiredProducts = computed(() => (products.value ?? []).filter((p) => !isActive(p)));
 const currentList = computed(() => (activeTab.value === 0 ? activeProducts.value : expiredProducts.value));
 
-const expiringCount = computed(
-   () => activeProducts.value.filter((p) => (p.days?.current ?? 0) <= EXPIRING_DAYS).length,
-);
+const expiringCount = computed(() => activeProducts.value.filter((p) => daysLeft(p) <= EXPIRING_DAYS).length);
 
 const tabs = computed(() => [
    { label: "myAds.active", count: activeProducts.value.length },
@@ -213,7 +238,7 @@ const visibleList = computed(() => {
    const list = currentList.value.filter((p) => matchesUzbek(searchText.value, p.title));
 
    if (sort.value === "views") return [...list].sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0));
-   if (sort.value === "expiring") return [...list].sort((a, b) => (a.days?.current ?? 0) - (b.days?.current ?? 0));
+   if (sort.value === "expiring") return [...list].sort((a, b) => daysLeft(a) - daysLeft(b));
    return list;
 });
 

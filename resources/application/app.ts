@@ -9,6 +9,7 @@ import { initTheme } from "@shared/composables/useTheme";
 import { applyLocale, detectLocale, i18n } from "@shared/i18n";
 import { api } from "@shared/composables/useFetch";
 import { reportClientError } from "@shared/modules/clientErrors";
+import { isStaleChunkError, setupStaleChunkReload } from "@shared/modules/staleChunks";
 import { startActivityTracking, track } from "@/modules/activity";
 import "@shared/css/ui.scss";
 
@@ -29,12 +30,14 @@ startActivityTracking();
 const app = createApp(App);
 // Kutilmagan JS xatolari ham admin chatiga borsin (bir xili bir marta)
 app.config.errorHandler = (error: any, _instance, info) => {
+   // Yangi versiya joylangandan keyingi eski fayl xatosi — sahifa o'zi yangilanadi (setupStaleChunkReload)
+   if (isStaleChunkError(error)) return;
    console.error(error);
    reportClientError("js", error?.message ?? String(error), { info, stack: String(error?.stack ?? "").slice(0, 800) });
 };
 window.addEventListener("unhandledrejection", (event) => {
    // So'rov xatolari o'z joyida ko'rsatiladi/yuboriladi — bu yerda faqat kod xatolari
-   if (event.reason?.isAxiosError) return;
+   if (event.reason?.isAxiosError || isStaleChunkError(event.reason)) return;
    reportClientError("js", event.reason?.message ?? String(event.reason), {
       stack: String(event.reason?.stack ?? "").slice(0, 800),
    });
@@ -42,12 +45,18 @@ window.addEventListener("unhandledrejection", (event) => {
 app.use(createPinia());
 app.use(i18n);
 const authStore = useAuth();
+setupStaleChunkReload(router);
 
 const initApp = async () => {
    let userData: ReturnType<typeof retrieveLaunchParams> | null = null;
    let startRoute: Parameters<typeof router.push>[0] | null = null;
    // Bot xabaridan admin panelga (startapp=admin_reported): admin — alohida ilova, kirishdan keyin to'liq o'tiladi
    let startUrl: string | null = null;
+
+   // Botdagi "📢 E'lon qo'yish" tugmasi saytni ?open=create bilan ochadi — darhol e'lon joylash sahifasi
+   if (new URLSearchParams(window.location.search).get("open") === "create") {
+      startRoute = { name: "create-select-category" };
+   }
 
    try {
       const tma = isTMA();

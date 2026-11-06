@@ -9,8 +9,12 @@ return [
     'expiring_many' => "⏳ <b>:count ta e'loningiz muddati tugayapti:</b>",
     'expiring_hint' => "Uzaytirsangiz, e'lon yana lenta boshiga chiqadi.",
     'extend' => 'Uzaytirish',
-    'welcome' => "<b>Xush kelibsiz!</b>\n\nNavoiy viloyati bo'yicha e'lonlarni qulay tarzda qidiring va joylashtiring.\n\n• E'lonni admin bilan bog'lanmasdan o'zingiz joylashtiring\n• E'lon joylashtirish — <b>bepul</b>\n• Telegramdan chiqmasdan foydalaning\n• Sotuvchi bilan bevosita bog'laning\n\n<b>👇 Mini App'ni ochish uchun quyidagi tugmani bosing.</b>",
+    'welcome' => "<b>Xush kelibsiz!</b>\n\nNavoiy viloyati bo'yicha e'lonlarni qulay tarzda qidiring va joylashtiring.\n\n• E'lonni admin bilan bog'lanmasdan o'zingiz joylashtiring\n• E'lon joylashtirish — <b>bepul</b>\n• Telegramdan chiqmasdan foydalaning\n• Sotuvchi bilan bevosita bog'laning\n\n📢 Qo'ygan e'lonlaringiz <a href=\":channel_url\">:channel</a> kanaliga ham chiqadi.\n\n<b>👇 Ilovani oching yoki darhol e'lon qo'ying.</b>",
     'open_app' => "🚀 E'lonlar ilovasini ochish",
+    // Xabar ostidagi va pastki klaviaturadagi tugma (bosilsa e'lon joylash sahifasi ochiladi)
+    'post_ad' => "📢 E'lon qo'yish",
+    'post_ad_prompt' => "Bo'limni tanlang va e'loningizni to'ldiring — bir daqiqa ham ketmaydi. 👇",
+    'keyboard_hint' => "Istalgan payt pastdagi «📢 E'lon qo'yish» tugmasini bosib e'lon berishingiz mumkin.",
 
     // Kanaldagi qadalgan "jonli" post (ChannelLivePostService)
     'live_title' => "🔥 <b>Hozir faol e'lonlar</b>",
@@ -19,4 +23,10 @@ return [
     'live_total' => "Jami: <b>:count</b> ta faol e'lon",
     'live_updated' => '🕐 <i>Yangilandi: :time</i>',
     'live_post_ad' => "📢 E'lon berish",
+
+    // Admin → e'lon muallifi (AdminMessageService)
+    'admin_warning' => "⚠️ <b>Administratsiyadan ogohlantirish</b>",
+    'admin_info' => "ℹ️ <b>Administratsiyadan xabar</b>",
+    'admin_about_ad' => "E'lon: <b>:title</b>",
+    'open_ad' => "E'lonni ochish",
 ];

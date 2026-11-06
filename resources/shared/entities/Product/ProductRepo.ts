@@ -43,8 +43,9 @@ export default {
       return api.post(`${baseURL}/${id}/activate`, {});
    },
 
-   myAds(status: string) {
-      return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`);
+   /** owner: "bot" — admin uchun Telegram assistent qo'ygan e'lonlar */
+   myAds(status: string, owner?: "bot") {
+      return api.get<IProduct[]>(`${baseURL}/custom/my_ads/${status}`, { params: owner ? { owner } : undefined });
    },
 
    /** params: search + ro'yxat filtrlari (features/filters/listFilters → toQueryParams) */

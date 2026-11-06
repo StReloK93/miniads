@@ -21,6 +21,9 @@ import { useCategory } from "@shared/entities/Category/useCategory";
 import { useCity } from "@shared/entities/District/useCity";
 import { on, postEvent } from "@tma.js/bridge";
 import { goBack, runBackHandler } from "@/modules/navigation";
+import { useAdminMessages } from "@/features/notifications/useAdminMessages";
+// Administratsiya xabarlari: kirgan foydalanuvchi uchun yuklanadi, menyuda belgi bo'lib turadi
+useAdminMessages();
 const categoryStore = useCategory();
 const cityStore = useCity();
 const animationName = ref("");

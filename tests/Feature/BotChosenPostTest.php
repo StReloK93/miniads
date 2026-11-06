@@ -145,11 +145,11 @@ test('private links and missing posts are rejected with a reason', function () {
 /** Guruhdan nusxalangan e'lon: kanal yo'q, kontakt faqat @nick */
 const PASTED_TEXT = "Sotiladi: Lacetti 2012, oq rang, holati zo'r. Narxi 9500\$. Navoiy shahri. Murojaat: @muhtasham_hr";
 
-function postPastedAd(array $images = []): \Illuminate\Testing\TestResponse
+function postPastedAd(array $images = [], array $extra = []): \Illuminate\Testing\TestResponse
 {
     Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
 
-    return test()->post('/api/admin/bot-import-text', ['text' => PASTED_TEXT, 'images' => $images, 'publish' => '0'], ['Accept' => 'application/json']);
+    return test()->post('/api/admin/bot-import-text', ['text' => PASTED_TEXT, 'images' => $images, 'publish' => '0', ...$extra], ['Accept' => 'application/json']);
 }
 
 test('pasted text becomes an ad with uploaded photos and the nick as contact', function () {
@@ -175,13 +175,25 @@ test('pasted text becomes an ad with uploaded photos and the nick as contact', f
     }
 });
 
-test('pasted text drops photos in a category without images', function () {
+test('photos the admin pasted are kept even in a category without images', function () {
     Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Svarchik kerak', 'category_id' => 2])));
 
     postPastedAd([UploadedFile::fake()->createWithContent('a.jpg', jpegBytes())])
         ->assertOk()
         ->assertJsonPath('product.category', 'Doimiy ish')
-        ->assertJsonCount(0, 'product.images');
+        ->assertJsonCount(1, 'product.images');
+});
+
+test('pasted ad can be permanent or last a chosen number of days', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Istiqlol kafe', 'category_id' => 3])));
+
+    $id = postPastedAd([], ['duration' => 'permanent'])->assertOk()->json('product.id');
+    $product = Product::find($id);
+    expect($product->expires_at)->toBeNull()
+        ->and(Product::active()->whereKey($id)->exists())->toBeTrue();
+
+    $this->patchJson("/api/admin/products/{$id}/expiry", ['duration' => 'days', 'days' => 5])->assertOk();
+    expect(\Illuminate\Support\Carbon::parse($product->fresh()->expires_at)->isSameDay(now()->addDays(5)))->toBeTrue();
 });
 
 test('the same pasted text is not added twice', function () {

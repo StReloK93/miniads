@@ -23,9 +23,13 @@ class TelegramNotifier
     /**
      * @param  array<int, array{0: string, 1: string}>  $buttons  [matn, havola] — har biri alohida qatorda
      */
-    public function toUser(User $user, string $html, array $buttons = [], ?string $photoUrl = null): bool
+    public function toUser(User $user, string $html, array $buttons = [], ?string $photoUrl = null, bool $force = false): bool
     {
-        if (! $user->bot_can_message || ! $user->telegram_user_id || $user->isBlocked()) {
+        if (! $user->telegram_user_id) {
+            return false;
+        }
+        // $force: admin xabari — bloklangan yoki ruxsat bermagan bo'lsa ham urinib ko'riladi
+        if (! $force && (! $user->bot_can_message || $user->isBlocked())) {
             return false;
         }
 

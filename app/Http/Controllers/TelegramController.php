@@ -10,6 +10,7 @@ use DefStudio\Telegraph\Models\TelegraphChat;
 use DefStudio\Telegraph\Facades\Telegraph;
 use DefStudio\Telegraph\Keyboard\Button;
 use DefStudio\Telegraph\Keyboard\Keyboard;
+use DefStudio\Telegraph\Keyboard\ReplyKeyboard;
 class TelegramController extends Controller
 {
     public function webhook(Request $request)
@@ -40,18 +41,72 @@ class TelegramController extends Controller
                 default => 'en',
             };
 
-            Telegraph::chat($chatId)
-                ->html(__('bot.welcome', [], $locale))
-                ->keyboard(
-                    Keyboard::make()->buttons([
-                        Button::make(__('bot.open_app', [], $locale))
-                            ->webApp('https://elonlar.ruzzifer.uz'),
-                    ])
-                )
-                ->send();
+            // Telegram API ba'zan javob bermay qoladi (timeout) — bu bizning xatomiz emas, logga yozamiz xolos.
+            // Webhook 500 qaytarsa, Telegram shu xabarni qayta-qayta yuboradi
+            try {
+                if ($this->isPostAdButton($data['message']['text'])) {
+                    $this->sendPostAdPrompt($chatId, $locale);
+                } else {
+                    $this->sendWelcome($chatId, $locale);
+                }
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::warning("Webhook: Telegram'ga javob yuborilmadi (ulanish): {$e->getMessage()}");
+            }
         }
 
         // Telegram serveriga so'rov muvaffaqiyatli qabul qilinganini bildirish
         return response()->json(['status' => 'ok'], 200);
+    }
+
+    private const LOCALES = ['uz', 'ru', 'en'];
+
+    /** Mini app sahifasi; ?open=create — e'lon joylash (bo'lim tanlash) sahifasi ochiladi (app.ts) */
+    private static function webAppUrl(?string $open = null): string
+    {
+        $url = config('services.telegram.web_app_url');
+
+        return $open ? "{$url}/?open={$open}" : $url;
+    }
+
+    /** Pastki klaviaturadagi "📢 E'lon qo'yish" bosildimi (foydalanuvchi tili boshqa bo'lishi mumkin — har uchala tilda) */
+    private function isPostAdButton(string $text): bool
+    {
+        return collect(self::LOCALES)->contains(fn (string $locale) => trim($text) === __('bot.post_ad', [], $locale));
+    }
+
+    /**
+     * /start (va boshqa har qanday matn): salomlashish, kanal havolasi, ostida "Ilovani ochish" va "E'lon qo'yish".
+     * Pastki doimiy "E'lon qo'yish" tugmasi alohida qisqa xabar bilan beriladi —
+     * Telegram'da bitta xabarga ham ichki, ham pastki klaviatura biriktirib bo'lmaydi.
+     */
+    private function sendWelcome(int|string $chatId, string $locale): void
+    {
+        $channelUrl = config('services.telegram.channel_url');
+        $channel = '@' . ltrim((string) parse_url($channelUrl, PHP_URL_PATH), '/');
+
+        Telegraph::chat($chatId)
+            ->html(__('bot.welcome', ['channel' => e($channel), 'channel_url' => e($channelUrl)], $locale))
+            ->keyboard(Keyboard::make()->buttons([
+                Button::make(__('bot.post_ad', [], $locale))->webApp(self::webAppUrl('create')),
+                Button::make(__('bot.open_app', [], $locale))->webApp(self::webAppUrl()),
+            ]))
+            ->send();
+
+        // Pastki tugma: bosilganda bot matn oladi va sendPostAdPrompt javob beradi.
+        // (Pastki tugmaning o'zi mini app'ni ochmaydi: u yerdan ochilganda Telegram foydalanuvchi ma'lumotini bermaydi)
+        Telegraph::chat($chatId)
+            ->html(__('bot.keyboard_hint', [], $locale))
+            ->replyKeyboard(ReplyKeyboard::make()->button(__('bot.post_ad', [], $locale))->resize()->persistent())
+            ->send();
+    }
+
+    private function sendPostAdPrompt(int|string $chatId, string $locale): void
+    {
+        Telegraph::chat($chatId)
+            ->html(__('bot.post_ad_prompt', [], $locale))
+            ->keyboard(Keyboard::make()->buttons([
+                Button::make(__('bot.post_ad', [], $locale))->webApp(self::webAppUrl('create')),
+            ]))
+            ->send();
     }
 }

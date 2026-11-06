@@ -18,7 +18,8 @@
             <h2 class="admin-card-title">Matndan e'lon</h2>
             <p class="admin-card-subtitle">
                Guruhdagi e'lon matnini nusxalab joylang, rasmlarini shu yerga Ctrl+V qiling yoki tanlang. AI sarlavha,
-               narx, kategoriya va hududni o'zi ajratadi. Rasmi o'chirilgan kategoriyalarda (Ish, Ta'lim) rasm olinmaydi.
+               narx, kategoriya va hududni o'zi ajratadi. Rasmlar ixtiyoriy va har qanday kategoriyada saqlanadi; narx
+               topilmasa — «Kelishiladi». Har bir e'lon qancha turishini o'zingiz tanlaysiz (muddatsiz ham bo'ladi).
             </p>
          </section>
 
@@ -78,6 +79,26 @@
                      @change="onPick(draft, $event)"
                   />
                </label>
+            </div>
+            <!-- E'lon qancha turadi: kategoriya muddati, o'zim aytgan kun yoki muddatsiz -->
+            <div class="flex flex-wrap items-center gap-2">
+               <span class="text-xs text-(--admin-muted)">Turadi:</span>
+               <select v-model="draft.duration" class="admin-input w-auto! h-9! py-0! text-sm" :disabled="importing">
+                  <option value="category">Kategoriya muddati</option>
+                  <option value="days">Necha kun…</option>
+                  <option value="permanent">Muddatsiz (o'chmaydi)</option>
+               </select>
+               <template v-if="draft.duration === 'days'">
+                  <input
+                     v-model.number="draft.days"
+                     type="number"
+                     min="1"
+                     max="3650"
+                     class="admin-input w-24! h-9! py-0! text-sm"
+                     :disabled="importing"
+                  />
+                  <span class="text-xs text-(--admin-muted)">kun</span>
+               </template>
             </div>
          </section>
 
@@ -493,10 +514,12 @@ async function importLinks() {
 
 const MAX_IMAGES = 10;
 type DraftImage = { file: File; url: string };
-type Draft = { id: number; text: string; images: DraftImage[] };
+// Muddat: "category" — kategoriya bo'yicha, "days" — N kun, "permanent" — muddatsiz (o'chmaydi)
+type Duration = "category" | "days" | "permanent";
+type Draft = { id: number; text: string; images: DraftImage[]; duration: Duration; days: number };
 
 let draftSeq = 0;
-const newDraft = (): Draft => ({ id: ++draftSeq, text: "", images: [] });
+const newDraft = (): Draft => ({ id: ++draftSeq, text: "", images: [], duration: "category", days: 30 });
 const drafts = ref<Draft[]>([newDraft()]);
 const readyDrafts = computed(() => drafts.value.filter((draft) => draft.text.trim().length >= 10));
 
@@ -566,6 +589,8 @@ async function importDrafts() {
       const body = new FormData();
       body.append("text", draft.text);
       body.append("publish", publishToChannel.value ? "1" : "0");
+      body.append("duration", draft.duration);
+      if (draft.duration === "days") body.append("days", String(draft.days));
       draft.images.forEach((image) => body.append("images[]", image.file));
 
       try {

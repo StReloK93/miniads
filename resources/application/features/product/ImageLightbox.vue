@@ -2,7 +2,7 @@
    <Transition name="lightbox">
       <div
          v-if="modelValue !== null"
-         class="fixed inset-0 z-500 select-none touch-none"
+         class="fixed inset-0 z-500 select-none touch-none app-frame-fixed"
          role="dialog"
          aria-modal="true"
          :aria-label="$t('product.photos')"

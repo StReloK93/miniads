@@ -42,7 +42,7 @@ test('ads in a permanent category never expire, even after re-activation', funct
     $this->patchJson("/api/admin/products/{$product->id}/status", ['status' => 'active'])->assertOk();
 
     $product->refresh();
-    expect(Carbon::parse($product->expires_at)->equalTo(Product::permanentUntil()))->toBeTrue()
+    expect($product->getRawOriginal('expires_at'))->toBeNull()
         ->and($product->days['permanent'])->toBeTrue()
         ->and(Product::active()->whereKey($product->id)->exists())->toBeTrue();
 });

@@ -136,8 +136,14 @@ const props = withDefaults(
 const mainImage = computed(() => props.product.images?.[0] ?? null);
 const imageCount = computed(() => props.product.images?.length ?? 0);
 
-// Narxsiz e'londa (ish, topilma, bepul) "Kelishiladi" yozmaymiz — bo'sh qator yaxshiroq
-const price = computed(() => formatProductPrice(props.product.price, props.product.price_type, ""));
+// Narx ko'rsatiladigan bo'limda narxsiz e'lon — "Kelishiladi"; narxsiz bo'limda (ish, topilma) — bo'sh qator
+const price = computed(() =>
+   formatProductPrice(
+      props.product.price,
+      props.product.price_type,
+      props.product.category?.with_price === true ? undefined : "",
+   ),
+);
 const specs = computed(() => productSpecs(props.product.parameter_values));
 
 const timeValue = computed(() => {

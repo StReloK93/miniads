@@ -3,6 +3,7 @@ import type { MessageSchema } from "./uz";
 // Ko'plik: "1 | 2–4 | 5+" (shared/i18n → russianPlural)
 const ru: MessageSchema = {
    common: {
+      optional: "необязательно",
       save: "Сохранить",
       cancel: "Отмена",
       close: "Закрыть",
@@ -161,6 +162,8 @@ const ru: MessageSchema = {
       error: "Не удалось отправить. Попробуйте ещё раз.",
    },
    myAds: {
+      ownerBot: "Telegram-ассистент",
+      ownerMe: "Мои",
       title: "Мои объявления",
       viewed: "{n} просмотр | {n} просмотра | {n} просмотров",
       new: "Новое объявление",
@@ -211,6 +214,7 @@ const ru: MessageSchema = {
       another: "Подать ещё",
    },
    form: {
+      priceHint: "Если оставить пустым — будет указано «Договорная»",
       photos: "Фото",
       title: "Заголовок",
       contact: "Для связи",
@@ -289,6 +293,14 @@ const ru: MessageSchema = {
       dark: "Тёмная",
       system: "Системная",
       toggle: "Сменить тему",
+   },
+   adminMessage: {
+      title: "Сообщения от администрации",
+      warning: "Предупреждение",
+      info: "Пояснение",
+      new: "новых: {n}",
+      aboutAd: "Объявление: {title}",
+      showAll: "Показать все ({n})",
    },
    listingPrice: {
       negotiable: "Договорная",

@@ -263,3 +263,15 @@ input:-webkit-autofill {
 .inactive {
    background: repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.3) 0 10px, rgba(0, 0, 0, 0.2) 10px 20px);
 }
+
+/*
+ * Kompyuterda ilova o'rtadagi "telefon" ramkasida turadi (App.vue: sm:max-w-125 = 31.25rem).
+ * Modal, drawer va rasm ko'rish oynasi ham butun oynani emas, shu ramkani egallaydi.
+ * Faqat ilovada: admin panel bu faylni yuklamaydi, u yerda ular odatdagidek to'liq ekranda.
+ */
+@media (min-width: 40rem) {
+   .app-frame-fixed {
+      left: max(0px, calc(50% - 15.625rem)) !important;
+      right: max(0px, calc(50% - 15.625rem)) !important;
+   }
+}

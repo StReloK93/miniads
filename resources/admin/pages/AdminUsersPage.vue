@@ -1,5 +1,12 @@
 <template>
    <section class="admin-page">
+      <AdminMessageDialog
+         :open="messageTarget !== null"
+         :recipient="messageTarget"
+         @close="messageTarget = null"
+         @sent="(text) => (notice = text)"
+      />
+
       <BaseModal
          :open="confirmState !== null"
          :title="confirmState?.title"
@@ -154,6 +161,10 @@
                                     <template #icon><FileText class="size-3.5" /></template>
                                     E'lonlari
                                  </BaseButton>
+                                 <BaseButton v-if="user.id !== currentUserId" size="sm" severity="secondary" @click="messageTarget = user">
+                                    <template #icon><MessageSquare class="size-3.5" /></template>
+                                    Xabar yozish
+                                 </BaseButton>
                                  <a v-if="telegramLink(user)" :href="telegramLink(user)!" target="_blank" rel="noopener">
                                     <BaseButton size="sm" severity="secondary">
                                        <template #icon><Send class="size-3.5" /></template>
@@ -224,7 +235,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Ban, ChevronDown, FileText, Search, Send, ShieldCheck, Unlock } from "lucide-vue-next";
+import { Ban, ChevronDown, FileText, MessageSquare, Search, Send, ShieldCheck, Unlock } from "lucide-vue-next";
+import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import { useAuth } from "@shared/store/useAuth";
 import BaseButton from "@shared/ui/BaseButton.vue";
@@ -285,6 +297,8 @@ const error = ref("");
 const notice = ref("");
 const confirmState = ref<ConfirmState | null>(null);
 const archiveProducts = ref(false);
+// "Xabar yozish" oynasi ochilgan foydalanuvchi
+const messageTarget = ref<UserItem | null>(null);
 
 function isRecentlyActive(dateString: string | null | undefined): boolean {
    if (!dateString) return false;

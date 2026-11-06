@@ -3,6 +3,7 @@ import type { MessageSchema } from "./uz";
 // Ko'plik: "1 | ko'p"
 const en: MessageSchema = {
    common: {
+      optional: "optional",
       save: "Save",
       cancel: "Cancel",
       close: "Close",
@@ -161,6 +162,8 @@ const en: MessageSchema = {
       error: "Couldn't send. Please try again.",
    },
    myAds: {
+      ownerBot: "Telegram assistant",
+      ownerMe: "Mine",
       title: "My ads",
       viewed: "{n} view | {n} views",
       new: "New ad",
@@ -211,6 +214,7 @@ const en: MessageSchema = {
       another: "Post another",
    },
    form: {
+      priceHint: "Leave empty to show “Negotiable”",
       photos: "Photos",
       title: "Title",
       contact: "Contact",
@@ -289,6 +293,14 @@ const en: MessageSchema = {
       dark: "Dark",
       system: "System",
       toggle: "Switch theme",
+   },
+   adminMessage: {
+      title: "Messages from the administration",
+      warning: "Warning",
+      info: "Note",
+      new: "{n} new",
+      aboutAd: "Ad: {title}",
+      showAll: "Show all ({n})",
    },
    listingPrice: {
       negotiable: "Negotiable",

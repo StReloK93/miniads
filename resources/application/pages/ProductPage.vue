@@ -88,7 +88,7 @@
                   O'qish tartibi "nima → qancha": sarlavha birinchi, narx ostida.
                   Ierarxiyani o'lcham emas, qalinlik beradi — ko'z baribir avval narxga tushadi.
                -->
-               <h1 class="text-lg font-medium leading-snug" :class="product?.price ? 'mb-1.5' : 'mb-4'">
+               <h1 class="text-lg font-medium leading-snug" :class="product?.price || showNegotiable ? 'mb-1.5' : 'mb-4'">
                   {{ product?.title }}
                </h1>
 
@@ -104,6 +104,10 @@
                      {{ product?.price_type.type }}
                   </span>
                </div>
+               <!-- Narx ko'rsatiladigan bo'limda narxsiz e'lon — kelishiladi -->
+               <p v-else-if="showNegotiable" class="font-bold text-xl tracking-tight mb-4">
+                  {{ $t("listingPrice.negotiable") }}
+               </p>
 
                <!--  -->
                <div class="text-(--z-muted-text) text-xs flex gap-2 items-center mb-6">
@@ -118,6 +122,13 @@
                      <MapPin class="size-3 inline" />
                      {{ product?.district?.name || $t("district.region") }}
                   </span>
+                  <template v-if="product?.is_permanent">
+                     <span class="inline-block w-1 h-1 rounded-full bg-(--z-muted-text)"> </span>
+                     <span class="flex items-center gap-1">
+                        <InfinityIcon class="size-3 inline" />
+                        {{ $t("listing.permanent") }}
+                     </span>
+                  </template>
                </div>
                <!--  -->
 
@@ -178,13 +189,18 @@
                <!-- Sotuvchining boshqa e'lonlari: ishonch (faol sotuvchi) va qo'shimcha xarid imkoni -->
                <section v-if="product?.seller_products?.length" class="mt-8">
                   <h3 class="font-bold text-base mb-3.5">{{ $t("product.sellerAds") }}</h3>
+                  <!--
+                     Kartalar soni oyna emas, ramka (karusel) kengligiga qarab: kompyuterda ilova 500px ramkada,
+                     oyna kengligiga qaralsa 2.2 ta karta sig'dirilib siqilib qolardi
+                  -->
                   <swiper
                      :slides-per-view="1.25"
                      :space-between="12"
                      :modules="[FreeMode]"
+                     breakpoints-base="container"
                      :breakpoints="{
-                        '480': { slidesPerView: 1.6, spaceBetween: 12 },
-                        '640': { slidesPerView: 2.2, spaceBetween: 14 },
+                        '560': { slidesPerView: 1.6, spaceBetween: 12 },
+                        '760': { slidesPerView: 2.2, spaceBetween: 14 },
                      }"
                      class="w-full -mx-4"
                   >
@@ -216,9 +232,10 @@
                      :slides-per-view="1.25"
                      :space-between="12"
                      :modules="[FreeMode]"
+                     breakpoints-base="container"
                      :breakpoints="{
-                        '480': { slidesPerView: 1.6, spaceBetween: 12 },
-                        '640': { slidesPerView: 2.2, spaceBetween: 14 },
+                        '560': { slidesPerView: 1.6, spaceBetween: 12 },
+                        '760': { slidesPerView: 2.2, spaceBetween: 14 },
                      }"
                      class="w-full -mx-4"
                   >
@@ -388,6 +405,7 @@ import {
    Phone,
    Search,
    Sparkles,
+   Infinity as InfinityIcon,
 } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { requireAuth } from "@/features/auth/requireAuth";
@@ -487,6 +505,8 @@ const viewCount = computed(() => {
 
 const authStore = useAuth();
 const isOwnProduct = computed(() => !!product.value && authStore.user?.id === product.value.user_id);
+// Narx ko'rsatiladigan bo'limda narx yozilmagan bo'lsa — "Kelishiladi"
+const showNegotiable = computed(() => !!product.value && !product.value.price && product.value.category?.with_price !== false);
 
 /* ---------- Ulashish va shikoyat ---------- */
 

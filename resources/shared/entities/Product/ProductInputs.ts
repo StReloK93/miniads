@@ -58,20 +58,19 @@ export function getDynamicTitlePlaceholder(rootIcon?: string | null): string {
 export function productInputs(options: ProductInputOptions = {}): InputConfig[] {
    const inputs: InputConfig[] = [];
 
-   // Rasmlar
-   if (options.withImage !== false) {
-      inputs.push({
-         component: Inputs["FieldImage"],
-         name: "images",
-         required: true,
-         props: {
-            multiple: true,
-            title: t("form.photos"),
-         },
-         schema: z.array(z.any()),
-         class: ["mb-3"],
-      });
-   }
+   // Rasmlar — har bir kategoriyada, ixtiyoriy (withImage endi faqat bot importiga ta'sir qiladi)
+   inputs.push({
+      component: Inputs["FieldImage"],
+      name: "images",
+      required: false,
+      optional: true,
+      props: {
+         multiple: true,
+         title: t("form.photos"),
+      },
+      schema: z.array(z.any()).optional().nullable(),
+      class: ["mb-3"],
+   });
 
    // Sarlavha (kategoriya so'ramasa — umuman chiqmaydi)
    if (options.withTitle !== false) {
@@ -97,7 +96,10 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
          {
             component: Inputs["FieldNumber"],
             name: "price",
-            required: true,
+            // Ixtiyoriy: bo'sh qoldirilsa e'londa "Kelishiladi" yoziladi
+            required: false,
+            optional: true,
+            hint: t("form.priceHint"),
             props: {
                title: t("common.price"),
                placeholder: t("common.example", { value: "1 000 000" }),
@@ -106,7 +108,10 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
                inputmode: "numeric",
                class: "pr-28!",
             },
-            schema: z.coerce.number({ message: t("form.required") }).min(1, t("form.priceMin")),
+            schema: z.preprocess(
+               (v) => (v === "" || v === null ? undefined : v),
+               z.coerce.number({ message: t("form.required") }).min(1, t("form.priceMin")).optional(),
+            ),
             class: ["mb-3"],
             teleport_parent_class: "parent_price",
          },

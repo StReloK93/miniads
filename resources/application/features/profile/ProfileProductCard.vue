@@ -43,9 +43,7 @@ const emit = defineEmits<{
    (e: "delete", product: IProduct): void;
 }>();
 
-const isActive = computed(() => {
-   return (props.product.days?.current ?? 0) > 0;
-});
+const isActive = computed(() => Boolean(props.product.days?.permanent) || (props.product.days?.current ?? 0) > 0);
 
 const options = computed(() => {
    const items: ButtonOption[] = [
@@ -66,7 +64,7 @@ const options = computed(() => {
       },
    ];
 
-   if ((props.product.days?.current ?? 0) <= 0) {
+   if (!isActive.value) {
       items.unshift({
          value: "activate",
          icon: Eye,

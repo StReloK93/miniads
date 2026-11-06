@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('dashboard', 'dashboard');
         Route::get('products', 'products');
         Route::patch('products/{id}/status', 'updateProductStatus');
+        Route::patch('products/{id}/expiry', 'updateProductExpiry');
         Route::delete('products/{id}', 'deleteProduct');
         Route::post('products/{id}/restore', 'restoreProduct');
         Route::delete('products/{id}/force', 'forceDeleteProduct');
@@ -72,6 +73,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::patch('users/{id}/role', 'updateUserRole');
         Route::post('users/{id}/block', 'blockUser');
         Route::post('users/{id}/unblock', 'unblockUser');
+        // Ogohlantirish/tushuntirish: e'lon muallifiga yoki foydalanuvchiga
+        Route::get('users/{id}/messages', 'userMessages');
+        Route::post('messages', 'sendUserMessage');
         Route::get('bot-settings', 'getBotSettings');
         Route::post('bot-settings', 'updateBotSettings');
         Route::post('bot-settings/run-now', 'runBotImport');
@@ -100,6 +104,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/back-colors', [App\Http\Controllers\BackColorController::class, 'index']);
+    // Administratsiyadan kelgan xabarlar: Profil'da ro'yxat, o'qilmaganlari menyuda belgi
+    Route::get('/messages', [App\Http\Controllers\AdminMessageController::class, 'index']);
+    Route::post('/messages/read', [App\Http\Controllers\AdminMessageController::class, 'markRead']);
 
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);

@@ -46,6 +46,8 @@ export interface InputConfig {
    teleport_parent_class?: string;
    required?: boolean;
    optional?: boolean;
+   /** Maydon ostidagi kichik izoh */
+   hint?: string;
 }
 
 export interface IProps {
@@ -102,13 +104,19 @@ export interface IProduct {
    district: { id: number; name: string };
    district_id: number;
    updated_at: string;
-   expires_at: string;
+   /** null — muddatsiz e'lon (hech qachon o'chmaydi) */
+   expires_at: string | null;
    published_at: string;
    user: IUser;
    user_id: number;
+   /** Muddatsiz e'lon (expires_at = null) — sahifada "Muddatsiz" belgisi */
+   is_permanent?: boolean;
+   /** Telegram assistent (bot) kanaldan olgan e'lon */
+   is_bot?: boolean;
    days: {
-      current: number;
-      max: number;
+      /** Muddatsiz e'londa null */
+      current: number | null;
+      max: number | null;
       /** Muddatsiz e'lon — "N kun qoldi" o'rniga "Muddatsiz" */
       permanent?: boolean;
    };

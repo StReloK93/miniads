@@ -219,7 +219,12 @@ class ProductController extends Controller
 
     public function myAds(Request $request, $status)
     {
-        $query = Product::where('user_id', $request->user()->id)
+        // Admin Telegram assistent (bot) qo'ygan e'lonlarni ham ilovadan boshqaradi: ?owner=bot
+        $userId = $request->query('owner') === 'bot' && $request->user()->role === 'admin'
+            ? \App\Models\User::getBotUser()->id
+            : $request->user()->id;
+
+        $query = Product::where('user_id', $userId)
             ->latest();
 
         match ($status) {
@@ -258,7 +263,7 @@ class ProductController extends Controller
     {
         $product = Product::with('category')->findOrFail($id);
 
-        if (!$this->productService->isOwner($product, $request->user()->id)) {
+        if (!$this->canManage($request, $product)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         $this->abortIfBlocked($request);
@@ -274,7 +279,7 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($id);
 
-        if (!$this->productService->isOwner($product, $request->user()->id)) {
+        if (!$this->canManage($request, $product)) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -293,7 +298,7 @@ class ProductController extends Controller
     {
         $product = Product::with('images')->findOrFail($id);
 
-        if (!$this->productService->isOwner($product, $request->user()->id)) {
+        if (!$this->canManage($request, $product)) {
             return response()->json([
                 'message' => 'Unauthorized',
             ], 403);
@@ -355,6 +360,13 @@ class ProductController extends Controller
     {
         return collect(ProductReport::REASONS)
             ->map(fn (string $id) => ['id' => $id, 'label' => __("messages.reasons.{$id}")]);
+    }
+
+    /** E'lon egasi yoki admin (admin bot e'lonlarini ham ilovadan boshqaradi) */
+    private function canManage(Request $request, Product $product): bool
+    {
+        return $request->user()->role === 'admin'
+            || $this->productService->isOwner($product, $request->user()->id);
     }
 
     private function abortIfBlocked(Request $request): void

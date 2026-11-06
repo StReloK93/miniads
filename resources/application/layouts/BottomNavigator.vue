@@ -17,7 +17,16 @@
             ]"
             class="w-full flex flex-col items-center gap-1 px-1 py-1.5 rounded-[1.375rem] text-[11px] font-semibold leading-none whitespace-nowrap transition-colors duration-150 cursor-pointer"
          >
-            <component :is="item.icon" class="size-5" stroke-width="2" />
+            <span class="relative">
+               <component :is="item.icon" class="size-5" stroke-width="2" />
+               <!-- Administratsiyadan o'qilmagan xabar: ekranni to'smaydi, faqat belgi -->
+               <span
+                  v-if="item.name === 'profile' && unreadCount"
+                  class="absolute -top-1 -right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] leading-4 text-center tabular-nums"
+               >
+                  {{ unreadCount > 9 ? "9+" : unreadCount }}
+               </span>
+            </span>
             {{ $t(item.label ?? "") }}
          </button>
          <button
@@ -32,6 +41,9 @@
 
 <script lang="ts" setup>
 import { House, Plus, Megaphone, User, Heart } from "lucide-vue-next";
+import { useAdminMessages } from "@/features/notifications/useAdminMessages";
+
+const { unreadCount } = useAdminMessages();
 
 const items = [
    { name: "home", label: "nav.home", icon: House },

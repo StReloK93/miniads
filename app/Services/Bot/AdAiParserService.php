@@ -5,8 +5,10 @@ namespace App\Services\Bot;
 use App\Models\BotSetting;
 use App\Models\Category;
 use App\Models\District;
+use App\Models\Parameter;
 use App\Models\PriceType;
 use App\Services\ErrorAlert;
+use App\Support\Phone;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
@@ -17,6 +19,9 @@ use Illuminate\Support\Str;
 
 class AdAiParserService
 {
+    /** AI'ga beriladigan kategoriyalar ro'yxati (parametrlari bilan); kategoriya yoki parametr o'zgarsa tozalanadi */
+    public const CATEGORIES_CONTEXT_CACHE = 'ai_categories_context';
+
     /**
      * Parse raw ad text into structured product data.
      *
@@ -191,11 +196,14 @@ Sotish/olish/ijara/ish/xizmat niyati aniq ko'rinmasa — is_valid: false.
   1) 1-2 gaplik qisqa tavsif;
   2) asosiy parametrlar ("• Holati: a'lo", "• Rangi: oq");
   3) "• Manzil: ..." (postda bo'lsa);
-  4) "• Narxi: ..." (postda bo'lsa);
-  5) "• Bog'lanish uchun: ..." — faqat telefon yoki @username.
+  4) "• Narxi: ..." (postda bo'lsa; [narxsiz] kategoriyada bu qator YO'Q);
+  5) "• Bog'lanish uchun: ..." — faqat telefon yoki @username. Telefon doim "93-123-45-67" ko'rinishida, +998 va 998 qo'shimchasisiz.
   Begona kanal havolalari (@kanal, t.me/...) olib tashlanadi. Postda yo'q ma'lumotni o'ylab topma.
-- price: faqat raqam yoki null. currency: "UZS", "USD" yoki null.
-- phone: "998XXXXXXXXX" formatida yoki null.
+- price: faqat raqam yoki null. Postda narx aniq yozilmagan bo'lsa — null (narxni HECH QACHON o'ylab topma, taxmin qilma). Kategoriya [narxsiz] bo'lsa (kafe, restoran, ish va h.k.) — doim null. currency: "UZS", "USD" yoki null.
+- phone: "93-123-45-67" ko'rinishida (+998siz) yoki null.
+- parameters: tanlangan kategoriyaning {...} ichidagi parametrlari, {"<parametr ID>": qiymat} ko'rinishida (ID — # dan keyingi son).
+  Faqat postda ANIQ yozilganlarini to'ldir, yo'g'ini qo'shma va taxmin qilma. Variantli parametrda qiymat — ro'yxatdagi variantlardan biri,
+  aynan shu yozilishda. "son" — faqat raqam, birliksiz (masalan 3, 2019, 65.5). Boshqa kategoriyaning parametrini yozma. Hech biri bo'lmasa — {}.
 - category_id: ro'yxatdagi eng mos ID. Aralash yoki noaniq bo'lsa {$boshqaId} ("Boshqa").
 - district_id: matnda shahar bo'lsa o'sha, bo'lmasa manba kanal hududi.
 
@@ -204,7 +212,7 @@ Kategoriyalar: {$categoriesContext}
 Shahar/tumanlar: {$districtsContext}
 
 Haqiqiy e'lon uchun JSON:
-{"is_valid": true, "title": "...", "description": "...", "price": 12000000, "currency": "UZS", "phone": "998901234567", "category_id": 12, "district_id": 1}
+{"is_valid": true, "title": "...", "description": "...", "price": 12000000, "currency": "UZS", "phone": "90-123-45-67", "category_id": 12, "district_id": 1, "parameters": {"5": "Avtomat", "8": 2019}}
 PROMPT;
     }
 
@@ -389,7 +397,7 @@ PROMPT;
                 $rest = isset($matches[4]) ? ($matches[2] . $matches[3] . $matches[4]) : $matches[2];
                 $cleanRest = preg_replace('/\D/', '', $rest);
                 if (strlen($cleanRest) === 7) {
-                    $phone = '998' . $code . $cleanRest;
+                    $phone = Phone::format($code . $cleanRest);
                     break;
                 }
             }
@@ -588,18 +596,70 @@ PROMPT;
         $desc = !empty($data['description']) ? trim($data['description']) : $rawText;
 
         $title = self::cleanTitle($title);
-        $desc = self::cleanDescription($desc);
+        $desc = Phone::formatInText(self::cleanDescription($desc));
+
+        // Narxsiz kategoriya (kafe, restoran, ish...): narx ham, tavsifdagi "Narxi" qatori ham bo'lmaydi
+        $withPrice = Category::whereKey($categoryId)->value('with_price') !== false;
+        if (!$withPrice) {
+            $desc = preg_replace('/^[ \t]*•?[ \t]*Narx(?:i)?\s*:.*$\R?/mu', '', $desc);
+            $desc = trim(preg_replace("/\n{3,}/", "\n\n", $desc));
+        }
 
         return [
             'is_valid' => true,
             'title' => mb_substr($title, 0, 80),
             'description' => $desc,
-            'price' => !empty($data['price']) && is_numeric($data['price']) ? (int) $data['price'] : null,
+            'price' => $withPrice ? $this->priceFromText($data['price'] ?? null, $rawText) : null,
             'price_type_id' => $priceTypeId,
-            'phone' => !empty($data['phone']) ? trim($data['phone']) : null,
+            'phone' => Phone::format($data['phone'] ?? null),
             'category_id' => $categoryId,
             'district_id' => $districtId,
+            'parameters' => $this->validParameters($data['parameters'] ?? null, $categoryId, $rawText),
         ];
+    }
+
+    /**
+     * AI ba'zan matnda yo'q narxni o'ylab topadi (masalan 1500 $). Narx faqat post matnida haqiqatan yozilgan
+     * bo'lsa qabul qilinadi: matnda narx belgisi (narx, $, so'm, ming, mln...) va shu son ("1.5 mln" kabi
+     * qisqartmalar bilan) bo'lishi shart. Aks holda null — "Kelishiladi".
+     */
+    private function priceFromText(mixed $price, string $rawText): ?int
+    {
+        if (!is_numeric($price) || (float) $price <= 0) {
+            return null;
+        }
+        $price = (int) round((float) $price);
+
+        $text = mb_strtolower(self::cyrillicToLatin($rawText));
+        $hasPriceWord = preg_match('/narx|nark|tsena|\$|usd|dollar|doll|y\.?e\b|so[\'’`ʻ]?m\b|sum\b|ming\b|mln|million|mlrd|milliard/u', $text);
+
+        return $hasPriceWord && $this->numberInText($price, $text) ? $price : null;
+    }
+
+    /** Son matnda yozilganmi: "11 500", "1,5 mln", "40 ming", "65.5" kabi ko'rinishlarni ham taniydi */
+    private function numberInText(float $number, string $rawText): bool
+    {
+        if (!preg_match_all('/\d+(?:[ .,]\d+)*/u', $rawText, $matches)) {
+            return false;
+        }
+
+        foreach ($matches[0] as $token) {
+            $candidates = [(int) preg_replace('/\D/', '', $token)];
+            // "1.5 mln", "2,5 ming", "65.5 kv" — kasr son
+            if (preg_match('/^(\d+)[.,](\d{1,2})$/', $token, $m)) {
+                $candidates[] = (float) "{$m[1]}.{$m[2]}";
+            }
+
+            foreach ($candidates as $candidate) {
+                foreach ([1, 1_000, 1_000_000, 1_000_000_000] as $multiplier) {
+                    if (abs($candidate * $multiplier - $number) < 0.01) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -748,8 +808,8 @@ PROMPT;
 
     private function getCategoriesContext(): string
     {
-        $categories = Cache::remember('leaf_categories_with_parents', 3600, function () {
-            return Category::where('is_page', true)->with('parent.parent')->get(['id', 'name', 'parent_id']);
+        $categories = Cache::remember(self::CATEGORIES_CONTEXT_CACHE, 3600, function () {
+            return Category::where('is_page', true)->with(['parent.parent', 'parameters'])->get();
         });
 
         return $categories->map(function ($c) {
@@ -763,8 +823,108 @@ PROMPT;
             $path[] = $c->name;
             $fullName = implode(' > ', $path);
 
-            return "ID {$c->id}: {$fullName}";
-        })->implode(', ');
+            $line = "ID {$c->id}: {$fullName}" . ($c->with_price === false ? ' [narxsiz]' : '');
+            $parameters = $c->parameters
+                ->sortBy(fn (Parameter $p) => $p->pivot->sort_order)
+                ->map(fn (Parameter $p) => self::describeParameter($p))
+                ->implode('; ');
+
+            return $parameters !== '' ? "{$line} {{$parameters}}" : $line;
+        })->implode("\n");
+    }
+
+    /** "#5 Uzatmalar qutisi: Avtomat|Mexanika" yoki "#8 Yili: son (yil)" */
+    private static function describeParameter(Parameter $parameter): string
+    {
+        $title = $parameter->getRawOriginal('title');
+        $unit = $parameter->getRawOriginal('unit');
+
+        if (is_array($parameter->options) && $parameter->options) {
+            return "#{$parameter->id} {$title}: " . implode('|', $parameter->options);
+        }
+        if (self::isNumberParameter($parameter)) {
+            return "#{$parameter->id} {$title}: son" . (filled($unit) ? " ({$unit})" : '');
+        }
+
+        return "#{$parameter->id} {$title}: matn";
+    }
+
+    private static function isNumberParameter(Parameter $parameter): bool
+    {
+        return $parameter->type === 'number' || $parameter->component === 'FieldNumber';
+    }
+
+    /**
+     * AI to'ldirgan parametrlar faqat tekshiruvdan o'tsa olinadi: parametr shu kategoriyaga tegishli,
+     * variantli parametrda qiymat ro'yxatdagi variant (ru/en yozilgani ham asl o'zbekchasiga o'giriladi),
+     * son — haqiqiy son va matnda yozilgan (o'ylab topilmagan). Natija: [parameter_id => qiymat].
+     *
+     * @return array<int, string>
+     */
+    private function validParameters(mixed $raw, int $categoryId, string $rawText): array
+    {
+        if (!is_array($raw) || !$raw) {
+            return [];
+        }
+        $category = Category::with('parameters')->find($categoryId);
+        if (!$category) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($category->parameters as $parameter) {
+            $value = $raw[$parameter->id] ?? $raw[(string) $parameter->id] ?? $raw["#{$parameter->id}"] ?? null;
+            if ($value === null || is_array($value) || is_bool($value)) {
+                continue;
+            }
+            $value = trim((string) $value);
+            if ($value === '') {
+                continue;
+            }
+
+            if (is_array($parameter->options) && $parameter->options) {
+                $option = $this->matchOption($parameter, $value);
+                if ($option !== null) {
+                    $result[$parameter->id] = $option;
+                }
+            } elseif (self::isNumberParameter($parameter)) {
+                $number = str_replace([' ', ','], ['', '.'], $value);
+                if (!is_numeric($number) || (float) $number <= 0) {
+                    continue;
+                }
+                $number = (float) $number;
+                if ($parameter->getRawOriginal('unit') === 'yil' && ($number < 1950 || $number > (int) now()->year + 1)) {
+                    continue;
+                }
+                if ($this->numberInText($number, $rawText)) {
+                    $result[$parameter->id] = (string) (floor($number) == $number ? (int) $number : $number);
+                }
+            } else {
+                $result[$parameter->id] = mb_substr($value, 0, 255);
+            }
+        }
+
+        return $result;
+    }
+
+    /** Asl (o'zbekcha) variant: o'zbekcha, ruscha yoki inglizcha yozilishidan, katta-kichik harfga qaramay */
+    private function matchOption(Parameter $parameter, string $value): ?string
+    {
+        $needle = mb_strtolower($value);
+        $lists = [$parameter->options];
+        foreach (['ru', 'en'] as $locale) {
+            $lists[] = $parameter->optionLabels($locale);
+        }
+
+        foreach ($lists as $list) {
+            foreach ((array) $list as $index => $label) {
+                if (mb_strtolower(trim((string) $label)) === $needle) {
+                    return $parameter->options[$index] ?? null;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function getDistrictsContext(): string

@@ -91,7 +91,13 @@ export async function buildProductFormInputs(
 
    if (product) {
       baseInputs.forEach((input) => {
-         const value = product[input.name as keyof IProduct];
+         let value = product[input.name as keyof IProduct];
+         // Eski e'lonlarda raqam "998934443344" bo'lib saqlangan: 9 xonali maska uni "99-893-44-43" qilib
+         // buzardi — 998 ni olib tashlaymiz
+         if (input.name === "phone" && typeof value === "string" && !value.startsWith("@")) {
+            const digits = value.replace(/\D/g, "");
+            if (digits.length === 12 && digits.startsWith("998")) value = digits.slice(3);
+         }
          if (value !== undefined) {
             input.value = value;
          }
@@ -118,11 +124,12 @@ export function buildProductPayload(
    return {
       title: values.title,
       // "telegram" — foydalanuvchi telefon o'rniga Telegram username'ini tanlagan
-      phone: values.phone === "telegram" || !values.phone ? null : values.phone,
+      phone: values.phone === "telegram" || !values.phone ? "" : values.phone,
       back_color_id: values.back_color_id,
       description: values.description,
-      // Bo'sh narx — "Kelishiladi": null yuboramiz (tahrirlashda eski narx tozalansin)
-      price: values.price ?? null,
+      // Bo'sh yoki 0 narx — "Kelishiladi". null emas, "" yuboramiz: FormData null maydonni tashlab yuboradi
+      // va tahrirlashda eski narx qolib ketadi
+      price: values.price ? values.price : "",
       price_type_id: values.price_type_id,
       category_id: options.categoryId,
       parameters,

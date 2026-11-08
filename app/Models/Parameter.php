@@ -23,6 +23,14 @@ class Parameter extends Model
         'options' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        // AI'ga beriladigan kategoriyalar ro'yxatida parametrlar ham bor — o'zgarsa yangilanadi
+        $flush = fn () => \Illuminate\Support\Facades\Cache::forget(\App\Services\Bot\AdAiParserService::CATEGORIES_CONTEXT_CACHE);
+        static::saved($flush);
+        static::deleted($flush);
+    }
+
     /**
      * Tanlov variantlari tarjimasi tartib bo'yicha: translations.ru.options[i] ↔ options[i].
      * E'londa asl (o'zbekcha) variant saqlanadi — filtr va qidiruv shunga tayanadi; tarjima faqat ko'rsatish uchun.

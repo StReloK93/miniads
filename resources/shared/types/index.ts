@@ -83,7 +83,7 @@ export interface IProduct {
    price: number | null;
    back_color: { id: number; gradient: string; border: string };
    price_type: { type: string; name: string; position: "right" | "left" };
-   phone: string | null;
+   phone: string | "" | null;
    category_id: number;
    views_count: number;
    category: ICategory;
@@ -131,8 +131,9 @@ export interface IProduct {
 export interface IProductPayload {
    title: string;
    description?: string | null;
-   phone: string | null;
-   price?: number | null;
+   phone: string | "" | null;
+   /** "" — "Kelishiladi" (FormData null maydonni yubormaydi) */
+   price?: number | "" | null;
    price_type_id?: number | null;
    back_color_id?: number | null;
    category_id: number | string | undefined;

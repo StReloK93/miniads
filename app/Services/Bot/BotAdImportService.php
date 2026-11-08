@@ -318,6 +318,12 @@ class BotAdImportService
             return ['status' => 'exists', 'message' => "Bu matn allaqachon qo'shilgan (#{$existing->id}).", 'product' => $existing];
         }
 
+        // Telefon yoki @nick bo'lmasa xaridor muallifga yeta olmaydi — e'lon joylanmaydi (AI'ga ham yuborilmaydi)
+        $contactText = $this->prefilter->stripChannelNoise($text, null);
+        if (!$this->extractPhone($contactText) && !$this->extractTelegramUsername($contactText)) {
+            return ['status' => 'invalid', 'message' => "Murojaat uchun ma'lumot yetarli emas: matnda telefon raqami yoki @username yo'q."];
+        }
+
         return $this->storeChosen(['text' => $text, 'message_id' => null], null, $images, $publish, $expiry);
     }
 
@@ -362,8 +368,14 @@ class BotAdImportService
     protected function createProduct(array $post, ?string $channel, array $parsed, ?string $contactPhone, string $sourceHash, User $botUser): Product
     {
         $category = Category::find($parsed['category_id'] ?? null);
+        $parameters = $parsed['parameters'] ?? [];
 
-        return Product::create([
+        // Sarlavhasi parametrlardan yasaladigan kategoriya (masalan Naqd-Plastik) — mini app'dagidek
+        if ($category && !$category->with_title && $parameters) {
+            $parsed['title'] = $category->autoTitle($parameters);
+        }
+
+        $product = Product::create([
             'title' => $parsed['title'] ?? 'E\'lon',
             'description' => $parsed['description'] ?? trim($post['text'] ?? ''),
             'category_id' => $parsed['category_id'] ?? 1,
@@ -380,6 +392,17 @@ class BotAdImportService
             'published_at' => now(),
             'expires_at' => $category ? $category->listingExpiresAt() : now()->addDays(Category::DEFAULT_LISTING_DAYS),
         ]);
+
+        // AI matndan topgan (va tekshiruvdan o'tgan) parametrlar: xonalar soni, yili, uzatmalar qutisi...
+        foreach ($parameters as $parameterId => $value) {
+            \App\Models\ProductParameterValue::create([
+                'product_id' => $product->id,
+                'parameter_id' => $parameterId,
+                'value' => (string) $value,
+            ]);
+        }
+
+        return $product;
     }
 
     /**
@@ -504,8 +527,14 @@ class BotAdImportService
     /**
      * Extract primary seller phone number from ad text.
      * Supports all Uzbek formats: 935504433, +998935504433, 93 550 44 33, (93) 550-44-33, 8935504433, etc.
+     * Natija doim 93-550-44-33 ko'rinishida (bazadagi raqamlar bilan solishtirish shunga tayanadi).
      */
     protected function extractPhone(string $text): ?string
+    {
+        return \App\Support\Phone::format($this->extractRawPhone($text));
+    }
+
+    private function extractRawPhone(string $text): ?string
     {
         $patterns = [
             '/(?<!\d)(?:\+?998[\s.-]?)?\(?([3789]\d)\)?[\s.-]?(\d{3})[\s.-]?(\d{2})[\s.-]?(\d{2})(?!\d)/u',

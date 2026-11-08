@@ -443,6 +443,9 @@ function openImagePreview(index: number) {
 
 function callPhone(phone: string) {
    track("contact_phone", product.value?.id);
+   // Bazada 93-123-45-67 ko'rinishida — qo'ng'iroq uchun to'liq xalqaro raqam
+   const digits = phone.replace(/\D/g, "");
+   if (digits.length === 9) phone = `+998${digits}`;
    if (isTMA()) {
       window.open(`tel:${phone}`);
    } else {

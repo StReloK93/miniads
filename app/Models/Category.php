@@ -87,7 +87,7 @@ class Category extends Model
         $flush = function (): void {
             Cache::forever('categories:version', (int) Cache::get('categories:version', 0) + 1);
             Cache::forget('leaf_categories_list');
-            Cache::forget('leaf_categories_with_parents');
+            Cache::forget(\App\Services\Bot\AdAiParserService::CATEGORIES_CONTEXT_CACHE);
             // Uzoq ishlaydigan jarayonlarda (queue worker) ham yangi daraxt olinsin
             self::$rootIds = null;
         };

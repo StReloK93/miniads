@@ -210,3 +210,94 @@ test('only admins can import pasted text', function () {
 
     $this->postJson('/api/admin/bot-import-text', ['text' => PASTED_TEXT])->assertForbidden();
 });
+
+test('a price the AI made up is dropped, the ad is negotiable', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Divan', 'price' => 1500, 'currency' => 'USD', 'category_id' => 3])));
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $this->postJson('/api/admin/bot-import-text', ['text' => "Divan sotiladi, holati yaxshi. Navoiy. Tel: 90 123 45 67"])
+        ->assertOk()->assertJsonPath('product.price', null);
+});
+
+test('a price written in the text is kept, also as "mln"', function () {
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Divan', 'price' => 1500000, 'category_id' => 3])));
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $this->postJson('/api/admin/bot-import-text', ['text' => "Divan sotiladi. Narxi 1,5 mln so'm. Tel: 90 123 45 67"])
+        ->assertOk()->assertJsonPath('product.price', 1500000);
+});
+
+test('pasted text without a phone or @nick is not imported', function () {
+    Http::fake();
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $this->postJson('/api/admin/bot-import-text', ['text' => "Divan sotiladi, holati yaxshi, Navoiy shahri. Narxi 200\$"])
+        ->assertStatus(422)->assertJsonPath('status', 'invalid')
+        ->assertJsonPath('message', fn ($m) => str_contains($m, "Murojaat uchun ma'lumot yetarli emas"));
+
+    Http::assertNothingSent();
+    expect(Product::count())->toBe(0);
+});
+
+test('a cafe ad gets no price even when the AI sets one, and the phone is formatted', function () {
+    $cafe = Category::create(['name' => 'Kafe va restoranlar', 'is_page' => true, 'with_price' => false, 'listing_duration_days' => 30]);
+    Http::fake(fn () => Http::response(chosenGeminiReply([
+        'is_valid' => true, 'title' => 'Istiqlol kafe', 'price' => 50000, 'currency' => 'UZS', 'phone' => '+998901234567',
+        'description' => "Milliy taomlar.\n\n• Narxi: 50 000 so'm\n• Bog'lanish uchun: +998 90 123 45 67", 'category_id' => $cafe->id,
+    ])));
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $id = $this->postJson('/api/admin/bot-import-text', ['text' => "Istiqlol kafe, milliy taomlar 50 000 so'm dan. Tel: +998 90 123 45 67"])
+        ->assertOk()->assertJsonPath('product.price', null)->json('product.id');
+
+    $product = Product::find($id);
+    expect($product->phone)->toBe('90-123-45-67')
+        ->and($product->description)->not->toContain('Narxi')
+        ->and($product->description)->toContain("Bog'lanish uchun: 90-123-45-67");
+});
+
+test('AI fills only the category parameters that are really in the text', function () {
+    $cars = Category::create(['name' => 'Yengil avto', 'is_page' => true, 'listing_duration_days' => 30]);
+    $gearbox = \App\Models\Parameter::create(['title' => 'Uzatmalar qutisi', 'placeholder' => '-', 'type' => 'string', 'component' => 'FieldSelect',
+        'options' => ['Avtomat', 'Mexanika'], 'translations' => ['ru' => ['options' => ['Автомат', 'Механика']]]]);
+    $year = \App\Models\Parameter::create(['title' => 'Yili', 'placeholder' => '-', 'type' => 'number', 'component' => 'FieldNumber', 'unit' => 'yil']);
+    $mileage = \App\Models\Parameter::create(['title' => 'Probeg', 'placeholder' => '-', 'type' => 'number', 'component' => 'FieldNumber', 'unit' => 'km']);
+    $color = \App\Models\Parameter::create(['title' => 'Rangi', 'placeholder' => '-', 'type' => 'string', 'component' => 'FieldSelect', 'options' => ['Oq', 'Qora']]);
+    $rooms = \App\Models\Parameter::create(['title' => 'Xonalar', 'placeholder' => '-', 'type' => 'number', 'component' => 'FieldNumber']);
+    foreach ([$gearbox, $year, $mileage, $color] as $i => $parameter) {
+        $cars->parameters()->attach($parameter->id, ['sort_order' => $i, 'is_required' => false]);
+    }
+
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Cobalt 2019', 'price' => 11500, 'currency' => 'USD',
+        'category_id' => $cars->id, 'parameters' => [
+            (string) $gearbox->id => 'Автомат',   // ruscha — asl "Avtomat"ga o'giriladi
+            (string) $year->id => 2019,
+            (string) $mileage->id => 40000,       // matnda "40 ming"
+            (string) $color->id => 'Kumush',      // ro'yxatda yo'q — tashlanadi
+            (string) $rooms->id => 3,             // boshqa kategoriya parametri — tashlanadi
+        ]])));
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $id = $this->postJson('/api/admin/bot-import-text', ['text' => "Cobalt 2019 avtomat, probeg 40 ming. Narxi 11 500\$. Tel: 90 123 45 67"])
+        ->assertOk()->json('product.id');
+
+    $values = \App\Models\ProductParameterValue::where('product_id', $id)->pluck('value', 'parameter_id')->all();
+    expect($values)->toBe([$gearbox->id => 'Avtomat', $year->id => '2019', $mileage->id => '40000']);
+    Http::assertSent(fn ($request) => str_contains($request->body(), "#{$gearbox->id} Uzatmalar qutisi: Avtomat|Mexanika")
+        && str_contains($request->body(), "#{$year->id} Yili: son (yil)"));
+});
+
+test('a made-up number parameter is dropped', function () {
+    $flats = Category::create(['name' => 'Kvartira', 'is_page' => true, 'listing_duration_days' => 30]);
+    $area = \App\Models\Parameter::create(['title' => 'Maydoni', 'placeholder' => '-', 'type' => 'number', 'component' => 'FieldNumber', 'unit' => 'm²']);
+    $flats->parameters()->attach($area->id, ['sort_order' => 0, 'is_required' => false]);
+
+    Http::fake(fn () => Http::response(chosenGeminiReply(['is_valid' => true, 'title' => 'Kvartira', 'category_id' => $flats->id,
+        'parameters' => [(string) $area->id => 65]])));
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+
+    $id = $this->postJson('/api/admin/bot-import-text', ['text' => "3 xonali kvartira sotiladi, ta'mirli. Tel: 90 123 45 67"])
+        ->assertOk()->json('product.id');
+
+    expect(\App\Models\ProductParameterValue::where('product_id', $id)->count())->toBe(0);
+});

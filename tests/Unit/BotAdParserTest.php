@@ -26,7 +26,7 @@ test('fallback parser extracts phone, price, title, and currency from raw text',
     expect($result['is_valid'])->toBeTrue();
     expect($result['price'])->toBe(11500);
     expect($result['currency'])->toBe('USD');
-    expect($result['phone'])->toBe('998901234567');
+    expect($result['phone'])->toBe('90-123-45-67');
     expect($result['title'])->toContain('Cobalt 2022');
 });
 

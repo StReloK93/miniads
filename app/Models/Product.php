@@ -135,6 +135,18 @@ class Product extends Model
         $this->attributes['district_id'] = (!empty($value) && (int) $value !== 0) ? (int) $value : null;
     }
 
+    /** Telefon doim 93-123-45-67 ko'rinishida (+998siz); "@nick" o'zgarmaydi */
+    public function setPhoneAttribute($value): void
+    {
+        $this->attributes['phone'] = \App\Support\Phone::format($value);
+    }
+
+    /** Narx yo'q, bo'sh yoki 0 — "Kelishiladi" (null) */
+    public function setPriceAttribute($value): void
+    {
+        $this->attributes['price'] = is_numeric($value) && (float) $value > 0 ? $value : null;
+    }
+
     public function district()
     {
         return $this->belongsTo(District::class);

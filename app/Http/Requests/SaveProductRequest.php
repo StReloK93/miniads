@@ -26,6 +26,11 @@ class SaveProductRequest extends FormRequest
             $this->merge(['district_id' => null]);
         }
 
+        // Narx bo'sh yoki 0 — "Kelishiladi". FormData null maydonni umuman yubormaydi, shunda tahrirlashda
+        // eski narx qolib ketardi — shuning uchun maydon doim mavjud bo'ladi (bo'sh bo'lsa null)
+        $price = $this->input('price');
+        $this->merge(['price' => is_numeric($price) && (float) $price > 0 ? $price : null]);
+
         // Sarlavha so'ralmaydigan kategoriya: sarlavhani tanlangan parametrlardan yasaymiz (tahrirlashda ham yangilanadi)
         $category = $this->category();
         if ($category && ! $category->with_title) {

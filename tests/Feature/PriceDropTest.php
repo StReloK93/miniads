@@ -54,3 +54,18 @@ test('only fans who allow it get the message, once a day', function () {
     Http::assertSent(fn ($request) => (string) $request->data()['chat_id'] === '101'
         && str_contains($request->data()['text'] ?? $request->data()['caption'] ?? '', '14 000'));
 });
+
+test('clearing the price or setting 0 makes the ad negotiable', function () {
+    Queue::fake();
+    [$owner, $category, $product] = priceDropSetup();
+    Sanctum::actingAs($owner);
+    $payload = ['title' => 'Cobalt 2020', 'category_id' => $category->id, 'phone' => '931234567'];
+
+    // FormData null maydonni yubormaydi — narx kelmasa ham tozalanadi
+    $this->post("/api/products/{$product->id}", $payload, ['Accept' => 'application/json'])->assertOk();
+    expect($product->fresh()->price)->toBeNull();
+
+    $product->update(['price' => 14000]);
+    $this->post("/api/products/{$product->id}", [...$payload, 'price' => '0'], ['Accept' => 'application/json'])->assertOk();
+    expect($product->fresh()->price)->toBeNull();
+});

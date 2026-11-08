@@ -109,7 +109,8 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
                class: "pr-28!",
             },
             schema: z.preprocess(
-               (v) => (v === "" || v === null ? undefined : v),
+               // 0 ham "Kelishiladi" (bo'sh) hisoblanadi
+               (v) => (v === "" || v === null || Number(v) === 0 ? undefined : v),
                z.coerce.number({ message: t("form.required") }).min(1, t("form.priceMin")).optional(),
             ),
             class: ["mb-3"],

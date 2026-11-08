@@ -24,7 +24,7 @@ test('a nick instead of a phone becomes a clickable mention, not a phone number'
 });
 
 test('a phone number stays copyable', function () {
-    expect(captionFor('998901234567'))->toContain('📱 <code>998901234567</code>');
+    expect(captionFor('+998 90 123 45 67'))->toContain('📱 <code>90-123-45-67</code>');
 });
 
 test("without a phone the owner's username is shown", function () {

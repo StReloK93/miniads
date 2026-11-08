@@ -67,6 +67,12 @@ class Product extends Model
                     ? $category->listingExpiresAt()
                     : now()->addDays(Category::DEFAULT_LISTING_DAYS);
             }
+
+            // Bazadagi CURRENT_TIMESTAMP MySQL server vaqt zonasida (odatda UTC) yoziladi, Laravel esa uni
+            // Asia/Tashkent deb o'qiydi — yangi e'lon "5 soat oldin" chiqardi. Vaqtni PHP o'zi qo'yadi.
+            if (empty($product->published_at)) {
+                $product->published_at = now();
+            }
         });
     }
 

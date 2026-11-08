@@ -49,3 +49,12 @@ test('re-activated ad shows the re-activation time, not the original posting tim
     expect($published)->toContain('T') // ISO — iOS Safari ham o'qiydi
         ->and(\Illuminate\Support\Carbon::parse($published)->diffInMinutes(now(), true))->toBeLessThan(2);
 });
+
+test('a new ad shows the time it was posted', function () {
+    $owner = User::create(['name' => 'Sotuvchi', 'role' => 'user']);
+    $category = Category::create(['name' => 'Telefonlar', 'is_page' => true]);
+    $product = Product::create(['title' => 'iPhone 13', 'category_id' => $category->id, 'user_id' => $owner->id]);
+
+    $published = $this->getJson("/api/products/{$product->id}")->assertOk()->json('published_at');
+    expect(\Illuminate\Support\Carbon::parse($published)->diffInMinutes(now(), true))->toBeLessThan(2);
+});

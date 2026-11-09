@@ -15,6 +15,24 @@
                </div>
                <p class="text-xs text-(--z-muted-text) font-medium">{{ $t("create.details") }}</p>
             </div>
+
+            <!-- "Matn bilan e'lon": nimalar matndan olinmaganini ko'rsatamiz — foydalanuvchi aynan shularni tekshiradi -->
+            <div
+               v-if="aiDraft"
+               class="mb-2.5 rounded-xl border border-(--z-primary)/40 bg-(--z-primary)/10 px-3 py-2 text-xs leading-snug"
+            >
+               <p class="flex items-center gap-1.5 font-semibold">
+                  <Sparkles class="size-3.5 shrink-0 text-(--z-primary)" />
+                  {{ $t("aiDraft.filled") }}
+               </p>
+               <ul v-if="aiDraft.missing.length" class="mt-1 flex flex-col gap-0.5 text-(--z-muted-text)">
+                  <li v-if="aiDraft.missing.includes('district')">• {{ $t("aiDraft.missingDistrict") }}</li>
+                  <li v-if="aiDraft.missing.includes('phone')">• {{ $t("aiDraft.missingPhone") }}</li>
+                  <li v-if="aiDraft.missing.includes('price') && selectedCategory?.with_price !== false">
+                     • {{ $t("aiDraft.missingPrice") }}
+                  </li>
+               </ul>
+            </div>
          </template>
       </ProductFormShell>
 
@@ -79,11 +97,12 @@ import BaseModal from "@shared/ui/BaseModal.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
-import { ICategory, InputConfig } from "@shared/types";
+import { IAiDraftResponse, ICategory, InputConfig } from "@shared/types";
 import { onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import { buildProductFormInputs, buildProductPayload } from "@/features/product/useProductForm";
+import { useAiDraft } from "@/features/product/aiDraft";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { CheckCircle2, Eye, Plus, User } from "lucide-vue-next";
+import { CheckCircle2, Eye, Plus, Sparkles, User } from "lucide-vue-next";
 import { useAuth } from "@shared/store/useAuth";
 import { leaveCreateFlow, pushBackHandler } from "@/modules/navigation";
 
@@ -98,13 +117,19 @@ const formInputs = shallowRef<InputConfig[]>([]);
 const showSuccessModal = ref(false);
 const createdProduct = ref<{ id?: number | string; title?: string } | null>(null);
 
+// "Matn bilan e'lon" qoralamasi: faqat matn oynasidan (yoki undan keyin bo'lim tanlab) kelinganda
+const aiDraftStore = useAiDraft();
+const aiDraft = shallowRef<IAiDraftResponse | null>(route.query.ai ? aiDraftStore.current() : null);
+
 async function submitForm(values: Record<string, any>) {
    const payload = buildProductPayload(values, {
       categoryId: route.params.categoryId as string,
       fallbackDistrictId: selectedCityId.value,
    });
+   if (aiDraft.value) payload.via_ai = 1;
 
    const res = await ProductRepo.store(payload);
+   aiDraftStore.clear();
    // Server birinchi raqamni profilga yozdi — keyingi e'lon formasi shu sessiyada ham to'ldirilsin
    if (authStore.user && !authStore.user.phone && payload.phone) {
       authStore.user.phone = payload.phone;
@@ -162,7 +187,10 @@ onMounted(async () => {
    selectedCityId.value = routeCity || authStore.user?.active_district_id || (storedCity ? Number(storedCity) : 1);
 
    const { data: category } = await CategoryRepo.show(route.params.categoryId as string);
-   formInputs.value = await buildProductFormInputs(category, { districtId: selectedCityId.value });
+   formInputs.value = await buildProductFormInputs(category, {
+      districtId: selectedCityId.value,
+      draft: aiDraft.value?.draft,
+   });
    selectedCategory.value = category;
 });
 </script>

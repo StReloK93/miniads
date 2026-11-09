@@ -84,7 +84,30 @@ class AdAiParserService
      */
     public function parseChosen(string $rawText, BotSetting $setting, ?string $channel = null): array
     {
-        $rawText = trim($rawText);
+        return $this->parseWithoutRejection(trim($rawText), $setting, $channel, true);
+    }
+
+    /**
+     * Foydalanuvchi ilovada o'zi yozgan qisqa matn ("Do'kon sotiladi kelishiladi"): formani oldindan to'ldirish uchun.
+     * Rad etilmaydi; matnda yo'q narsa (shahar, narx) bo'sh qoladi — foydalanuvchi formada o'zi to'ldiradi.
+     */
+    public function parseUserText(string $rawText, BotSetting $setting): array
+    {
+        $result = $this->parseWithoutRejection(trim($rawText), $setting, null, 'user');
+
+        // Aloqa formada alohida maydon: tavsifdagi "Bog'lanish uchun" qatori raqam o'zgarsa eskirib qolardi
+        $result['description'] = trim(preg_replace(
+            ["/^[ \t]*•?[ \t]*Bog['‘’`]lanish uchun\s*:.*$\R?/mu", "/\n{3,}/"],
+            ['', "\n\n"],
+            $result['description'],
+        ));
+
+        return $result;
+    }
+
+    /** @param bool|string $mode true — admin tanlagan post; 'user' — foydalanuvchi matni (userPrompt'ga qarang) */
+    private function parseWithoutRejection(string $rawText, BotSetting $setting, ?string $channel, bool|string $mode): array
+    {
         $provider = $setting->ai_provider ?: 'gemini';
         $apiKey = $setting->ai_api_key ?: config($provider === 'openai' ? 'services.openai.api_key' : 'services.gemini.api_key');
 
@@ -92,14 +115,14 @@ class AdAiParserService
             try {
                 $this->ensureWithinDailyTokenLimit();
                 $aiResult = $provider === 'openai'
-                    ? $this->callOpenAi($rawText, $apiKey, $channel, chosen: true)
-                    : $this->callGemini($rawText, $apiKey, $channel, chosen: true);
+                    ? $this->callOpenAi($rawText, $apiKey, $channel, chosen: $mode)
+                    : $this->callGemini($rawText, $apiKey, $channel, chosen: $mode);
 
                 if (!empty($aiResult['title'])) {
                     return $this->normalizeParsedData($aiResult, $rawText, $channel) + ['parsed_by' => 'ai'];
                 }
             } catch (AiUnavailableException $e) {
-                Log::warning("Tanlangan post AI'siz joylanadi: {$e->getMessage()}");
+                Log::warning("Matn AI'siz, qoidalar bo'yicha ajratiladi: {$e->getMessage()}");
             }
         }
 
@@ -219,12 +242,17 @@ PROMPT;
     /**
      * Har bir postga xos qism (kanal, hudud, matn) — keshlanadigan ko'rsatmalardan keyin yuboriladi.
      */
-    private function userPrompt(string $rawText, ?string $channel, bool $chosen = false): string
+    private function userPrompt(string $rawText, ?string $channel, bool|string $chosen = false): string
     {
-        // Admin o'zi tanlagan post: 1-qadam (e'lonmi?) yo'q — faqat maydonlarni to'ldirish
-        $prompt = $chosen
-            ? "MUHIM: bu postni admin o'zi tanlagan, u albatta e'lon. 1-QADAMni o'tkazib yubor: is_valid doim true, barcha maydonlarni to'ldir.\n"
-            : '';
+        // Admin tanlagan post yoki foydalanuvchining o'z matni: 1-qadam (e'lonmi?) yo'q — faqat maydonlarni to'ldirish
+        $prompt = match (true) {
+            $chosen === 'user' => "MUHIM: bu matnni foydalanuvchi o'z e'loni sifatida yozgan, u albatta e'lon. 1-QADAMni o'tkazib yubor: is_valid doim true. "
+                . "Matn qisqa bo'lishi mumkin: faqat yozilganidan foydalan, yo'q narsani (narx, shahar, telefon, parametr) o'ylab topma. "
+                . "district_id faqat matnda shahar yoki tuman aniq yozilgan bo'lsa, aks holda null. "
+                . "description'ga \"Bog'lanish uchun\" qatorini yozma, aloqa alohida maydonda.\n",
+            (bool) $chosen => "MUHIM: bu postni admin o'zi tanlagan, u albatta e'lon. 1-QADAMni o'tkazib yubor: is_valid doim true, barcha maydonlarni to'ldir.\n",
+            default => '',
+        };
 
         if (!empty($channel)) {
             $prompt .= "Manba kanal: @{$channel}\n";
@@ -282,7 +310,7 @@ PROMPT;
     /**
      * Call Google Gemini API. Bitta aniq model, fikrlash (thinking) minimal — bu vazifa uchun keragi yo'q va qimmat.
      */
-    private function callGemini(string $rawText, string $apiKey, ?string $channel = null, bool $chosen = false): array
+    private function callGemini(string $rawText, string $apiKey, ?string $channel = null, bool|string $chosen = false): array
     {
         $model = config('services.gemini.model');
 
@@ -325,7 +353,7 @@ PROMPT;
     /**
      * Call OpenAI API.
      */
-    private function callOpenAi(string $rawText, string $apiKey, ?string $channel = null, bool $chosen = false): array
+    private function callOpenAi(string $rawText, string $apiKey, ?string $channel = null, bool|string $chosen = false): array
     {
         $model = config('services.openai.model');
 

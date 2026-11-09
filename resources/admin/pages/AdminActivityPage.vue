@@ -49,6 +49,9 @@
                   <span class="admin-stat-detail">
                      qo'ydi / boshladi<template v-if="abandoned > 0"> · {{ num(abandoned) }} tashladi</template>
                   </span>
+                  <span v-if="stats.funnel.ai_drafts" class="admin-stat-detail">
+                     matn bilan (AI): {{ num(stats.funnel.ai_created) }} qo'ydi / {{ num(stats.funnel.ai_drafts) }} urindi
+                  </span>
                </article>
             </div>
 
@@ -156,7 +159,7 @@ type Stats = {
       | "reports",
       number
    >;
-   funnel: { started: number; created: number; ads: number };
+   funnel: { started: number; created: number; ads: number; ai_drafts: number; ai_created: number };
    daily: { date: string; users: number; hits: number }[];
    pages: Group[];
    categories: Group[];

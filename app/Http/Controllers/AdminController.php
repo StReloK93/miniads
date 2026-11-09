@@ -397,6 +397,9 @@ class AdminController extends Controller
                 'started' => $users('page', 'create-product'),
                 'created' => $users('ad_created'),
                 'ads' => $hits('ad_created'),
+                // "Matn bilan" yo'li: AI'dan qoralama olganlar va undan e'lon joylaganlar
+                'ai_drafts' => $users('ai_draft'),
+                'ai_created' => $users('ad_created_ai'),
             ],
             'daily' => $daily,
             'pages' => $grouped('page', 15),

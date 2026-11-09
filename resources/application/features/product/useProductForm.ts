@@ -1,5 +1,5 @@
 import { Component } from "vue";
-import { ICategory, InputConfig, IProduct, IProductPayload } from "@shared/types";
+import { IAiDraft, ICategory, InputConfig, IProduct, IProductPayload } from "@shared/types";
 import { Inputs } from "@shared/ui/inputs";
 import { productInputs, ZodTypeMapping } from "@shared/entities/Product/ProductInputs";
 import { useCity } from "@shared/entities/District/useCity";
@@ -21,7 +21,7 @@ function rootIconOf(category: ICategory): string | null {
  */
 export async function buildProductFormInputs(
    category: ICategory,
-   options: { districtId: number | null; product?: IProduct },
+   options: { districtId: number | null; product?: IProduct; draft?: IAiDraft | null },
 ): Promise<InputConfig[]> {
    const authStore = useAuth();
    const cityStore = useCity();
@@ -102,6 +102,30 @@ export async function buildProductFormInputs(
             input.value = value;
          }
       });
+   }
+
+   // "Matn bilan e'lon": AI matndan topgan qiymatlar (topilmagani — odatdagi boshlang'ich qiymat qoladi)
+   const draft = options.draft;
+   if (!product && draft) {
+      const values: Record<string, unknown> = {
+         title: draft.title,
+         description: draft.description,
+         price: draft.price,
+         price_type_id: draft.price_type_id,
+         phone: draft.phone,
+         district_id: draft.district_id,
+      };
+      baseInputs.forEach((input) => {
+         const value = values[input.name];
+         if (value !== null && value !== undefined && value !== "") input.value = value;
+      });
+      // Parametrlar faqat AI tanlagan bo'limda mos keladi (foydalanuvchi boshqa bo'lim tanlasa — tashlanadi)
+      if (draft.category_id === category.id) {
+         parameterInputs.forEach((input) => {
+            const value = draft.parameters[input.name.replace("parameter_", "")];
+            if (value !== null && value !== undefined && value !== "") input.value = value;
+         });
+      }
    }
 
    return [...baseInputs, ...parameterInputs];

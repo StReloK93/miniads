@@ -14,6 +14,7 @@ return [
     'city_not_found' => 'The selected city was not found.',
     'all_cities' => 'All cities',
     'logged_out' => 'You have been logged out',
+    'ai_draft_limit' => 'You have prepared :max ads from text today. Try again tomorrow, or post using the form now.',
 
     'reasons' => [
         'fraud' => 'Fraud',

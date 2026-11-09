@@ -15,6 +15,7 @@ return [
     'city_not_found' => 'Tanlangan shahar topilmadi.',
     'all_cities' => 'Barcha shaharlar',
     'logged_out' => 'Tizimdan chiqildi',
+    'ai_draft_limit' => "Bugun matn bilan :max ta e'lon tayyorladingiz. Ertaga yana mumkin, hozir esa shakl orqali joylang.",
 
     'reasons' => [
         'fraud' => 'Firibgarlik',

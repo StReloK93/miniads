@@ -17,27 +17,42 @@
       </aside>
 
       <BlockedNotice v-if="authStore.user?.blocked_at" class="flex-1" />
-      <CategorySelector
-         v-else-if="CategoryStore.parentCategories"
-         :activeCategoryId="activeCategoryId"
-         :categories="CategoryStore.parentCategories"
-         class="flex-1 min-h-0"
-         @select-category="
-            $router.push({ name: 'create-product', params: { categoryId: $event.id } })
-         "
-      />
+      <template v-else>
+         <AiDraftCard class="shrink-0 mb-3" />
+         <CategorySelector
+            v-if="CategoryStore.parentCategories"
+            :activeCategoryId="activeCategoryId"
+            :categories="CategoryStore.parentCategories"
+            class="flex-1 min-h-0"
+            @select-category="selectCategory"
+         />
+      </template>
    </section>
 </template>
 
 <script setup lang="ts">
 import CategorySelector from "@/features/category/CategorySelector.vue";
 import BlockedNotice from "@/features/auth/BlockedNotice.vue";
+import AiDraftCard from "@/features/product/AiDraftCard.vue";
+import { useAiDraft } from "@/features/product/aiDraft";
 import { useAuth } from "@shared/store/useAuth";
 import { useCategory } from "@shared/entities/Category/useCategory";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { computed, onMounted } from "vue";
+import type { ICategory } from "@shared/types";
 
 const route = useRoute();
+const router = useRouter();
+const aiDraft = useAiDraft();
+
+// Matndan tayyorlangan qoralama bo'lsa (AI bo'limni noto'g'ri tanlagan) — u boshqa bo'limga ham o'tadi
+function selectCategory(category: ICategory) {
+   router.push({
+      name: "create-product",
+      params: { categoryId: category.id },
+      query: aiDraft.current() ? { ai: "1" } : undefined,
+   });
+}
 
 const activeCategoryId = computed(() => {
    return route.query.category_id ? Number(route.query.category_id) : null;

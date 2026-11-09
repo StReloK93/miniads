@@ -140,6 +140,31 @@ export interface IProductPayload {
    district_id: number | null;
    parameters: { id: string | number; value: unknown }[];
    images?: unknown[];
+   /** Forma "Matn bilan" (AI) to'ldirilgan — statistikada alohida sanaladi */
+   via_ai?: 1;
+}
+
+/** "Matn bilan e'lon": AI matndan to'ldirgan forma qiymatlari */
+export interface IAiDraft {
+   category_id: number;
+   title: string;
+   description: string;
+   price: number | null;
+   price_type_id: number;
+   phone: string | null;
+   district_id: number | null;
+   /** parametr ID → qiymat */
+   parameters: Record<string, string>;
+}
+
+export interface IAiDraftResponse {
+   draft: IAiDraft;
+   /** Matnda topilmagan maydonlar — formada tekshirish kerak */
+   missing: ("district" | "phone" | "price")[];
+   /** Foydalanuvchining shu bo'limdagi o'xshash faol e'loni */
+   duplicate: { id: number; title: string } | null;
+   /** Bugun qolgan urinishlar; admin uchun null (cheklovsiz) */
+   remaining: number | null;
 }
 
 export interface IUser {

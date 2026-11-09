@@ -18,6 +18,7 @@ class TrackActivity
         'GET api/products/{id}' => ['product_view', 'id'],
         'GET api/categories/{id}/products' => ['category_open', 'id'],
         'POST api/products' => ['ad_created', null],
+        'POST api/products/ai-draft' => ['ai_draft', null],
         'POST api/favorites' => ['favorite_add', null],
         'POST api/saved-searches' => ['saved_search_add', null],
         'POST api/products/{id}/report' => ['report', 'id'],
@@ -51,8 +52,14 @@ class TrackActivity
             default => $refParam ? $route->parameter($refParam) : null,
         };
 
+        $events = [['e' => $event, 'r' => $ref]];
+        // "Matn bilan" (AI) to'ldirilgan formadan joylangan e'lon — alohida ham sanaladi
+        if ($event === 'ad_created' && $request->boolean('via_ai')) {
+            $events[] = ['e' => 'ad_created_ai', 'r' => $ref];
+        }
+
         ActivityLog::record(
-            [['e' => $event, 'r' => $ref]],
+            $events,
             $request->user()?->id,
             $request->header('X-Session'),
             $request->header('X-Client'),

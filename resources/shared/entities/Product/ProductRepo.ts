@@ -1,5 +1,5 @@
 import { api } from "@shared/composables/useFetch";
-import { IPaginatedResponse, IProduct, IProductPayload } from "@shared/types";
+import { IAiDraftResponse, IPaginatedResponse, IProduct, IProductPayload } from "@shared/types";
 const baseURL = "products";
 
 export default {
@@ -15,6 +15,10 @@ export default {
    },
    show(id: string | number) {
       return api.get<IProduct>(`${baseURL}/${id}`);
+   },
+   /** "Matn bilan e'lon": AI matndan forma qiymatlarini tayyorlaydi (e'lon saqlanmaydi) */
+   aiDraft(text: string) {
+      return api.post<IAiDraftResponse>(`${baseURL}/ai-draft`, { text });
    },
    edit(id: string | number) {
       return api.get<IProduct>(`${baseURL}/${id}/edit`);

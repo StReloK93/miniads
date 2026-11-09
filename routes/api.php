@@ -109,6 +109,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/messages/read', [App\Http\Controllers\AdminMessageController::class, 'markRead']);
 
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
+    // "Matn bilan e'lon": AI formani to'ldiradi (kunlik limit controllerda). /products/{id} dan oldin turishi shart
+    Route::post('/products/ai-draft', App\Http\Controllers\ProductDraftController::class)->middleware('throttle:10,1');
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
     Route::post('/products/{id}/report', [App\Http\Controllers\ProductController::class, 'report'])->middleware('throttle:10,1');

@@ -184,18 +184,26 @@ class AdminController extends Controller
             'status' => ['nullable', Rule::in(['active', 'expired', 'deleted', 'reported', 'all'])],
             'is_bot' => ['nullable', Rule::in(['all', 'bot', 'user'])],
             'user_id' => ['nullable', 'integer'],
+            // Kategoriya — ichki bo'limlari bilan; hudud: id yoki "none" (butun viloyat, district_id = null)
+            'category_id' => ['nullable', 'integer'],
+            'district_id' => ['nullable', 'regex:/^(\d+|none)$/'],
             'sort' => ['nullable', Rule::in(['new', 'views', 'reports'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
         $status = $filters['status'] ?? 'all';
         $sort = $filters['sort'] ?? ($status === 'reported' ? 'reports' : 'new');
+        $categoryIds = filled($filters['category_id'] ?? null) ? Category::subtreeIds((int) $filters['category_id']) : null;
+        $district = $filters['district_id'] ?? null;
 
-        // Holat chiplaridagi sonlar uchun: qidiruv/manba/muallif filtrlari hisobga olinadi, holat — yo'q
+        // Holat chiplaridagi sonlar uchun: qidiruv/manba/muallif/kategoriya/hudud filtrlari hisobga olinadi, holat — yo'q
         $base = fn () => Product::query()
             ->withTrashed()
             ->when(($filters['is_bot'] ?? 'all') === 'bot', fn ($query) => $query->where('is_bot', true))
             ->when(($filters['is_bot'] ?? 'all') === 'user', fn ($query) => $query->where('is_bot', false))
             ->when(filled($filters['user_id'] ?? null), fn ($query) => $query->where('user_id', $filters['user_id']))
+            ->when($categoryIds !== null, fn ($query) => $query->whereIn('category_id', $categoryIds))
+            ->when($district === 'none', fn ($query) => $query->whereNull('district_id'))
+            ->when($district !== null && $district !== 'none', fn ($query) => $query->where('district_id', (int) $district))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
                 $search = ltrim($filters['search'], '#');
                 $query->where(function ($query) use ($search): void {
@@ -532,10 +540,16 @@ class AdminController extends Controller
         $filters = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
             'role' => ['nullable', Rule::in(['user', 'admin', 'blocked'])],
+            // Kirgan kunlar soni bo'yicha: bir marta kirib qaytmagan / qayta-qayta kirayotgan
+            'visits' => ['nullable', Rule::in(['once', 'returning'])],
+            'sort' => ['nullable', Rule::in(['new', 'visits', 'active'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
-        return User::query()
+        $visitDays = DB::table('user_visits')->whereColumn('user_visits.user_id', 'users.id')->selectRaw('COUNT(*)');
+        $lastVisit = DB::table('user_visits')->whereColumn('user_visits.user_id', 'users.id')->selectRaw('MAX(date)');
+
+        $page = User::query()
             ->with('activeDistrict:id,name')
             ->withCount(['products', 'products as active_products_count' => fn ($query) => $query->active()])
             ->addSelect([
@@ -544,7 +558,12 @@ class AdminController extends Controller
                     ->where('tokenable_type', User::class)
                     ->whereColumn('tokenable_id', 'users.id')
                     ->selectRaw('MAX(last_used_at)'),
+                'visit_days' => $visitDays,
+                'last_visit_on' => $lastVisit,
             ])
+            // 0 kun — ma'lumot yo'q (eski hisob): "bir marta" qatoriga qo'shiladi
+            ->when(($filters['visits'] ?? null) === 'once', fn ($query) => $query->where($visitDays, '<=', 1))
+            ->when(($filters['visits'] ?? null) === 'returning', fn ($query) => $query->where($visitDays, '>=', 2))
             ->when(($filters['role'] ?? null) === 'blocked', fn ($query) => $query->whereNotNull('blocked_at'))
             ->when(in_array($filters['role'] ?? null, ['user', 'admin'], true), fn ($query) => $query->where('role', $filters['role']))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
@@ -555,12 +574,49 @@ class AdminController extends Controller
                         ->orWhere('telegram_user_id', 'like', "%{$search}%");
                 });
             })
-            ->latest()
+            ->when(($filters['sort'] ?? 'new') === 'visits', fn ($query) => $query->orderByDesc('visit_days'))
+            ->when(($filters['sort'] ?? 'new') === 'active', fn ($query) => $query->orderByRaw('last_active_at IS NULL')->orderByDesc('last_active_at'))
+            ->latest('users.id')
             ->paginate($filters['per_page'] ?? 20)
             ->through(fn (User $user) => [
                 ...$user->toArray(),
                 'last_active_at' => $this->lastActiveAt($user),
+                'visit_days' => (int) $user->visit_days,
             ]);
+
+        return response()->json([...$page->toArray(), 'visit_summary' => $this->visitSummary()]);
+    }
+
+    /**
+     * Qaytib kirish ko'rsatkichi (kunlar bo'yicha, bir kunda necha marta ochgani ahamiyatsiz):
+     * bir marta kirib qaytmaganlar, 2+ kun kirganlar, ulardan 5+ kun kirganlar va oxirgi 7 kunda qaytganlar.
+     */
+    private function visitSummary(): array
+    {
+        $perUser = DB::table('user_visits')
+            ->selectRaw('user_id, COUNT(*) as visit_count, MIN(date) as first_date, MAX(date) as last_date')
+            ->groupBy('user_id');
+
+        $row = DB::query()->fromSub($perUser, 'v')
+            ->selectRaw('SUM(CASE WHEN visit_count >= 2 THEN 1 ELSE 0 END) as returning_users')
+            ->selectRaw('SUM(CASE WHEN visit_count >= 5 THEN 1 ELSE 0 END) as regular_users')
+            // Oxirgi 7 kunda kirgan va undan oldin ham kirgan (shu hafta yangi emas)
+            ->selectRaw('SUM(CASE WHEN last_date >= ? AND first_date < ? THEN 1 ELSE 0 END) as returned_week', [
+                now()->subDays(6)->toDateString(),
+                now()->subDays(6)->toDateString(),
+            ])
+            ->first();
+
+        $total = User::count();
+        $returning = (int) ($row->returning_users ?? 0);
+
+        return [
+            'total' => $total,
+            'once' => $total - $returning,
+            'returning' => $returning,
+            'regular' => (int) ($row->regular_users ?? 0),
+            'returned_week' => (int) ($row->returned_week ?? 0),
+        ];
     }
 
     public function updateUserRole(Request $request, int $id)

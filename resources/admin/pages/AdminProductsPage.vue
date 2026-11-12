@@ -25,6 +25,8 @@
          @sent="(text) => (notice = text)"
       />
 
+      <AdminProductEditDrawer :product-id="editId" @close="editId = null" @saved="onEdited" />
+
       <header class="admin-page-heading">
          <div>
             <h1>E'lonlar</h1>
@@ -69,6 +71,13 @@
                   ]"
                   @change="load(1)"
                />
+            </div>
+            <!-- Kategoriya: ichki bo'limlari bilan birga -->
+            <div class="sm:w-52">
+               <FieldSelect v-model="categoryId" size="sm" :options="categoryOptions" @change="load(1)" />
+            </div>
+            <div class="sm:w-44">
+               <FieldSelect v-model="districtId" size="sm" :options="districtOptions" @change="load(1)" />
             </div>
             <BaseButton severity="secondary" size="sm" @click="search">
                <template #icon><Search class="size-3.5" /></template>
@@ -134,7 +143,7 @@
                            @change="toggleAll"
                         />
                      </th>
-                     <th>E'lon</th>
+                     <th class="admin-col-main">E'lon</th>
                      <th class="admin-col-wide">Muallif</th>
                      <th class="admin-col-wide">Narx</th>
                      <th class="admin-col-wide">Ko'rishlar</th>
@@ -157,7 +166,7 @@
                         <td class="admin-col-check" @click.stop>
                            <input v-model="selected" type="checkbox" class="admin-check" :value="product.id" :aria-label="`${product.title} — tanlash`" />
                         </td>
-                        <td>
+                        <td class="admin-col-main">
                            <div class="admin-xmain">
                               <img
                                  v-if="product.images?.[0]"
@@ -261,6 +270,10 @@
                                     <dd>{{ product.district?.name || "Butun viloyat" }}</dd>
                                  </div>
                                  <div>
+                                    <dt>Kategoriya</dt>
+                                    <dd>{{ product.category?.name || "Kategoriyasiz" }}</dd>
+                                 </div>
+                                 <div>
                                     <dt>Ko'rishlar · Sevimli</dt>
                                     <dd class="tabular-nums">{{ product.views_count ?? 0 }} · {{ product.favorites_count ?? 0 }}</dd>
                                  </div>
@@ -316,13 +329,11 @@
                                  </template>
 
                                  <template v-else>
-                                    <!-- Ilovaning o'z tahrirlash sahifasi: rasmlar, parametrlar — hammasi bir joyda -->
-                                    <a :href="`/edit-product/${product.id}?from=admin`">
-                                       <BaseButton size="sm" severity="secondary">
-                                          <template #icon><Pencil class="size-3.5" /></template>
-                                          Tahrirlash
-                                       </BaseButton>
-                                    </a>
+                                    <!-- Admin panelning o'zida: ilovadagi forma (rasmlar, parametrlar) yon oynada ochiladi -->
+                                    <BaseButton size="sm" severity="secondary" @click="editId = product.id">
+                                       <template #icon><Pencil class="size-3.5" /></template>
+                                       Tahrirlash
+                                    </BaseButton>
                                     <BaseButton size="sm" severity="secondary" :loading="busyId === product.id" @click="changeStatus(product)">
                                        <template #icon>
                                           <component :is="product.is_active ? PauseCircle : PlayCircle" class="size-3.5" />
@@ -404,7 +415,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
    Archive,
@@ -431,7 +442,11 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
 import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
+import AdminProductEditDrawer from "@admin/components/AdminProductEditDrawer.vue";
+import { useCategory } from "@shared/entities/Category/useCategory";
+import { useCity } from "@shared/entities/District/useCity";
 import { formatDateTime, formatProductPrice, timeAgo } from "@shared/modules/formatters";
+import type { ICategory } from "@shared/types";
 
 type Status = "all" | "active" | "expired" | "reported" | "deleted";
 type AdminProduct = Record<string, any> & {
@@ -477,6 +492,33 @@ const searchValue = ref(searchInput.value);
 const status = ref<Status>((route.query.status as Status) || "all");
 const isBot = ref("all");
 const sort = ref("new");
+// "" — hammasi; hudud uchun "none" — butun viloyat (hudud tanlanmagan e'lonlar)
+const categoryId = ref<string>(typeof route.query.category_id === "string" ? route.query.category_id : "");
+const districtId = ref<string>(typeof route.query.district_id === "string" ? route.query.district_id : "");
+// Admin panelning o'zida tahrirlanayotgan e'lon
+const editId = ref<number | null>(null);
+
+const categoryStore = useCategory();
+const cityStore = useCity();
+
+/** Kategoriyalar daraxti bitta ro'yxatda: ichki bo'limlar chekinish bilan */
+const categoryOptions = computed(() => {
+   const options: { label: string; value: string }[] = [{ label: "Barcha kategoriyalar", value: "" }];
+   const walk = (nodes: ICategory[] | undefined, depth: number) => {
+      for (const node of nodes ?? []) {
+         options.push({ label: `${"   ".repeat(depth)}${depth ? "› " : ""}${node.name}`, value: String(node.id) });
+         walk(node.children, depth + 1);
+      }
+   };
+   walk(categoryStore.parentCategories as ICategory[] | undefined, 0);
+   return options;
+});
+
+const districtOptions = computed(() => [
+   { label: "Barcha hududlar", value: "" },
+   { label: "Butun viloyat", value: "none" },
+   ...(cityStore.cities ?? []).map((city) => ({ label: city.name, value: String(city.id) })),
+]);
 const userFilter = ref<{ id: number; name: string } | null>(
    route.query.user_id ? { id: Number(route.query.user_id), name: String(route.query.user_name || `#${route.query.user_id}`) } : null,
 );
@@ -500,6 +542,8 @@ async function load(page = 1) {
          is_bot: isBot.value !== "all" ? isBot.value : undefined,
          search: searchValue.value || undefined,
          user_id: userFilter.value?.id,
+         category_id: categoryId.value || undefined,
+         district_id: districtId.value || undefined,
       });
       products.value = data.data;
       counts.value = data.counts ?? {};
@@ -535,6 +579,12 @@ function setStatus(value: Status) {
 
 function toggle(id: number) {
    openId.value = openId.value === id ? null : id;
+}
+
+function onEdited(message: string) {
+   error.value = "";
+   notice.value = message;
+   reload();
 }
 
 function filterByUser(user: { id: number; name: string }) {
@@ -682,5 +732,14 @@ function badgeClass(product: AdminProduct) {
    return product.deleted_at ? "admin-badge-muted" : product.is_active ? "admin-badge-success" : "admin-badge-warning";
 }
 
-onMounted(() => load());
+onMounted(() => {
+   load();
+   // Filtr ro'yxatlari (tahrirlash formasi ham shulardan foydalanadi)
+   if (!categoryStore.parentCategories) {
+      categoryStore.getParentCategories().catch((exception) => console.error("Kategoriyalar yuklanmadi.", exception));
+   }
+   if (!cityStore.cities?.length) {
+      cityStore.getCities().catch((exception) => console.error("Hududlar yuklanmadi.", exception));
+   }
+});
 </script>

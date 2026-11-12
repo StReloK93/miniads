@@ -37,6 +37,35 @@
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
       <p v-if="notice" class="admin-alert admin-alert-success">{{ notice }}</p>
 
+      <!-- Qaytib kirish: kunlar bo'yicha (bir kunda necha marta ochgani hisobga olinmaydi). Kartani bosish — filtr -->
+      <div v-if="summary" class="admin-stats-grid">
+         <button
+            type="button"
+            class="admin-stat-card"
+            :class="{ 'is-active': visitsFilter === 'once' }"
+            @click="setVisits('once')"
+         >
+            <span class="admin-stat-label">Bir marta kirib, qaytmagan</span>
+            <strong>{{ num(summary.once) }}</strong>
+            <span class="admin-stat-detail">{{ percent(summary.once) }} · faqat bitta kun kirgan</span>
+         </button>
+         <button
+            type="button"
+            class="admin-stat-card"
+            :class="{ 'is-active': visitsFilter === 'returning' }"
+            @click="setVisits('returning')"
+         >
+            <span class="admin-stat-label">Qayta-qayta kirayotgan</span>
+            <strong>{{ num(summary.returning) }}</strong>
+            <span class="admin-stat-detail">{{ percent(summary.returning) }} · 2+ kun · {{ num(summary.regular) }} tasi 5+ kun</span>
+         </button>
+         <article class="admin-stat-card">
+            <span class="admin-stat-label">Shu hafta qaytganlar</span>
+            <strong>{{ num(summary.returned_week) }}</strong>
+            <span class="admin-stat-detail">oxirgi 7 kunda kirgan eski foydalanuvchilar</span>
+         </article>
+      </div>
+
       <section class="admin-panel admin-table-panel">
          <div class="admin-toolbar">
             <label class="admin-search">
@@ -48,6 +77,18 @@
                   @keyup.enter="load(1)"
                />
             </label>
+            <div class="sm:w-44">
+               <FieldSelect
+                  v-model="sort"
+                  size="sm"
+                  :options="[
+                     { label: 'Yangi qo\'shilganlar', value: 'new' },
+                     { label: 'Ko\'p kirganlar', value: 'visits' },
+                     { label: 'Oxirgi faollar', value: 'active' },
+                  ]"
+                  @change="load(1)"
+               />
+            </div>
             <BaseButton severity="secondary" size="sm" @click="load(1)">
                <template #icon><Search class="size-3.5" /></template>
                Qidirish
@@ -67,14 +108,25 @@
             </button>
          </nav>
 
+         <div v-if="visitsFilter" class="admin-filter-note">
+            <span class="min-w-0 truncate">
+               Ko'rsatilmoqda: <b>{{ visitsFilter === "once" ? "bir marta kirganlar" : "qayta-qayta kirayotganlar" }}</b>
+            </span>
+            <BaseButton size="xs" severity="secondary" @click="setVisits(visitsFilter)">
+               <template #icon><X class="size-3.5" /></template>
+               Olib tashlash
+            </BaseButton>
+         </div>
+
          <div v-if="loading && !users.length" class="admin-loading">Foydalanuvchilar yuklanmoqda…</div>
          <div v-else class="admin-table-wrap transition-opacity" :class="{ 'opacity-60': loading }">
             <table class="admin-xtable">
                <thead>
                   <tr>
-                     <th>Foydalanuvchi</th>
+                     <th class="admin-col-main">Foydalanuvchi</th>
                      <th class="admin-col-wide">Telegram ID</th>
                      <th class="admin-col-wide">Shahar</th>
+                     <th class="admin-col-wide">Kirgan</th>
                      <th class="admin-col-wide">Oxirgi faollik</th>
                      <th class="admin-col-shrink">E'lonlar</th>
                      <th class="admin-col-shrink"><span class="sr-only">Ochish</span></th>
@@ -90,29 +142,35 @@
                         @click="toggle(user.id)"
                         @keydown.enter.prevent="toggle(user.id)"
                      >
-                        <td>
+                        <td class="admin-col-main">
                            <div class="admin-xmain">
                               <span class="admin-xthumb rounded-full! font-bold text-sm text-(--z-foreground)">
                                  {{ initials(user.name) }}
                               </span>
-                              <div class="min-w-0">
-                                 <div class="admin-xtitle flex items-center gap-1.5">
-                                    <span class="truncate">{{ user.name }}</span>
-                                    <span v-if="user.role === 'admin'" class="admin-badge admin-badge-info">Admin</span>
-                                    <span v-if="user.blocked_at" class="admin-badge admin-badge-danger">Bloklangan</span>
+                              <div class="min-w-0 flex-1">
+                                 <!-- Uzun ism bitta qatorda qisqartiriladi, belgilar doim ko'rinadi -->
+                                 <div class="flex min-w-0 items-center gap-1.5 text-[13.5px] font-semibold leading-tight">
+                                    <span class="min-w-0 truncate" :title="user.name">{{ user.name }}</span>
+                                    <span v-if="user.role === 'admin'" class="admin-badge admin-badge-info shrink-0">Admin</span>
+                                    <span v-if="user.blocked_at" class="admin-badge admin-badge-danger shrink-0">Bloklangan</span>
                                  </div>
                                  <div class="admin-xmeta">
-                                    <span v-if="user.username">@{{ user.username }}</span>
+                                    <span v-if="user.username" class="max-w-full truncate">@{{ user.username }}</span>
                                     <span class="admin-only-narrow inline-flex items-center gap-1">
                                        <span class="size-1.5 rounded-full" :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-400'" />
                                        {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
                                     </span>
+                                    <span class="admin-only-narrow">{{ visitLabel(user.visit_days) }}</span>
                                  </div>
                               </div>
                            </div>
                         </td>
                         <td class="admin-col-wide tabular-nums">{{ user.telegram_user_id || "—" }}</td>
                         <td class="admin-col-wide">{{ user.active_district?.name || "—" }}</td>
+                        <td class="admin-col-wide whitespace-nowrap">
+                           <span v-if="user.visit_days >= 2" class="admin-badge admin-badge-success">{{ visitLabel(user.visit_days) }}</span>
+                           <span v-else class="text-(--z-muted-text)">{{ visitLabel(user.visit_days) }}</span>
+                        </td>
                         <td class="admin-col-wide whitespace-nowrap">
                            <span class="inline-flex items-center gap-2">
                               <span class="size-2 rounded-full" :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'" />
@@ -127,7 +185,7 @@
                      </tr>
 
                      <tr v-if="openId === user.id" class="admin-xdetail">
-                        <td colspan="6">
+                        <td colspan="7">
                            <div class="admin-xdetail-inner">
                               <dl class="admin-dl admin-xfull">
                                  <div>
@@ -149,6 +207,13 @@
                                  <div>
                                     <dt>Oxirgi faollik</dt>
                                     <dd>{{ user.last_active_at ? formatDateTime(user.last_active_at) : "Kirmagan" }}</dd>
+                                 </div>
+                                 <div>
+                                    <dt>Ilovaga kirgan</dt>
+                                    <dd>
+                                       {{ visitLabel(user.visit_days) }}
+                                       <span v-if="user.last_visit_on" class="text-(--z-muted-text)">· oxirgisi {{ formatDate(user.last_visit_on) }}</span>
+                                    </dd>
                                  </div>
                                  <div v-if="user.blocked_at">
                                     <dt>Bloklangan</dt>
@@ -200,7 +265,7 @@
                   </template>
 
                   <tr v-if="users.length === 0">
-                     <td colspan="6" class="admin-empty-cell">Foydalanuvchi topilmadi.</td>
+                     <td colspan="7" class="admin-empty-cell">Foydalanuvchi topilmadi.</td>
                   </tr>
                </tbody>
             </table>
@@ -235,13 +300,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Ban, ChevronDown, FileText, MessageSquare, Search, Send, ShieldCheck, Unlock } from "lucide-vue-next";
+import { Ban, ChevronDown, FileText, MessageSquare, Search, Send, ShieldCheck, Unlock, X } from "lucide-vue-next";
 import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import { useAuth } from "@shared/store/useAuth";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
-import { timeAgo, formatDateTime } from "@shared/modules/formatters";
+import FieldSelect from "@shared/ui/FieldSelect.vue";
+import { timeAgo, formatDate, formatDateTime } from "@shared/modules/formatters";
 
 type UserItem = {
    id: number;
@@ -255,7 +321,19 @@ type UserItem = {
    created_at?: string;
    last_active_at?: string | null;
    blocked_at?: string | null;
+   /** Ilovaga kirgan kunlar soni (bir kunda necha marta ochgani ahamiyatsiz) */
+   visit_days: number;
+   last_visit_on?: string | null;
 };
+
+type VisitSummary = {
+   total: number;
+   once: number;
+   returning: number;
+   regular: number;
+   returned_week: number;
+};
+type VisitsFilter = "" | "once" | "returning";
 
 type PaginationMeta = {
    current_page: number;
@@ -290,6 +368,9 @@ const users = ref<UserItem[]>([]);
 const pagination = ref<PaginationMeta | null>(null);
 const searchInput = ref("");
 const roleFilter = ref("");
+const visitsFilter = ref<VisitsFilter>("");
+const sort = ref("new");
+const summary = ref<VisitSummary | null>(null);
 const loading = ref(true);
 const busyId = ref<number | null>(null);
 const openId = ref<number | null>(null);
@@ -303,6 +384,18 @@ const messageTarget = ref<UserItem | null>(null);
 function isRecentlyActive(dateString: string | null | undefined): boolean {
    if (!dateString) return false;
    return Date.now() - new Date(dateString).getTime() < 1000 * 60 * 60 * 24;
+}
+
+const num = (value: number) => value.toLocaleString("ru-RU");
+
+function percent(value: number) {
+   const total = summary.value?.total || 0;
+   return total ? `${Math.round((value / total) * 100)}%` : "0%";
+}
+
+function visitLabel(days: number) {
+   if (!days) return "Ma'lumot yo'q";
+   return days === 1 ? "1 kun" : `${days} kun`;
 }
 
 function initials(name: string) {
@@ -325,9 +418,12 @@ async function load(page = 1) {
       const params: Record<string, any> = { page };
       if (searchInput.value.trim()) params.search = searchInput.value.trim();
       if (roleFilter.value) params.role = roleFilter.value;
+      if (visitsFilter.value) params.visits = visitsFilter.value;
+      if (sort.value !== "new") params.sort = sort.value;
 
       const { data } = await AdminRepo.users(params);
       users.value = data.data;
+      summary.value = data.visit_summary ?? null;
       pagination.value = {
          current_page: data.current_page,
          last_page: data.last_page,
@@ -346,6 +442,13 @@ async function load(page = 1) {
 function setRole(value: string) {
    if (roleFilter.value === value) return;
    roleFilter.value = value;
+   openId.value = null;
+   load(1);
+}
+
+/** Karta qayta bosilsa — filtr olib tashlanadi */
+function setVisits(value: Exclude<VisitsFilter, "">) {
+   visitsFilter.value = visitsFilter.value === value ? "" : value;
    openId.value = null;
    load(1);
 }

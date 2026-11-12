@@ -1,1 +1,0 @@
-import{a3 as u}from"./ui-DdFsAyjc.js";const a=1800*1e3,e=u(null);function r(){function n(){return e.value&&Date.now()-e.value.at>a&&(e.value=null),e.value?.response??null}return{current:n,set:l=>e.value={response:l,at:Date.now()},clear:()=>e.value=null}}export{r as u};

@@ -1,5 +1,7 @@
 <template>
    <section class="admin-page">
+      <AdminProductEditDrawer :product-id="editId" @close="editId = null" @saved="(text) => (message = text)" />
+
       <header class="admin-page-heading">
          <div>
             <h1>Avto-e'lonlar</h1>
@@ -398,7 +400,7 @@
                   </span>
                   <span v-if="result.product" class="flex gap-3 mt-1">
                      <a class="admin-text-link" :href="`/product/${result.product.id}`" target="_blank">Ko'rish</a>
-                     <a class="admin-text-link" :href="`/edit-product/${result.product.id}`" target="_blank">Tahrirlash</a>
+                     <button type="button" class="admin-text-link cursor-pointer" @click="editId = result.product.id">Tahrirlash</button>
                   </span>
                </span>
                <span class="admin-badge shrink-0" :class="STATUS[result.status]?.class ?? 'admin-badge-danger'">
@@ -426,6 +428,7 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import AdminTabs from "@admin/components/AdminTabs.vue";
 import AdminRankList from "@admin/components/AdminRankList.vue";
+import AdminProductEditDrawer from "@admin/components/AdminProductEditDrawer.vue";
 import { api } from "@shared/composables/useFetch";
 import { timeAgo } from "@shared/modules/formatters";
 
@@ -639,6 +642,8 @@ const saving = ref(false);
 const runningBatch = ref(false);
 const message = ref<string | null>(null);
 const error = ref<string | null>(null);
+// Qo'shilgan e'lonni admin panelning o'zida tahrirlash
+const editId = ref<number | null>(null);
 
 const dirty = computed(() => JSON.stringify(form.value) !== JSON.stringify(saved.value));
 const channelCount = computed(() => form.value.channels.split("\n").filter((line) => line.trim()).length);

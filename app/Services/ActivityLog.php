@@ -63,6 +63,8 @@ class ActivityLog
         }
 
         $buckets = [];
+        // Shu kuni kirgan ro'yxatdan o'tgan foydalanuvchilar (user_visits uchun)
+        $userIds = [];
         $add = function (string $event, ?string $ref, ?string $visitor) use (&$buckets) {
             $key = $event . "\0" . $ref;
             $buckets[$key] ??= ['event' => $event, 'ref' => $ref, 'hits' => 0, 'visitors' => []];
@@ -79,6 +81,9 @@ class ActivityLog
                 continue;
             }
             $visitor = ! empty($row['u']) ? "u{$row['u']}" : (! empty($row['s']) ? "s{$row['s']}" : null);
+            if (! empty($row['u'])) {
+                $userIds[(int) $row['u']] = true;
+            }
 
             $add($row['e'], $row['r'] ?? null, $visitor);
             $add('visitors', null, $visitor);
@@ -107,7 +112,25 @@ class ActivityLog
             }
         });
 
+        self::recordVisits($date, array_keys($userIds));
+
         return count($rows);
+    }
+
+    /**
+     * Foydalanuvchi shu kuni kirgan — bir kunga bitta qator (qayta yig'ilsa takrorlanmaydi).
+     *
+     * @param  array<int, int>  $userIds
+     */
+    private static function recordVisits(string $date, array $userIds): void
+    {
+        foreach (array_chunk($userIds, 500) as $chunk) {
+            // O'chirilgan foydalanuvchi fayldan qolgan bo'lishi mumkin — tashqi kalit buzilmasin
+            $existing = DB::table('users')->whereIn('id', $chunk)->pluck('id');
+            DB::table('user_visits')->insertOrIgnore(
+                $existing->map(fn ($id) => ['user_id' => $id, 'date' => $date])->all(),
+            );
+        }
     }
 
     public static function pruneRawFiles(): void

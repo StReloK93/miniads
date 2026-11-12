@@ -490,6 +490,25 @@
    padding: 11px 12px;
 }
 
+/* Filtr vazifasini ham bajaradigan karta (masalan "Qayta kirayotganlar") */
+button.admin-stat-card {
+   cursor: pointer;
+   font: inherit;
+   text-align: left;
+   transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+}
+
+button.admin-stat-card:hover {
+   border-color: color-mix(in srgb, var(--admin-accent) 45%, var(--admin-border));
+}
+
+button.admin-stat-card.is-active {
+   border-color: var(--admin-accent);
+   box-shadow: 0 0 0 1px var(--admin-accent);
+}
+
 .admin-stat-label {
    overflow: hidden;
    color: var(--admin-muted);
@@ -1245,6 +1264,20 @@ textarea.admin-input {
 .admin-xtable th:first-child,
 .admin-xtable td:first-child {
    padding-left: 12px;
+}
+
+/*
+   Asosiy ustun qolgan joyni egallaydi, lekin mazmuni uni kengaytirmaydi (max-width: 0):
+   bo'sh joysiz uzun ism yoki sarlavha jadvalni ekrandan chiqarib yubormaydi — qisqartiriladi
+*/
+.admin-xtable .admin-col-main {
+   width: 100%;
+   max-width: 0;
+}
+
+/* Boshqa ustunlarda ham bo'sh joysiz uzun matn (ism, username) qatorga sig'adi */
+.admin-xtable td {
+   overflow-wrap: anywhere;
 }
 
 .admin-xtable .admin-col-shrink {

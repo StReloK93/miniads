@@ -130,6 +130,27 @@ class Category extends Model
         );
     }
 
+    /** @return array<int, int> kategoriya va uning barcha ichki bo'limlari id'lari */
+    public static function subtreeIds(int $id): array
+    {
+        $childrenOf = self::withTrashed()->get(['id', 'parent_id'])->groupBy('parent_id');
+        $ids = [];
+        $queue = [$id];
+        // Sikl himoyasi: har id bir marta
+        while ($queue) {
+            $current = array_shift($queue);
+            if (isset($ids[$current])) {
+                continue;
+            }
+            $ids[$current] = $current;
+            foreach ($childrenOf->get($current, []) as $child) {
+                $queue[] = $child->id;
+            }
+        }
+
+        return array_values($ids);
+    }
+
     public function getRootIdAttribute(): ?int
     {
         return $this->id ? (self::rootIdMap()[$this->id] ?? $this->id) : null;

@@ -194,8 +194,9 @@
                            </div>
                         </td>
                         <td class="admin-col-wide">
-                           <div class="font-medium">{{ product.user?.name || "—" }}</div>
-                           <div class="admin-xmeta">{{ product.user?.username ? `@${product.user.username}` : "" }}</div>
+                           <!-- Uzun ism ustunni kengaytirib yubormasin -->
+                           <div class="max-w-40 truncate font-medium" :title="product.user?.name">{{ product.user?.name || "—" }}</div>
+                           <div class="admin-xmeta max-w-40 truncate block!">{{ product.user?.username ? `@${product.user.username}` : "" }}</div>
                         </td>
                         <td class="admin-col-wide whitespace-nowrap">{{ formatProductPrice(product.price, product.price_type) }}</td>
                         <td class="admin-col-wide tabular-nums">{{ (product.views_count ?? 0).toLocaleString("ru-RU") }}</td>

@@ -1275,9 +1275,17 @@ textarea.admin-input {
    max-width: 0;
 }
 
-/* Boshqa ustunlarda ham bo'sh joysiz uzun matn (ism, username) qatorga sig'adi */
-.admin-xtable td {
-   overflow-wrap: anywhere;
+/* Qolgan ustunlar qisilmaydi — o'z kengligida, bitta qatorda turadi */
+.admin-xrow td:not(.admin-col-main) {
+   white-space: nowrap;
+}
+
+/* Asosiy ustundagi sarlavha bitta qatorda qisqartiriladi (to'liqi — qator ochilganda) */
+.admin-xtable .admin-col-main .admin-xtitle {
+   display: block;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
 }
 
 .admin-xtable .admin-col-shrink {

@@ -68,11 +68,13 @@ import { useFetchDecorator } from "@shared/composables/useFetch";
 import { ICategory } from "@shared/types";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
+import { useAuth } from "@shared/store/useAuth";
 
 const route = useRoute();
 const { data: category, execute, isLoading } = useFetchDecorator<ICategory>(CategoryRepo.products);
 
-const filters = ref<ListFilters>(emptyFilters());
+// Foydalanuvchi tanlagan shahar filtrda oldindan turadi (nishonda ko'rinadi, xohlasa olib tashlaydi)
+const filters = ref<ListFilters>({ ...emptyFilters(), city_id: useAuth().user?.active_district_id ?? null });
 const isFilterOpen = ref(false);
 const activeCount = computed(() => countActiveFilters(filters.value));
 const breadcrumb = computed(() => buildBreadcrumb(category.value));

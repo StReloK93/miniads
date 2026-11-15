@@ -15,18 +15,59 @@ class ProductSearchService
     // Kartalar ro'yxatida bundan ko'pini hech kim varaqlamaydi; aniqroq so'z yozgan ma'qul
     private const RESULT_LIMIT = 100;
 
+    // Aniq natija shundan kam bo'lsa — pastda "«ish» so'ziga mos" e'lonlar ham ko'rsatiladi
+    private const RELATED_WHEN_FEWER = 5;
+    private const RELATED_LIMIT = 50;
+
+    // Deyarli har e'londa uchraydigan so'zlar: faqat shular bo'yicha "o'xshash" ko'rsatish foydasiz
+    private const WEAK_TERMS = [
+        'kerak', 'sotiladi', 'sotaman', 'sotamiz', 'olaman', 'olamiz', 'bor', 'yangi', 'arzon', 'uchun',
+        'va', 'bilan', 'ham', 'tez', 'srochno', 'shoshilinch', 'ijara', 'ijaraga', 'xizmat',
+    ];
+
     /**
-     * Search products with intelligent Uzbek-aware word-boundary and category matching.
-     * Matn ham, so'rov ham UzbekText::normalize'dan o'tadi: kirill/lotin va tutuq belgilari farq qilmaydi.
+     * Qidiruv natijasi:
+     *   products — so'rovdagi barcha so'zlarga mos e'lonlar;
+     *   related  — aniq natija kam bo'lsa: so'zlarning bir qismiga mos e'lonlar va qaysi so'zlarga mosligi
+     *              ("hamshira ish" → hamshira topilmadi, «ish» so'ziga mos e'lonlar).
+     *
+     * @return array{products: Collection, related: array{terms: string[], products: Collection}|null}
      */
-    public function search(Request $request): Collection
+    public function search(Request $request): array
     {
-        $ids = $this->matchingIds($request);
+        $result = $this->score($request);
+        $products = $this->load($request, $result['strict']);
+
+        $related = null;
+        if (count($result['strict']) < self::RELATED_WHEN_FEWER && $result['related']) {
+            $related = [
+                'terms' => $result['related']['terms'],
+                'products' => $this->load($request, $result['related']['ids']),
+            ];
+        }
+
+        return ['products' => $products, 'related' => $related];
+    }
+
+    /**
+     * So'rovdagi barcha so'zlarga mos faol e'lonlar id'lari (moslik bo'yicha tartiblangan).
+     * Qidiruv ham, kuzatuvlar ham, filtr soni ham shu mantiqdan foydalanadi:
+     * $scope bilan nomzodlar toraytiriladi (masalan, faqat oxirgi tekshiruvdan keyingi yangi e'lonlar).
+     *
+     * @return int[]
+     */
+    public function matchingIds(Request $request, ?\Closure $scope = null): array
+    {
+        return $this->score($request, $scope)['strict'];
+    }
+
+    /** To'liq ma'lumot (rasmlar, parametrlar...) faqat ko'rsatiladiganlar uchun */
+    private function load(Request $request, array $ids): Collection
+    {
         if (empty($ids)) {
             return collect();
         }
 
-        // To'liq ma'lumot (rasmlar, parametrlar...) faqat ko'rsatiladiganlar uchun
         $query = Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])->whereIn('id', $ids);
@@ -45,37 +86,34 @@ class ProductSearchService
     }
 
     /**
-     * Mos faol e'lonlar id'lari (moslik bo'yicha tartiblangan). Qidiruv ham, kuzatuvlar ham shu mantiqdan foydalanadi:
-     * $scope bilan nomzodlar toraytiriladi (masalan, faqat oxirgi tekshiruvdan keyingi yangi e'lonlar).
-     *
-     * @return int[]
+     * @return array{strict: int[], related: array{terms: string[], ids: int[]}|null}
      */
-    public function matchingIds(Request $request, ?\Closure $scope = null): array
+    private function score(Request $request, ?\Closure $scope = null): array
     {
-        $terms = preg_split('/\s+/u', UzbekText::normalize((string) $request->input('search', '')), -1, PREG_SPLIT_NO_EMPTY);
+        $rawQuery = (string) $request->input('search', '');
+        $terms = preg_split('/\s+/u', UzbekText::normalize($rawQuery), -1, PREG_SPLIT_NO_EMPTY);
         if (empty($terms)) {
-            return [];
+            return ['strict' => [], 'related' => null];
         }
 
-        // 1. Identify category matches
+        // 1. Har so'z o'z kategoriyalarini topadi: "hamshira ish" da "Ish" bo'limi faqat «ish» so'ziga mos,
+        //    «hamshira» ga emas (aks holda barcha ish e'lonlari "hamshira" deb chiqib ketardi)
         $allCategories = Category::all(['id', 'name', 'parent_id']);
-        $matchedCategoryIds = [];
-        foreach ($allCategories as $cat) {
-            $catName = UzbekText::normalize($cat->name);
-            foreach ($terms as $term) {
-                $pattern = mb_strlen($term) <= 4
-                    ? '/(^| )' . preg_quote($term, '/') . '( |$)/u'
-                    : '/(^| )' . preg_quote($term, '/') . '/u';
+        $termCategoryIds = [];
+        foreach ($terms as $index => $term) {
+            $pattern = mb_strlen($term) <= 4
+                ? '/(^| )' . preg_quote($term, '/') . '( |$)/u'
+                : '/(^| )' . preg_quote($term, '/') . '/u';
 
-                if (preg_match($pattern, $catName)) {
-                    $matchedCategoryIds[] = $cat->id;
-                    $childrenIds = $allCategories->where('parent_id', $cat->id)->pluck('id')->all();
-                    $matchedCategoryIds = array_merge($matchedCategoryIds, $childrenIds);
-                    break;
+            $ids = [];
+            foreach ($allCategories as $cat) {
+                if (preg_match($pattern, UzbekText::normalize($cat->name))) {
+                    $ids[] = $cat->id;
+                    array_push($ids, ...$allCategories->where('parent_id', $cat->id)->pluck('id')->all());
                 }
             }
+            $termCategoryIds[$index] = array_flip($ids);
         }
-        $matchedCategoryIds = array_unique($matchedCategoryIds);
 
         $districtNames = District::pluck('name', 'id')->map(fn ($name) => UzbekText::normalize($name));
 
@@ -103,8 +141,11 @@ class ProductSearchService
                 });
         }
 
-        // 3. Filter & score results
-        $scored = [];
+        $patterns = array_map(fn (string $term) => $this->termPatterns($term), $terms);
+
+        // 3. Har e'lon: umumiy ball va qaysi so'zlarga mosligi
+        $strict = [];
+        $partial = [];
 
         foreach ($candidates as $product) {
             $title = UzbekText::normalize($product->title);
@@ -113,84 +154,127 @@ class ProductSearchService
             $districtName = $districtNames[$product->district_id] ?? '';
 
             $score = 0;
-            $matchedAllTerms = true;
+            $matched = [];
 
-            foreach ($terms as $term) {
-                $termLen = mb_strlen($term);
-                $quoted = preg_quote($term, '/');
+            foreach ($patterns as $index => [$exact, $prefix]) {
+                $termScore = 0;
 
-                // Exact whole word pattern
-                $exactWordPattern = '/(^| )' . $quoted . '( |$)/u';
-
-                // Word prefix pattern (handling short roots like "ish", "uy" without matching suffixes like "-ish")
-                if ($term === 'ish') {
-                    // Match: ish, ishchi, ishchilar, ishga, ishda, ishdan, ishlar, ishsiz, ishxona, ish joyi
-                    // Reject: gisht, kelishildi, berish, sotish, qilish, yuvish, ishonch
-                    // Qo'shimcha yoki so'z oxiri ("ishchilarga" ham topiladi)
-                    $wordPrefixPattern = '/(^| )ish(chi|ga|da|lar|siz|xona|joyi|orni| |$)/u';
-                } elseif ($termLen <= 3) {
-                    $wordPrefixPattern = '/(^| )' . $quoted . '( |$|da|ga|dan|lar|ning)/u';
-                } else {
-                    $wordPrefixPattern = '/(^| )' . $quoted . '/u';
+                if (preg_match($exact, $title)) {
+                    $termScore += 50;
+                } elseif (preg_match($prefix, $title)) {
+                    $termScore += 35;
                 }
 
-                $termMatched = false;
-
-                // Title match (highest weight)
-                if (preg_match($exactWordPattern, $title)) {
-                    $score += 50;
-                    $termMatched = true;
-                } elseif (preg_match($wordPrefixPattern, $title)) {
-                    $score += 35;
-                    $termMatched = true;
+                if (isset($termCategoryIds[$index][$product->category_id])) {
+                    $termScore += 30;
                 }
 
-                // Category match
-                if (in_array($product->category_id, $matchedCategoryIds)) {
-                    $score += 30;
-                    $termMatched = true;
+                if (preg_match($exact, $desc)) {
+                    $termScore += 20;
+                } elseif (preg_match($prefix, $desc)) {
+                    $termScore += 15;
                 }
 
-                // Description match
-                if (preg_match($exactWordPattern, $desc)) {
-                    $score += 20;
-                    $termMatched = true;
-                } elseif (preg_match($wordPrefixPattern, $desc)) {
-                    $score += 15;
-                    $termMatched = true;
+                // Parametr qiymatlari (description darajasida)
+                if (preg_match($prefix, $params)) {
+                    $termScore += 15;
                 }
 
-                // Parameter values match (description darajasida)
-                if (preg_match($wordPrefixPattern, $params)) {
-                    $score += 15;
-                    $termMatched = true;
+                if (preg_match($prefix, $districtName)) {
+                    $termScore += 10;
                 }
 
-                // District match
-                if (preg_match($wordPrefixPattern, $districtName)) {
-                    $score += 10;
-                    $termMatched = true;
-                }
-
-                if (!$termMatched) {
-                    $matchedAllTerms = false;
-                    break;
+                if ($termScore > 0) {
+                    $matched[] = $index;
+                    $score += $termScore;
                 }
             }
 
-            if ($matchedAllTerms && $score > 0) {
-                $scored[] = ['id' => $product->id, 'score' => $score];
+            if (count($matched) === count($terms)) {
+                $strict[] = ['id' => $product->id, 'score' => $score];
+            } elseif ($matched) {
+                $partial[implode(',', $matched)][] = ['id' => $product->id, 'score' => $score];
             }
         }
 
-        // Sort by score DESC, then ID DESC
-        usort($scored, function ($a, $b) {
-            if ($b['score'] === $a['score']) {
-                return $b['id'] <=> $a['id'];
-            }
-            return $b['score'] <=> $a['score'];
-        });
+        return [
+            'strict' => array_column(array_slice($this->rank($strict), 0, self::RESULT_LIMIT), 'id'),
+            'related' => count($terms) > 1 ? $this->bestPartial($partial, $terms, $rawQuery) : null,
+        ];
+    }
 
-        return array_column(array_slice($scored, 0, self::RESULT_LIMIT), 'id');
+    /**
+     * Exact — butun so'z; prefix — so'z boshi (qisqa ildizlarda qo'shimchalar bilan cheklangan).
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function termPatterns(string $term): array
+    {
+        $quoted = preg_quote($term, '/');
+        $exact = '/(^| )' . $quoted . '( |$)/u';
+
+        if ($term === 'ish') {
+            // Match: ish, ishchi, ishchilar, ishga, ishda, ishdan, ishlar, ishsiz, ishxona, ish joyi
+            // Reject: gisht, kelishildi, berish, sotish, qilish, yuvish, ishonch
+            $prefix = '/(^| )ish(chi|ga|da|lar|siz|xona|joyi|orni| |$)/u';
+        } elseif (mb_strlen($term) <= 3) {
+            $prefix = '/(^| )' . $quoted . '( |$|da|ga|dan|lar|ning)/u';
+        } else {
+            $prefix = '/(^| )' . $quoted . '/u';
+        }
+
+        return [$exact, $prefix];
+    }
+
+    /** Ball bo'yicha kamayish, teng bo'lsa — yangisi oldin */
+    private function rank(array $scored): array
+    {
+        usort($scored, fn ($a, $b) => [$b['score'], $b['id']] <=> [$a['score'], $a['id']]);
+
+        return $scored;
+    }
+
+    /**
+     * Qisman moslar ichidan eng ko'p so'zga mos guruh ("hamshira ish" → «ish»).
+     * Faqat "kerak", "sotiladi" kabi umumiy so'zlarga mos guruhlar tashlab ketiladi.
+     *
+     * @param  array<string, array<int, array{id: int, score: int}>>  $partial
+     * @return array{terms: string[], ids: int[]}|null
+     */
+    private function bestPartial(array $partial, array $terms, string $rawQuery): ?array
+    {
+        $best = null;
+        $bestKey = null;
+
+        foreach ($partial as $key => $items) {
+            $indexes = array_map('intval', explode(',', (string) $key));
+            $meaningful = array_filter($indexes, fn (int $i) => !in_array($terms[$i], self::WEAK_TERMS, true));
+            if (!$meaningful) {
+                continue;
+            }
+
+            // Ko'proq so'zga mos guruh yaxshi; teng bo'lsa — eng yuqori balli e'loni borrog'i
+            $rank = [count($indexes), max(array_column($items, 'score'))];
+            if ($best === null || $rank > $best) {
+                $best = $rank;
+                $bestKey = $key;
+            }
+        }
+
+        if ($bestKey === null) {
+            return null;
+        }
+
+        // Yorliqda foydalanuvchi yozgan shakl ("Ish"), so'zlar soni mos kelmasa — normallashgani
+        $original = preg_split('/\s+/u', trim($rawQuery), -1, PREG_SPLIT_NO_EMPTY);
+        $labels = array_map(
+            fn (int $i) => count($original) === count($terms) ? $original[$i] : $terms[$i],
+            array_map('intval', explode(',', (string) $bestKey)),
+        );
+
+        return [
+            'terms' => $labels,
+            'ids' => array_column(array_slice($this->rank($partial[$bestKey]), 0, self::RELATED_LIMIT), 'id'),
+        ];
     }
 }

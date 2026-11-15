@@ -2,14 +2,15 @@ import { defineStore } from "pinia";
 import CategoryRepo from "./CategoryRepo";
 import { ref } from "vue";
 import type { ICategory } from "@shared/types";
+import { useAuth } from "@shared/store/useAuth";
 export const useCategory = defineStore("useCategory", () => {
    const parentCategories = ref();
    /** Bosh sahifadagi "Tezkor bo'limlar"; bir marta yuklanadi (server 15 daqiqa keshlaydi) */
    const featuredCategories = ref<ICategory[] | null>(null);
-   /** Kategoriyadagi faol e'lonlar soni. Server 5 daqiqa keshlaydi — bu yerda ham shuncha vaqt qayta so'ralmaydi */
+   /** Kategoriyadagi faol e'lonlar soni. Server yangi e'londa keshni o'zi yangilaydi; bu yerda 1 daqiqa qayta so'ralmaydi */
    const counts = ref<Record<number, number> | null>(null);
    let countsFetchedAt = 0;
-   const COUNTS_TTL = 5 * 60 * 1000;
+   const COUNTS_TTL = 60 * 1000;
 
    async function getParentCategories() {
       const { data: categories } = await CategoryRepo.parents();
@@ -22,10 +23,15 @@ export const useCategory = defineStore("useCategory", () => {
       featuredCategories.value = data;
    }
 
+   /** Sonlar foydalanuvchi tanlagan shahar bo'yicha; shahar almashsa — keshga qaramay qayta so'raladi */
+   let countsCityId: number | null = null;
+
    async function getCounts() {
-      if (counts.value && Date.now() - countsFetchedAt < COUNTS_TTL) return;
-      const { data } = await CategoryRepo.counts();
+      const cityId = useAuth().user?.active_district_id ?? null;
+      if (counts.value && countsCityId === cityId && Date.now() - countsFetchedAt < COUNTS_TTL) return;
+      const { data } = await CategoryRepo.counts(cityId);
       counts.value = data;
+      countsCityId = cityId;
       countsFetchedAt = Date.now();
    }
 

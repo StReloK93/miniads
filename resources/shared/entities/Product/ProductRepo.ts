@@ -1,5 +1,5 @@
 import { api } from "@shared/composables/useFetch";
-import { IAiDraftResponse, IPaginatedResponse, IProduct, IProductPayload } from "@shared/types";
+import { IAiDraftResponse, IPaginatedResponse, IProduct, IProductPayload, ISearchResult } from "@shared/types";
 const baseURL = "products";
 
 export default {
@@ -55,7 +55,7 @@ export default {
 
    /** params: search + ro'yxat filtrlari (features/filters/listFilters → toQueryParams) */
    search(params: { search: string } & Record<string, unknown>) {
-      return api.get<IProduct[]>(`${baseURL}/custom/search`, {
+      return api.get<ISearchResult>(`${baseURL}/custom/search`, {
          params,
       });
    },

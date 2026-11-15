@@ -122,6 +122,8 @@ class ProductController extends Controller
             ->active()
             ->where('id', '!=', $product->id)
             ->whereIn('category_id', $categoryIds)
+            // O'xshashlar — foydalanuvchi tanlagan shahardan (yoki butun viloyatga berilgan)
+            ->when(auth()->user()?->active_district_id, fn ($q, int $cityId) => ProductFilters::inCity($q, $cityId))
             ->latest('published_at')
             ->latest('id')
             ->take(3)
@@ -169,12 +171,7 @@ class ProductController extends Controller
         return Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
-            ->when(auth()->user()?->active_district_id, function ($q) {
-                $q->where(function ($query) {
-                    $query->where('district_id', auth()->user()->active_district_id)
-                        ->orWhereNull('district_id');
-                });
-            })
+            ->when(auth()->user()?->active_district_id, fn ($q, int $cityId) => ProductFilters::inCity($q, $cityId))
             ->active()
             ->latest('published_at')
             ->latest('id')
@@ -191,12 +188,7 @@ class ProductController extends Controller
         return Product::withExists([
             'favorites as is_favorite' => fn($q) => $q->where('user_id', auth()->id())
         ])
-            ->when(auth()->user()?->active_district_id, function ($q) {
-                $q->where(function ($query) {
-                    $query->where('district_id', auth()->user()->active_district_id)
-                        ->orWhereNull('district_id');
-                });
-            })
+            ->when(auth()->user()?->active_district_id, fn ($q, int $cityId) => ProductFilters::inCity($q, $cityId))
             ->active()
             ->latest('published_at')
             ->take(25)

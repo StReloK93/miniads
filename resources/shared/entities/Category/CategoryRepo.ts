@@ -22,9 +22,9 @@ export default {
    featured() {
       return api.get<ICategory[]>(`${baseURL}/featured`);
    },
-   /** Har bir kategoriyadagi faol e'lonlar soni: { [category_id]: soni } */
-   counts() {
-      return api.get<Record<number, number>>(`${baseURL}/counts`);
+   /** Har bir kategoriyadagi faol e'lonlar soni: { [category_id]: soni }; cityId — shu shahar (va butun viloyat) bo'yicha */
+   counts(cityId?: number | null) {
+      return api.get<Record<number, number>>(`${baseURL}/counts`, { params: cityId ? { city_id: cityId } : undefined });
    },
    /** Kategoriya e'lonlari + parametrlari; params — ro'yxat filtrlari (features/filters/listFilters) */
    products(categoryId: string | number, params?: Record<string, unknown>) {

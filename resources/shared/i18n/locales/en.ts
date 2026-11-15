@@ -63,7 +63,7 @@ const en: MessageSchema = {
    },
    district: {
       choose: "Choose a city",
-      hint: "The home feed will show ads from the selected city only.",
+      hint: "The home feed, categories and ad counts follow the selected city. Search covers all cities.",
       all: "All cities",
       region: "Whole region",
       field: "City / district",
@@ -96,6 +96,11 @@ const en: MessageSchema = {
       recent: "Recent searches",
       popular: "Popular searches",
       popularTags: "iPhone,Cobalt,Gentra,Samsung,Spark,Nexia",
+      cityHint: "You picked {city}, but search covers all cities.",
+      cityApply: "Only {city}",
+      noExact: "No exact matches for «{query}».",
+      related: "Ads matching «{terms}»",
+      relatedMore: "More ads matching «{terms}»",
    },
    filters: {
       reset: "Reset filters",

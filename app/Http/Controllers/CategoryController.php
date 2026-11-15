@@ -36,12 +36,18 @@ class CategoryController extends Controller
 
 	/**
 	 * Har bir kategoriyadagi faol e'lonlar soni: { category_id: soni }.
-	 * Bitta GROUP BY so'rov, 5 daqiqa keshlanadi. Ota bo'limlar soni frontendda ichki bo'limlardan yig'iladi.
+	 * city_id berilsa — shu shahar (va butun viloyat) e'lonlari: ilova foydalanuvchi tanlagan shaharni yuboradi.
+	 * Bitta GROUP BY so'rov, 5 daqiqa keshlanadi; e'lon qo'shilsa/o'zgarsa kesh versiyasi oshadi (Product::booted).
+	 * Ota bo'limlar soni frontendda ichki bo'limlardan yig'iladi.
 	 */
-	public function counts()
+	public function counts(Request $request)
 	{
-		return Cache::remember('categories:active_counts', now()->addMinutes(5), function () {
+		$cityId = $request->integer('city_id');
+		$key = 'categories:active_counts:v' . Product::countsVersion() . ':' . ($cityId ?: 'all');
+
+		return Cache::remember($key, now()->addMinutes(5), function () use ($cityId) {
 			return Product::active()
+				->when($cityId, fn ($q) => ProductFilters::inCity($q, $cityId))
 				->selectRaw('category_id, COUNT(*) as total')
 				->groupBy('category_id')
 				->pluck('total', 'category_id')

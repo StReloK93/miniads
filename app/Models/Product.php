@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -74,6 +75,21 @@ class Product extends Model
                 $product->published_at = now();
             }
         });
+
+        // Bo'limlardagi e'lonlar soni (har shahar uchun alohida keshlangan) — e'lon qo'shilsa/o'zgarsa darhol yangilansin.
+        // Ko'rishlar soni to'g'ridan-to'g'ri so'rov bilan yoziladi (hodisasiz) — keshni bekorga tozalamaydi
+        $flushCounts = fn () => Cache::forever(self::COUNTS_VERSION_KEY, (int) Cache::get(self::COUNTS_VERSION_KEY, 0) + 1);
+        static::saved($flushCounts);
+        static::deleted($flushCounts);
+        static::restored($flushCounts);
+    }
+
+    public const COUNTS_VERSION_KEY = 'products:counts_version';
+
+    /** Kategoriya sonlari keshi kaliti shu versiyani o'z ichiga oladi */
+    public static function countsVersion(): int
+    {
+        return (int) Cache::get(self::COUNTS_VERSION_KEY, 0);
     }
 
     /** Ilova "Muddatsiz e'lon" belgisini ko'rsatadi (expires_at yashirin) */

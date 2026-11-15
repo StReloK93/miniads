@@ -107,6 +107,9 @@ import { useProductSearch } from "@/features/search/useProductSearch";
 import { pushBackHandler } from "@/modules/navigation";
 import { emptyFilters } from "@/features/filters/listFilters";
 import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
+import { useCategory } from "@shared/entities/Category/useCategory";
+
+const categoryStore = useCategory();
 
 const route = useRoute();
 const router = useRouter();
@@ -222,6 +225,8 @@ async function loadProducts(reset: boolean = false) {
 
 function onDistrictChanged() {
    loadProducts(true);
+   // Bo'limlardagi e'lonlar soni ham yangi shahar bo'yicha
+   categoryStore.getCounts().catch((error) => console.error("Category counts failed.", error));
 }
 
 function onScroll(event: Event) {

@@ -26,7 +26,7 @@ beforeEach(function () {
 test('guests can browse the feed, search and open an ad', function () {
     $this->getJson('/api/products/custom/feed')->assertOk()->assertJsonPath('data.0.id', $this->product->id);
     $this->getJson('/api/products/custom/latest_ten')->assertOk();
-    $this->getJson('/api/products/custom/search?search=cobalt')->assertOk()->assertJsonPath('0.id', $this->product->id);
+    $this->getJson('/api/products/custom/search?search=cobalt')->assertOk()->assertJsonPath('products.0.id', $this->product->id);
     $this->getJson("/api/products/{$this->product->id}")->assertOk()->assertJsonPath('is_favorite', false);
     $this->getJson("/api/categories/{$this->product->category_id}/products")->assertOk();
 });

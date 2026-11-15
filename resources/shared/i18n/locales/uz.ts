@@ -67,7 +67,7 @@ const uz = {
    },
    district: {
       choose: "Shaharni tanlang",
-      hint: "Asosiy sahifada sizga faqat tanlangan shahar bo'yicha e'lonlar ko'rsatiladi.",
+      hint: "Bosh sahifa, bo'limlar va e'lonlar soni tanlangan shahar bo'yicha ko'rsatiladi. Qidiruv barcha shaharlar bo'yicha ishlaydi.",
       all: "Barcha shaharlar",
       region: "Butun viloyat",
       field: "Shahar / Tuman",
@@ -101,6 +101,11 @@ const uz = {
       popular: "Ommabop qidiruvlar",
       // Vergul bilan: shu tilda yozilganda ham e'lonlar topiladigan so'zlar
       popularTags: "Kvartira,Telefon,Cobalt,Gentra,Ish,Mebel",
+      cityHint: "Siz {city} shahrini tanlagansiz, qidiruv esa barcha shaharlar bo'yicha.",
+      cityApply: "Filtrga {city}ni qo'yish",
+      noExact: "«{query}» bo'yicha aniq mos e'lon topilmadi.",
+      related: "«{terms}» so'ziga mos e'lonlar",
+      relatedMore: "«{terms}» so'ziga mos boshqa e'lonlar",
    },
    filters: {
       reset: "Filtrlarni tozalash",

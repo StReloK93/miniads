@@ -18,7 +18,7 @@ class ProductFilters
     public static function apply(Builder $query, Request $request): Builder
     {
         $query
-            ->when($request->integer('city_id'), fn (Builder $q, int $cityId) => $q->where('products.district_id', $cityId))
+            ->when($request->integer('city_id'), fn (Builder $q, int $cityId) => self::inCity($q, $cityId))
             ->when($request->integer('price_from'), fn (Builder $q, int $from) => $q->where('products.price', '>=', $from))
             ->when($request->integer('price_to'), fn (Builder $q, int $to) => $q->where('products.price', '<=', $to))
             ->when($request->boolean('with_image'), fn (Builder $q) => $q->has('images'))
@@ -58,6 +58,17 @@ class ProductFilters
         }
 
         return $query;
+    }
+
+    /**
+     * Shahar bo'yicha: shu shahar e'lonlari + butun viloyatga berilganlar (district_id yo'q).
+     * Bosh sahifa lentasi, kategoriya sonlari va filtr bir xil mantiqda ishlaydi.
+     */
+    public static function inCity(Builder $query, int $cityId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q
+            ->where('products.district_id', $cityId)
+            ->orWhereNull('products.district_id'));
     }
 
     public static function sort(Builder $query, ?string $sort): Builder

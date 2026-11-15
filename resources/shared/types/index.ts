@@ -244,3 +244,12 @@ export interface IPaginatedResponse<T> {
    next_page_url: string | null;
    prev_page_url: string | null;
 }
+
+/**
+ * Qidiruv javobi: products — barcha so'zlarga mos; related — aniq natija kam bo'lganda
+ * so'zlarning bir qismiga mos e'lonlar ("hamshira ish" → «ish» so'ziga mos).
+ */
+export interface ISearchResult {
+   products: IProduct[];
+   related: { terms: string[]; products: IProduct[] } | null;
+}

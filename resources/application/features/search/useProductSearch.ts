@@ -2,7 +2,7 @@ import { computed, ref, watch } from "vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
 import { useRecentSearches } from "@shared/composables/useRecentSearch";
-import { IProduct } from "@shared/types";
+import { IProduct, ISearchResult } from "@shared/types";
 import { countActiveFilters, emptyFilters, toQueryParams, type ListFilters } from "@/features/filters/listFilters";
 
 const DEBOUNCE_MS = 350;
@@ -19,6 +19,8 @@ export function useProductSearch() {
    const { searches, addSearch, removeSearch, clear: clearHistory } = useRecentSearches();
 
    const products = ref<IProduct[] | null>(null);
+   /** Aniq natija kam bo'lsa: so'zlarning bir qismiga mos e'lonlar ("hamshira ish" → «ish») */
+   const related = ref<ISearchResult["related"]>(null);
    const isLoading = ref(false);
    const searchText = ref("");
    const activeSearchText = ref("");
@@ -56,8 +58,10 @@ export function useProductSearch() {
       try {
          const { data } = await ProductRepo.search({ search: text, ...toQueryParams(filters.value) });
          if (requestId === lastRequestId) {
-            products.value = data;
-            scheduleLog(text, data.length, commit ? 0 : 2500);
+            products.value = data.products;
+            related.value = data.related;
+            // Statistikada "topilmadi" — aniq mos e'lon yo'q bo'lsa (o'xshashlari bo'lsa ham)
+            scheduleLog(text, data.products.length, commit ? 0 : 2500);
          }
       } catch (error) {
          console.error("Qidiruvda xatolik:", error);
@@ -76,6 +80,7 @@ export function useProductSearch() {
          lastRequestId++; // yo'lda qolgan so'rov javobi endi kerak emas
          activeSearchText.value = "";
          products.value = null;
+         related.value = null;
          isLoading.value = false;
          return;
       }
@@ -127,6 +132,11 @@ export function useProductSearch() {
       filters.value = emptyFilters();
    }
 
+   /** "Filtrga Uchquduqni qo'yish": qolgan filtrlar o'zgarmaydi, qidiruv qayta bajariladi */
+   function setCity(cityId: number) {
+      filters.value = { ...filters.value, city_id: cityId };
+   }
+
    /** Qidiruvdan chiqishda: hammasi boshlang'ich holatga */
    function reset() {
       clearTimeout(debounceTimer);
@@ -135,12 +145,14 @@ export function useProductSearch() {
       searchText.value = "";
       activeSearchText.value = "";
       products.value = null;
+      related.value = null;
       isLoading.value = false;
       filters.value = emptyFilters();
    }
 
    return {
       products,
+      related,
       isLoading,
       searches,
       removeSearch,
@@ -153,6 +165,7 @@ export function useProductSearch() {
       submit,
       pick,
       resetFilters,
+      setCity,
       reset,
    };
 }

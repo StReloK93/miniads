@@ -21,7 +21,7 @@ function rootIconOf(category: ICategory): string | null {
  */
 export async function buildProductFormInputs(
    category: ICategory,
-   options: { districtId: number | null; product?: IProduct; draft?: IAiDraft | null },
+   options: { districtId: number | null; product?: IProduct; draft?: IAiDraft | null; draftImages?: File[] },
 ): Promise<InputConfig[]> {
    const authStore = useAuth();
    const cityStore = useCity();
@@ -119,6 +119,11 @@ export async function buildProductFormInputs(
          const value = values[input.name];
          if (value !== null && value !== undefined && value !== "") input.value = value;
       });
+      // Matn oynasida tanlangan rasmlar — rasm maydoniga (FieldImage File'ni o'zi ko'rsatadi)
+      const imagesInput = baseInputs.find((input) => input.name === "images");
+      if (imagesInput && options.draftImages?.length) {
+         imagesInput.value = options.draftImages.map((file) => ({ id: null, file, crop_x: 50, crop_y: 50, crop_scale: 1 }));
+      }
       // Parametrlar faqat AI tanlagan bo'limda mos keladi (foydalanuvchi boshqa bo'lim tanlasa — tashlanadi)
       if (draft.category_id === category.id) {
          parameterInputs.forEach((input) => {

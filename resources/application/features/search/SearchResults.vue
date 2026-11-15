@@ -23,6 +23,9 @@
          </div>
       </div>
 
+      <!-- Vitrinalardagi mos mahsulotlar: e'lon topilmasa ham foydali (do'konda bor bo'lishi mumkin) -->
+      <VitrinaSearchBlock v-if="search.activeSearchText" :query="search.activeSearchText" :city-id="search.filters.city_id" />
+
       <!-- Natija bor bo'lsa — u joyida qoladi (yangi so'rovda faqat xiralashadi); skelet faqat birinchi qidiruvda -->
       <template v-if="search.products?.length || relatedProducts.length">
          <div v-if="search.products?.length" class="pb-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
@@ -143,6 +146,7 @@ import ProductCard from "@/features/product/ProductCard.vue";
 import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import WatchSearchButton from "@/features/notifications/WatchSearchButton.vue";
+import VitrinaSearchBlock from "@/features/vitrina/VitrinaSearchBlock.vue";
 import type { ProductSearch } from "@/features/search/useProductSearch";
 import { useAuth } from "@shared/store/useAuth";
 

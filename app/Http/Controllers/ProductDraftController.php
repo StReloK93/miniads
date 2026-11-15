@@ -33,8 +33,7 @@ class ProductDraftController extends Controller
         ]);
 
         $isAdmin = $user->role === 'admin';
-        // Kalitda sana bor: limit yarim tunda yangilanadi ("bugun 5 ta")
-        $key = 'ai-draft:' . $user->id . ':' . now()->toDateString();
+        $key = $this->limitKey($user);
         if (! $isAdmin) {
             if (RateLimiter::tooManyAttempts($key, self::DAILY_LIMIT)) {
                 return response()->json([
@@ -72,6 +71,26 @@ class ProductDraftController extends Controller
             'duplicate' => $this->findDuplicate($user, $draft['category_id'], $draft['title']),
             'remaining' => $isAdmin ? null : RateLimiter::remaining($key, self::DAILY_LIMIT),
         ]);
+    }
+
+    /**
+     * Kunlik limit holati — e'lon joylash sahifasida AI kartasida oldindan ko'rsatiladi
+     * (admin uchun remaining = null: cheklov yo'q).
+     */
+    public function quota(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'limit' => self::DAILY_LIMIT,
+            'remaining' => $user->role === 'admin' ? null : RateLimiter::remaining($this->limitKey($user), self::DAILY_LIMIT),
+        ]);
+    }
+
+    /** Kalitda sana bor: limit yarim tunda yangilanadi ("bugun 5 ta") */
+    private function limitKey(User $user): string
+    {
+        return 'ai-draft:' . $user->id . ':' . now()->toDateString();
     }
 
     /** Shu foydalanuvchining shu bo'limdagi o'xshash sarlavhali faol e'loni */

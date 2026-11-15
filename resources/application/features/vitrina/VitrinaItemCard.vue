@@ -52,7 +52,10 @@ const price = computed(() => itemPrice(props.item));
 
 <style scoped>
 .item-grid {
-   display: block;
+   /* <button> kontentini o'rtaga qo'yadi: qatordagi baland karta yonida rasm pastga surilib qolardi */
+   display: flex;
+   flex-direction: column;
+   justify-content: flex-start;
    overflow: hidden;
    border: 1px solid var(--z-glass-border);
    border-radius: var(--z-rounded);

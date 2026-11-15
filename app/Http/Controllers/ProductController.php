@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Builder;
 use App\Services\ProductViewService;
 use App\Services\ProductSearchService;
+use App\Models\Vitrina;
 use App\Services\ProductFilters;
 use App\Http\Requests\SaveProductRequest;
 use App\Jobs\SyncProductToTelegram;
@@ -144,6 +145,13 @@ class ProductController extends Controller
             ->get();
 
         $product->setRelation('seller_products', $sellerProducts);
+
+        // "Sotuvchining vitrinasi bor" — faqat tasdiqlangani; bot e'lonlari turli odamlarniki
+        $product->setRelation('seller_vitrina', $product->is_bot ? null : Vitrina::approved()
+            ->without('district')
+            ->withCount('items')
+            ->where('user_id', $product->user_id)
+            ->first(['id', 'name', 'slug', 'logo', 'type', 'is_verified']));
 
         return response()->json($product);
     }

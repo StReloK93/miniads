@@ -11,41 +11,7 @@
       <main class="relative">
          <div ref="parentScroll" class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
             <slot name="inputs" />
-            <template v-for="input in inputConfigs" :key="input.name">
-               <Teleport defer v-if="input.teleport_child_class" :to="`.${input.teleport_child_class}`">
-                  <main :class="input.class" class="child">
-                     <component :is="input.component" :name="input.name" v-bind="input.props" />
-                  </main>
-               </Teleport>
-               <div v-else :class="input.class">
-                  <div v-if="input.props?.title" class="flex items-center gap-1.5 mb-1.5 px-0.5 select-none">
-                     <p class="text-xs font-semibold text-(--z-foreground) tracking-wide">
-                        {{ input.props?.title }}
-                     </p>
-                     <span
-                        v-if="input.optional || input.required === false"
-                        class="text-[11px] font-normal text-(--z-muted-text)/80"
-                     >
-                        ({{ $t("common.optional") }})
-                     </span>
-                  </div>
-                  <main class="relative" :class="input.teleport_parent_class">
-                     <component
-                        :is="input.component"
-                        :name="input.name"
-                        v-bind="input.props"
-                        @focusin="centerElement($event.target, parentScroll!)"
-                     />
-                  </main>
-
-                  <p v-if="input.hint" class="text-[11px] text-(--z-muted-text) px-1 mt-1">{{ input.hint }}</p>
-                  <ErrorMessage :name="input.name" v-slot="{ message }">
-                     <p class="text-sm text-(--z-danger) mt-1">
-                        {{ message }}
-                     </p>
-                  </ErrorMessage>
-               </div>
-            </template>
+            <BaseFormFields :input-configs="inputConfigs" :scroll-parent="parentScroll" />
          </div>
       </main>
       <footer
@@ -81,9 +47,9 @@
 
 <script setup lang="ts">
 import { useFocusedInput } from "@shared/composables/useFocusInput";
-import { centerElement } from "@shared/modules/helpers";
 import { ref, computed } from "vue";
-import { Form, ErrorMessage } from "vee-validate";
+import { Form } from "vee-validate";
+import BaseFormFields from "@shared/ui/BaseFormFields.vue";
 import { toTypedSchema } from "@vee-validate/zod";
 import type { InputConfig } from "@shared/types";
 import { z } from "zod";

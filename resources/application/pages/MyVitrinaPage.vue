@@ -24,26 +24,39 @@
                {{ $t("vitrina.tabInfo") }}
             </button>
          </div>
+
+         <!-- Holati: tasdiq kutilmoqda / rad etildi -->
+         <div v-if="vitrina && vitrina.status !== 'approved'" class="status mt-3" :class="`is-${vitrina.status}`">
+            <component :is="vitrina.status === 'pending' ? Clock : CircleAlert" class="size-4 shrink-0" />
+            <p class="text-xs leading-snug">
+               {{ $t(`vitrina.status.${vitrina.status}`) }}
+               <template v-if="vitrina.reject_reason">— {{ vitrina.reject_reason }}</template>
+            </p>
+         </div>
       </aside>
 
       <div class="relative">
-         <main class="absolute inset-0 overflow-y-auto no-scrollbar pb-6">
-            <div v-if="isLoading" class="flex flex-col gap-3">
-               <div v-for="n in 4" :key="n" class="skeleton h-14"></div>
-            </div>
+         <div v-if="isLoading" class="absolute inset-0 flex flex-col gap-3">
+            <div v-for="n in 4" :key="n" class="skeleton h-14"></div>
+         </div>
 
-            <template v-else>
-               <!-- Holati: tasdiq kutilmoqda / rad etildi -->
-               <div v-if="vitrina && vitrina.status !== 'approved'" class="status mb-4" :class="`is-${vitrina.status}`">
-                  <component :is="vitrina.status === 'pending' ? Clock : CircleAlert" class="size-4 shrink-0" />
-                  <p class="text-xs leading-snug">
-                     {{ $t(`vitrina.status.${vitrina.status}`) }}
-                     <template v-if="vitrina.reject_reason">— {{ vitrina.reject_reason }}</template>
-                  </p>
-               </div>
+         <!-- Kartalar soyasi chetda kesilmasin: aylanadigan qism sahifa chetigacha, ichida odatdagi oraliq -->
+         <main v-else-if="vitrina && tab === 'items'" class="absolute inset-0 -mx-4 px-4 pt-1 pb-6 overflow-y-auto no-scrollbar">
 
                <!-- ================= Mahsulotlar ================= -->
-               <div v-if="vitrina && tab === 'items'" class="flex flex-col gap-5">
+               <div class="flex flex-col gap-5">
+                  <!-- Statistika: vitrina tasdiqlangach mazmunli bo'ladi -->
+                  <section v-if="stats && vitrina.status === 'approved'">
+                     <h4 class="section-title">{{ $t("vitrina.stats.title", { n: stats.days }) }}</h4>
+                     <div class="grid grid-cols-2 gap-2">
+                        <div v-for="tile in statTiles" :key="tile.key" class="stat-tile">
+                           <component :is="tile.icon" class="size-4 text-(--z-muted-text)" />
+                           <span class="text-xl font-bold tabular-nums leading-none">{{ tile.value.toLocaleString("ru-RU") }}</span>
+                           <span class="text-[11px] text-(--z-muted-text) leading-tight">{{ tile.label }}</span>
+                        </div>
+                     </div>
+                  </section>
+
                   <section>
                      <h4 class="section-title">{{ $t("vitrina.sections") }}</h4>
                      <div class="flex flex-wrap gap-2">
@@ -94,15 +107,30 @@
                         <h4 class="section-title mb-0!">
                            {{ selectedSection ? selectedSection.name : $t("vitrina.allItems") }}
                         </h4>
-                        <BaseButton size="xs" @click="openItem(null)">
-                           <template #icon><Plus class="size-3.5" /></template>
-                           {{ $t("vitrina.addItem") }}
-                        </BaseButton>
+                        <div class="flex items-center gap-1.5">
+                           <BaseButton
+                              v-if="visibleItems.length > 1"
+                              size="xs"
+                              :severity="reordering ? 'primary' : 'secondary'"
+                              :loading="savingOrder"
+                              @click="toggleReorder"
+                           >
+                              <template #icon>
+                                 <component :is="reordering ? Check : ArrowUpDown" class="size-3.5" />
+                              </template>
+                              {{ reordering ? $t("vitrina.order.done") : $t("vitrina.order.button") }}
+                           </BaseButton>
+                           <BaseButton v-if="!reordering" size="xs" @click="openItem(null)">
+                              <template #icon><Plus class="size-3.5" /></template>
+                              {{ $t("vitrina.addItem") }}
+                           </BaseButton>
+                        </div>
                      </div>
+                     <p v-if="reordering" class="mb-2 px-1 text-xs text-(--z-muted-text)">{{ $t("vitrina.order.hint") }}</p>
 
                      <ul v-if="visibleItems.length" class="card divide-y divide-(--z-border)">
-                        <li v-for="item in visibleItems" :key="item.id">
-                           <button type="button" class="item-row" @click="openItem(item)">
+                        <li v-for="(item, index) in visibleItems" :key="item.id" class="relative">
+                           <button type="button" class="item-row" :class="{ 'pr-24!': reordering }" @click="reordering || openItem(item)">
                               <img v-if="item.images?.length" :src="storageUrl(item.images[0])!" alt="" class="size-11 rounded-lg object-cover shrink-0" />
                               <span v-else class="size-11 rounded-lg shrink-0 grid place-items-center bg-(--z-muted) text-(--z-muted-text)">
                                  <ImageOff class="size-4" />
@@ -114,8 +142,29 @@
                                     <template v-if="!item.is_available"> · {{ $t("vitrina.unavailable") }}</template>
                                  </span>
                               </span>
-                              <ChevronRight class="size-4 shrink-0 text-(--z-muted-text)" />
+                              <ChevronRight v-if="!reordering" class="size-4 shrink-0 text-(--z-muted-text)" />
                            </button>
+                           <!-- Tartiblash: tepaga / pastga (Telegram ichida sudrab tashlash aylantirish bilan to'qnashadi) -->
+                           <div v-if="reordering" class="absolute inset-y-0 right-3 flex items-center gap-1">
+                              <button
+                                 type="button"
+                                 class="move"
+                                 :disabled="index === 0"
+                                 :aria-label="$t('vitrina.order.up')"
+                                 @click="move(item, -1)"
+                              >
+                                 <ChevronUp class="size-4" />
+                              </button>
+                              <button
+                                 type="button"
+                                 class="move"
+                                 :disabled="index === visibleItems.length - 1"
+                                 :aria-label="$t('vitrina.order.down')"
+                                 @click="move(item, 1)"
+                              >
+                                 <ChevronDown class="size-4" />
+                              </button>
+                           </div>
                         </li>
                      </ul>
                      <button v-else type="button" class="empty" @click="openItem(null)">
@@ -126,107 +175,66 @@
                   </section>
                </div>
 
-               <!-- ================= Ma'lumotlar ================= -->
-               <form v-else class="flex flex-col gap-4" @submit.prevent="saveInfo">
-                  <div v-if="!vitrina" class="intro">
-                     <Sparkles class="size-5 shrink-0 text-(--z-primary)" />
-                     <p class="text-xs leading-snug">{{ $t("vitrina.intro") }}</p>
-                  </div>
-
-                  <p v-if="infoError" class="text-sm text-(--z-danger)">{{ infoError }}</p>
-
-                  <div>
-                     <label class="label">{{ $t("vitrina.form.type") }}</label>
-                     <div class="grid grid-cols-1 gap-2">
-                        <button
-                           v-for="key in VITRINA_TYPE_KEYS"
-                           :key="key"
-                           type="button"
-                           class="type-option"
-                           :class="{ 'is-active': info.type === key }"
-                           :style="{ '--tone': VITRINA_TYPES[key].tone }"
-                           @click="info.type = key"
-                        >
-                           <span class="type-icon"><component :is="VITRINA_TYPES[key].icon" class="size-4.5" /></span>
-                           <span class="min-w-0 text-left">
-                              <span class="block text-sm font-semibold">{{ $t(`vitrina.types.${key}`) }}</span>
-                              <span class="block text-xs text-(--z-muted-text) leading-snug">{{ $t(`vitrina.typeHints.${key}`) }}</span>
-                           </span>
-                        </button>
-                     </div>
-                  </div>
-
-                  <div>
-                     <label class="label" for="v-name">{{ $t("vitrina.form.name") }}</label>
-                     <input id="v-name" v-model="info.name" class="field" maxlength="60" required :placeholder="$t('vitrina.form.nameHint')" />
-                  </div>
-
-                  <!-- Logo va muqova -->
-                  <div class="grid grid-cols-[auto_1fr] gap-3">
-                     <div>
-                        <label class="label">{{ $t("vitrina.form.logo") }}</label>
-                        <label class="logo-pick">
-                           <img v-if="logoPreview" :src="logoPreview" alt="" class="size-full object-cover" />
-                           <Camera v-else class="size-5" />
-                           <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="pick($event, 'logo')" />
-                        </label>
-                     </div>
-                     <div>
-                        <label class="label">{{ $t("vitrina.form.cover") }}</label>
-                        <label class="cover-pick">
-                           <img v-if="coverPreview" :src="coverPreview" alt="" class="absolute inset-0 size-full object-cover" />
-                           <ImagePlus v-else class="size-5" />
-                           <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="pick($event, 'cover')" />
-                        </label>
-                     </div>
-                  </div>
-
-                  <div>
-                     <label class="label" for="v-desc">{{ $t("vitrina.form.about") }}</label>
-                     <textarea id="v-desc" v-model="info.description" class="field py-2.5" rows="3" maxlength="1000" :placeholder="$t('vitrina.form.aboutHint')" />
-                  </div>
-
-                  <div>
-                     <label class="label">{{ $t("district.city") }}</label>
-                     <FieldSelect
-                        :model-value="info.district_id ?? 0"
-                        :options="cityStore.cities ?? []"
-                        value="name"
-                        @update:model-value="(id) => (info.district_id = id || null)"
-                     />
-                  </div>
-
-                  <div>
-                     <label class="label" for="v-address">{{ $t("vitrina.form.address") }}</label>
-                     <input id="v-address" v-model="info.address" class="field" maxlength="150" :placeholder="$t('vitrina.form.addressHint')" />
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-3">
-                     <div>
-                        <label class="label" for="v-phone">{{ $t("profile.phone") }}</label>
-                        <input id="v-phone" v-model="info.phone" class="field" type="tel" inputmode="tel" maxlength="30" placeholder="93-123-45-67" />
-                     </div>
-                     <div>
-                        <label class="label" for="v-hours">{{ $t("vitrina.form.hours") }}</label>
-                        <input id="v-hours" v-model="info.work_hours" class="field" maxlength="60" placeholder="09:00–19:00" />
-                     </div>
-                     <div>
-                        <label class="label" for="v-tg">Telegram</label>
-                        <input id="v-tg" v-model="info.telegram" class="field" maxlength="40" placeholder="@username" />
-                     </div>
-                     <div>
-                        <label class="label" for="v-ig">Instagram</label>
-                        <input id="v-ig" v-model="info.instagram" class="field" maxlength="40" placeholder="@instagram" />
-                     </div>
-                  </div>
-
-                  <BaseButton type="submit" class="w-full mt-1" :loading="savingInfo">
-                     {{ vitrina ? $t("common.save") : $t("vitrina.create") }}
-                  </BaseButton>
-                  <p v-if="infoSaved" class="text-center text-xs text-emerald-600">{{ $t("vitrina.saved") }}</p>
-               </form>
-            </template>
          </main>
+
+         <!-- ================= Ma'lumotlar: e'lon formasidagi BaseForm va maydonlar ================= -->
+         <BaseForm
+            v-else
+            :key="infoFormKey"
+            class="absolute inset-0"
+            :input-configs="infoInputs"
+            :submit="saveInfo"
+            :submit-label="vitrina ? $t('common.save') : $t('vitrina.create')"
+         >
+            <template #inputs>
+               <div v-if="!vitrina" class="intro mb-4">
+                  <Sparkles class="size-5 shrink-0 text-(--z-primary)" />
+                  <p class="text-xs leading-snug">{{ $t("vitrina.intro") }}</p>
+               </div>
+               <p v-if="infoSaved" class="mb-3 text-center text-xs font-medium text-emerald-600">{{ $t("vitrina.saved") }}</p>
+
+               <div class="mb-3">
+                  <p class="label">{{ $t("vitrina.form.type") }}</p>
+                  <div class="grid grid-cols-1 gap-2">
+                     <button
+                        v-for="key in VITRINA_TYPE_KEYS"
+                        :key="key"
+                        type="button"
+                        class="type-option"
+                        :class="{ 'is-active': infoType === key }"
+                        :style="{ '--tone': VITRINA_TYPES[key].tone }"
+                        @click="infoType = key"
+                     >
+                        <span class="type-icon"><component :is="VITRINA_TYPES[key].icon" class="size-4.5" /></span>
+                        <span class="min-w-0 text-left">
+                           <span class="block text-sm font-semibold">{{ $t(`vitrina.types.${key}`) }}</span>
+                           <span class="block text-xs text-(--z-muted-text) leading-snug">{{ $t(`vitrina.typeHints.${key}`) }}</span>
+                        </span>
+                     </button>
+                  </div>
+               </div>
+
+               <!-- Logo va muqova -->
+               <div class="mb-3 grid grid-cols-[auto_1fr] gap-3">
+                  <div>
+                     <p class="label">{{ $t("vitrina.form.logo") }}</p>
+                     <label class="logo-pick">
+                        <img v-if="logoPreview" :src="logoPreview" alt="" class="size-full object-cover" />
+                        <Camera v-else class="size-5" />
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="pick($event, 'logo')" />
+                     </label>
+                  </div>
+                  <div>
+                     <p class="label">{{ $t("vitrina.form.cover") }}</p>
+                     <label class="cover-pick">
+                        <img v-if="coverPreview" :src="coverPreview" alt="" class="absolute inset-0 size-full object-cover" />
+                        <ImagePlus v-else class="size-5" />
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="pick($event, 'cover')" />
+                     </label>
+                  </div>
+               </div>
+            </template>
+         </BaseForm>
       </div>
 
       <VitrinaItemForm
@@ -239,6 +247,7 @@
          @close="itemFormOpen = false"
          @saved="onItemSaved"
          @deleted="onItemDeleted"
+         @publish="publishItem"
       />
    </section>
 </template>
@@ -248,8 +257,15 @@ import { computed, nextTick, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
    ArrowLeft,
+   ArrowUpDown,
    Camera,
+   Check,
+   ChevronDown,
    ChevronRight,
+   ChevronUp,
+   Megaphone,
+   MessageCircle,
+   Phone,
    CircleAlert,
    Clock,
    Eye,
@@ -263,12 +279,16 @@ import {
    X,
 } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
-import FieldSelect from "@shared/ui/FieldSelect.vue";
+import BaseForm from "@shared/ui/BaseForm.vue";
+import { Inputs } from "@shared/ui/inputs";
+import { z } from "zod";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import { getPriceTypes } from "@shared/entities/Product/ProductInputs";
 import { useCity } from "@shared/entities/District/useCity";
 import { useAuth } from "@shared/store/useAuth";
-import type { IVitrina, IVitrinaItem, IVitrinaSection, VitrinaType } from "@shared/types";
+import type { IVitrina, IVitrinaItem, IVitrinaSection, IVitrinaStats, InputConfig, VitrinaType } from "@shared/types";
+import { AI_DRAFT_MAX_IMAGES, useAiDraft } from "@/features/product/aiDraft";
+import { t } from "@shared/i18n";
 import { goBack } from "@/modules/navigation";
 import VitrinaItemForm from "@/features/vitrina/VitrinaItemForm.vue";
 import { VITRINA_TYPES, VITRINA_TYPE_KEYS, itemPrice, storageUrl } from "@/features/vitrina/vitrinaKit";
@@ -284,39 +304,100 @@ const tab = ref<"items" | "info">("items");
 const priceTypes = ref<{ id: number; name: string; type: string }[]>([]);
 
 /* ================= Ma'lumotlar formasi ================= */
-const info = reactive({
-   type: "shop" as VitrinaType,
-   name: "",
-   description: "",
-   district_id: null as number | null,
-   address: "",
-   phone: "",
-   telegram: "",
-   instagram: "",
-   work_hours: "",
-});
+const infoType = ref<VitrinaType>("shop");
+const infoFormKey = ref(0);
 const files = reactive<{ logo: File | null; cover: File | null }>({ logo: null, cover: null });
 const previews = reactive<{ logo: string | null; cover: string | null }>({ logo: null, cover: null });
-const savingInfo = ref(false);
-const infoError = ref("");
 const infoSaved = ref(false);
 
 const logoPreview = computed(() => previews.logo ?? storageUrl(vitrina.value?.logo));
 const coverPreview = computed(() => previews.cover ?? storageUrl(vitrina.value?.cover));
 
-function fillInfo(source: IVitrina | null) {
+const optionalText = (max: number) => z.string().trim().max(max).optional().nullable();
+
+/**
+ * Maydonlar e'lon formasidagi komponentlar bilan (FieldText, FieldTextarea, FieldSelect, FieldMask...).
+ * Yangi vitrina: foydalanuvchi tanlagan shahar, profildagi raqam va Telegram oldindan qo'yiladi.
+ */
+const infoInputs = computed<InputConfig[]>(() => {
+   const source = vitrina.value;
    const user = authStore.user;
-   info.type = source?.type ?? "shop";
-   info.name = source?.name ?? "";
-   info.description = source?.description ?? "";
-   // Yangi vitrina: foydalanuvchi tanlagan shahar, profildagi raqam va Telegram
-   info.district_id = source ? source.district_id : (user?.active_district_id ?? null);
-   info.address = source?.address ?? "";
-   info.phone = source ? (source.phone ?? "") : (user?.phone ?? "");
-   info.telegram = source ? (source.telegram ? `@${source.telegram}` : "") : user?.username ? `@${user.username}` : "";
-   info.instagram = source?.instagram ? `@${source.instagram}` : "";
-   info.work_hours = source?.work_hours ?? "";
-}
+   const handle = (value?: string | null) => (value ? `@${value}` : "");
+
+   return [
+      {
+         component: Inputs.FieldText,
+         name: "name",
+         required: true,
+         value: source?.name ?? "",
+         props: { title: t("vitrina.form.name"), placeholder: t("vitrina.form.nameHint"), maxlength: 60 },
+         schema: z.string({ message: t("form.required") }).trim().min(2, t("form.minChars", { n: 2 })).max(60),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldTextarea,
+         name: "description",
+         optional: true,
+         value: source?.description ?? "",
+         props: { title: t("vitrina.form.about"), placeholder: t("vitrina.form.aboutHint"), rows: 3, maxHeight: 200, maxlength: 1000 },
+         schema: optionalText(1000),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldSelect,
+         name: "district_id",
+         required: true,
+         value: source ? (source.district_id ?? 0) : (user?.active_district_id ?? 0),
+         props: { title: t("district.city"), options: cityStore.cities ?? [], value: "name" },
+         schema: z.coerce.number().min(0),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldText,
+         name: "address",
+         optional: true,
+         value: source?.address ?? "",
+         props: { title: t("vitrina.form.address"), placeholder: t("vitrina.form.addressHint"), maxlength: 150 },
+         schema: optionalText(150),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldMask,
+         name: "phone",
+         optional: true,
+         value: source ? (source.phone ?? "") : (user?.phone ?? ""),
+         props: { title: t("profile.phone"), mask: "99-999-99-99", placeholder: "93-123-45-67", inputmode: "tel" },
+         schema: optionalText(30),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldTimeRange,
+         name: "work_hours",
+         optional: true,
+         value: source?.work_hours ?? "",
+         props: { title: t("vitrina.form.hours"), fromLabel: t("vitrina.form.hoursFrom"), toLabel: t("vitrina.form.hoursTo") },
+         schema: optionalText(60),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldText,
+         name: "telegram",
+         optional: true,
+         value: source ? handle(source.telegram) : handle(user?.username),
+         props: { title: "Telegram", placeholder: "@username", maxlength: 40 },
+         schema: optionalText(40),
+         class: ["mb-3"],
+      },
+      {
+         component: Inputs.FieldText,
+         name: "instagram",
+         optional: true,
+         value: handle(source?.instagram),
+         props: { title: "Instagram", placeholder: "@instagram", maxlength: 40 },
+         schema: optionalText(40),
+      },
+   ];
+});
 
 function pick(event: Event, field: "logo" | "cover") {
    const input = event.target as HTMLInputElement;
@@ -328,28 +409,27 @@ function pick(event: Event, field: "logo" | "cover") {
    previews[field] = URL.createObjectURL(file);
 }
 
-async function saveInfo() {
-   savingInfo.value = true;
-   infoError.value = "";
-   infoSaved.value = false;
-   try {
-      const data = new FormData();
-      for (const [key, value] of Object.entries(info)) data.append(key, value === null ? "" : String(value));
-      if (files.logo) data.append("logo", files.logo);
-      if (files.cover) data.append("cover", files.cover);
+/** BaseForm chaqiradi: xato bo'lsa o'zi ko'rsatadi (shuning uchun bu yerda ushlanmaydi) */
+async function saveInfo(values: unknown) {
 
-      const isNew = !vitrina.value;
-      const { data: saved } = await VitrinaRepo.save(data);
-      vitrina.value = saved;
-      files.logo = files.cover = null;
-      fillInfo(saved);
-      infoSaved.value = true;
-      // Yaratilgach — darhol mahsulot qo'shishga
-      if (isNew) tab.value = "items";
-   } catch (e) {
-      infoError.value = errorMessage(e);
-   } finally {
-      savingInfo.value = false;
+   infoSaved.value = false;
+   const data = new FormData();
+   data.append("type", infoType.value);
+   for (const [key, value] of Object.entries(values as Record<string, unknown>)) {
+      data.append(key, value === null || value === undefined ? "" : String(value));
+   }
+   if (files.logo) data.append("logo", files.logo);
+   if (files.cover) data.append("cover", files.cover);
+
+   const isNew = !vitrina.value;
+   const { data: saved } = await VitrinaRepo.save(data);
+   vitrina.value = saved;
+   files.logo = files.cover = null;
+   infoSaved.value = true;
+   // Yaratilgach — darhol mahsulot qo'shishga
+   if (isNew) {
+      tab.value = "items";
+      loadStats();
    }
 }
 
@@ -435,6 +515,103 @@ function onItemDeleted(id: number) {
    vitrina.value.items = (vitrina.value.items ?? []).filter((item) => item.id !== id);
 }
 
+/* ================= Tartiblash ================= */
+const reordering = ref(false);
+const savingOrder = ref(false);
+
+/** Ko'rinib turgan ro'yxatda qo'shnisi bilan almashadi (bo'lim tanlangan bo'lsa — shu bo'lim ichida) */
+function move(item: IVitrinaItem, direction: -1 | 1) {
+   if (!vitrina.value?.items) return;
+   const neighbour = visibleItems.value[visibleItems.value.indexOf(item) + direction];
+   if (!neighbour) return;
+   const items = [...vitrina.value.items];
+   const a = items.indexOf(item);
+   const b = items.indexOf(neighbour);
+   [items[a], items[b]] = [items[b], items[a]];
+   vitrina.value.items = items;
+}
+
+async function toggleReorder() {
+   if (!reordering.value) {
+      reordering.value = true;
+      return;
+   }
+   savingOrder.value = true;
+   try {
+      await VitrinaRepo.orderItems((vitrina.value?.items ?? []).map((item) => item.id));
+      reordering.value = false;
+   } catch (e) {
+      alert(errorMessage(e));
+   } finally {
+      savingOrder.value = false;
+   }
+}
+
+/* ================= Statistika ================= */
+const stats = ref<IVitrinaStats | null>(null);
+const statTiles = computed(() => {
+   const s = stats.value;
+   if (!s) return [];
+   return [
+      { key: "views", icon: Eye, value: s.views, label: t("vitrina.stats.views") },
+      { key: "phone", icon: Phone, value: s.phone, label: t("vitrina.stats.phone") },
+      { key: "telegram", icon: MessageCircle, value: s.telegram, label: t("vitrina.stats.telegram") },
+      { key: "ads", icon: Megaphone, value: s.ads_views, label: t("vitrina.stats.ads", { n: s.ads }, s.ads) },
+   ];
+});
+
+async function loadStats() {
+   try {
+      stats.value = (await VitrinaRepo.stats()).data;
+   } catch {
+      // Statistika ixtiyoriy: yuklanmasa blok ko'rinmaydi
+   }
+}
+
+/* ================= Mahsulotdan e'lon ================= */
+const aiDraftStore = useAiDraft();
+
+/**
+ * Vitrina mahsulotini e'lon formasiga o'tkazadi: nom, tavsif, narx, telefon, shahar va rasmlar.
+ * Bo'limni foydalanuvchi tanlaydi (vitrina mahsulotida e'lon bo'limi yo'q); e'lon vitrinaga bog'lanadi.
+ */
+async function publishItem(item: IVitrinaItem) {
+   if (!vitrina.value) return;
+   const images = await Promise.all(
+      (item.images ?? []).slice(0, AI_DRAFT_MAX_IMAGES).map(async (path, index) => {
+         try {
+            const blob = await (await fetch(storageUrl(path)!)).blob();
+            return new File([blob], `vitrina-${item.id}-${index}.webp`, { type: blob.type || "image/webp" });
+         } catch {
+            return null;
+         }
+      }),
+   );
+   const hasPrice = item.price_mode === "fixed" || item.price_mode === "from";
+
+   aiDraftStore.set(
+      {
+         draft: {
+            category_id: 0,
+            title: item.title,
+            description: item.description ?? "",
+            price: hasPrice ? item.price : null,
+            price_type_id: item.price_type_id ?? 1,
+            phone: vitrina.value.phone ?? null,
+            district_id: vitrina.value.district_id,
+            parameters: {},
+         },
+         missing: [],
+         duplicate: null,
+         remaining: null,
+      },
+      images.filter((file): file is File => file !== null),
+      vitrina.value.id,
+   );
+   itemFormOpen.value = false;
+   router.push({ name: "create-select-category" });
+}
+
 onMounted(async () => {
    try {
       const [{ data }, types] = await Promise.all([
@@ -444,10 +621,11 @@ onMounted(async () => {
       ]);
       vitrina.value = data.vitrina ?? null;
       priceTypes.value = (types ?? []) as typeof priceTypes.value;
-      fillInfo(vitrina.value);
+      infoType.value = vitrina.value?.type ?? "shop";
       if (!vitrina.value) tab.value = "info";
+      else loadStats();
    } catch (error) {
-      infoError.value = errorMessage(error);
+      alert(errorMessage(error));
       tab.value = "info";
    } finally {
       isLoading.value = false;
@@ -469,6 +647,32 @@ onMounted(async () => {
    }
 }
 
+.stat-tile {
+   display: flex;
+   flex-direction: column;
+   gap: 0.375rem;
+   padding: 0.75rem;
+   border: 1px solid var(--z-glass-border);
+   border-radius: var(--z-rounded);
+   background: var(--z-card);
+}
+
+.move {
+   display: grid;
+   place-items: center;
+   width: 2.25rem;
+   height: 2.25rem;
+   border: 1px solid var(--z-border);
+   border-radius: 999px;
+   background: var(--z-background);
+   cursor: pointer;
+
+   &:disabled {
+      opacity: 0.35;
+      cursor: default;
+   }
+}
+
 .section-title {
    margin: 0 0 0.5rem 0.25rem;
    color: var(--z-muted-text);
@@ -478,12 +682,15 @@ onMounted(async () => {
    text-transform: uppercase;
 }
 
+/* BaseFormFields sarlavhasi bilan bir xil (tur, logo, muqova — forma maydonlari qatorida) */
 .label {
    display: block;
    margin-bottom: 0.375rem;
-   color: var(--z-muted-text);
+   padding: 0 0.125rem;
+   color: var(--z-foreground);
    font-size: 0.75rem;
    font-weight: 600;
+   letter-spacing: 0.025em;
 }
 
 .card {

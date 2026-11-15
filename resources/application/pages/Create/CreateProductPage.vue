@@ -16,14 +16,41 @@
                <p class="text-xs text-(--z-muted-text) font-medium">{{ $t("create.details") }}</p>
             </div>
 
+            <!-- Muddat va kanal: e'lon bilan nima bo'lishini joylashdan oldin bilib qo'ysin.
+                 "Batafsil" shu yerning o'zida ochiladi — boshqa sahifaga o'tilsa to'ldirilgan forma yo'qoladi -->
+            <div v-if="selectedCategory" class="mb-2.5 flex items-start gap-1.5 text-xs leading-snug text-(--z-muted-text)">
+               <Info class="size-3.5 shrink-0 mt-px" />
+               <div>
+                  <p>
+                     {{
+                        selectedCategory.is_permanent
+                           ? $t("help.createHintPermanent", { channel })
+                           : $t("help.createHint", { n: listingDays, channel }, listingDays)
+                     }}
+                     <button
+                        v-if="!isHintOpen"
+                        type="button"
+                        class="font-semibold text-(--z-primary)"
+                        @click="isHintOpen = true"
+                     >
+                        {{ $t("help.more") }}
+                     </button>
+                  </p>
+                  <template v-if="isHintOpen">
+                     <p v-if="!selectedCategory.is_permanent" class="mt-1">{{ $t("help.faq.restore.a") }}</p>
+                     <p class="mt-1">{{ $t("help.faq.channel.a", { channel }) }}</p>
+                  </template>
+               </div>
+            </div>
+
             <!-- "Matn bilan e'lon": nimalar matndan olinmaganini ko'rsatamiz — foydalanuvchi aynan shularni tekshiradi -->
             <div
                v-if="aiDraft"
                class="mb-2.5 rounded-xl border border-(--z-primary)/40 bg-(--z-primary)/10 px-3 py-2 text-xs leading-snug"
             >
                <p class="flex items-center gap-1.5 font-semibold">
-                  <Sparkles class="size-3.5 shrink-0 text-(--z-primary)" />
-                  {{ $t("aiDraft.filled") }}
+                  <component :is="fromVitrinaId ? Store : Sparkles" class="size-3.5 shrink-0 text-(--z-primary)" />
+                  {{ fromVitrinaId ? $t("vitrina.publish.filled") : $t("aiDraft.filled") }}
                </p>
                <ul v-if="aiDraft.missing.length" class="mt-1 flex flex-col gap-0.5 text-(--z-muted-text)">
                   <li v-if="aiDraft.missing.includes('district')">• {{ $t("aiDraft.missingDistrict") }}</li>
@@ -40,7 +67,7 @@
       <BaseModal
          :open="showSuccessModal"
          :title="$t('create.successTitle')"
-         :description="$t('create.successText')"
+         :description="$t('create.successText', { channel })"
          :show-buttons="false"
          @close="viewCreatedProduct"
       >
@@ -98,11 +125,12 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import { useRoute, useRouter } from "vue-router";
 import { IAiDraftResponse, ICategory, InputConfig } from "@shared/types";
-import { onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { channelName } from "@/features/help/helpLinks";
 import { buildProductFormInputs, buildProductPayload } from "@/features/product/useProductForm";
 import { useAiDraft } from "@/features/product/aiDraft";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";
-import { CheckCircle2, Eye, Plus, Sparkles, User } from "lucide-vue-next";
+import { CheckCircle2, Eye, Info, Plus, Sparkles, Store, User } from "lucide-vue-next";
 import { useAuth } from "@shared/store/useAuth";
 import { leaveCreateFlow, pushBackHandler } from "@/modules/navigation";
 
@@ -112,6 +140,12 @@ const router = useRouter();
 
 const selectedCityId = ref<number | null>(null);
 const selectedCategory = ref<ICategory | null>(null);
+
+// Server bilan bir xil: muddat ko'rsatilmagan bo'limda 30 kun (Category::DEFAULT_LISTING_DAYS)
+const listingDays = computed(() => selectedCategory.value?.listing_duration_days || 30);
+const isHintOpen = ref(false);
+// Matnlarda kanal nomi: "@navoiy_elonlaruz kanaliga ham chiqadi"
+const channel = channelName || "Telegram";
 const formInputs = shallowRef<InputConfig[]>([]);
 
 const showSuccessModal = ref(false);
@@ -120,13 +154,16 @@ const createdProduct = ref<{ id?: number | string; title?: string } | null>(null
 // "Matn bilan e'lon" qoralamasi: faqat matn oynasidan (yoki undan keyin bo'lim tanlab) kelinganda
 const aiDraftStore = useAiDraft();
 const aiDraft = shallowRef<IAiDraftResponse | null>(route.query.ai ? aiDraftStore.current() : null);
+// Vitrina mahsulotidan e'lon: AI emas, vitrinaga bog'lanadi ("… vitrinasidan" belgisi)
+const fromVitrinaId = aiDraft.value ? aiDraftStore.vitrinaId() : null;
 
 async function submitForm(values: Record<string, any>) {
    const payload = buildProductPayload(values, {
       categoryId: route.params.categoryId as string,
       fallbackDistrictId: selectedCityId.value,
    });
-   if (aiDraft.value) payload.via_ai = 1;
+   if (fromVitrinaId) payload.vitrina_id = fromVitrinaId;
+   else if (aiDraft.value) payload.via_ai = 1;
 
    const res = await ProductRepo.store(payload);
    aiDraftStore.clear();
@@ -190,6 +227,7 @@ onMounted(async () => {
    formInputs.value = await buildProductFormInputs(category, {
       districtId: selectedCityId.value,
       draft: aiDraft.value?.draft,
+      draftImages: aiDraft.value ? aiDraftStore.images() : [],
    });
    selectedCategory.value = category;
 });

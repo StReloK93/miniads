@@ -137,3 +137,114 @@ test('a rejected vitrina goes back to review after the owner edits it', function
 test('a user without a vitrina gets an explicit null, not an empty object', function () {
     $this->actingAs($this->owner)->getJson('/api/my-vitrina')->assertExactJson(['vitrina' => null]);
 });
+
+/* ---------- Qidiruv, tartib, statistika, e'lon, xabar ---------- */
+
+function approvedVitrina($test, array $data = []): Vitrina
+{
+    $vitrina = createVitrina($test, $data);
+    $vitrina->forceFill(['status' => 'approved'])->save();
+
+    return $vitrina;
+}
+
+test('search finds available items of approved vitrinas in the chosen city', function () {
+    $vitrina = approvedVitrina($this);
+    $this->actingAs($this->owner);
+    $this->postJson('/api/my-vitrina/items', ['title' => 'Burchak divan', 'price_mode' => 'none'])->assertCreated();
+    $this->postJson('/api/my-vitrina/items', ['title' => 'Divan yotoqxona', 'price_mode' => 'none', 'is_available' => false]);
+    $this->postJson('/api/my-vitrina/items', ['title' => 'Stol', 'price_mode' => 'none']);
+
+    $this->getJson('/api/vitrina-items/search?search=divan')
+        ->assertOk()->assertJsonCount(1)
+        ->assertJsonPath('0.title', 'Burchak divan')
+        ->assertJsonPath('0.vitrina.slug', $vitrina->slug);
+
+    // Boshqa shaharda qidirilsa — chiqmaydi; vitrina nomi bo'yicha ham topiladi
+    $this->getJson("/api/vitrina-items/search?search=divan&city_id={$this->otherCity->id}")->assertJsonCount(0);
+    $this->getJson('/api/vitrina-items/search?search=mebel stol')->assertJsonCount(1)->assertJsonPath('0.title', 'Stol');
+
+    $vitrina->forceFill(['status' => 'pending'])->save();
+    $this->getJson('/api/vitrina-items/search?search=divan')->assertJsonCount(0);
+});
+
+test('the owner reorders items; foreign ids are ignored', function () {
+    approvedVitrina($this);
+    $this->actingAs($this->owner);
+    $a = $this->postJson('/api/my-vitrina/items', ['title' => 'A', 'price_mode' => 'none'])->json('id');
+    $b = $this->postJson('/api/my-vitrina/items', ['title' => 'B', 'price_mode' => 'none'])->json('id');
+
+    $this->postJson('/api/my-vitrina/items/order', ['ids' => [$b, $a, 99999]])->assertOk();
+
+    $this->getJson('/api/my-vitrina')->assertJsonPath('vitrina.items.0.title', 'B')->assertJsonPath('vitrina.items.1.title', 'A');
+});
+
+test('stats count contact clicks of the last 30 days and ads made from the vitrina', function () {
+    $vitrina = approvedVitrina($this);
+    $vitrina->forceFill(['views_count' => 42])->save();
+    \Illuminate\Support\Facades\DB::table('activity_stats')->insert([
+        ['date' => now()->toDateString(), 'event' => 'contact_phone', 'ref' => "v{$vitrina->id}", 'hits' => 3, 'users' => 2],
+        ['date' => now()->subDays(40)->toDateString(), 'event' => 'contact_phone', 'ref' => "v{$vitrina->id}", 'hits' => 9, 'users' => 9],
+        ['date' => now()->toDateString(), 'event' => 'contact_telegram', 'ref' => "v{$vitrina->id}", 'hits' => 5, 'users' => 4],
+    ]);
+
+    $this->actingAs($this->owner)->getJson('/api/my-vitrina/stats')
+        ->assertOk()
+        ->assertJson(['views' => 42, 'phone' => 3, 'telegram' => 5, 'ads' => 0]);
+});
+
+test('an ad links to the vitrina only when it belongs to the author', function () {
+    $vitrina = approvedVitrina($this);
+    $category = \App\Models\Category::create(['name' => 'Mebel', 'is_page' => true]);
+    $payload = ['title' => 'Burchak divan', 'category_id' => $category->id, 'phone' => '931234567', 'price' => 100];
+
+    $this->actingAs($this->owner)->postJson('/api/products', [...$payload, 'vitrina_id' => $vitrina->id])->assertSuccessful();
+    $stranger = User::create(['name' => 'Begona', 'role' => 'user']);
+    $this->actingAs($stranger)->postJson('/api/products', [...$payload, 'vitrina_id' => $vitrina->id])->assertSuccessful();
+
+    expect(\App\Models\Product::where('vitrina_id', $vitrina->id)->count())->toBe(1);
+
+    // E'lon sahifasida: kartadagi belgi va "Sotuvchining vitrinasi"
+    $product = \App\Models\Product::where('user_id', $this->owner->id)->first();
+    $this->getJson("/api/products/{$product->id}")
+        ->assertJsonPath('vitrina.slug', $vitrina->slug)
+        ->assertJsonPath('seller_vitrina.slug', $vitrina->slug);
+});
+
+test('the owner gets a bot message when the vitrina is approved or rejected', function () {
+    config(['telegraph.bots' => []]);
+    \Illuminate\Support\Facades\Http::fake(['api.telegram.org/*' => \Illuminate\Support\Facades\Http::response(['ok' => true, 'result' => ['message_id' => 1]])]);
+    $this->owner->forceFill(['telegram_user_id' => 777, 'bot_can_message' => true])->save();
+    $vitrina = createVitrina($this);
+
+    $this->actingAs($this->admin)->patchJson("/api/admin/vitrinas/{$vitrina->id}", ['status' => 'rejected', 'reject_reason' => 'Logo kerak'])->assertOk();
+    $this->patchJson("/api/admin/vitrinas/{$vitrina->id}", ['is_verified' => true])->assertOk();
+    $this->patchJson("/api/admin/vitrinas/{$vitrina->id}", ['status' => 'approved'])->assertOk();
+
+    // Faqat holat o'zgarganda: rad etildi + tasdiqlandi (belgi qo'yish xabar yubormaydi)
+    \Illuminate\Support\Facades\Http::assertSentCount(2);
+    \Illuminate\Support\Facades\Http::assertSent(fn ($request) => (string) $request->data()['chat_id'] === '777'
+        && str_contains($request->data()['text'] ?? '', 'Logo kerak'));
+});
+
+test('the home strip shows at most 12, verified first, in a stable daily order', function () {
+    foreach (range(1, 15) as $i) {
+        $user = User::create(['name' => "U{$i}", 'role' => 'user']);
+        Vitrina::forceCreate([
+            'user_id' => $user->id, 'name' => "V{$i}", 'slug' => "v-{$i}", 'type' => 'shop',
+            'status' => 'approved', 'is_verified' => $i === 15,
+        ]);
+    }
+
+    $first = $this->getJson('/api/vitrinas?strip=1')->assertOk()->assertJsonCount(12)->json();
+    expect($first[0]['slug'])->toBe('v-15');
+
+    // Shu kuni qayta so'ralsa — xuddi shu tartib
+    expect(collect($this->getJson('/api/vitrinas?strip=1')->json())->pluck('id')->all())
+        ->toBe(collect($first)->pluck('id')->all());
+
+    // Katalog: hammasi, tasdiqlangan oldinda, keyin yangilari
+    $this->getJson('/api/vitrinas')->assertJsonCount(15)
+        ->assertJsonPath('0.slug', 'v-15')
+        ->assertJsonPath('1.slug', 'v-14');
+});

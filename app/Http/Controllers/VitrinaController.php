@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\Vitrina;
 use App\Models\VitrinaItem;
 use App\Models\VitrinaSection;
+use App\Services\TelegramNotifier;
 use App\Support\Phone;
+use App\Support\UzbekText;
 use App\Support\VitrinaImage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
@@ -18,24 +22,50 @@ class VitrinaController extends Controller
 {
     /* ================= Ommaviy ================= */
 
-    /** Katalog: tasdiqlanganlar; city_id — shu shahar va butun viloyat vitrinalari */
+    /** Bosh sahifadagi qatorda nechta vitrina (qolgani — katalogda) */
+    public const STRIP_LIMIT = 12;
+
+    /**
+     * Tasdiqlangan vitrinalar; city_id — shu shahar va butun viloyat vitrinalari.
+     *   katalog: tasdiq belgisi borlar, keyin yangi qo'shilganlar (tahrirlab yuqoriga chiqib bo'lmaydi);
+     *   strip=1 (bosh sahifa): 12 ta, kunlik aralashtirilgan — hamma navbat bilan boshga chiqadi,
+     *   bir kun ichida tartib o'zgarmaydi (sahifa yangilansa qator "sakramaydi").
+     */
     public function index(Request $request)
     {
         $request->validate([
             'type' => ['nullable', Rule::in(Vitrina::TYPES)],
             'city_id' => ['nullable', 'integer'],
+            'strip' => ['nullable', 'boolean'],
         ]);
 
-        return Vitrina::approved()
-            ->withCount('items')
+        $query = Vitrina::approved()
             ->when($request->integer('city_id'), fn ($q, int $cityId) => $q->where(fn ($q) => $q
                 ->where('district_id', $cityId)
                 ->orWhereNull('district_id')))
-            ->when($request->input('type'), fn ($q, string $type) => $q->where('type', $type))
+            ->when($request->input('type'), fn ($q, string $type) => $q->where('type', $type));
+        $columns = ['id', 'name', 'slug', 'type', 'logo', 'cover', 'description', 'district_id', 'is_verified', 'updated_at'];
+
+        if ($request->boolean('strip')) {
+            // Bazaga bog'liq bo'lmagan kunlik aralashtirish: id + sana xeshi (tasdiqlanganlar baribir oldinda)
+            $day = now()->toDateString();
+            $ids = (clone $query)->toBase()->get(['id', 'is_verified'])
+                ->sortBy(fn ($row) => [$row->is_verified ? 0 : 1, crc32("{$day}:{$row->id}")])
+                ->take(self::STRIP_LIMIT)
+                ->pluck('id')
+                ->all();
+
+            return Vitrina::whereIn('id', $ids)->get($columns)
+                ->sortBy(fn (Vitrina $vitrina) => array_search($vitrina->id, $ids, true))
+                ->values();
+        }
+
+        return $query
+            ->withCount('items')
             ->orderByDesc('is_verified')
-            ->orderByDesc('updated_at')
+            ->latest('id')
             ->limit(100)
-            ->get(['id', 'name', 'slug', 'type', 'logo', 'cover', 'description', 'district_id', 'is_verified', 'updated_at']);
+            ->get($columns);
     }
 
     /** Vitrina sahifasi (slug yoki id). Tasdiqlanmagani faqat egasi va admin uchun ochiladi */
@@ -60,6 +90,81 @@ class VitrinaController extends Controller
 
         return $vitrina;
     }
+
+    /**
+     * Qidiruvdagi "Vitrinalardan" bloki: so'rovdagi barcha so'zlar mahsulot nomi, tavsifi, bo'limi yoki
+     * vitrina nomida uchrasin ("divan" → do'konlardagi divanlar). Faqat tasdiqlangan vitrina va hozir bor mahsulot.
+     * city_id — e'lonlardagidek: shu shahar va butun viloyat vitrinalari.
+     */
+    public function searchItems(Request $request)
+    {
+        $request->validate([
+            'search' => ['required', 'string', 'max:100'],
+            'city_id' => ['nullable', 'integer'],
+        ]);
+
+        $terms = array_values(array_filter(
+            preg_split('/\s+/u', UzbekText::normalize((string) $request->input('search')), -1, PREG_SPLIT_NO_EMPTY),
+            fn (string $term) => mb_strlen($term) >= 2,
+        ));
+        if (!$terms) {
+            return [];
+        }
+
+        // Nomzodlar: faqat matn ustunlari (vitrina mahsulotlari e'lonlardan ancha kam)
+        $candidates = VitrinaItem::query()
+            ->setEagerLoads([])
+            ->join('vitrinas', 'vitrinas.id', '=', 'vitrina_items.vitrina_id')
+            ->leftJoin('vitrina_sections', 'vitrina_sections.id', '=', 'vitrina_items.vitrina_section_id')
+            ->where('vitrinas.status', Vitrina::APPROVED)
+            ->where('vitrina_items.is_available', true)
+            ->when($request->integer('city_id'), fn ($q, int $cityId) => $q->where(fn ($q) => $q
+                ->where('vitrinas.district_id', $cityId)
+                ->orWhereNull('vitrinas.district_id')))
+            ->toBase()
+            ->get([
+                'vitrina_items.id', 'vitrina_items.title', 'vitrina_items.description',
+                'vitrina_sections.name as section_name', 'vitrinas.name as vitrina_name', 'vitrinas.is_verified',
+            ]);
+
+        // Qisqa so'z ("osh") faqat o'zi va oddiy qo'shimchalari bilan: "oshi", "oshga" — lekin "oshxona" emas.
+        // Vitrina nomi faqat uzun so'zlarda hisobga olinadi: "osh" deb qidirilsa "Osh Markazi"dagi kompot chiqmasin
+        $patterns = array_map(fn (string $term) => [
+            mb_strlen($term) <= 3
+                ? '/(^| )' . preg_quote($term, '/') . '( |$|i |i$|ni|da|ga|dan|lar|ning)/u'
+                : '/(^| )' . preg_quote($term, '/') . '/u',
+            mb_strlen($term) >= 4,
+        ], $terms);
+        $scored = [];
+        foreach ($candidates as $row) {
+            $title = UzbekText::normalize($row->title);
+            $rest = UzbekText::normalize("{$row->description} {$row->section_name}");
+            $vitrinaName = UzbekText::normalize($row->vitrina_name);
+
+            $score = 0;
+            foreach ($patterns as [$pattern, $matchVitrinaName]) {
+                $termScore = (preg_match($pattern, $title) ? 10 : 0)
+                    + (preg_match($pattern, $rest) ? 3 : 0)
+                    + ($matchVitrinaName && preg_match($pattern, $vitrinaName) ? 2 : 0);
+                if ($termScore === 0) {
+                    continue 2;
+                }
+                $score += $termScore;
+            }
+            $scored[$row->id] = $score + ($row->is_verified ? 1 : 0);
+        }
+
+        arsort($scored);
+        $ids = array_slice(array_keys($scored), 0, self::SEARCH_LIMIT);
+
+        return VitrinaItem::with('vitrina:id,name,slug,logo,type,is_verified')
+            ->whereIn('id', $ids)
+            ->get()
+            ->sortBy(fn (VitrinaItem $item) => array_search($item->id, $ids, true))
+            ->values();
+    }
+
+    private const SEARCH_LIMIT = 12;
 
     /* ================= Egasi ================= */
 
@@ -171,6 +276,56 @@ class VitrinaController extends Controller
         return $this->fillItem($request, $vitrina, $vitrina->items()->findOrFail($id));
     }
 
+    /** Mahsulotlar tartibi: ids — yangi tartibdagi id'lar (begona id'lar e'tiborsiz qoladi) */
+    public function orderItems(Request $request)
+    {
+        $vitrina = $this->ownVitrina($request);
+        $data = $request->validate([
+            'ids' => ['required', 'array', 'max:1000'],
+            'ids.*' => ['integer'],
+        ]);
+
+        DB::transaction(function () use ($vitrina, $data) {
+            foreach (array_values(array_unique($data['ids'])) as $index => $id) {
+                $vitrina->items()->whereKey($id)->update(['position' => $index + 1]);
+            }
+        });
+        $vitrina->touch();
+
+        return $vitrina->items()->get(['id', 'position']);
+    }
+
+    /**
+     * Egasi uchun statistika: jami ko'rishlar, so'nggi 30 kunda qo'ng'iroq va Telegram bosishlar
+     * (ilova track("contact_*", "v<id>") yozadi, activity:aggregate har 10 daqiqada yig'adi),
+     * vitrinadan chiqarilgan e'lonlar va ularning ko'rishlari.
+     */
+    public function stats(Request $request)
+    {
+        $vitrina = $request->user()->vitrina()->first();
+        abort_unless($vitrina, 404, __('messages.vitrina_not_found'));
+
+        $days = 30;
+        $contacts = DB::table('activity_stats')
+            ->where('ref', "v{$vitrina->id}")
+            ->whereIn('event', ['contact_phone', 'contact_telegram'])
+            ->where('date', '>=', now()->subDays($days - 1)->toDateString())
+            ->groupBy('event')
+            ->selectRaw('event, SUM(hits) as hits')
+            ->pluck('hits', 'event');
+
+        $ads = Product::where('vitrina_id', $vitrina->id)->setEagerLoads([]);
+
+        return [
+            'days' => $days,
+            'views' => (int) $vitrina->views_count,
+            'phone' => (int) ($contacts['contact_phone'] ?? 0),
+            'telegram' => (int) ($contacts['contact_telegram'] ?? 0),
+            'ads' => (clone $ads)->count(),
+            'ads_views' => (int) (clone $ads)->sum('views_count'),
+        ];
+    }
+
     public function destroyItem(Request $request, int $id)
     {
         $item = $this->ownVitrina($request)->items()->findOrFail($id);
@@ -194,7 +349,7 @@ class VitrinaController extends Controller
             ->get();
     }
 
-    public function adminUpdate(Request $request, int $id)
+    public function adminUpdate(Request $request, int $id, TelegramNotifier $notifier)
     {
         $data = $request->validate([
             'status' => ['sometimes', Rule::in([Vitrina::PENDING, Vitrina::APPROVED, Vitrina::REJECTED])],
@@ -208,7 +363,35 @@ class VitrinaController extends Controller
             'reject_reason' => ($data['status'] ?? $vitrina->status) === Vitrina::REJECTED ? ($data['reject_reason'] ?? null) : null,
         ])->save();
 
+        if ($vitrina->wasChanged('status')) {
+            $this->notifyOwner($vitrina, $notifier);
+        }
+
         return $vitrina->load('user:id,name,username')->loadCount('items');
+    }
+
+    /** Tasdiqlandi / rad etildi — egasiga bot xabari (o'z tilida). Yuborilmasa jim o'tadi */
+    private function notifyOwner(Vitrina $vitrina, TelegramNotifier $notifier): void
+    {
+        if (!in_array($vitrina->status, [Vitrina::APPROVED, Vitrina::REJECTED], true) || !$vitrina->user) {
+            return;
+        }
+
+        $previousLocale = app()->getLocale();
+        app()->setLocale($vitrina->user->language ?? 'uz');
+
+        $approved = $vitrina->status === Vitrina::APPROVED;
+        $text = $approved
+            ? __('bot.vitrina_approved', ['name' => e($vitrina->name)])
+            : __('bot.vitrina_rejected', ['name' => e($vitrina->name)])
+                . ($vitrina->reject_reason ? "\n\n" . __('bot.vitrina_reason', ['reason' => e($vitrina->reject_reason)]) : '');
+        $button = $approved
+            ? [__('bot.vitrina_open'), TelegramNotifier::appLink("v_{$vitrina->slug}")]
+            : [__('bot.vitrina_edit'), TelegramNotifier::appLink('my_vitrina')];
+
+        $notifier->toUser($vitrina->user, $text, [$button]);
+
+        app()->setLocale($previousLocale);
     }
 
     /* ================= Yordamchilar ================= */

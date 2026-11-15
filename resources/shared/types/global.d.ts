@@ -4,6 +4,7 @@ declare global {
    var ENV: {
       TELEGRAM_BOT_NAME: string;
       TELEGRAM_BOT_ID: string;
+      TELEGRAM_CHANNEL_URL: string;
    };
 
    // telegram-widget.js (brauzerdagi Telegram login) yuklangandan keyin paydo bo'ladi

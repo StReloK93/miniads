@@ -121,7 +121,7 @@ class Product extends Model
     //     return $this->category->listing_duration_days;
     // }
 
-    protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor', 'category'];
+    protected $with = ['parameter_values', 'images', 'price_type', 'district', 'backColor', 'category', 'vitrina'];
 
     protected $hidden = [
         'expires_at',
@@ -144,6 +144,15 @@ class Product extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Vitrina mahsulotidan chiqarilgan e'lon — kartada "… vitrinasidan" (faqat tasdiqlangan vitrina) */
+    public function vitrina()
+    {
+        return $this->belongsTo(Vitrina::class)
+            ->without('district')
+            ->where('vitrinas.status', Vitrina::APPROVED)
+            ->select(['vitrinas.id', 'vitrinas.name', 'vitrinas.slug', 'vitrinas.logo', 'vitrinas.type', 'vitrinas.is_verified']);
     }
 
     public function setDistrictIdAttribute($value): void

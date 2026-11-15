@@ -50,6 +50,13 @@ class ProductService
                     'user_id' => $request->user()->id,
                 ]);
 
+                // Vitrina mahsulotidan chiqarilgan e'lon — faqat o'z vitrinasiga bog'lanadi
+                if ($vitrinaId = $request->integer('vitrina_id')) {
+                    if ($request->user()->vitrina()->whereKey($vitrinaId)->exists()) {
+                        $product->forceFill(['vitrina_id' => $vitrinaId]);
+                    }
+                }
+
                 $product->expires_at = $product->category->listingExpiresAt();
                 $product->save();
 

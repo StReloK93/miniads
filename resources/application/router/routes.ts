@@ -63,6 +63,8 @@ export const routes: RouteRecordRaw[] = [
             meta: { requiresAuth: true, confirmClose: true },
          },
          { path: "login", component: () => import("@pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
+         // "Qanday ishlaydi?": kirmagan foydalanuvchi ham o'qiy oladi
+         { path: "help", component: () => import("@pages/HelpPage.vue"), name: "help" },
          {
             path: "my-vitrina",
             component: () => import("@pages/MyVitrinaPage.vue"),

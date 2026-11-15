@@ -1,16 +1,29 @@
 import { api } from "@shared/composables/useFetch";
-import type { IVitrina, IVitrinaItem, IVitrinaSection, VitrinaType } from "@shared/types";
+import type { IVitrina, IVitrinaItem, IVitrinaSection, IVitrinaStats, VitrinaType } from "@shared/types";
 
 const multipart = { headers: { "Content-Type": "multipart/form-data" } };
 
 export default {
-   /** Katalog: tasdiqlanganlar; cityId — shu shahar va butun viloyat, type — turi bo'yicha */
-   index(params?: { city_id?: number | null; type?: VitrinaType | null }) {
-      const query = Object.fromEntries(Object.entries(params ?? {}).filter(([, value]) => value));
+   /**
+    * Tasdiqlanganlar; city_id — shu shahar va butun viloyat, type — turi bo'yicha.
+    * strip — bosh sahifa qatori: 12 ta, kunlik aralashtirilgan
+    */
+   index(params?: { city_id?: number | null; type?: VitrinaType | null; strip?: boolean }) {
+      const query = Object.fromEntries(
+         Object.entries(params ?? {})
+            .filter(([, value]) => value)
+            .map(([key, value]) => [key, value === true ? 1 : value]),
+      );
       return api.get<IVitrina[]>("vitrinas", { params: query });
    },
    show(slug: string | number) {
       return api.get<IVitrina>(`vitrinas/${slug}`);
+   },
+   /** Qidiruvdagi "Vitrinalardan" bloki; city_id — shu shahar va butun viloyat */
+   searchItems(search: string, cityId?: number | null) {
+      return api.get<IVitrinaItem[]>("vitrina-items/search", {
+         params: cityId ? { search, city_id: cityId } : { search },
+      });
    },
 
    /* ----- O'z vitrinam ----- */
@@ -35,5 +48,12 @@ export default {
    },
    deleteItem(id: number) {
       return api.delete(`my-vitrina/items/${id}`);
+   },
+   /** Mahsulotlar tartibi: barcha id'lar yangi tartibda */
+   orderItems(ids: number[]) {
+      return api.post<{ id: number; position: number }[]>("my-vitrina/items/order", { ids });
+   },
+   stats() {
+      return api.get<IVitrinaStats>("my-vitrina/stats");
    },
 };

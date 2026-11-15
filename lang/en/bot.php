@@ -28,5 +28,12 @@ return [
     'admin_about_ad' => 'Ad: <b>:title</b>',
     'open_ad' => 'Open the ad',
 
+    // Showcase approved / rejected (VitrinaController::adminUpdate)
+    'vitrina_approved' => "✅ <b>Your showcase is approved!</b>\n\n«:name» is now visible to everyone: on the home page, in the showcase catalog and in search.",
+    'vitrina_rejected' => "❌ <b>Your showcase wasn't approved</b>\n\n«:name» isn't visible to others yet. Fix the details and save, and we'll review it again.",
+    'vitrina_reason' => "Reason: <i>:reason</i>",
+    'vitrina_open' => "Open the showcase",
+    'vitrina_edit' => "Edit the showcase",
+
     'price_drop' => "📉 <b>A saved ad got cheaper!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
 ];

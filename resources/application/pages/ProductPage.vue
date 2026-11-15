@@ -175,6 +175,26 @@
                   </main>
                </div>
 
+               <!-- Sotuvchining vitrinasi: boshqa mahsulotlari va doimiy biznes sahifasi -->
+               <RouterLink
+                  v-if="product.seller_vitrina"
+                  :to="{ name: 'vitrina', params: { slug: product.seller_vitrina.slug } }"
+                  class="mb-3 flex items-center gap-3 rounded-2xl border border-(--z-border) bg-(--z-card) p-3 active:bg-(--z-muted)"
+               >
+                  <VitrinaAvatar :vitrina="product.seller_vitrina" class="size-11 text-base" />
+                  <span class="min-w-0 grow">
+                     <span class="block text-xs text-(--z-muted-text)">{{ $t("vitrina.sellerHas") }}</span>
+                     <span class="flex items-center gap-1 text-sm font-semibold">
+                        <span class="truncate">{{ product.seller_vitrina.name }}</span>
+                        <VitrinaVerified v-if="product.seller_vitrina.is_verified" class="size-4" />
+                     </span>
+                     <span v-if="product.seller_vitrina.items_count" class="block text-xs text-(--z-muted-text)">
+                        {{ $t("vitrina.itemsTotal", { n: product.seller_vitrina.items_count }, product.seller_vitrina.items_count) }}
+                     </span>
+                  </span>
+                  <ChevronRight class="size-4 shrink-0 text-(--z-muted-text)" />
+               </RouterLink>
+
                <!-- Shikoyat — kamdan-kam kerak: ko'zga tashlanmaydigan, lekin topiladigan joyda -->
                <button
                   v-if="!isOwnProduct"
@@ -387,6 +407,8 @@ import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@shared/modules/helpers";
 import ReportDrawer from "@/features/product/ReportDrawer.vue";
+import VitrinaAvatar from "@/features/vitrina/VitrinaAvatar.vue";
+import VitrinaVerified from "@/features/vitrina/VitrinaVerified.vue";
 import { useAuth } from "@shared/store/useAuth";
 import { displayUnit } from "@shared/modules/productSpecs";
 import { t } from "@shared/i18n";

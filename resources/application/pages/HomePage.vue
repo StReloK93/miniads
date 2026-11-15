@@ -18,7 +18,11 @@
             @filters="isFilterOpen = true"
          />
          <div class="home-collapse" :class="{ 'is-closed': searching }">
-            <div><CategoriesSlider /></div>
+            <div>
+               <CategoriesSlider />
+               <!-- Vitrinalar bo'limlar tagida: lenta aylantirilganda ham ko'rinib turadi -->
+               <VitrinaStrip />
+            </div>
          </div>
       </template>
 
@@ -42,8 +46,6 @@
          <!-- Tezkor bo'limlar: kategoriyalar qatori tagida, lenta bilan birga suriladi -->
          <FeaturedCategories />
 
-         <!-- Vitrinalar: do'konlar, menyular, ustalar — tanlangan shahar bo'yicha -->
-         <VitrinaStrip />
 
          <!-- Dastlabki yuklanish skeletlari -->
          <main v-if="isLoadingInitial" class="flex flex-col gap-2.5">
@@ -96,6 +98,7 @@ import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import CategoriesSlider from "@/features/category/CategoriesSlider.vue";
 import FeaturedCategories from "@/features/category/FeaturedCategories.vue";
 import VitrinaStrip from "@/features/vitrina/VitrinaStrip.vue";
+import { useOnboardingTour } from "@/features/help/useOnboardingTour";
 import HomeSearchBar from "@/features/search/HomeSearchBar.vue";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import ProductCard from "@/features/product/ProductCard.vue";
@@ -114,6 +117,9 @@ import ProfileRepo from "@shared/entities/Profile/ProfileRepo";
 import { useCategory } from "@shared/entities/Category/useCategory";
 
 const categoryStore = useCategory();
+
+// Birinchi kirishda: ilova qanday ishlashi haqida 3 ta slayd
+useOnboardingTour().openIfNew();
 
 const route = useRoute();
 const router = useRouter();

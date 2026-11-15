@@ -31,5 +31,12 @@ return [
     'open_ad' => "E'lonni ochish",
 
     // Sevimlilardagi e'lon arzonladi (NotifyPriceDrop)
+    // Vitrina tasdiqlandi / rad etildi (VitrinaController::adminUpdate)
+    'vitrina_approved' => "✅ <b>Vitrinangiz tasdiqlandi!</b>\n\n«:name» endi hammaga ko'rinadi: bosh sahifada, vitrinalar katalogida va qidiruvda.",
+    'vitrina_rejected' => "❌ <b>Vitrinangiz tasdiqlanmadi</b>\n\n«:name» hozircha boshqalarga ko'rinmaydi. Ma'lumotlarni tuzatib saqlasangiz, qayta ko'rib chiqamiz.",
+    'vitrina_reason' => "Sababi: <i>:reason</i>",
+    'vitrina_open' => "Vitrinani ochish",
+    'vitrina_edit' => "Vitrinani tahrirlash",
+
     'price_drop' => "📉 <b>Sevimli e'loningiz arzonladi!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
 ];

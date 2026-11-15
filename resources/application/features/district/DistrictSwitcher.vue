@@ -35,11 +35,21 @@
       <aside v-else>
          <h2 class="text-base font-bold">MiniAds</h2>
       </aside>
+
+      <!-- "Qanday ishlaydi?" — har doim ko'rinib turadi, joy egallamaydi -->
+      <RouterLink
+         :to="{ name: 'help' }"
+         class="size-8 shrink-0 rounded-full border border-(--z-border) bg-(--z-card) flex items-center justify-center text-(--z-muted-text) active:bg-(--z-muted)"
+         :aria-label="$t('help.title')"
+         :title="$t('help.title')"
+      >
+         <CircleHelp class="size-4.5" />
+      </RouterLink>
    </main>
 </template>
 
 <script setup lang="ts">
-import { MapPin } from "lucide-vue-next";
+import { CircleHelp, MapPin } from "lucide-vue-next";
 import { useAuth } from "@shared/store/useAuth";
 import { Form } from "vee-validate";
 import { ref, Ref } from "vue";

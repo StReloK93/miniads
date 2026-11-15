@@ -156,6 +156,13 @@
                <h4 class="section-title">{{ $t("profile.help") }}</h4>
                <ul class="card divide-y divide-(--z-border)">
                   <li>
+                     <RouterLink :to="{ name: 'help' }" class="row">
+                        <CircleHelp class="size-4.5 text-(--z-muted-text)" />
+                        <span class="grow text-sm font-medium">{{ $t("help.title") }}</span>
+                        <ChevronRight class="size-4 text-(--z-muted-text)" />
+                     </RouterLink>
+                  </li>
+                  <li>
                      <button type="button" class="row w-full" @click="openUrl(privacyUrl)">
                         <ShieldCheck class="size-4.5 text-(--z-muted-text)" />
                         <span class="grow text-left text-sm font-medium">{{ $t("profile.rules") }}</span>
@@ -196,6 +203,7 @@ import {
    Camera,
    Check,
    ChevronRight,
+   CircleHelp,
    Languages,
    LayoutDashboard,
    LifeBuoy,

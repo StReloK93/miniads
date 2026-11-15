@@ -14,6 +14,8 @@ export interface ICategory {
    with_title?: boolean;
    /** E'lonlari hech qachon tugamaydi */
    is_permanent?: boolean;
+   /** E'lon necha kun turadi; bo'sh bo'lsa — standart muddat (30 kun) */
+   listing_duration_days?: number | null;
    /** Bosh sahifadagi "Tezkor bo'limlar" qatorida chiqadi */
    is_featured?: boolean;
    parent: ICategory;
@@ -125,7 +127,14 @@ export interface IProduct {
    similar_products?: IProduct[];
    /** Shu sotuvchining boshqa faol e'lonlari (bot e'lonlarida bo'sh) */
    seller_products?: IProduct[];
+   /** Vitrina mahsulotidan chiqarilgan e'lon — kartada "… vitrinasidan" (faqat tasdiqlangan vitrina) */
+   vitrina?: IVitrinaBrief | null;
+   /** E'lon sahifasida: sotuvchining tasdiqlangan vitrinasi */
+   seller_vitrina?: (IVitrinaBrief & { items_count?: number }) | null;
 }
+
+/** Kartalar va havolalar uchun vitrinaning qisqa ko'rinishi */
+export type IVitrinaBrief = Pick<IVitrina, "id" | "name" | "slug" | "logo" | "type" | "is_verified">;
 
 // E'lon yaratish/yangilash uchun API'ga yuboriladigan ma'lumot (multipart/form-data)
 export interface IProductPayload {
@@ -142,6 +151,8 @@ export interface IProductPayload {
    images?: unknown[];
    /** Forma "Matn bilan" (AI) to'ldirilgan — statistikada alohida sanaladi */
    via_ai?: 1;
+   /** Vitrina mahsulotidan chiqarilgan e'lon (server faqat o'z vitrinasini qabul qiladi) */
+   vitrina_id?: number;
 }
 
 /** "Matn bilan e'lon": AI matndan to'ldirgan forma qiymatlari */
@@ -280,6 +291,18 @@ export interface IVitrinaItem {
    images: string[] | null;
    is_available: boolean;
    position: number;
+   /** Qidiruvdagi "Vitrinalardan" blokida: qaysi vitrinaniki */
+   vitrina?: IVitrinaBrief;
+}
+
+/** Egasi uchun statistika (so'nggi `days` kun: qo'ng'iroq va Telegram bosishlar) */
+export interface IVitrinaStats {
+   days: number;
+   views: number;
+   phone: number;
+   telegram: number;
+   ads: number;
+   ads_views: number;
 }
 
 export interface IVitrina {

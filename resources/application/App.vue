@@ -8,6 +8,7 @@
                <component :is="Component" :key="route.meta.layoutKey" @vue:mounted="onComponentMounted" />
             </transition>
          </RouterView>
+         <OnboardingTour />
       </section>
    </div>
 </template>
@@ -22,6 +23,7 @@ import { useCity } from "@shared/entities/District/useCity";
 import { on, postEvent } from "@tma.js/bridge";
 import { goBack, runBackHandler } from "@/modules/navigation";
 import { useAdminMessages } from "@/features/notifications/useAdminMessages";
+import OnboardingTour from "@/features/help/OnboardingTour.vue";
 // Administratsiya xabarlari: kirgan foydalanuvchi uchun yuklanadi, menyuda belgi bo'lib turadi
 useAdminMessages();
 const categoryStore = useCategory();

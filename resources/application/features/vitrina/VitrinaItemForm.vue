@@ -1,11 +1,19 @@
 <template>
    <BaseDrawer :open="open" :title="item ? $t('vitrina.form.editItem') : $t('vitrina.form.newItem')" @close="emit('close')">
-      <form id="vitrina-item-form" class="flex flex-col gap-4" @submit.prevent="save">
-         <p v-if="error" class="text-sm text-(--z-danger)">{{ error }}</p>
+      <!-- Maydonlar e'lon formasidagi komponentlar bilan (BaseFormFields): ko'rinish va tekshiruv bir xil -->
+      <Form
+         id="vitrina-item-form"
+         :key="formKey"
+         :initial-values="initialValues"
+         :validation-schema="validationSchema"
+         class="flex flex-col"
+         @submit="save"
+      >
+         <p v-if="error" class="mb-3 text-sm text-(--z-danger)">{{ error }}</p>
 
          <!-- Rasmlar: eskilari (× bilan olib tashlanadi) va yangilari; ko'pi bilan 6 ta -->
-         <div>
-            <label class="label">{{ $t("vitrina.form.photos") }}</label>
+         <div class="mb-3">
+            <p class="label">{{ $t("vitrina.form.photos") }}</p>
             <div class="flex flex-wrap gap-2">
                <div v-for="(photo, index) in photos" :key="photo.key" class="thumb">
                   <img :src="photo.src" alt="" class="size-full object-cover" />
@@ -20,73 +28,46 @@
             </div>
          </div>
 
-         <div>
-            <label class="label" for="vi-title">{{ $t("vitrina.form.itemTitle") }}</label>
-            <input id="vi-title" v-model="form.title" class="field" maxlength="100" required :placeholder="$t('vitrina.form.itemTitleHint')" />
-         </div>
+         <BaseFormFields :input-configs="mainInputs" />
 
-         <div v-if="sections.length">
-            <label class="label">{{ $t("vitrina.form.section") }}</label>
-            <FieldSelect
-               :model-value="form.vitrina_section_id ?? 0"
-               :options="[{ id: 0, name: $t('vitrina.otherSection') }, ...sections]"
-               value="name"
-               @update:model-value="(id) => (form.vitrina_section_id = id || null)"
-            />
-         </div>
-
-         <div>
-            <label class="label" for="vi-desc">{{ $t("common.description") }}</label>
-            <textarea id="vi-desc" v-model="form.description" class="field py-2.5" rows="3" maxlength="2000" />
-         </div>
-
-         <div>
-            <label class="label">{{ $t("vitrina.form.price") }}</label>
-            <div class="flex flex-wrap gap-2 mb-2.5">
+         <div class="mt-3 mb-3">
+            <p class="label">{{ $t("vitrina.form.price") }}</p>
+            <div class="flex flex-wrap gap-2">
                <button
                   v-for="mode in PRICE_MODES"
                   :key="mode"
                   type="button"
                   class="chip"
-                  :class="{ 'is-active': form.price_mode === mode }"
-                  @click="form.price_mode = mode"
+                  :class="{ 'is-active': priceMode === mode }"
+                  @click="priceMode = mode"
                >
                   {{ $t(`vitrina.priceModes.${mode}`) }}
                </button>
             </div>
-            <div v-if="hasPrice" class="grid grid-cols-[1fr_auto] gap-2">
-               <input
-                  v-model="priceText"
-                  class="field tabular-nums"
-                  inputmode="numeric"
-                  required
-                  :placeholder="$t('vitrina.form.priceHint')"
-                  @input="priceText = formatDigits(priceText)"
-               />
-               <FieldSelect
-                  v-if="priceTypes.length"
-                  v-model="form.price_type_id"
-                  :options="priceTypes"
-                  value="type"
-                  class="w-24"
-               />
-            </div>
-            <input
-               v-if="hasPrice"
-               v-model="form.unit"
-               class="field mt-2"
-               maxlength="30"
-               :placeholder="$t('vitrina.form.unitHint')"
-            />
          </div>
 
-         <BaseSwitch v-model="form.is_available">
+         <BaseFormFields v-if="hasPrice" :input-configs="priceInputs" />
+
+         <BaseSwitch v-model="isAvailable" class="mt-1">
             <span class="block text-sm font-medium">{{ $t("vitrina.form.available") }}</span>
             <span class="block text-xs text-(--z-muted-text)">{{ $t("vitrina.form.availableHint") }}</span>
          </BaseSwitch>
-      </form>
+      </Form>
 
       <template #footer>
+         <!-- Saqlangan mahsulotni bir bosishda e'lon qilish: forma shu ma'lumotlar bilan to'ldiriladi -->
+         <button
+            v-if="item"
+            type="button"
+            class="mb-3 w-full flex items-center gap-2.5 rounded-xl border border-(--z-border) px-3 py-2.5 text-left active:bg-(--z-muted)"
+            @click="emit('publish', item)"
+         >
+            <Megaphone class="size-4.5 shrink-0 text-(--z-primary)" />
+            <span class="min-w-0 grow">
+               <span class="block text-sm font-semibold">{{ $t("vitrina.publish.button") }}</span>
+               <span class="block text-xs text-(--z-muted-text) leading-snug">{{ $t("vitrina.publish.hint") }}</span>
+            </span>
+         </button>
          <div class="flex gap-3">
             <!-- Ikki bosqich: birinchi bosish so'raydi, ikkinchisi o'chiradi (Telegram ichida confirm() ishonchsiz) -->
             <BaseButton v-if="item" severity="danger" :icon-only="!confirmDelete" :loading="deleting" :aria-label="$t('common.delete')" @click="remove">
@@ -102,14 +83,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
-import { ImagePlus, Trash2, X } from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
+import { Form } from "vee-validate";
+import { toTypedSchema } from "@vee-validate/zod";
+import { z } from "zod";
+import { ImagePlus, Megaphone, Trash2, X } from "lucide-vue-next";
 import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
-import FieldSelect from "@shared/ui/FieldSelect.vue";
+import BaseFormFields from "@shared/ui/BaseFormFields.vue";
+import { Inputs } from "@shared/ui/inputs";
+import { t } from "@shared/i18n";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
-import type { IVitrinaItem, IVitrinaSection, VitrinaPriceMode } from "@shared/types";
+import type { InputConfig, IVitrinaItem, IVitrinaSection, VitrinaPriceMode } from "@shared/types";
 import { storageUrl } from "@/features/vitrina/vitrinaKit";
 import { errorMessage } from "@/features/vitrina/vitrinaForm";
 
@@ -131,27 +117,98 @@ const emit = defineEmits<{
    (e: "close"): void;
    (e: "saved", item: IVitrinaItem): void;
    (e: "deleted", id: number): void;
+   (e: "publish", item: IVitrinaItem): void;
 }>();
 
 type Photo = { key: string; src: string; path?: string; file?: File };
 
-const form = reactive({
-   title: "",
-   description: "",
-   vitrina_section_id: null as number | null,
-   price_mode: "fixed" as VitrinaPriceMode,
-   price_type_id: 1 as number | null,
-   unit: "",
-   is_available: true,
-});
-const priceText = ref("");
+// Formadan tashqaridagi qismlar: narx turi tugmalari, "Hozir bor" va rasmlar
+const priceMode = ref<VitrinaPriceMode>("fixed");
+const isAvailable = ref(true);
 const photos = ref<Photo[]>([]);
 const saving = ref(false);
 const deleting = ref(false);
 const error = ref("");
 const confirmDelete = ref(false);
+/** Har ochilishda forma yangidan (boshlang'ich qiymatlar shu mahsulotdan) */
+const formKey = ref(0);
 
-const hasPrice = computed(() => form.price_mode === "fixed" || form.price_mode === "from");
+const hasPrice = computed(() => priceMode.value === "fixed" || priceMode.value === "from");
+
+const mainInputs = computed<InputConfig[]>(() => [
+   {
+      component: Inputs.FieldText,
+      name: "title",
+      required: true,
+      props: { title: t("vitrina.form.itemTitle"), placeholder: t("vitrina.form.itemTitleHint"), maxlength: 100 },
+      schema: z.string({ message: t("form.required") }).trim().min(1, t("form.required")).max(100),
+      class: ["mb-3"],
+   },
+   ...(props.sections.length
+      ? [
+           {
+              component: Inputs.FieldSelect,
+              name: "vitrina_section_id",
+              props: {
+                 title: t("vitrina.form.section"),
+                 options: [{ id: 0, name: t("vitrina.otherSection") }, ...props.sections],
+                 value: "name",
+              },
+              schema: z.coerce.number().min(0),
+              class: ["mb-3"],
+           },
+        ]
+      : []),
+   {
+      component: Inputs.FieldTextarea,
+      name: "description",
+      optional: true,
+      props: { title: t("common.description"), rows: 3, maxHeight: 200, maxlength: 2000 },
+      schema: z.string().trim().max(2000).optional().nullable(),
+   },
+]);
+
+// Narx va valyuta — e'lon formasidagidek: valyuta narx maydoni ichida (teleport)
+const priceInputs = computed<InputConfig[]>(() => [
+   {
+      component: Inputs.FieldNumber,
+      name: "price",
+      required: true,
+      props: { placeholder: t("vitrina.form.priceHint"), max: 999999999999, class: "pr-28!" },
+      schema: z.coerce.number({ message: t("form.required") }).min(1, t("form.priceMin")),
+      class: ["mb-3"],
+      teleport_parent_class: "parent_vitrina_price",
+   },
+   {
+      component: Inputs.FieldSelect,
+      name: "price_type_id",
+      props: { options: props.priceTypes, value: "type", selectIcon: false, variant: "addon" },
+      schema: z.coerce.number(),
+      class: ["absolute", "inset-y-0", "right-0", "flex", "items-center", "pr-2"],
+      teleport_child_class: "parent_vitrina_price",
+   },
+   {
+      component: Inputs.FieldText,
+      name: "unit",
+      optional: true,
+      props: { title: t("vitrina.form.unit"), placeholder: t("vitrina.form.unitHint"), maxlength: 30 },
+      schema: z.string().trim().max(30).optional().nullable(),
+      class: ["mb-3"],
+   },
+]);
+
+// Faqat ko'rinib turgan maydonlar tekshiriladi ("Kelishiladi"da narx so'ralmaydi)
+const validationSchema = computed(() =>
+   toTypedSchema(
+      z.object(
+         Object.fromEntries(
+            [...mainInputs.value, ...(hasPrice.value ? priceInputs.value : [])].map((input) => [input.name, input.schema]),
+         ),
+      ),
+   ),
+);
+
+const initialValues = ref<Record<string, unknown>>({});
 
 // Har ochilganda: tahrirlanayotgan mahsulotdan yoki bo'sh formadan
 watch(
@@ -161,22 +218,20 @@ watch(
       const item = props.item;
       error.value = "";
       confirmDelete.value = false;
-      form.title = item?.title ?? "";
-      form.description = item?.description ?? "";
-      form.vitrina_section_id = item ? item.vitrina_section_id : props.defaultSectionId;
-      form.price_mode = item?.price_mode ?? props.defaultPriceMode;
-      form.price_type_id = item?.price_type_id ?? props.priceTypes[0]?.id ?? 1;
-      form.unit = item?.unit ?? "";
-      form.is_available = item?.is_available ?? true;
-      priceText.value = item?.price != null ? formatDigits(String(item.price)) : "";
+      priceMode.value = item?.price_mode ?? props.defaultPriceMode;
+      isAvailable.value = item?.is_available ?? true;
       photos.value = (item?.images ?? []).map((path) => ({ key: path, src: storageUrl(path)!, path }));
+      initialValues.value = {
+         title: item?.title ?? "",
+         vitrina_section_id: (item ? item.vitrina_section_id : props.defaultSectionId) ?? 0,
+         description: item?.description ?? "",
+         price: item?.price ?? undefined,
+         price_type_id: item?.price_type_id ?? props.priceTypes[0]?.id ?? 1,
+         unit: item?.unit ?? "",
+      };
+      formKey.value++;
    },
 );
-
-function formatDigits(value: string): string {
-   const digits = value.replace(/\D/g, "").slice(0, 12);
-   return digits ? Number(digits).toLocaleString("ru-RU") : "";
-}
 
 function addPhotos(event: Event) {
    const input = event.target as HTMLInputElement;
@@ -191,21 +246,23 @@ function removePhoto(index: number) {
    if (photo?.file) URL.revokeObjectURL(photo.src);
 }
 
-async function save() {
+async function save(formValues: Record<string, unknown>) {
    saving.value = true;
    error.value = "";
    try {
+      const values = formValues as Record<string, string | number | null | undefined>;
+      const text = (value: unknown) => String(value ?? "").trim();
       const data = new FormData();
-      data.append("title", form.title.trim());
-      data.append("description", form.description.trim());
-      data.append("vitrina_section_id", String(form.vitrina_section_id ?? ""));
-      data.append("price_mode", form.price_mode);
+      data.append("title", text(values.title));
+      data.append("description", text(values.description));
+      data.append("vitrina_section_id", values.vitrina_section_id ? String(values.vitrina_section_id) : "");
+      data.append("price_mode", priceMode.value);
       if (hasPrice.value) {
-         data.append("price", priceText.value.replace(/\D/g, ""));
-         data.append("price_type_id", String(form.price_type_id ?? ""));
-         data.append("unit", form.unit.trim());
+         data.append("price", text(values.price));
+         data.append("price_type_id", text(values.price_type_id));
+         data.append("unit", text(values.unit));
       }
-      data.append("is_available", form.is_available ? "1" : "0");
+      data.append("is_available", isAvailable.value ? "1" : "0");
       for (const photo of photos.value) {
          if (photo.path) data.append("keep_images[]", photo.path);
          if (photo.file) data.append("images[]", photo.file);
@@ -241,12 +298,15 @@ async function remove() {
 </script>
 
 <style scoped>
+/* BaseFormFields sarlavhasi bilan bir xil */
 .label {
    display: block;
    margin-bottom: 0.375rem;
-   color: var(--z-muted-text);
+   padding: 0 0.125rem;
+   color: var(--z-foreground);
    font-size: 0.75rem;
    font-weight: 600;
+   letter-spacing: 0.025em;
 }
 
 .chip {

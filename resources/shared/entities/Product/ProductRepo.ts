@@ -20,6 +20,10 @@ export default {
    aiDraft(text: string) {
       return api.post<IAiDraftResponse>(`${baseURL}/ai-draft`, { text });
    },
+   /** Bugun AI bilan yana necha marta joylash mumkin (admin uchun remaining = null) */
+   aiDraftQuota() {
+      return api.get<{ limit: number; remaining: number | null }>(`${baseURL}/ai-draft/quota`);
+   },
    edit(id: string | number) {
       return api.get<IProduct>(`${baseURL}/${id}/edit`);
    },

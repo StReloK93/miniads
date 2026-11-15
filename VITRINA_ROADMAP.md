@@ -32,13 +32,19 @@ E'londan farqi: muddati tugamaydi, ichida bo'limlar va ko'p mahsulot/ish bor, na
 
 ## 2. Keyingi qadamlar (ustuvorlik bo'yicha)
 
-1. **Qidiruvda "Vitrinalardan" bloki** — "divan" qidirilsa e'lonlar bilan birga vitrina mahsulotlari ham chiqsin
-   (`ProductSearchService` mantiqi bilan, shahar filtri hisobga olinsin).
-2. **Tasdiq/rad xabari** — admin tasdiqlasa yoki rad etsa, egasiga bot xabar yuborsin (`TelegramNotifier`).
-3. **Mahsulotni e'lon qilib chiqarish** — vitrina mahsulotidan bir bosishda e'lon; e'lon kartasida "… vitrinasidan" belgisi,
-   e'lon sahifasida "Sotuvchining vitrinasi bor" havolasi.
-4. **Egasi uchun statistika** — ko'rishlar, qo'ng'iroq/Telegram bosishlar (`track(..., "v<id>")` allaqachon yozilyapti).
-5. **Mahsulotlar tartibini o'zgartirish** (drag & drop) — `position` ustuni tayyor.
+1. ✅ **Qidiruvda "Vitrinalardan" bloki** (2026-11-15) — `GET /api/vitrina-items/search?search=&city_id=`
+   (`VitrinaController::searchItems`): barcha so'zlar nom/tavsif/bo'limda; qisqa so'z ("osh") faqat oddiy qo'shimchalar bilan,
+   vitrina nomi faqat 4+ harfli so'zlarda. Ilovada `VitrinaSearchBlock` (qidiruv natijalari tepasida, gorizontal),
+   bosilganda `/v/:slug?item=ID` — mahsulot darhol ochiladi.
+2. ✅ **Tasdiq/rad xabari** (2026-11-15) — `adminUpdate` holat o'zgarganda egasiga o'z tilida bot xabari
+   (`bot.vitrina_approved` / `vitrina_rejected` + sababi); tugma: vitrinani ochish yoki `startapp=my_vitrina`.
+3. ✅ **Mahsulotni e'lon qilib chiqarish** (2026-11-15) — mahsulot formasida "E'lon qilish": nom, tavsif, narx, telefon,
+   shahar va rasmlar e'lon formasiga o'tadi (`useAiDraft` qoralamasi, `vitrinaId` bilan), bo'limni foydalanuvchi tanlaydi.
+   `products.vitrina_id` (faqat o'z vitrinasi); kartada "… vitrinasidan", e'lon sahifasida "Sotuvchining vitrinasi" (`seller_vitrina`).
+4. ✅ **Egasi uchun statistika** (2026-11-15) — `GET /api/my-vitrina/stats`: jami ko'rishlar, 30 kunlik qo'ng'iroq/Telegram
+   bosishlar (`activity_stats`, ref `v<id>`), vitrinadan e'lonlar soni va ko'rishlari. "Mening vitrinam"da 4 ta plitka.
+5. ✅ **Mahsulotlar tartibi** (2026-11-15) — `POST /api/my-vitrina/items/order {ids}`. Drag & drop o'rniga "Tartib" rejimi:
+   tepaga/pastga tugmalari (Telegram ichida sudrash sahifa aylantirish bilan to'qnashadi), tanlangan bo'lim ichida ham ishlaydi.
 6. **Pullik imkoniyatlar** (keyinroq): bepul — 20 tagacha mahsulot; Pro — cheksiz, ro'yxatda yuqorida, statistika.
 
 ## 3. Reja: vitrina egasining Telegram kanaliga avtomatik post

@@ -54,6 +54,8 @@ Route::get('districts', [App\Http\Controllers\DistrictController::class, 'index'
 // Vitrinalar: katalog va sahifa hammaga ochiq (egasi o'zining tasdiqlanmaganini ham ko'radi)
 Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\VitrinaController::class)->group(function () {
     Route::get('/vitrinas', 'index');
+    // Qidiruvdagi "Vitrinalardan" bloki ({slug} dan oldin turishi shart emas — yo'li boshqa)
+    Route::get('/vitrina-items/search', 'searchItems');
     Route::get('/vitrinas/{slug}', 'show');
 });
 Route::get('price-types', [App\Http\Controllers\PriceTypeController::class, 'index']);
@@ -117,6 +119,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/products/custom/my_ads/{status}', [App\Http\Controllers\ProductController::class, 'myAds']);
     // "Matn bilan e'lon": AI formani to'ldiradi (kunlik limit controllerda). /products/{id} dan oldin turishi shart
+    Route::get('/products/ai-draft/quota', [App\Http\Controllers\ProductDraftController::class, 'quota']);
     Route::post('/products/ai-draft', App\Http\Controllers\ProductDraftController::class)->middleware('throttle:10,1');
     Route::post('/products/{id}/deactivate', [App\Http\Controllers\ProductController::class, 'deactivate']);
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
@@ -130,6 +133,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::patch('/sections/{id}', 'updateSection');
         Route::delete('/sections/{id}', 'destroySection');
         Route::post('/items', 'storeItem');
+        Route::post('/items/order', 'orderItems');
+        Route::get('/stats', 'stats');
         Route::post('/items/{id}', 'updateItem');
         Route::delete('/items/{id}', 'destroyItem');
     });

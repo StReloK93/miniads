@@ -32,7 +32,8 @@ const initials = computed(() =>
    place-items: center;
    overflow: hidden;
    border-radius: 999px;
-   background: rgb(var(--tone) / 0.14);
+   /* Rang qatlami yopiq fon ustida: muqova yoki sahifa ustida turganda orqasi ko'rinib qolmaydi */
+   background: linear-gradient(rgb(var(--tone) / 0.16), rgb(var(--tone) / 0.16)), var(--z-background);
    color: rgb(var(--tone));
 }
 

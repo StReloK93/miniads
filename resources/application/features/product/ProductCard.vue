@@ -59,6 +59,12 @@
                {{ specs.join(" · ") }}
             </p>
 
+            <!-- Vitrina mahsulotidan chiqarilgan e'lon: sotuvchi doimiy biznes ekanini bildiradi -->
+            <p v-if="product.vitrina" class="mt-1 min-w-0 inline-flex items-center gap-1 text-[11px] font-medium text-(--z-primary)">
+               <Store class="size-3 shrink-0" />
+               <span class="truncate">{{ $t("vitrina.fromVitrina", { name: product.vitrina.name }) }}</span>
+            </p>
+
             <!-- Pastki qator: qayerda va qachon; yurakcha o'ng pastda — bosh barmoq yetadigan joyda -->
             <div class="mt-auto pt-1.5 flex items-center justify-between gap-2">
                <p class="min-w-0 inline-flex items-center gap-1 text-[11px] text-(--z-muted-text)">
@@ -99,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, Heart, Images, MapPin } from "lucide-vue-next";
+import { Eye, Heart, Images, MapPin, Store } from "lucide-vue-next";
 import { formatProductPrice, timeAgo } from "@shared/modules/formatters";
 import { productSpecs } from "@shared/modules/productSpecs";
 import { useCategoryTheme } from "@/features/category/categoryTheme";

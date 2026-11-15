@@ -91,6 +91,9 @@ const initApp = async () => {
             startRoute = { name: "create-select-category" };
          } else if (startParam === "my_ads") {
             startRoute = { name: "my-ads" };
+         } else if (startParam === "my_vitrina") {
+            // Bot xabari: "Vitrinangiz tasdiqlanmadi" → tahrirlash
+            startRoute = { name: "my-vitrina" };
          } else if (startParam === "admin_reported") {
             startUrl = "/admin/products?status=reported";
          }

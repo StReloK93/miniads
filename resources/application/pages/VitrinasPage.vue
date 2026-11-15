@@ -45,7 +45,7 @@
                <span class="min-w-0 grow">
                   <span class="flex items-center gap-1 font-semibold text-[0.9375rem] leading-tight">
                      <span class="truncate">{{ vitrina.name }}</span>
-                     <BadgeCheck v-if="vitrina.is_verified" class="size-4 shrink-0 text-(--z-primary)" />
+                     <VitrinaVerified v-if="vitrina.is_verified" class="size-4" />
                   </span>
                   <span class="block mt-0.5 text-xs text-(--z-muted-text) truncate">
                      {{ $t(`vitrina.types.${vitrina.type}`) }} · {{ vitrina.district?.name || $t("district.region") }}
@@ -78,13 +78,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { ArrowLeft, BadgeCheck, ChevronRight, Sparkles, Store } from "lucide-vue-next";
+import { ArrowLeft, ChevronRight, Sparkles, Store } from "lucide-vue-next";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import { useAuth } from "@shared/store/useAuth";
 import type { IVitrina, VitrinaType } from "@shared/types";
 import { goBack } from "@/modules/navigation";
 import VitrinaAvatar from "@/features/vitrina/VitrinaAvatar.vue";
+import VitrinaVerified from "@/features/vitrina/VitrinaVerified.vue";
 import { VITRINA_TYPES, VITRINA_TYPE_KEYS } from "@/features/vitrina/vitrinaKit";
 
 const router = useRouter();

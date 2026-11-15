@@ -81,6 +81,8 @@ class SaveProductRequest extends FormRequest
 
         return [
             'title' => ['required', 'string', 'max:255'],
+            // Vitrina mahsulotidan e'lon: faqat o'z vitrinasi (ProductService tekshiradi)
+            'vitrina_id' => ['nullable', 'integer'],
             'description' => ['nullable', 'string', 'max:10000'],
             'category_id' => [
                 $isUpdate ? 'nullable' : 'required',

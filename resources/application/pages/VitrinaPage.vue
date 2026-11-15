@@ -18,12 +18,12 @@
 
             <main class="px-4">
                <div class="-mt-9 relative flex items-end gap-3">
-                  <VitrinaAvatar :vitrina="vitrina" class="size-18 text-2xl border-4 border-(--z-background)" />
+                  <VitrinaAvatar :vitrina="vitrina" class="size-18 text-2xl border-4 border-(--z-background) shadow-md" />
                </div>
 
                <h1 class="mt-2 text-xl font-bold leading-tight flex items-center gap-1.5">
                   <span>{{ vitrina.name }}</span>
-                  <BadgeCheck v-if="vitrina.is_verified" class="size-5 shrink-0 text-(--z-primary)" />
+                  <VitrinaVerified v-if="vitrina.is_verified" class="size-5" />
                </h1>
                <p class="mt-1 text-xs text-(--z-muted-text) flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span>{{ $t(`vitrina.types.${vitrina.type}`) }}</span>
@@ -161,7 +161,6 @@ import { isTMA, postEvent } from "@tma.js/bridge";
 import {
    ArrowLeft,
    AtSign,
-   BadgeCheck,
    Check,
    ChevronRight,
    Clock,
@@ -183,6 +182,7 @@ import { track } from "@/modules/activity";
 import VitrinaAvatar from "@/features/vitrina/VitrinaAvatar.vue";
 import VitrinaItemCard from "@/features/vitrina/VitrinaItemCard.vue";
 import VitrinaItemDrawer from "@/features/vitrina/VitrinaItemDrawer.vue";
+import VitrinaVerified from "@/features/vitrina/VitrinaVerified.vue";
 import { VITRINA_TYPES, callPhone, openTelegram, openUrl, storageUrl } from "@/features/vitrina/vitrinaKit";
 
 const route = useRoute();
@@ -288,9 +288,12 @@ async function share() {
    }
 }
 
-function load() {
+async function load() {
    activeGroup.value = "all";
-   return execute(String(route.params.slug));
+   await execute(String(route.params.slug));
+   // Qidiruvdan kelindi (?item=12) — shu mahsulot darhol ochiladi
+   const itemId = Number(route.query.item);
+   if (itemId) openedItem.value = vitrina.value?.items?.find((item) => item.id === itemId) ?? null;
 }
 
 watch(() => route.params.slug, (slug) => slug && load());
@@ -304,16 +307,24 @@ onMounted(load);
    height: calc(10rem + var(--safe-area-top));
    place-items: center;
    overflow: hidden;
+   /* Rasm qo'yilmagan bo'lsa: vitrina turi rangidagi yopiq fon (sahifa foni orqadan ko'rinmaydi) */
    background:
-      radial-gradient(circle at 20% 20%, rgb(var(--tone) / 0.35), transparent 60%),
-      linear-gradient(135deg, rgb(var(--tone) / 0.25), rgb(var(--tone) / 0.08));
-   color: rgb(var(--tone));
+      radial-gradient(120% 90% at 90% 0%, rgb(255 255 255 / 0.28), transparent 55%),
+      radial-gradient(90% 90% at 0% 100%, rgb(0 0 0 / 0.12), transparent 60%),
+      linear-gradient(135deg, rgb(var(--tone)), rgb(var(--tone) / 0.7)),
+      var(--z-background);
+   color: white;
 }
 
+/* Katta belgi o'ng pastda, yarim ko'rinadi: bo'sh joy bezak bo'lib qoladi, logotip bilan to'qnashmaydi */
 .cover-icon {
-   width: 4.5rem;
-   height: 4.5rem;
-   opacity: 0.35;
+   position: absolute;
+   right: -0.75rem;
+   bottom: -1.25rem;
+   width: 8.5rem;
+   height: 8.5rem;
+   opacity: 0.22;
+   transform: rotate(-12deg);
 }
 
 .cover-actions {

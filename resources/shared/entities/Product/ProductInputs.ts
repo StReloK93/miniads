@@ -64,6 +64,8 @@ export function productInputs(options: ProductInputOptions = {}): InputConfig[] 
       name: "images",
       required: false,
       optional: true,
+      // Ixtiyoriy, lekin rasmga undaymiz: rasmli e'lon lentada ko'proq ko'riladi
+      hint: t("form.photosHint"),
       props: {
          multiple: true,
          title: t("form.photos"),

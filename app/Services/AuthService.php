@@ -95,7 +95,7 @@ class AuthService
          $this->pruneTokens($user);
 
          $token = $user->createToken('mini-app')->plainTextToken;
-         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user->load('activeDistrict')], 200);
       }
 
       return response()->json(['message' => 'Login failed'], 500);
@@ -152,7 +152,7 @@ class AuthService
          $token = $user->createToken('mini-app')->plainTextToken;
 
 
-         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user], 200);
+         return response()->json(['token' => $token, 'type' => 'Bearer', 'user' => $user->load('activeDistrict')], 200);
       }
 
       return response()->json(['message' => 'Login failed'], 500);

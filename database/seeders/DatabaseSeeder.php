@@ -36,7 +36,10 @@ class DatabaseSeeder extends Seeder
         $this->call(ContentTranslationSeeder::class);
         $this->call(BackColorSeeder::class);
         $this->call(TelegraphSeeder::class);
-        // $this->call(ProductSeeder::class);
+        // Sinov e'lonlari faqat lokal muhitda (prod bazaga tushib qolmasin)
+        if (app()->environment('local')) {
+            $this->call(DemoProductSeeder::class);
+        }
 
     }
 }

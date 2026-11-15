@@ -25,6 +25,7 @@ export const routes: RouteRecordRaw[] = [
             props: true,
          },
          { path: "favorites", component: () => import("@pages/FavoritePage.vue"), name: "favorites" },
+         { path: "vitrinas", component: () => import("@pages/VitrinasPage.vue"), name: "vitrinas" },
       ],
    },
    {
@@ -62,7 +63,15 @@ export const routes: RouteRecordRaw[] = [
             meta: { requiresAuth: true, confirmClose: true },
          },
          { path: "login", component: () => import("@pages/LoginPage.vue"), meta: { guestOnly: true }, name: "login" },
+         {
+            path: "my-vitrina",
+            component: () => import("@pages/MyVitrinaPage.vue"),
+            name: "my-vitrina",
+            meta: { requiresAuth: true },
+         },
       ],
    },
    { path: "/product/:id", component: () => import("@pages/ProductPage.vue"), name: "product-id", props: true },
+   // Vitrina: ulashiladigan sahifa (startapp=v_<slug> ham shu yerga)
+   { path: "/v/:slug", component: () => import("@pages/VitrinaPage.vue"), name: "vitrina" },
 ];

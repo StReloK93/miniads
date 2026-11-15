@@ -121,6 +121,13 @@
                         <ChevronRight class="size-4 text-(--z-muted-text)" />
                      </RouterLink>
                   </li>
+                  <li>
+                     <RouterLink :to="{ name: 'my-vitrina' }" class="row">
+                        <Store class="size-4.5 text-(--z-muted-text)" />
+                        <span class="grow text-sm font-medium">{{ $t("vitrina.mine") }}</span>
+                        <ChevronRight class="size-4 text-(--z-muted-text)" />
+                     </RouterLink>
+                  </li>
                   <li class="px-4 py-3">
                      <div class="flex items-center gap-3 mb-2.5">
                         <Languages class="size-4.5 text-(--z-muted-text)" />
@@ -196,6 +203,7 @@ import {
    Megaphone,
    Phone,
    ShieldCheck,
+   Store,
    SunMoon,
 } from "lucide-vue-next";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";

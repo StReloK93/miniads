@@ -73,9 +73,13 @@ const initApp = async () => {
          // Kanaldagi jonli post tugmalari: cat_ID — e'lonlar sahifasi, cats_ID — ichki bo'limlari bor kategoriya
          const categoryParam = /^cat_(\d+)$/.exec(startParam ?? "");
          const categoryTreeParam = /^cats_(\d+)$/.exec(startParam ?? "");
-         // Qayerdan kirildi: kanal/ulashilgan e'lon havolasi (product), bot xabari (ss, my_ads), oddiy ochilish (direct)
-         track("app_open", startParam ? startParam.replace(/_\d+$/, "") : "direct");
-         if (productStartParam) {
+         // Ulashilgan vitrina: v_<slug> (slug — lotin harflari, raqam va "-")
+         const vitrinaParam = /^v_([a-z0-9-]+)$/.exec(startParam ?? "");
+         // Qayerdan kirildi: kanal/ulashilgan e'lon havolasi (product), bot xabari (ss, my_ads), vitrina (v), oddiy ochilish (direct)
+         track("app_open", vitrinaParam ? "v" : startParam ? startParam.replace(/_\d+$/, "") : "direct");
+         if (vitrinaParam) {
+            startRoute = { name: "vitrina", params: { slug: vitrinaParam[1] } };
+         } else if (productStartParam) {
             startRoute = { name: "product-id", params: { id: productStartParam[1] } };
          } else if (savedSearchParam) {
             startRoute = { name: "home", query: { saved: savedSearchParam[1] } };

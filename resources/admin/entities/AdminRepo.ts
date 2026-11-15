@@ -46,6 +46,13 @@ export default {
    bulkProducts(ids: number[], action: "archive" | "restore" | "activate" | "deactivate" | "resolve") {
       return api.post<{ message: string }>("admin/products/bulk", { ids, action });
    },
+   /** Vitrinalar: status — pending / approved / rejected (bo'sh — hammasi) */
+   vitrinas(status?: string) {
+      return api.get("admin/vitrinas", { params: status ? { status } : undefined });
+   },
+   updateVitrina(id: number, payload: { status?: string; is_verified?: boolean; reject_reason?: string }) {
+      return api.patch(`admin/vitrinas/${id}`, payload);
+   },
    searchStats(days: number) {
       return api.get("admin/search-stats", { params: { days } });
    },

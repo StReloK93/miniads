@@ -253,3 +253,58 @@ export interface ISearchResult {
    products: IProduct[];
    related: { terms: string[]; products: IProduct[] } | null;
 }
+
+/* ================= Vitrina ================= */
+
+/** shop — do'kon, menu — menyu, portfolio — ishlar, pricelist — narxnoma, realty — ko'chmas mulk */
+export type VitrinaType = "shop" | "menu" | "portfolio" | "pricelist" | "realty";
+/** fixed — aniq narx, from — "...dan", negotiable — kelishiladi, none — narx ko'rsatilmaydi */
+export type VitrinaPriceMode = "fixed" | "from" | "negotiable" | "none";
+
+export interface IVitrinaSection {
+   id: number;
+   name: string;
+   position: number;
+}
+
+export interface IVitrinaItem {
+   id: number;
+   vitrina_section_id: number | null;
+   title: string;
+   description: string | null;
+   price_mode: VitrinaPriceMode;
+   price: number | null;
+   price_type_id: number | null;
+   price_type: { id: number; name: string; type: string; position: "left" | "right" } | null;
+   unit: string | null;
+   images: string[] | null;
+   is_available: boolean;
+   position: number;
+}
+
+export interface IVitrina {
+   id: number;
+   user_id?: number;
+   name: string;
+   slug: string;
+   type: VitrinaType;
+   description: string | null;
+   logo: string | null;
+   cover: string | null;
+   district_id: number | null;
+   district: IDistrict | null;
+   address?: string | null;
+   phone?: string | null;
+   telegram?: string | null;
+   instagram?: string | null;
+   work_hours?: string | null;
+   status?: "pending" | "approved" | "rejected";
+   reject_reason?: string | null;
+   is_verified: boolean;
+   views_count?: number;
+   items_count?: number;
+   is_owner?: boolean;
+   sections?: IVitrinaSection[];
+   items?: IVitrinaItem[];
+   updated_at?: string;
+}

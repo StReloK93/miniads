@@ -42,6 +42,9 @@
          <!-- Tezkor bo'limlar: kategoriyalar qatori tagida, lenta bilan birga suriladi -->
          <FeaturedCategories />
 
+         <!-- Vitrinalar: do'konlar, menyular, ustalar — tanlangan shahar bo'yicha -->
+         <VitrinaStrip />
+
          <!-- Dastlabki yuklanish skeletlari -->
          <main v-if="isLoadingInitial" class="flex flex-col gap-2.5">
             <ProductCardSkeleton v-for="n in 3" :key="`skeleton-${n}`" />
@@ -92,6 +95,7 @@ import DistrictSwitcher from "@/features/district/DistrictSwitcher.vue";
 import ProductCardSkeleton from "@/features/product/ProductCardSkeleton.vue";
 import CategoriesSlider from "@/features/category/CategoriesSlider.vue";
 import FeaturedCategories from "@/features/category/FeaturedCategories.vue";
+import VitrinaStrip from "@/features/vitrina/VitrinaStrip.vue";
 import HomeSearchBar from "@/features/search/HomeSearchBar.vue";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import ProductCard from "@/features/product/ProductCard.vue";

@@ -51,6 +51,11 @@ Route::apiResource('categories', App\Http\Controllers\CategoryController::class)
 Route::apiResource('parameters', App\Http\Controllers\ParameterController::class)->only('index', 'show');
 Route::get('categories/{category}/parameters', [App\Http\Controllers\CategoryParameterController::class, 'index']);
 Route::get('districts', [App\Http\Controllers\DistrictController::class, 'index']);
+// Vitrinalar: katalog va sahifa hammaga ochiq (egasi o'zining tasdiqlanmaganini ham ko'radi)
+Route::middleware(OptionalSanctumAuth::class)->controller(App\Http\Controllers\VitrinaController::class)->group(function () {
+    Route::get('/vitrinas', 'index');
+    Route::get('/vitrinas/{slug}', 'show');
+});
 Route::get('price-types', [App\Http\Controllers\PriceTypeController::class, 'index']);
 Route::get('price-types/{id}', [App\Http\Controllers\PriceTypeController::class, 'show']);
 
@@ -85,6 +90,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('channel-post', 'sendChannelPost');
         Route::get('channel-live-post', 'channelLivePost');
         Route::post('channel-live-post', 'updateChannelLivePost');
+        Route::get('vitrinas', [App\Http\Controllers\VitrinaController::class, 'adminIndex']);
+        Route::patch('vitrinas/{id}', [App\Http\Controllers\VitrinaController::class, 'adminUpdate']);
     });
 
     Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
@@ -115,6 +122,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/products/{id}/activate', [App\Http\Controllers\ProductController::class, 'activate']);
     Route::post('/products/{id}/report', [App\Http\Controllers\ProductController::class, 'report'])->middleware('throttle:10,1');
     Route::get('/report-reasons', [App\Http\Controllers\ProductController::class, 'reportReasons']);
+    // O'z vitrinam: bo'limlar va mahsulotlar (multipart — POST bilan)
+    Route::prefix('my-vitrina')->controller(App\Http\Controllers\VitrinaController::class)->group(function () {
+        Route::get('/', 'mine');
+        Route::post('/', 'save');
+        Route::post('/sections', 'storeSection');
+        Route::patch('/sections/{id}', 'updateSection');
+        Route::delete('/sections/{id}', 'destroySection');
+        Route::post('/items', 'storeItem');
+        Route::post('/items/{id}', 'updateItem');
+        Route::delete('/items/{id}', 'destroyItem');
+    });
 
     Route::controller(App\Http\Controllers\ProfileController::class)->group(function () {
         Route::get('/profile', 'show');

@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
         // Sinov e'lonlari faqat lokal muhitda (prod bazaga tushib qolmasin)
         if (app()->environment('local')) {
             $this->call(DemoProductSeeder::class);
+            $this->call(DemoVitrinaSeeder::class);
         }
 
     }

@@ -17,8 +17,6 @@ class TelegramProductService
 {
     private const MAX_CAPTION_LENGTH = 900;
 
-    private const MINI_APP_URL = 'https://t.me/NavoiyElonBot';
-
     /**
      * E'lonlar va admin postlari yuboriladigan kanallar (config/services.php → telegram.channels).
      *
@@ -323,21 +321,18 @@ class TelegramProductService
         return mb_strlen($plainText, 'UTF-8');
     }
 
+    /** "Batafsil" — postning asosiy harakati: ilovadagi urg'u rangi (yashil); "E'lon berish" — Telegram'ning oddiy rangi */
     private function makeKeyboard(Product $product): Keyboard
     {
         return Keyboard::make()
             ->buttons([
                 Button::make('Batafsil')
-                    ->url($this->makeMiniAppUrl($product)),
+                    ->url(TelegramNotifier::appLink('product_'.$product->id))
+                    ->style('success'),
                 Button::make("E'lon berish")
-                    ->url(self::MINI_APP_URL.'?startapp=create'),
+                    ->url(TelegramNotifier::appLink('create')),
             ])
             ->chunk(2);
-    }
-
-    private function makeMiniAppUrl(Product $product): string
-    {
-        return self::MINI_APP_URL.'?startapp='.rawurlencode('product_'.$product->id);
     }
 
     private function getMainImage(Product $product): ?string

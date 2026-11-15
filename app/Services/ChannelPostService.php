@@ -32,7 +32,7 @@ class ChannelPostService
         $html = str_replace('<br>', '', $html);
 
         $keyboard = filled($buttonText) && filled($buttonUrl)
-            ? Keyboard::make()->buttons([Button::make($buttonText)->url($buttonUrl)])
+            ? Keyboard::make()->buttons([Button::make($buttonText)->url($buttonUrl)->style('success')])
             : null;
 
         $photoPath = $photo ? $this->preparePhoto($photo) : null;

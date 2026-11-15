@@ -124,8 +124,14 @@ class ChannelLivePostService
         ['body' => $body, 'buttons' => $buttons] = $this->content();
         $hash = md5($body . json_encode($buttons));
         $html = $body . "\n" . __('bot.live_updated', ['time' => now()->format('H:i')], 'uz');
+        // Bo'limlar — Telegram'ning oddiy rangi; oxirgi "E'lon joylash" — ilovadagi urg'u rangi (yashil)
+        $lastIndex = array_key_last($buttons);
         $keyboard = Keyboard::make()
-            ->buttons(array_map(fn (array $button) => Button::make($button[0])->url($button[1]), $buttons))
+            ->buttons(array_map(function (array $button, int $index) use ($lastIndex) {
+                $made = Button::make($button[0])->url($button[1]);
+
+                return $index === $lastIndex ? $made->style('success') : $made;
+            }, $buttons, array_keys($buttons)))
             ->chunk(2);
 
         $results = [];

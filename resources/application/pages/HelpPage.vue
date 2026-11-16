@@ -3,6 +3,7 @@
       <aside class="pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex items-center gap-2">
             <button
+               v-if="showAppBackButton"
                type="button"
                class="-ml-1.5 p-1.5 rounded-full active:bg-(--z-muted)"
                :aria-label="$t('common.back')"
@@ -86,7 +87,7 @@ import {
    ShieldCheck,
    Store,
 } from "lucide-vue-next";
-import { goBack } from "@/modules/navigation";
+import { goBack, showAppBackButton } from "@/modules/navigation";
 import { channelName, channelUrl, openChannel } from "@/features/help/helpLinks";
 import { useOnboardingTour } from "@/features/help/useOnboardingTour";
 

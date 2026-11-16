@@ -2,7 +2,13 @@
    <section class="grid grid-rows-[auto_1fr]">
       <aside class="pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex items-center gap-2">
-            <button type="button" class="-ml-1.5 p-1.5 rounded-full active:bg-(--z-muted)" :aria-label="$t('common.back')" @click="goBack(router, { name: 'profile' })">
+            <button
+               v-if="showAppBackButton"
+               type="button"
+               class="-ml-1.5 p-1.5 rounded-full active:bg-(--z-muted)"
+               :aria-label="$t('common.back')"
+               @click="goBack(router, { name: 'profile' })"
+            >
                <ArrowLeft class="size-5" />
             </button>
             <h3 class="grow font-extrabold text-xl">{{ $t("vitrina.mine") }}</h3>
@@ -289,7 +295,7 @@ import { useAuth } from "@shared/store/useAuth";
 import type { IVitrina, IVitrinaItem, IVitrinaSection, IVitrinaStats, InputConfig, VitrinaType } from "@shared/types";
 import { AI_DRAFT_MAX_IMAGES, useAiDraft } from "@/features/product/aiDraft";
 import { t } from "@shared/i18n";
-import { goBack } from "@/modules/navigation";
+import { goBack, showAppBackButton } from "@/modules/navigation";
 import VitrinaItemForm from "@/features/vitrina/VitrinaItemForm.vue";
 import { VITRINA_TYPES, VITRINA_TYPE_KEYS, itemPrice, storageUrl } from "@/features/vitrina/vitrinaKit";
 import { errorMessage } from "@/features/vitrina/vitrinaForm";

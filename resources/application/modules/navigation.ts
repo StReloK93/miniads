@@ -1,4 +1,11 @@
 import type { RouteLocationRaw, Router } from "vue-router";
+import { isTMA } from "@tma.js/bridge";
+
+/**
+ * Ilova ichidagi "orqaga" tugmalari faqat brauzerda ko'rinadi:
+ * Telegram mini app'da tepada Telegram'ning o'z "orqaga" tugmasi bor (router/index.ts), ikkinchisi ortiqcha.
+ */
+export const showAppBackButton = !isTMA();
 
 /**
  * Ilova ichida orqaga qaytadigan sahifa bormi.

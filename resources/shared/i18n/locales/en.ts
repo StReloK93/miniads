@@ -108,6 +108,7 @@ const en: MessageSchema = {
       inCity: "{city} and the whole region",
       all: "All showcases",
       empty: "No showcases here yet",
+      emptyItems: "This showcase has no products or services yet",
       notFound: "Showcase not found",
       mine: "My showcase",
       view: "View",

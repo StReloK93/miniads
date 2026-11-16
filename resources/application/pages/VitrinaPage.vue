@@ -7,10 +7,10 @@
                <img v-if="cover" :src="cover" :alt="vitrina.name" class="absolute inset-0 size-full object-cover" />
                <component :is="meta.icon" v-else class="cover-icon" stroke-width="1.2" />
                <div class="cover-actions">
-                  <button type="button" class="cover-button" :aria-label="$t('common.back')" @click="goBack(router)">
+                  <button v-if="showAppBackButton" type="button" class="cover-button" :aria-label="$t('common.back')" @click="goBack(router)">
                      <ArrowLeft class="size-5" />
                   </button>
-                  <button type="button" class="cover-button" :aria-label="$t('product.share')" @click="share">
+                  <button type="button" class="cover-button ml-auto" :aria-label="$t('product.share')" @click="share">
                      <component :is="isCopied ? Check : Share2" class="size-4.5" />
                   </button>
                </div>
@@ -177,7 +177,7 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import { useFetchDecorator } from "@shared/composables/useFetch";
 import type { IVitrina, IVitrinaItem } from "@shared/types";
-import { goBack } from "@/modules/navigation";
+import { goBack, showAppBackButton } from "@/modules/navigation";
 import { track } from "@/modules/activity";
 import VitrinaAvatar from "@/features/vitrina/VitrinaAvatar.vue";
 import VitrinaItemCard from "@/features/vitrina/VitrinaItemCard.vue";

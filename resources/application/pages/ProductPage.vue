@@ -291,6 +291,7 @@
       <aside v-else class="grow flex flex-col justify-between p-6">
          <div class="flex items-center justify-between">
             <button
+               v-if="showAppBackButton"
                type="button"
                @click="goBackOrHome"
                class="p-2 -ml-2 rounded-full text-(--z-muted-text) hover:text-(--z-foreground) active:bg-(--z-card)"
@@ -431,7 +432,7 @@ import {
 } from "lucide-vue-next";
 import FavoriteRepo from "@shared/entities/Favorite/FavoriteRepo";
 import { requireAuth } from "@/features/auth/requireAuth";
-import { goBack } from "@/modules/navigation";
+import { goBack, showAppBackButton } from "@/modules/navigation";
 import { track } from "@/modules/activity";
 import { postEvent } from "@tma.js/bridge";
 

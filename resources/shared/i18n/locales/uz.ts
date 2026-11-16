@@ -113,6 +113,7 @@ const uz = {
       inCity: "{city} va butun viloyat bo'yicha",
       all: "Barcha vitrinalar",
       empty: "Bu yerda hali vitrina yo'q",
+      emptyItems: "Bu vitrinada hozircha mahsulot yoki xizmat yo'q",
       notFound: "Vitrina topilmadi",
       mine: "Mening vitrinam",
       view: "Ko'rish",

@@ -39,4 +39,7 @@ return [
     'vitrina_edit' => "Vitrinani tahrirlash",
 
     'price_drop' => "📉 <b>Sevimli e'loningiz arzonladi!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
+
+    // Guruhda kanalga a'zolik nazorati (GroupSubscriptionGate)
+    'gate_warning' => ":mention, guruhda yozish uchun :channel kanaliga a'zo bo'ling.",
 ];

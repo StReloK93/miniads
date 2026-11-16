@@ -36,4 +36,7 @@ return [
     'vitrina_edit' => "Edit the showcase",
 
     'price_drop' => "📉 <b>A saved ad got cheaper!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
+
+    // Channel subscription check in groups (GroupSubscriptionGate)
+    'gate_warning' => ":mention, to write in this group, please subscribe to :channel.",
 ];

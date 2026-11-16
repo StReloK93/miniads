@@ -20,6 +20,19 @@ class TelegramNotifier
         return rtrim((string) config('services.telegram.mini_app_url'), '/') . '?startapp=' . rawurlencode($startParam);
     }
 
+    /** Telegram language_code bo'yicha bot tili (ilova ham shu tilda ochiladi) */
+    public static function localeFor(?string $languageCode): string
+    {
+        $code = strtolower((string) $languageCode);
+
+        return match (true) {
+            str_starts_with($code, 'uz') => 'uz',
+            (bool) preg_match('/^(ru|uk|be|kk|ky|tg)/', $code) => 'ru',
+            $code === '' => 'uz',
+            default => 'en',
+        };
+    }
+
     /**
      * @param  array<int, array{0: string, 1: string}>  $buttons  [matn, havola] — har biri alohida qatorda
      */

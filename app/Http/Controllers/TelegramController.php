@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\GroupSubscriptionGate;
+use App\Services\TelegramNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use DefStudio\Telegraph\Models\TelegraphBot;
@@ -13,10 +15,26 @@ use DefStudio\Telegraph\Keyboard\Keyboard;
 use DefStudio\Telegraph\Keyboard\ReplyKeyboard;
 class TelegramController extends Controller
 {
-    public function webhook(Request $request)
+    public function webhook(Request $request, GroupSubscriptionGate $gate)
     {
         // Telegram'dan kelgan barcha ma'lumotlarni olish
         $data = $request->all();
+
+        // Guruhlar: kanalga a'zolik nazorati. Guruh xabarlari ko'p — logga yozilmaydi
+        try {
+            if (isset($data['my_chat_member']) && $gate->isGroup($data['my_chat_member']['chat'] ?? [])) {
+                $gate->handleMembership($data['my_chat_member']);
+                return response()->json(['status' => 'ok'], 200);
+            }
+            if (isset($data['message']) && $gate->isGroup($data['message']['chat'] ?? [])) {
+                $gate->handleMessage($data['message']);
+                return response()->json(['status' => 'ok'], 200);
+            }
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::warning("Webhook: guruh nazorati (ulanish): {$e->getMessage()}");
+            return response()->json(['status' => 'ok'], 200);
+        }
+
         Log::info('Telegram Webhook Keldi:', $data);
 
         // Botga yozgan (/start) foydalanuvchiga bot ham yoza oladi; botni to'xtatsa — endi yoza olmaydi
@@ -33,13 +51,7 @@ class TelegramController extends Controller
             $chatId = $data['message']['chat']['id'];
 
             // Javob foydalanuvchining Telegram tilida (ilova ham shu tilda ochiladi)
-            $code = strtolower((string) ($data['message']['from']['language_code'] ?? ''));
-            $locale = match (true) {
-                str_starts_with($code, 'uz') => 'uz',
-                (bool) preg_match('/^(ru|uk|be|kk|ky|tg)/', $code) => 'ru',
-                $code === '' => 'uz',
-                default => 'en',
-            };
+            $locale = TelegramNotifier::localeFor($data['message']['from']['language_code'] ?? null);
 
             // Telegram API ba'zan javob bermay qoladi (timeout) — bu bizning xatomiz emas, logga yozamiz xolos.
             // Webhook 500 qaytarsa, Telegram shu xabarni qayta-qayta yuboradi

@@ -137,16 +137,16 @@
         },
         {
             "name": "defstudio/telegraph",
-            "version": "v1.72.0",
+            "version": "v1.73.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/defstudio/telegraph.git",
-                "reference": "c39b10e31683d5eb5ec390e9eae5e52299b44462"
+                "reference": "805168482dd754126d89eefb2ee4c397aaa3a63b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/defstudio/telegraph/zipball/c39b10e31683d5eb5ec390e9eae5e52299b44462",
-                "reference": "c39b10e31683d5eb5ec390e9eae5e52299b44462",
+                "url": "https://api.github.com/repos/defstudio/telegraph/zipball/805168482dd754126d89eefb2ee4c397aaa3a63b",
+                "reference": "805168482dd754126d89eefb2ee4c397aaa3a63b",
                 "shasum": ""
             },
             "require": {
@@ -161,7 +161,7 @@
                 "defstudio/pest-plugin-laravel-expectations": "^2.1.2",
                 "ext-sqlite3": "*",
                 "friendsofphp/php-cs-fixer": "^3.13.0",
-                "guzzlehttp/guzzle": "^7.5.0",
+                "guzzlehttp/guzzle": "^7.8.2 | ^8.0.1",
                 "larastan/larastan": "^1.0.4 | ^2.4.0 | ^3.1.0",
                 "nunomaduro/collision": "^7.10.0 | ^8.1.1",
                 "orchestra/testbench": "^8.0 | ^9.0 | ^10.0 | ^11.0",
@@ -212,9 +212,23 @@
             ],
             "support": {
                 "issues": "https://github.com/defstudio/telegraph/issues",
-                "source": "https://github.com/defstudio/telegraph/tree/v1.72.0"
+                "source": "https://github.com/defstudio/telegraph/tree/v1.73.0"
             },
-            "time": "2026-07-16T19:40:24+00:00"
+            "funding": [
+                {
+                    "url": "https://paypal.me/defstudiosrl",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/defstudio",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/fabio-ivona",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-09-30T16:59:04+00:00"
         },
         {
             "name": "dflydev/dot-access-data",
@@ -3744,16 +3758,16 @@
         },
         {
             "name": "spatie/laravel-package-tools",
-            "version": "1.93.1",
+            "version": "1.93.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb"
+                "reference": "7aeef26bd8d4909bec744dbf47aee7d1395588c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/d5552849801f2642aea710557463234b59ef65eb",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/7aeef26bd8d4909bec744dbf47aee7d1395588c1",
+                "reference": "7aeef26bd8d4909bec744dbf47aee7d1395588c1",
                 "shasum": ""
             },
             "require": {
@@ -3793,7 +3807,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.1"
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.3"
             },
             "funding": [
                 {
@@ -3801,7 +3815,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-19T14:06:37+00:00"
+            "time": "2026-09-28T07:16:50+00:00"
         },
         {
             "name": "symfony/clock",

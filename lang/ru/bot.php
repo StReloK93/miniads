@@ -36,4 +36,7 @@ return [
     'vitrina_edit' => "Изменить витрину",
 
     'price_drop' => "📉 <b>Объявление из избранного подешевело!</b>\n\n:title\n<s>:old</s> → <b>:new</b>",
+
+    // Проверка подписки на канал в группе (GroupSubscriptionGate)
+    'gate_warning' => ":mention, чтобы писать в группе, подпишитесь на канал :channel.",
 ];

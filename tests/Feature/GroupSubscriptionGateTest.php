@@ -57,20 +57,30 @@ beforeEach(function () {
     $GLOBALS['gateFrom'] = 0;
 });
 
-test('the group is registered only when an app admin adds the bot; otherwise the bot leaves', function () {
+test('the group is registered whoever adds the bot; app admins get a note about missing rights', function () {
     fakeGateTelegram();
     User::forceCreate(['name' => 'Admin', 'telegram_user_id' => 900, 'role' => 'admin']);
-    $update = fn (int $from) => ['my_chat_member' => [
+
+    $this->postJson('/api/telegram/webhook', ['my_chat_member' => [
         'chat' => ['id' => GATE_GROUP_ID, 'type' => 'supergroup', 'title' => 'Navoiy bozor'],
-        'from' => ['id' => $from],
-        'new_chat_member' => ['status' => 'administrator'],
-    ]];
+        'from' => ['id' => 123, 'first_name' => 'Guruh egasi'],
+        'new_chat_member' => ['status' => 'administrator', 'can_delete_messages' => true, 'can_restrict_members' => false],
+    ]])->assertOk();
 
-    $this->postJson('/api/telegram/webhook', $update(123))->assertOk();
-    expect(TelegramGroup::count())->toBe(0)->and(gateSent('leaveChat'))->toHaveCount(1);
+    expect(TelegramGroup::where('chat_id', GATE_GROUP_ID)->value('title'))->toBe('Navoiy bozor')
+        ->and(gateSent('leaveChat'))->toHaveCount(0);
 
-    $this->postJson('/api/telegram/webhook', $update(900))->assertOk();
-    expect(TelegramGroup::where('chat_id', GATE_GROUP_ID)->value('title'))->toBe('Navoiy bozor');
+    $note = gateSent('sendMessage')[0]->data();
+    expect((string) $note['chat_id'])->toBe('900')
+        ->and($note['text'])->toContain('Navoiy bozor')->toContain('Guruh egasi')
+        ->toContain("A'zolarni bloklash")->not->toContain("Xabarlarni o'chirish");
+
+    $this->postJson('/api/telegram/webhook', ['my_chat_member' => [
+        'chat' => ['id' => GATE_GROUP_ID, 'type' => 'supergroup'],
+        'from' => ['id' => 123],
+        'new_chat_member' => ['status' => 'left'],
+    ]])->assertOk();
+    expect(TelegramGroup::count())->toBe(0);
 });
 
 test('a non-subscriber: message deleted, muted for ~30s, one short warning that disappears', function () {

@@ -4,14 +4,13 @@ namespace App\Services;
 
 use App\Jobs\DeleteTelegramMessage;
 use App\Models\TelegramGroup;
-use App\Models\User;
 use DefStudio\Telegraph\Facades\Telegraph;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * Guruhda "kanalga a'zo bo'lmasa yozolmaydi" nazorati — sodda, guruhni buzmaydigan:
  *
- * - Bot guruhga ilova admini tomonidan qo'shilsa — guruh ro'yxatga olinadi; boshqa kimdir qo'shsa, bot chiqib ketadi.
+ * - Bot qaysi guruhga qo'shilsa (o'zingizniki yoki boshqalarniki) — guruh ro'yxatga olinadi, ilova adminlariga xabar boradi.
  * - A'zo bo'lmagan odamning xabari o'chiriladi, u ~30 soniya yozolmaydi,
  *   bitta qisqa ogohlantirish chiqadi va u ham 30 soniyada o'chadi. Tugmalar yo'q.
  * - Guruh adminlari, kanal nomidan va anonim yozilgan xabarlar tekshirilmaydi.
@@ -49,23 +48,35 @@ class GroupSubscriptionGate
             return;
         }
 
-        $addedBy = (int) ($update['from']['id'] ?? 0);
-        $isAppAdmin = User::where('telegram_user_id', $addedBy)->where('role', 'admin')->exists();
-
-        if (! $isAppAdmin) {
-            // Ro'yxatdagi guruhda boshqa admin botning huquqini o'zgartirsa — guruh qolaveradi
-            if (! TelegramGroup::where('chat_id', $chatId)->exists()) {
-                Telegraph::chat($chatId)->leaveChat()->send();
-            }
-
-            return;
-        }
-
-        TelegramGroup::updateOrCreate(['chat_id' => $chatId], [
+        // Bot boshqalarning guruhiga ham qo'yiladi (guruh egasi admin qiladi) — har qanday guruhda ishlaydi
+        $group = TelegramGroup::updateOrCreate(['chat_id' => $chatId], [
             'title' => $update['chat']['title'] ?? null,
-            'added_by' => $addedBy,
+            'added_by' => $update['from']['id'] ?? null,
         ]);
         Cache::forget("tg-group:{$chatId}");
+
+        $this->notifyAdmins($group, $update['new_chat_member'], $update['from'] ?? []);
+    }
+
+    /** Ilova adminlariga: bot qaysi guruhga qo'shildi va kerakli huquqlar berilganmi */
+    private function notifyAdmins(TelegramGroup $group, array $member, array $from): void
+    {
+        $isAdmin = ($member['status'] ?? null) === 'administrator';
+        $canDelete = $isAdmin && ($member['can_delete_messages'] ?? false);
+        $canRestrict = $isAdmin && ($member['can_restrict_members'] ?? false);
+        $by = trim(($from['first_name'] ?? '') . ' ' . ($from['last_name'] ?? ''));
+
+        $rights = $canDelete && $canRestrict
+            ? "Huquqlar to'liq, nazorat ishlayapti."
+            : "Nazorat ishlashi uchun botni admin qilib, ikkita huquq bering:\n"
+                . ($canDelete ? '' : "- Xabarlarni o'chirish\n")
+                . ($canRestrict ? '' : "- A'zolarni bloklash\n");
+
+        app(TelegramNotifier::class)->toAdminUsers(
+            '<b>Bot guruhga qo\'shildi:</b> ' . e($group->title ?: (string) $group->chat_id) . "\n"
+            . ($by !== '' ? 'Qo\'shgan: ' . e($by) . "\n" : '')
+            . "\n" . rtrim($rights),
+        );
     }
 
     /** Guruhdagi oddiy xabar: a'zo bo'lmasa — o'chiriladi, qisqa muddat yozish taqiqlanadi va ogohlantiriladi */

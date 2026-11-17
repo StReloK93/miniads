@@ -1,15 +1,29 @@
 <template>
    <!-- Logo va muqova: bosib tanlanadi; "×" — olib tashlash (saqlanganda kuchga kiradi). Holat sahifada (pick/remove) -->
-   <div class="grid grid-cols-[auto_1fr] gap-3">
+   <div class="grid grid-cols-[auto_1fr] gap-3 mt-2">
       <div>
          <p class="label">{{ $t("vitrina.form.logo") }}</p>
          <div class="relative">
             <label class="pick is-logo">
                <img v-if="logo" :src="logo" alt="" class="size-full object-cover" />
                <Camera v-else class="size-5" />
-               <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPick($event, 'logo')" />
+               <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="hidden"
+                  @change="onPick($event, 'logo')"
+               />
             </label>
-            <BaseButton v-if="logo" class="pick-remove" severity="glass" rounded icon-only size="xs" :aria-label="$t('imageField.remove')" @click="emit('remove', 'logo')">
+            <BaseButton
+               v-if="logo"
+               class="pick-remove"
+               severity="glass"
+               rounded
+               icon-only
+               size="xs"
+               :aria-label="$t('imageField.remove')"
+               @click="emit('remove', 'logo')"
+            >
                <template #icon><X class="size-3.5 opacity-70" /></template>
             </BaseButton>
          </div>
@@ -20,9 +34,23 @@
             <label class="pick is-cover">
                <img v-if="cover" :src="cover" alt="" class="absolute inset-0 size-full object-cover" />
                <ImagePlus v-else class="size-5" />
-               <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPick($event, 'cover')" />
+               <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  class="hidden"
+                  @change="onPick($event, 'cover')"
+               />
             </label>
-            <BaseButton v-if="cover" class="pick-remove" severity="glass" rounded icon-only size="xs" :aria-label="$t('imageField.remove')" @click="emit('remove', 'cover')">
+            <BaseButton
+               v-if="cover"
+               class="pick-remove"
+               severity="glass"
+               rounded
+               icon-only
+               size="xs"
+               :aria-label="$t('imageField.remove')"
+               @click="emit('remove', 'cover')"
+            >
                <template #icon><X class="size-3.5 opacity-70" /></template>
             </BaseButton>
          </div>
@@ -37,7 +65,10 @@ import BaseButton from "@shared/ui/BaseButton.vue";
 type ImageField = "logo" | "cover";
 
 defineProps<{ logo: string | null; cover: string | null }>();
-const emit = defineEmits<{ (e: "pick", field: ImageField, file: File): void; (e: "remove", field: ImageField): void }>();
+const emit = defineEmits<{
+   (e: "pick", field: ImageField, file: File): void;
+   (e: "remove", field: ImageField): void;
+}>();
 
 function onPick(event: Event, field: ImageField) {
    const input = event.target as HTMLInputElement;

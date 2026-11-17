@@ -182,6 +182,11 @@ class VitrinaController extends Controller
         $user = $request->user();
         abort_if($user->isBlocked(), 403, __('messages.blocked'));
 
+        // "Barcha shaharlar" (0) — butun viloyat: bazada null (aks holda "Shahar topilmadi" xatosi)
+        if ((int) $request->input('district_id') === 0) {
+            $request->merge(['district_id' => null]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:60'],
             'type' => ['required', Rule::in(Vitrina::TYPES)],

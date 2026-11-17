@@ -207,6 +207,11 @@ test("only an admin deletes someone else's vitrina", function () {
     expect(Vitrina::count())->toBe(0)->and(File::exists(public_path("storage/{$cover}")))->toBeFalse();
 });
 
+test('"all cities" (0) saves the vitrina for the whole region', function () {
+    $this->actingAs($this->owner)->postJson('/api/my-vitrina', ['name' => 'Viloyat Usta', 'type' => 'portfolio', 'district_id' => 0])
+        ->assertCreated()->assertJsonPath('district_id', null);
+});
+
 test('a rejected vitrina goes back to review after the owner edits it', function () {
     $vitrina = createVitrina($this);
     $this->actingAs($this->admin)->patchJson("/api/admin/vitrinas/{$vitrina->id}", ['status' => 'rejected', 'reject_reason' => 'Rasm yomon'])

@@ -7,8 +7,6 @@ use App\Models\User;
 use App\Models\Vitrina;
 use App\Models\VitrinaItem;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 
 /**
  * Lokal sinov uchun vitrinalar: har turdan (do'kon, menyu, portfolio, narxnoma, ko'chmas mulk).
@@ -56,15 +54,7 @@ class DemoVitrinaSeeder extends Seeder
                 $section = $vitrina->sections()->create(['name' => $sectionName, 'position' => $position]);
 
                 foreach ($items as [$title, $description, $priceMode, $price, $unit]) {
-                    // Rasmli kartalarni ko'rish uchun: do'kon va uylarda har mahsulotga, portfolioda faqat "ishlar"ga
-                    $withPhotos = in_array($data['type'], ['shop', 'realty'], true)
-                        || ($data['type'] === 'portfolio' && $priceMode === 'none');
-                    $photoCount = $withPhotos ? ($data['type'] === 'shop' ? 1 : 3) : 0;
-                    $images = [];
-                    for ($i = 0; $i < $photoCount; $i++) {
-                        $images[] = $this->demoImage($title, self::TONES[$data['type']], $i);
-                    }
-
+                    // Demo mahsulotlar rasmsiz: soxta (chizilgan) rasm haqiqiy ko'rinishni buzadi — rasmni egasi o'zi yuklaydi
                     $item = new VitrinaItem([
                         'vitrina_section_id' => $section->id,
                         'title' => $title,
@@ -78,62 +68,10 @@ class DemoVitrinaSeeder extends Seeder
                         'unit' => $unit,
                         'position' => $position++,
                     ]);
-                    $item->images = $images;
                     $vitrina->items()->save($item);
                 }
             }
         }
-    }
-
-    /** Vitrina turi rangi (frontend vitrinaKit bilan bir xil) */
-    private const TONES = [
-        'shop' => [59, 130, 246],
-        'menu' => [245, 158, 11],
-        'portfolio' => [139, 92, 246],
-        'pricelist' => [20, 184, 166],
-        'realty' => [236, 72, 153],
-    ];
-
-    /**
-     * Demo rasm: rangli gradient va ustida mahsulot nomi (haqiqiy rasm o'rniga, faqat sinov uchun).
-     * Har rasm biroz boshqa tusda — galereyada farqi ko'rinsin.
-     */
-    private function demoImage(string $title, array $tone, int $variant): string
-    {
-        $size = 800;
-        $image = imagecreatetruecolor($size, $size);
-        $shift = $variant * 35;
-        [$r, $g, $b] = [($tone[0] + $shift) % 256, ($tone[1] + $shift / 2) % 256, $tone[2]];
-
-        for ($y = 0; $y < $size; $y++) {
-            $k = $y / $size;
-            $color = imagecolorallocate($image,
-                (int) ($r + (255 - $r) * $k * 0.55),
-                (int) ($g + (255 - $g) * $k * 0.55),
-                (int) ($b + (255 - $b) * $k * 0.55));
-            imageline($image, 0, $y, $size, $y, $color);
-        }
-
-        $font = collect(['C:/Windows/Fonts/segoeuib.ttf', 'C:/Windows/Fonts/arialbd.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'])
-            ->first(fn (string $path) => file_exists($path));
-        if ($font) {
-            $white = imagecolorallocate($image, 255, 255, 255);
-            $lines = explode("\n", wordwrap($title, 16, "\n", true));
-            $lineHeight = 70;
-            $top = (int) ($size / 2 - (count($lines) * $lineHeight) / 2 + 45);
-            foreach ($lines as $index => $line) {
-                $box = imagettfbbox(44, 0, $font, $line);
-                $x = (int) (($size - ($box[2] - $box[0])) / 2);
-                imagettftext($image, 44, 0, $x, $top + $index * $lineHeight, $white, $font, $line);
-            }
-        }
-
-        $path = 'vitrinas/items/demo-' . Str::uuid() . '.webp';
-        File::ensureDirectoryExists(public_path('storage/vitrinas/items'));
-        imagewebp($image, public_path("storage/{$path}"), 80);
-        imagedestroy($image);
-
-        return $path;
     }
 
     private function vitrinas(): array

@@ -53,6 +53,10 @@ export default {
    updateVitrina(id: number, payload: { status?: string; is_verified?: boolean; reject_reason?: string }) {
       return api.patch(`admin/vitrinas/${id}`, payload);
    },
+   /** Vitrinani butunlay o'chirish: mahsulotlar, logo, muqova va rasmlar diskdan ham */
+   deleteVitrina(id: number) {
+      return api.delete(`admin/vitrinas/${id}`);
+   },
    searchStats(days: number) {
       return api.get("admin/search-stats", { params: { days } });
    },

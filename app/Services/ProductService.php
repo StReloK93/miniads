@@ -249,11 +249,7 @@ class ProductService
 
     private function normalizeCrop(array $crop): array
     {
-        return [
-            'crop_x' => max(0, min(100, (int) ($crop['crop_x'] ?? 50))),
-            'crop_y' => max(0, min(100, (int) ($crop['crop_y'] ?? 50))),
-            'crop_scale' => max(1, min(3, (float) ($crop['crop_scale'] ?? 1))),
-        ];
+        return \App\Support\ImageCrop::normalize($crop);
     }
 
     private function storeProductImage(UploadedFile $file): string

@@ -147,7 +147,12 @@ class AuthService
       );
 
       if (Auth::loginUsingId($user->id)) {
-         $user->tokens()->delete();
+         // Boshqa tokenlar o'chirilmaydi: bir nechta brauzer/tab (yoki avtomatik sinov) bir-birini chiqarib yubormasin.
+         // To'planib qolmasligi uchun faqat bir haftadan beri ishlatilmaganlari tozalanadi
+         $user->tokens()
+            ->where(fn ($query) => $query->where('last_used_at', '<', now()->subWeek())
+               ->orWhere(fn ($query) => $query->whereNull('last_used_at')->where('created_at', '<', now()->subWeek())))
+            ->delete();
 
          $token = $user->createToken('mini-app')->plainTextToken;
 

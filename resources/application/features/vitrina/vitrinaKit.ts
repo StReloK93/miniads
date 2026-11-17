@@ -22,13 +22,16 @@ export function storageUrl(path: string | null | undefined): string | null {
    return path ? `/storage/${path}` : null;
 }
 
-/** "45 000 so'm / porsiya", "60 000 so'mdan", "Kelishiladi"; narxsiz (portfolio) — bo'sh satr */
-export function itemPrice(item: IVitrinaItem): string {
+/**
+ * "45 000 so'm / porsiya", "60 000 so'mdan", "Kelishiladi"; narxsiz (portfolio) — bo'sh satr.
+ * withUnit: false — birliksiz (kartadagi narx belgisi: birlik alohida, nom ostida yoziladi)
+ */
+export function itemPrice(item: IVitrinaItem, { withUnit: includeUnit = true } = {}): string {
    if (item.price_mode === "negotiable") return t("vitrina.negotiable");
    if (item.price_mode === "none" || item.price === null) return "";
 
    const price = formatProductPrice(item.price, item.price_type ?? undefined);
-   const withUnit = item.unit ? `${price} / ${item.unit}` : price;
+   const withUnit = includeUnit && item.unit ? `${price} / ${item.unit}` : price;
    return item.price_mode === "from" ? t("vitrina.priceFrom", { price: withUnit }) : withUnit;
 }
 

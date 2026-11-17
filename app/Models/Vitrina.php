@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\VitrinaImage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -14,12 +15,15 @@ class Vitrina extends Model
 {
     public const TYPES = ['shop', 'menu', 'portfolio', 'pricelist', 'realty'];
 
+    /** Mahsulotlar ko'rinishi (null — turidan): grid — rasmli plitkalar, list — matnli ro'yxat */
+    public const LAYOUTS = ['grid', 'list'];
+
     public const PENDING = 'pending';
     public const APPROVED = 'approved';
     public const REJECTED = 'rejected';
 
     protected $fillable = [
-        'name', 'type', 'description', 'district_id', 'address',
+        'name', 'type', 'layout', 'description', 'district_id', 'address',
         'phone', 'telegram', 'instagram', 'work_hours',
     ];
 
@@ -47,6 +51,18 @@ class Vitrina extends Model
     public function items()
     {
         return $this->hasMany(VitrinaItem::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Vitrinani butunlay o'chirish (egasi yoki admin): logo, muqova va barcha mahsulot rasmlari diskdan ham o'chadi.
+     * Bo'limlar bazada cascade bilan o'chadi; vitrinaga bog'langan e'lonlar qoladi (vitrina_id → null).
+     */
+    public function purge(): void
+    {
+        $this->items()->get()->each->purge();
+        VitrinaImage::delete($this->logo);
+        VitrinaImage::delete($this->cover);
+        $this->delete();
     }
 
     public function scopeApproved(Builder $query): Builder

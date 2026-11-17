@@ -14,12 +14,14 @@
             @click="open(item)"
          >
             <span class="relative block aspect-square w-full overflow-hidden rounded-xl bg-(--z-muted)">
-               <img
+               <ProductImageView
                   v-if="item.images?.length"
-                  :src="storageUrl(item.images[0])!"
+                  :src="storageUrl(item.images[0].src)!"
+                  :crop-x="item.images[0].crop_x"
+                  :crop-y="item.images[0].crop_y"
+                  :crop-scale="item.images[0].crop_scale"
                   :alt="item.title"
-                  loading="lazy"
-                  class="size-full object-cover"
+                  class="size-full"
                />
                <span v-else class="size-full grid place-items-center text-(--z-muted-text)">
                   <component :is="typeIcon(item)" class="size-6" />
@@ -41,6 +43,7 @@ import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Store } from "lucide-vue-next";
 import VitrinaVerified from "@/features/vitrina/VitrinaVerified.vue";
+import ProductImageView from "@shared/ui/ProductImageView.vue";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import type { IVitrinaItem } from "@shared/types";
 import { VITRINA_TYPES, itemPrice, storageUrl } from "@/features/vitrina/vitrinaKit";

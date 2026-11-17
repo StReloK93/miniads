@@ -12,6 +12,7 @@
          <div ref="parentScroll" class="overflow-y-auto inset-0 absolute no-scrollbar px-4 py-3">
             <slot name="inputs" />
             <BaseFormFields :input-configs="inputConfigs" :scroll-parent="parentScroll" />
+            <slot name="after" />
          </div>
       </main>
       <footer

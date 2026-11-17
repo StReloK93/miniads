@@ -33,6 +33,10 @@ export default {
    save(form: FormData) {
       return api.post<IVitrina>("my-vitrina", form, multipart);
    },
+   /** O'z vitrinasini butunlay o'chirish (mahsulotlar va rasmlar bilan) */
+   destroy() {
+      return api.delete("my-vitrina");
+   },
    storeSection(name: string) {
       return api.post<IVitrinaSection>("my-vitrina/sections", { name });
    },

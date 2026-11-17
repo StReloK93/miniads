@@ -183,6 +183,43 @@ const en: MessageSchema = {
          pricelist: "Services",
          realty: "Realtors",
       },
+      layout: "Item view",
+      layouts: {
+         grid: "Photo tiles",
+         list: "List",
+      },
+      layoutPreview: "See example",
+      previewTitle: "Example: this is how your shop will look",
+      steps: {
+         counter: "Step {n} of {total}",
+         next: "Next",
+         type: {
+            title: "Showcase type",
+            hint: "A showcase is your business's permanent page. First choose what you do.",
+         },
+         main: {
+            title: "Basics",
+            hint: "Logo, cover, name and a short description — customers see these first.",
+         },
+         contact: {
+            title: "Contacts",
+            hint: "How customers reach and find you. All optional.",
+         },
+         look: {
+            title: "Look",
+            hint: "How items are shown. You can change it later.",
+         },
+      },
+      remove: {
+         button: "Delete showcase",
+         title: "Delete the showcase?",
+         text: "All items, sections and photos will be deleted permanently. This cannot be undone.",
+         confirm: "Delete",
+      },
+      layoutHints: {
+         grid: "Photo, name and price — shops, works",
+         list: "Name and price in rows — menus, services",
+      },
       typeHints: {
          shop: "Products and prices: furniture, cakes, clothes, electronics",
          menu: "Dishes by section: cafe, restaurant, plov center",

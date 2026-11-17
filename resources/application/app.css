@@ -195,6 +195,20 @@
    display: none; /* Chrome, Safari */
 }
 
+/*
+   Rasmsiz vitrina yuzalari (muqova, mahsulot plitkasi): --tone rangidagi mayda nuqtali naqsh, pastga qarab so'nadi.
+   Element position: relative bo'lishi kerak; fon rangi har joyda o'zi beriladi.
+*/
+.tone-dots::before {
+   content: "";
+   position: absolute;
+   inset: 0;
+   background-image: radial-gradient(rgb(var(--tone) / 0.45) 1px, transparent 1.5px);
+   background-size: 14px 14px;
+   mask-image: linear-gradient(to bottom, black 10%, transparent 85%);
+   pointer-events: none;
+}
+
 .slide-bottom-enter-active,
 .slide-bottom-leave-active {
    transition: all 0.2s ease;

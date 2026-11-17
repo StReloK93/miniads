@@ -23,13 +23,13 @@
                   <BaseButton
                      @click="deleteImage(index, field)"
                      rounded
-                     severity="danger"
+                     severity="glass"
                      icon-only
                      size="sm"
                      :aria-label="$t('imageField.remove')"
                   >
                      <template #icon>
-                        <Trash class="size-5" />
+                        <Trash class="size-4.5 opacity-80" />
                      </template>
                   </BaseButton>
                   <BaseButton
@@ -42,7 +42,7 @@
                      :aria-label="$t('imageField.crop')"
                   >
                      <template #icon>
-                        <Crop class="size-5 " />
+                        <Crop class="size-4.5 opacity-80" />
                      </template>
                   </BaseButton>
                </div>

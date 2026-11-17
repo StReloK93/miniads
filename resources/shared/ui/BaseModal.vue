@@ -1,6 +1,7 @@
 <template>
    <TransitionRoot appear :show="open" as="template">
-      <Dialog as="div" class="relative z-100" @close="close">
+      <Dialog as="div" class="relative z-300" @close="close">
+         <!-- z-300: drawer (z-200) ichidan ochilgan oyna (masalan rasmni kesish) uning ustida chiqsin -->
          <!-- Backdrop -->
          <TransitionChild
             as="template"
@@ -14,7 +15,7 @@
             <div class="fixed inset-0 z-overlay z-100 app-frame-fixed" />
          </TransitionChild>
 
-         <div class="fixed inset-0 overflow-y-auto z-200 app-frame-fixed">
+         <div class="fixed inset-0 overflow-y-auto overscroll-contain no-scrollbar z-200 app-frame-fixed">
             <div class="flex min-h-full justify-center p-4 items-center overflow-hidden">
                <!-- Panel -->
                <TransitionChild

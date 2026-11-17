@@ -54,7 +54,7 @@ const props = defineProps<{ item: IVitrinaItem | null; telegram?: string | null;
 const emit = defineEmits<{ (e: "close"): void }>();
 
 const previewIndex = ref<number | null>(null);
-const images = computed(() => (props.item?.images ?? []).map((path) => storageUrl(path)!));
+const images = computed(() => (props.item?.images ?? []).map((image) => storageUrl(image.src)!));
 const lightboxImages = computed(() => images.value.map((src, index) => ({ id: index, src })));
 const price = computed(() => (props.item ? itemPrice(props.item) : ""));
 

@@ -188,6 +188,43 @@ const uz = {
          pricelist: "Xizmatlar",
          realty: "Rieltorlar",
       },
+      layout: "Mahsulotlar ko'rinishi",
+      layouts: {
+         grid: "Rasmli plitkalar",
+         list: "Ro'yxat",
+      },
+      layoutPreview: "Namunani ko'rish",
+      previewTitle: "Misol: do'koningiz shu ko'rinishda bo'ladi",
+      steps: {
+         counter: "{n}-qadam, jami {total}",
+         next: "Keyingi",
+         type: {
+            title: "Vitrina turi",
+            hint: "Vitrina — biznesingizning doimiy sahifasi. Avval nima bilan shug'ullanishingizni tanlang.",
+         },
+         main: {
+            title: "Asosiy ma'lumot",
+            hint: "Logo, muqova, nom va qisqa tavsif — mijoz birinchi shularni ko'radi.",
+         },
+         contact: {
+            title: "Bog'lanish",
+            hint: "Mijoz sizga qanday bog'lanadi va qayerdan topadi. Hammasi ixtiyoriy.",
+         },
+         look: {
+            title: "Ko'rinish",
+            hint: "Mahsulotlar qanday ko'rinadi. Keyin ham o'zgartirsa bo'ladi.",
+         },
+      },
+      remove: {
+         button: "Vitrinani o'chirish",
+         title: "Vitrinani o'chirasizmi?",
+         text: "Barcha mahsulotlar, bo'limlar va rasmlar butunlay o'chadi. Bu amalni qaytarib bo'lmaydi.",
+         confirm: "O'chirish",
+      },
+      layoutHints: {
+         grid: "Rasm, nomi va narxi — do'kon, ishlar",
+         list: "Nomi va narxi qatorma-qator — menyu, xizmatlar",
+      },
       typeHints: {
          shop: "Mahsulotlar va narxlar: mebel, tort, kiyim, texnika",
          menu: "Taomlar bo'limlarga ajratilgan: kafe, restoran, osh markazi",

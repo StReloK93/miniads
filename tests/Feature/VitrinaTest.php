@@ -103,25 +103,108 @@ test('sections belong to their vitrina and deleting one keeps its items', functi
     $this->getJson('/api/my-vitrina')->assertJsonPath('vitrina.items.0.vitrina_section_id', null);
 });
 
-test('item photos: kept ones stay, removed ones are deleted from disk', function () {
+test('item photos keep their crop; kept ones stay in order, removed ones are deleted from disk', function () {
     createVitrina($this);
 
     $item = $this->post('/api/my-vitrina/items', [
         'title' => 'Divan', 'price_mode' => 'none',
-        'images' => [UploadedFile::fake()->image('a.jpg', 200, 200), UploadedFile::fake()->image('b.jpg', 200, 200)],
+        'images' => [
+            ['file' => UploadedFile::fake()->image('a.jpg', 200, 200), 'crop_x' => 20, 'crop_y' => 80, 'crop_scale' => 1.5],
+            ['file' => UploadedFile::fake()->image('b.jpg', 200, 200)],
+        ],
     ], ['Accept' => 'application/json'])->assertCreated()->json();
 
     [$first, $second] = $item['images'];
-    expect(File::exists(public_path("storage/{$first}")))->toBeTrue();
+    expect($first)->toMatchArray(['crop_x' => 20, 'crop_y' => 80, 'crop_scale' => 1.5])
+        ->and($second)->toMatchArray(['crop_x' => 50, 'crop_y' => 50, 'crop_scale' => 1])
+        ->and(File::exists(public_path("storage/{$first['src']}")))->toBeTrue();
 
+    // Ikkinchisi qoladi (crop o'zgartirildi), birinchisi olib tashlandi; begona yo'l e'tiborsiz
     $this->post("/api/my-vitrina/items/{$item['id']}", [
-        'title' => 'Divan', 'price_mode' => 'none', 'keep_images' => [$second, 'vitrinas/items/../../secret.webp'],
-    ], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('images', [$second]);
+        'title' => 'Divan', 'price_mode' => 'none',
+        'images' => [
+            ['src' => $second['src'], 'crop_x' => 10, 'crop_y' => 50, 'crop_scale' => 2],
+            ['src' => 'vitrinas/items/../../secret.webp'],
+        ],
+    ], ['Accept' => 'application/json'])->assertOk()
+        ->assertJsonPath('images', [['src' => $second['src'], 'crop_x' => 10, 'crop_y' => 50, 'crop_scale' => 2]]);
 
-    expect(File::exists(public_path("storage/{$first}")))->toBeFalse();
+    expect(File::exists(public_path("storage/{$first['src']}")))->toBeFalse();
 
     $this->deleteJson("/api/my-vitrina/items/{$item['id']}")->assertNoContent();
-    expect(File::exists(public_path("storage/{$second}")))->toBeFalse();
+    expect(File::exists(public_path("storage/{$second['src']}")))->toBeFalse();
+});
+
+test('old items saved as plain paths are read with a centered crop', function () {
+    $vitrina = createVitrina($this);
+    $item = $vitrina->items()->forceCreate(['title' => 'Eski', 'price_mode' => 'none', 'images' => null]);
+    \Illuminate\Support\Facades\DB::table('vitrina_items')->where('id', $item->id)->update(['images' => json_encode(['vitrinas/items/old.webp'])]);
+
+    expect($item->fresh()->images)->toEqual([['src' => 'vitrinas/items/old.webp', 'crop_x' => 50, 'crop_y' => 50, 'crop_scale' => 1.0]]);
+});
+
+test('the owner removes the logo and cover; files are deleted from disk', function () {
+    createVitrina($this, [
+        'logo' => UploadedFile::fake()->image('logo.jpg', 300, 300),
+        'cover' => UploadedFile::fake()->image('cover.jpg', 1200, 500),
+    ]);
+    $vitrina = Vitrina::firstOrFail();
+    [$logo, $cover] = [$vitrina->logo, $vitrina->cover];
+    expect(File::exists(public_path("storage/{$logo}")))->toBeTrue();
+
+    // Faqat logo olib tashlanadi — muqova qoladi
+    $this->post('/api/my-vitrina', ['name' => 'Mebel Lux', 'type' => 'shop', 'remove_logo' => '1'], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonPath('logo', null)->assertJsonPath('cover', $cover);
+    expect(File::exists(public_path("storage/{$logo}")))->toBeFalse();
+
+    $this->post('/api/my-vitrina', ['name' => 'Mebel Lux', 'type' => 'shop', 'remove_cover' => '1'], ['Accept' => 'application/json'])
+        ->assertOk()->assertJsonPath('cover', null);
+    expect(File::exists(public_path("storage/{$cover}")))->toBeFalse();
+});
+
+test('the owner picks how items are shown; empty means "by type"', function () {
+    createVitrina($this);
+    $save = fn (array $extra) => $this->post('/api/my-vitrina', ['name' => 'Mebel Lux', 'type' => 'shop', ...$extra], ['Accept' => 'application/json']);
+
+    expect(Vitrina::firstOrFail()->layout)->toBeNull();
+    $save(['layout' => 'list'])->assertOk()->assertJsonPath('layout', 'list');
+    $save(['layout' => 'mosaic'])->assertUnprocessable()->assertJsonValidationErrors('layout');
+    $save(['layout' => ''])->assertOk()->assertJsonPath('layout', null);
+});
+
+test('the owner deletes the vitrina with all its photos; linked ads stay and a new one can be made', function () {
+    createVitrina($this, ['logo' => UploadedFile::fake()->image('logo.jpg', 200, 200)]);
+    $vitrina = Vitrina::firstOrFail();
+    $item = $this->post('/api/my-vitrina/items', [
+        'title' => 'Divan', 'price_mode' => 'none',
+        'images' => [['file' => UploadedFile::fake()->image('a.jpg', 200, 200)]],
+    ], ['Accept' => 'application/json'])->assertCreated()->json();
+    $category = \App\Models\Category::create(['name' => 'Mebel', 'is_page' => true]);
+    $this->postJson('/api/products', ['title' => 'Divan', 'category_id' => $category->id, 'phone' => '931234567', 'price' => 100, 'vitrina_id' => $vitrina->id])
+        ->assertSuccessful();
+    $files = [$vitrina->logo, $item['images'][0]['src']];
+
+    $this->deleteJson('/api/my-vitrina')->assertNoContent();
+
+    expect(Vitrina::count())->toBe(0)
+        ->and(\App\Models\VitrinaItem::count())->toBe(0)
+        ->and(\App\Models\Product::whereNull('vitrina_id')->count())->toBe(1);
+    foreach ($files as $path) {
+        expect(File::exists(public_path("storage/{$path}")))->toBeFalse();
+    }
+    $this->getJson('/api/my-vitrina')->assertJsonPath('vitrina', null);
+    createVitrina($this);
+    expect(Vitrina::count())->toBe(1);
+});
+
+test("only an admin deletes someone else's vitrina", function () {
+    $vitrina = createVitrina($this, ['cover' => UploadedFile::fake()->image('cover.jpg', 600, 300)]);
+    $cover = $vitrina->cover;
+
+    $this->actingAs($this->owner)->deleteJson("/api/admin/vitrinas/{$vitrina->id}")->assertForbidden();
+    $this->actingAs($this->admin)->deleteJson("/api/admin/vitrinas/{$vitrina->id}")->assertNoContent();
+
+    expect(Vitrina::count())->toBe(0)->and(File::exists(public_path("storage/{$cover}")))->toBeFalse();
 });
 
 test('a rejected vitrina goes back to review after the owner edits it', function () {

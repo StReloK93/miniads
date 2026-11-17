@@ -2,10 +2,9 @@
    <section class="full-page flex flex-col">
       <aside v-if="vitrina" class="grow relative -mt-[calc(var(--safe-area-top)+var(--spacing)*4)]">
          <article class="absolute inset-0 overflow-y-auto no-scrollbar pb-6">
-            <!-- Muqova: rasm yoki vitrina turi rangidagi fon -->
-            <header class="cover" :style="{ '--tone': meta.tone }">
+            <!-- Muqova: rasm yoki (rasm yo'q bo'lsa) vitrina turi rangidagi yengil fon va so'nib boruvchi nuqtali naqsh -->
+            <header class="cover" :class="{ 'is-empty tone-dots': !cover }" :style="{ '--tone': meta.tone }">
                <img v-if="cover" :src="cover" :alt="vitrina.name" class="absolute inset-0 size-full object-cover" />
-               <component :is="meta.icon" v-else class="cover-icon" stroke-width="1.2" />
                <div class="cover-actions">
                   <button v-if="showAppBackButton" type="button" class="cover-button" :aria-label="$t('common.back')" @click="goBack(router)">
                      <ArrowLeft class="size-5" />
@@ -210,11 +209,9 @@ const groups = computed(() => {
    const rest = items.filter((item) => !item.vitrina_section_id || !sectionIds.has(item.vitrina_section_id));
    if (rest.length) result.push({ key: "other", name: t("vitrina.otherSection"), items: rest });
 
-   // Rasmli kartalar faqat rasmi bor bo'limda: ustaning "Narxlar" bo'limi rasmsiz — ixcham ro'yxat bo'lib chiqadi
-   return result.map((group) => ({
-      ...group,
-      layout: meta.value.layout === "grid" && group.items.some((item) => item.images?.length) ? ("grid" as const) : ("list" as const),
-   }));
+   // Ko'rinish: egasi tanlagani yoki vitrina turidan (do'kon, portfolio, uylar — plitka; menyu, narxnoma — ro'yxat)
+   const layout = vitrina.value?.layout ?? meta.value.layout;
+   return result.map((group) => ({ ...group, layout }));
 });
 
 const visibleGroups = computed(() =>
@@ -303,28 +300,14 @@ onMounted(load);
 <style scoped>
 .cover {
    position: relative;
-   display: grid;
    height: calc(10rem + var(--safe-area-top));
-   place-items: center;
    overflow: hidden;
-   /* Rasm qo'yilmagan bo'lsa: vitrina turi rangidagi yopiq fon (sahifa foni orqadan ko'rinmaydi) */
-   background:
-      radial-gradient(120% 90% at 90% 0%, rgb(255 255 255 / 0.28), transparent 55%),
-      radial-gradient(90% 90% at 0% 100%, rgb(0 0 0 / 0.12), transparent 60%),
-      linear-gradient(135deg, rgb(var(--tone)), rgb(var(--tone) / 0.7)),
-      var(--z-background);
-   color: white;
-}
+   background: var(--z-muted);
 
-/* Katta belgi o'ng pastda, yarim ko'rinadi: bo'sh joy bezak bo'lib qoladi, logotip bilan to'qnashmaydi */
-.cover-icon {
-   position: absolute;
-   right: -0.75rem;
-   bottom: -1.25rem;
-   width: 8.5rem;
-   height: 8.5rem;
-   opacity: 0.22;
-   transform: rotate(-12deg);
+   /* Rasm yo'q: sokin rang va naqsh pastga qarab butunlay yo'qoladi — sahifa foniga chegarasiz qo'shiladi */
+   &.is-empty {
+      background: linear-gradient(to bottom, rgb(var(--tone) / 0.2), rgb(var(--tone) / 0.08) 55%, transparent);
+   }
 }
 
 .cover-actions {

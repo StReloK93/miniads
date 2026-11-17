@@ -94,6 +94,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('channel-live-post', 'updateChannelLivePost');
         Route::get('vitrinas', [App\Http\Controllers\VitrinaController::class, 'adminIndex']);
         Route::patch('vitrinas/{id}', [App\Http\Controllers\VitrinaController::class, 'adminUpdate']);
+        Route::delete('vitrinas/{id}', [App\Http\Controllers\VitrinaController::class, 'adminDestroy']);
     });
 
     Route::controller(App\Http\Controllers\CategoryController::class)->group(function () {
@@ -129,6 +130,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('my-vitrina')->controller(App\Http\Controllers\VitrinaController::class)->group(function () {
         Route::get('/', 'mine');
         Route::post('/', 'save');
+        Route::delete('/', 'destroy');
         Route::post('/sections', 'storeSection');
         Route::patch('/sections/{id}', 'updateSection');
         Route::delete('/sections/{id}', 'destroySection');

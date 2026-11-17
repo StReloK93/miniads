@@ -11,23 +11,6 @@
       >
          <p v-if="error" class="mb-3 text-sm text-(--z-danger)">{{ error }}</p>
 
-         <!-- Rasmlar: eskilari (× bilan olib tashlanadi) va yangilari; ko'pi bilan 6 ta -->
-         <div class="mb-3">
-            <p class="label">{{ $t("vitrina.form.photos") }}</p>
-            <div class="flex flex-wrap gap-2">
-               <div v-for="(photo, index) in photos" :key="photo.key" class="thumb">
-                  <img :src="photo.src" alt="" class="size-full object-cover" />
-                  <button type="button" class="thumb-remove" :aria-label="$t('common.delete')" @click="removePhoto(index)">
-                     <X class="size-3" />
-                  </button>
-               </div>
-               <label v-if="photos.length < MAX_PHOTOS" class="thumb thumb-add">
-                  <ImagePlus class="size-5" />
-                  <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="addPhotos" />
-               </label>
-            </div>
-         </div>
-
          <BaseFormFields :input-configs="mainInputs" />
 
          <div class="mt-3 mb-3">
@@ -69,8 +52,11 @@
             </span>
          </button>
          <div class="flex gap-3">
-            <!-- Ikki bosqich: birinchi bosish so'raydi, ikkinchisi o'chiradi (Telegram ichida confirm() ishonchsiz) -->
-            <BaseButton v-if="item" severity="danger" :icon-only="!confirmDelete" :loading="deleting" :aria-label="$t('common.delete')" @click="remove">
+            <!--
+               Ikki bosqich: birinchi bosish so'raydi, ikkinchisi o'chiradi (Telegram ichida confirm() ishonchsiz).
+               Minimal: odatda fonsiz qizil belgi; to'liq qizil — faqat tasdiqlash bosqichida
+            -->
+            <BaseButton v-if="item" severity="danger" :variant="confirmDelete ? 'default' : 'text'" :icon-only="!confirmDelete" :loading="deleting" :aria-label="$t('common.delete')" @click="remove">
                <template #icon><Trash2 class="size-4" /></template>
                <template v-if="confirmDelete">{{ $t("vitrina.form.confirmDelete") }}</template>
             </BaseButton>
@@ -87,7 +73,7 @@ import { computed, ref, watch } from "vue";
 import { Form } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { ImagePlus, Megaphone, Trash2, X } from "lucide-vue-next";
+import { Megaphone, Trash2 } from "lucide-vue-next";
 import BaseDrawer from "@shared/ui/BaseDrawer.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
@@ -96,7 +82,6 @@ import { Inputs } from "@shared/ui/inputs";
 import { t } from "@shared/i18n";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import type { InputConfig, IVitrinaItem, IVitrinaSection, VitrinaPriceMode } from "@shared/types";
-import { storageUrl } from "@/features/vitrina/vitrinaKit";
 import { errorMessage } from "@/features/vitrina/vitrinaForm";
 
 const MAX_PHOTOS = 6;
@@ -120,12 +105,12 @@ const emit = defineEmits<{
    (e: "publish", item: IVitrinaItem): void;
 }>();
 
-type Photo = { key: string; src: string; path?: string; file?: File };
+/** FieldImage qiymati: eski rasm (src) yoki yangi fayl, ikkalasida ham crop */
+type ImageValue = { src?: string; file?: File | null; crop_x: number; crop_y: number; crop_scale: number };
 
-// Formadan tashqaridagi qismlar: narx turi tugmalari, "Hozir bor" va rasmlar
+// Formadan tashqaridagi qismlar: narx turi tugmalari va "Hozir bor"
 const priceMode = ref<VitrinaPriceMode>("fixed");
 const isAvailable = ref(true);
-const photos = ref<Photo[]>([]);
 const saving = ref(false);
 const deleting = ref(false);
 const error = ref("");
@@ -136,6 +121,16 @@ const formKey = ref(0);
 const hasPrice = computed(() => priceMode.value === "fixed" || priceMode.value === "from");
 
 const mainInputs = computed<InputConfig[]>(() => [
+   // Rasmlar — e'lon formasidagi komponent: hammasi bir xil ko'rinishi uchun crop bilan
+   {
+      component: Inputs.FieldImage,
+      name: "images",
+      optional: true,
+      hint: t("form.photosHint"),
+      props: { multiple: true, max: MAX_PHOTOS, title: t("vitrina.form.photos") },
+      schema: z.array(z.any()).optional().nullable(),
+      class: ["mb-3"],
+   },
    {
       component: Inputs.FieldText,
       name: "title",
@@ -220,8 +215,8 @@ watch(
       confirmDelete.value = false;
       priceMode.value = item?.price_mode ?? props.defaultPriceMode;
       isAvailable.value = item?.is_available ?? true;
-      photos.value = (item?.images ?? []).map((path) => ({ key: path, src: storageUrl(path)!, path }));
       initialValues.value = {
+         images: (item?.images ?? []).map((image) => ({ ...image })),
          title: item?.title ?? "",
          vitrina_section_id: (item ? item.vitrina_section_id : props.defaultSectionId) ?? 0,
          description: item?.description ?? "",
@@ -232,19 +227,6 @@ watch(
       formKey.value++;
    },
 );
-
-function addPhotos(event: Event) {
-   const input = event.target as HTMLInputElement;
-   for (const file of Array.from(input.files ?? []).slice(0, MAX_PHOTOS - photos.value.length)) {
-      photos.value.push({ key: `${file.name}-${file.size}-${Math.random()}`, src: URL.createObjectURL(file), file });
-   }
-   input.value = "";
-}
-
-function removePhoto(index: number) {
-   const [photo] = photos.value.splice(index, 1);
-   if (photo?.file) URL.revokeObjectURL(photo.src);
-}
 
 async function save(formValues: Record<string, unknown>) {
    saving.value = true;
@@ -263,10 +245,14 @@ async function save(formValues: Record<string, unknown>) {
          data.append("unit", text(values.unit));
       }
       data.append("is_available", isAvailable.value ? "1" : "0");
-      for (const photo of photos.value) {
-         if (photo.path) data.append("keep_images[]", photo.path);
-         if (photo.file) data.append("images[]", photo.file);
-      }
+      // Tartib bilan: eski rasm — yo'li, yangisi — fayl; har birining crop'i
+      ((formValues.images as ImageValue[] | undefined) ?? []).forEach((image, index) => {
+         if (image.file instanceof File) data.append(`images[${index}][file]`, image.file);
+         else if (image.src) data.append(`images[${index}][src]`, image.src);
+         data.append(`images[${index}][crop_x]`, String(image.crop_x));
+         data.append(`images[${index}][crop_y]`, String(image.crop_y));
+         data.append(`images[${index}][crop_scale]`, String(image.crop_scale));
+      });
 
       const { data: saved } = await VitrinaRepo.saveItem(data, props.item?.id);
       emit("saved", saved);
@@ -324,37 +310,5 @@ async function remove() {
       background: var(--z-primary);
       color: var(--z-primary-foreground);
    }
-}
-
-.thumb {
-   position: relative;
-   width: 4.5rem;
-   height: 4.5rem;
-   overflow: hidden;
-   border-radius: 0.75rem;
-   background: var(--z-muted);
-}
-
-.thumb-add {
-   display: grid;
-   place-items: center;
-   border: 1.5px dashed var(--z-border);
-   background: transparent;
-   color: var(--z-muted-text);
-   cursor: pointer;
-}
-
-.thumb-remove {
-   position: absolute;
-   top: 0.25rem;
-   right: 0.25rem;
-   display: grid;
-   width: 1.25rem;
-   height: 1.25rem;
-   place-items: center;
-   border-radius: 999px;
-   background: rgb(0 0 0 / 0.6);
-   color: white;
-   cursor: pointer;
 }
 </style>

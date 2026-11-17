@@ -278,6 +278,14 @@ export interface IVitrinaSection {
    position: number;
 }
 
+/** Vitrina mahsuloti rasmi: e'lon rasmidagidek crop bilan (FieldImage → ProductImageView) */
+export interface IVitrinaImage {
+   src: string;
+   crop_x: number;
+   crop_y: number;
+   crop_scale: number;
+}
+
 export interface IVitrinaItem {
    id: number;
    vitrina_section_id: number | null;
@@ -288,7 +296,7 @@ export interface IVitrinaItem {
    price_type_id: number | null;
    price_type: { id: number; name: string; type: string; position: "left" | "right" } | null;
    unit: string | null;
-   images: string[] | null;
+   images: IVitrinaImage[] | null;
    is_available: boolean;
    position: number;
    /** Qidiruvdagi "Vitrinalardan" blokida: qaysi vitrinaniki */
@@ -311,6 +319,8 @@ export interface IVitrina {
    name: string;
    slug: string;
    type: VitrinaType;
+   /** Mahsulotlar ko'rinishi; null — vitrina turidan (VITRINA_TYPES[type].layout) */
+   layout: "grid" | "list" | null;
    description: string | null;
    logo: string | null;
    cover: string | null;

@@ -9,6 +9,7 @@ use App\Models\VitrinaSection;
 use App\Services\TelegramNotifier;
 use App\Support\Phone;
 use App\Support\UzbekText;
+use App\Support\ImageCrop;
 use App\Support\VitrinaImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -184,6 +185,7 @@ class VitrinaController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:60'],
             'type' => ['required', Rule::in(Vitrina::TYPES)],
+            'layout' => ['nullable', Rule::in(Vitrina::LAYOUTS)],
             'description' => ['nullable', 'string', 'max:1000'],
             'district_id' => ['nullable', 'integer', Rule::exists('districts', 'id')],
             'address' => ['nullable', 'string', 'max:150'],
@@ -196,6 +198,7 @@ class VitrinaController extends Controller
         ]);
 
         $data['district_id'] = ($data['district_id'] ?? null) ?: null;
+        $data['layout'] = ($data['layout'] ?? null) ?: null;
         $data['phone'] = Phone::format($data['phone'] ?? null);
         $data['telegram'] = $this->handle($data['telegram'] ?? null);
         $data['instagram'] = $this->handle($data['instagram'] ?? null);
@@ -328,11 +331,15 @@ class VitrinaController extends Controller
 
     public function destroyItem(Request $request, int $id)
     {
-        $item = $this->ownVitrina($request)->items()->findOrFail($id);
-        foreach ($item->images ?? [] as $path) {
-            VitrinaImage::delete($path);
-        }
-        $item->delete();
+        $this->ownVitrina($request)->items()->findOrFail($id)->purge();
+
+        return response()->noContent();
+    }
+
+    /** Egasi o'z vitrinasini o'chiradi (rasmlari bilan); keyin yangisini yaratishi mumkin */
+    public function destroy(Request $request)
+    {
+        $request->user()->vitrina()->firstOrFail()->purge();
 
         return response()->noContent();
     }
@@ -347,6 +354,14 @@ class VitrinaController extends Controller
             ->orderByRaw("status = 'pending' desc")
             ->latest('updated_at')
             ->get();
+    }
+
+    /** Admin: nomaqbul vitrinani butunlay o'chirish (rasmlari diskdan ham) */
+    public function adminDestroy(int $id)
+    {
+        Vitrina::findOrFail($id)->purge();
+
+        return response()->noContent();
     }
 
     public function adminUpdate(Request $request, int $id, TelegramNotifier $notifier)
@@ -406,7 +421,8 @@ class VitrinaController extends Controller
     }
 
     /**
-     * Mahsulot maydonlari va rasmlari. keep_images[] — qoladigan eski rasmlar (tartibi bilan), images[] — yangilari.
+     * Mahsulot maydonlari va rasmlari.
+     * images[i] — tartib bilan: eski rasm {src, crop_*} yoki yangi {file, crop_*} (e'lon formasidagi FieldImage kabi).
      */
     private function fillItem(Request $request, Vitrina $vitrina, VitrinaItem $item): VitrinaItem
     {
@@ -419,35 +435,39 @@ class VitrinaController extends Controller
             'price_type_id' => ['nullable', 'integer', Rule::exists('price_types', 'id')],
             'unit' => ['nullable', 'string', 'max:30'],
             'is_available' => ['sometimes', 'boolean'],
-            'keep_images' => ['nullable', 'array'],
-            'keep_images.*' => ['string'],
-            'images' => ['nullable', 'array'],
-            'images.*' => ['image', 'max:10240'],
+            'images' => ['nullable', 'array', 'max:' . VitrinaItem::MAX_IMAGES],
+            'images.*.src' => ['nullable', 'string'],
+            'images.*.file' => ['nullable', 'image', 'max:10240'],
+            ...ImageCrop::rules('images.*'),
+        ], [
+            'images.max' => __('messages.vitrina_too_many_images', ['max' => VitrinaItem::MAX_IMAGES]),
         ]);
 
         $hasPrice = in_array($data['price_mode'], ['fixed', 'from'], true);
         $item->fill([
-            ...collect($data)->except(['keep_images', 'images'])->all(),
+            ...collect($data)->except(['images'])->all(),
             'vitrina_section_id' => ($data['vitrina_section_id'] ?? null) ?: null,
             'price' => $hasPrice ? $data['price'] : null,
             'price_type_id' => $hasPrice ? (($data['price_type_id'] ?? null) ?: 1) : null,
             'is_available' => $request->has('is_available') ? $request->boolean('is_available') : ($item->is_available ?? true),
         ]);
 
-        // Eski rasmlardan faqat shu mahsulotniki qoladi; qolganlari diskdan o'chadi
-        $current = $item->images ?? [];
-        $keep = array_values(array_intersect($data['keep_images'] ?? [], $current));
-        $newFiles = $request->file('images', []);
-        abort_if(count($keep) + count($newFiles) > VitrinaItem::MAX_IMAGES, 422,
-            __('messages.vitrina_too_many_images', ['max' => VitrinaItem::MAX_IMAGES]));
+        // Eski rasmlardan faqat shu mahsulotniki qoladi (begona yo'l yuborilsa — e'tiborsiz); qolganlari diskdan o'chadi
+        $current = array_column($item->images ?? [], 'src');
+        $images = [];
+        foreach ($data['images'] ?? [] as $index => $image) {
+            $file = $request->file("images.{$index}.file");
+            if ($file) {
+                $images[] = ['src' => VitrinaImage::store($file, 'items', VitrinaImage::ITEM), ...ImageCrop::normalize($image)];
+            } elseif (in_array($image['src'] ?? null, $current, true)) {
+                $images[] = ['src' => $image['src'], ...ImageCrop::normalize($image)];
+            }
+        }
 
-        foreach (array_diff($current, $keep) as $path) {
+        foreach (array_diff($current, array_column($images, 'src')) as $path) {
             VitrinaImage::delete($path);
         }
-        foreach ($newFiles as $file) {
-            $keep[] = VitrinaImage::store($file, 'items', VitrinaImage::ITEM);
-        }
-        $item->images = $keep;
+        $item->images = $images;
         $item->save();
 
         // Mahsulot o'zgarsa vitrina "yangilangan" bo'ladi (katalogda yuqoriga chiqadi)

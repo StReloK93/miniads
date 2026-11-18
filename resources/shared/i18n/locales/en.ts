@@ -359,6 +359,7 @@ const en: MessageSchema = {
       activateTitle: "Activate the ad",
       activateText: "The ad will show in the feed again with a renewed term.",
       activate: "Activate",
+      extend: "Extend",
       deleteTitle: "Delete permanently",
       deleteText: "The ad and all its photos will be deleted. This can't be undone.",
       deleteForever: "Delete permanently",

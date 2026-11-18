@@ -99,6 +99,18 @@
                {{ chip.label }}
                <span>{{ counts[chip.value] ?? "·" }}</span>
             </button>
+            <!-- Holatdan mustaqil: raqami boshqa e'londa ham uchraydiganlar (bir xil e'lon ikki marta kiritilgan bo'lishi mumkin) -->
+            <button
+               type="button"
+               class="admin-filter-chip"
+               :class="{ 'is-active': duplicates }"
+               title="Telefon raqami boshqa e'londa ham uchraydigan e'lonlar — bir raqamlilar yonma-yon"
+               @click="toggleDuplicates"
+            >
+               <Copy class="size-3.5" />
+               Bir xil raqam
+               <span>{{ counts.duplicates ?? "·" }}</span>
+            </button>
          </nav>
 
          <div v-if="userFilter" class="admin-filter-note">
@@ -190,6 +202,19 @@
                                        <Bot class="size-3" /> Bot
                                     </span>
                                  </div>
+                                 <div v-if="product.phone" class="admin-xmeta">
+                                    <span class="tabular-nums">{{ product.phone }}</span>
+                                    <!-- Shu raqam bilan boshqa e'lonlar: bosilsa hammasi ko'rinadi -->
+                                    <button
+                                       v-if="product.same_phone_count"
+                                       type="button"
+                                       class="admin-badge admin-badge-warning cursor-pointer"
+                                       :title="`Shu raqam bilan yana ${product.same_phone_count} ta e'lon — ko'rsatish`"
+                                       @click.stop="searchPhone(product.phone)"
+                                    >
+                                       <Copy class="size-3" /> yana {{ product.same_phone_count }} ta
+                                    </button>
+                                 </div>
                               </div>
                            </div>
                         </td>
@@ -260,6 +285,14 @@
                                     <dd>
                                        <a v-if="product.phone" :href="`tel:${product.phone}`">{{ product.phone }}</a>
                                        <template v-else>—</template>
+                                       <button
+                                          v-if="product.phone"
+                                          type="button"
+                                          class="ml-2 text-xs underline underline-offset-2 text-(--z-muted-text) cursor-pointer"
+                                          @click="searchPhone(product.phone)"
+                                       >
+                                          shu raqamli e'lonlar
+                                       </button>
                                     </dd>
                                  </div>
                                  <div>
@@ -423,6 +456,7 @@ import {
    Bot,
    CheckCheck,
    ChevronDown,
+   Copy,
    ExternalLink,
    Eye,
    Flag,
@@ -486,12 +520,13 @@ const statusChips: { value: Status; label: string }[] = [
 
 const products = ref<AdminProduct[]>([]);
 const pagination = ref<Pagination | null>(null);
-const counts = ref<Partial<Record<Status, number>>>({});
+const counts = ref<Partial<Record<Status | "duplicates", number>>>({});
 // Boshqa sahifadan aniq e'longa havola: /admin/products?search=#12
 const searchInput = ref(typeof route.query.search === "string" ? route.query.search : "");
 const searchValue = ref(searchInput.value);
 const status = ref<Status>((route.query.status as Status) || "all");
 const isBot = ref("all");
+const duplicates = ref(route.query.duplicates === "1");
 const sort = ref("new");
 // "" — hammasi; hudud uchun "none" — butun viloyat (hudud tanlanmagan e'lonlar)
 const categoryId = ref<string>(typeof route.query.category_id === "string" ? route.query.category_id : "");
@@ -545,6 +580,7 @@ async function load(page = 1) {
          user_id: userFilter.value?.id,
          category_id: categoryId.value || undefined,
          district_id: districtId.value || undefined,
+         duplicates: duplicates.value ? 1 : undefined,
       });
       products.value = data.data;
       counts.value = data.counts ?? {};
@@ -568,6 +604,22 @@ const reload = () => load(pagination.value?.current_page || 1);
 
 function search() {
    searchValue.value = searchInput.value.trim();
+   load(1);
+}
+
+function toggleDuplicates() {
+   duplicates.value = !duplicates.value;
+   openId.value = null;
+   load(1);
+}
+
+/** Shu telefon raqami bilan qo'yilgan barcha e'lonlar (har qanday holatda, arxiv ham) */
+function searchPhone(phone: string) {
+   searchInput.value = phone;
+   searchValue.value = phone;
+   status.value = "all";
+   duplicates.value = false;
+   openId.value = null;
    load(1);
 }
 

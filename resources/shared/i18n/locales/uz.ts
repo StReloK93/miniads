@@ -364,6 +364,7 @@ const uz = {
       activateTitle: "E'lonni faollashtirish",
       activateText: "E'lon yana lentada ko'rinadi va muddati yangilanadi.",
       activate: "Faollashtirish",
+      extend: "Uzaytirish",
       deleteTitle: "E'lonni butunlay o'chirish",
       deleteText: "E'lon va uning barcha rasmlari o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi.",
       deleteForever: "Butunlay o'chirish",

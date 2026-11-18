@@ -188,9 +188,13 @@ class AdminController extends Controller
             'category_id' => ['nullable', 'integer'],
             'district_id' => ['nullable', 'regex:/^(\d+|none)$/'],
             'sort' => ['nullable', Rule::in(['new', 'views', 'reports'])],
+            // Bir xil telefon raqami bilan bir nechta e'lon (takror kiritilgan)
+            'duplicates' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
         $status = $filters['status'] ?? 'all';
+        $duplicates = (bool) ($filters['duplicates'] ?? false);
+        $phoneKey = self::PHONE_KEY_SQL;
         $sort = $filters['sort'] ?? ($status === 'reported' ? 'reports' : 'new');
         $categoryIds = filled($filters['category_id'] ?? null) ? Category::subtreeIds((int) $filters['category_id']) : null;
         $district = $filters['district_id'] ?? null;
@@ -204,15 +208,26 @@ class AdminController extends Controller
             ->when($categoryIds !== null, fn ($query) => $query->whereIn('category_id', $categoryIds))
             ->when($district === 'none', fn ($query) => $query->whereNull('district_id'))
             ->when($district !== null && $district !== 'none', fn ($query) => $query->where('district_id', (int) $district))
-            ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
-                $search = ltrim($filters['search'], '#');
-                $query->where(function ($query) use ($search): void {
+            ->when($duplicates, fn ($query) => $query->whereIn(DB::raw($phoneKey), $this->duplicatePhoneKeys()))
+            ->when(filled($filters['search'] ?? null), function ($query) use ($filters, $phoneKey): void {
+                $search = ltrim(trim($filters['search']), '#@');
+                $phone = self::phoneSearchKey($search);
+                $query->where(function ($query) use ($search, $phone, $phoneKey): void {
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('phone', 'like', "%{$search}%")
                         ->orWhereHas('user', fn ($userQuery) => $userQuery
                             ->where('name', 'like', "%{$search}%")
                             ->orWhere('username', 'like', "%{$search}%"));
-                    if (ctype_digit($search)) {
+                    // Telefon har qanday ko'rinishda: +998 93 123 45 67, 931234567, 93-123-45-67 — bitta raqam
+                    if ($phone !== null) {
+                        $query->orWhereRaw("{$phoneKey} LIKE ?", ["%{$phone}%"])
+                            ->orWhereHas('user', fn ($userQuery) => $userQuery->whereRaw(self::PHONE_KEY_SQL . ' LIKE ?', ["%{$phone}%"]));
+                        // Bot e'lonlarida raqam tavsif ichida (93-123-45-67 ko'rinishiga keltirilgan)
+                        if (strlen($phone) === 9) {
+                            $query->orWhere('description', 'like', '%' . \App\Support\Phone::format($phone) . '%');
+                        }
+                    }
+                    if (ctype_digit($search) && strlen($search) <= 9) {
                         $query->orWhere('products.id', (int) $search);
                     }
                 });
@@ -235,7 +250,9 @@ class AdminController extends Controller
                 'openReports' => fn ($query) => $query->with('user:id,name,username')->latest(),
             ])
             ->withCount(['favorites', 'openReports as open_reports_count'])
-            ->when($status === 'all', fn ($query) => $query->orderByRaw('deleted_at IS NULL DESC'));
+            ->when($status === 'all', fn ($query) => $query->orderByRaw('deleted_at IS NULL DESC'))
+            // Takroriylar ro'yxatida bir raqamli e'lonlar yonma-yon turadi
+            ->when($duplicates, fn ($query) => $query->orderByRaw($phoneKey));
 
         match ($sort) {
             'views' => $query->orderByDesc('views_count'),
@@ -246,17 +263,80 @@ class AdminController extends Controller
 
         $counts = collect(['all', 'active', 'expired', 'reported', 'deleted'])
             ->mapWithKeys(fn (string $key) => [$key => $applyStatus($base(), $key)->count()]);
+        // Butun bazada: raqami boshqa e'londa ham uchraydigan e'lonlar (arxivdagilarsiz)
+        $counts['duplicates'] = Product::query()->whereIn(DB::raw($phoneKey), $this->duplicatePhoneKeys())->count();
 
-        $page = $query->paginate($filters['per_page'] ?? 20)
+        $page = $query->paginate($filters['per_page'] ?? 20);
+        $samePhone = $this->samePhoneCounts($page->getCollection());
+
+        $page = $page
             ->through(fn (Product $product) => [
                 // expires_at modelda yashirin (ilova uchun); admin uchun kerak
                 ...$product->makeVisible('expires_at')->toArray(),
                 // Xom "Y-m-d H:i:s" iOS Safari'da o'qilmaydi — ISO formatda beramiz
                 'expires_at' => $product->expires_at ? Carbon::parse($product->expires_at)->toISOString() : null,
                 'is_active' => $this->isActive($product),
+                // Shu raqam bilan yana nechta e'lon bor (o'zidan tashqari, arxivsiz)
+                'same_phone_count' => max(0, ($samePhone[self::phoneKey($product->phone)] ?? 0) - ($product->trashed() ? 0 : 1)),
             ]);
 
         return response()->json([...$page->toArray(), 'counts' => $counts]);
+    }
+
+    /** Telefonning oxirgi 9 raqami (SQL): "+998 93 123-45-67", "93-123-45-67" va "931234567" bir xil kalit */
+    // SUBSTR(x, -9): MySQL va SQLite (testlar) ikkalasida ham ishlaydi (RIGHT() SQLite'da yo'q)
+    private const PHONE_KEY_SQL = "SUBSTR(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(phone, ''), '-', ''), ' ', ''), '+', ''), '(', ''), ')', ''), -9)";
+
+    private static function phoneKey(?string $phone): ?string
+    {
+        $digits = preg_replace('/\D/', '', (string) $phone);
+
+        return strlen($digits) >= 9 ? substr($digits, -9) : null;
+    }
+
+    /** Qidiruv telefon raqamiga o'xshasa (kamida 5 raqam; faqat raqam, +, -, bo'sh joy, qavs) — taqqoslanadigan raqamlar */
+    private static function phoneSearchKey(string $search): ?string
+    {
+        if (! preg_match('/^[\d\s+\-()]+$/', $search)) {
+            return null;
+        }
+        $digits = preg_replace('/\D/', '', $search);
+        if (strlen($digits) === 12 && str_starts_with($digits, '998')) {
+            $digits = substr($digits, 3);
+        }
+
+        return strlen($digits) >= 5 ? $digits : null;
+    }
+
+    /** Ikki va undan ortiq (arxivlanmagan) e'londa uchraydigan telefon kalitlari — subquery */
+    private function duplicatePhoneKeys()
+    {
+        return DB::query()->fromSub(
+            Product::query()
+                ->selectRaw(self::PHONE_KEY_SQL . ' as phone_key')
+                ->whereRaw('LENGTH(' . self::PHONE_KEY_SQL . ') = 9')
+                ->groupByRaw(self::PHONE_KEY_SQL)
+                ->havingRaw('COUNT(*) > 1'),
+            'dup',
+        )->select('phone_key');
+    }
+
+    /** @return array<string, int> telefon kaliti => arxivlanmagan e'lonlar soni */
+    private function samePhoneCounts($products): array
+    {
+        $keys = $products->map(fn (Product $product) => self::phoneKey($product->phone))->filter()->unique()->values();
+        if ($keys->isEmpty()) {
+            return [];
+        }
+
+        return Product::query()
+            ->setEagerLoads([])
+            ->selectRaw(self::PHONE_KEY_SQL . ' as phone_key, COUNT(*) as total')
+            ->whereIn(DB::raw(self::PHONE_KEY_SQL), $keys)
+            ->groupByRaw(self::PHONE_KEY_SQL)
+            ->pluck('total', 'phone_key')
+            ->map(fn ($total) => (int) $total)
+            ->all();
     }
 
     /** Arxivdagi e'lonni butunlay o'chirish (rasmlari bilan) */
@@ -420,7 +500,29 @@ class AdminController extends Controller
             'sources' => $grouped('app_open'),
             'clients' => $grouped('client'),
             'locales' => $grouped('locale'),
+            'struggles' => $this->struggles($days),
+            'raw_days' => ActivityLog::rawDays(),
         ]);
+    }
+
+    /** E'lon qo'ya olmagan / xatoga uchragan foydalanuvchilar (ism bilan), eng yangisi birinchi */
+    private function struggles(int $days): array
+    {
+        $rows = collect(ActivityLog::struggles($days));
+        $users = User::whereIn('id', $rows->pluck('user_id')->unique())->get(['id', 'name', 'username'])->keyBy('id');
+
+        return $rows
+            ->filter(fn (array $row) => $users->has($row['user_id']))
+            ->sortByDesc(fn (array $row) => $row['date'] . sprintf('%012d', $row['last_at'] ?? 0))
+            ->take(50)
+            ->map(fn (array $row) => [
+                ...$row,
+                'last_at' => $row['last_at'] ? Carbon::createFromTimestamp($row['last_at'])->toISOString() : null,
+                'name' => $users[$row['user_id']]->name,
+                'username' => $users[$row['user_id']]->username,
+            ])
+            ->values()
+            ->all();
     }
 
     public function moderationSettings()
@@ -543,8 +645,15 @@ class AdminController extends Controller
             // Kirgan kunlar soni bo'yicha: bir marta kirib qaytmagan / qayta-qayta kirayotgan
             'visits' => ['nullable', Rule::in(['once', 'returning'])],
             'sort' => ['nullable', Rule::in(['new', 'visits', 'active'])],
+            // Bugun kirgan / e'lon qo'ygan / faqat shahar tanlagan / hech narsa qilmagan
+            'segment' => ['nullable', Rule::in(array_keys(self::userSegments()))],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
+        $segment = $filters['segment'] ?? null;
+        if ($segment === 'today') {
+            // Oxirgi daqiqalar ham ko'rinsin (cron 10 daqiqada bir yig'adi)
+            ActivityLog::aggregate(now()->toDateString());
+        }
 
         $visitDays = DB::table('user_visits')->whereColumn('user_visits.user_id', 'users.id')->selectRaw('COUNT(*)');
         $lastVisit = DB::table('user_visits')->whereColumn('user_visits.user_id', 'users.id')->selectRaw('MAX(date)');
@@ -566,14 +675,24 @@ class AdminController extends Controller
             ->when(($filters['visits'] ?? null) === 'returning', fn ($query) => $query->where($visitDays, '>=', 2))
             ->when(($filters['role'] ?? null) === 'blocked', fn ($query) => $query->whereNotNull('blocked_at'))
             ->when(in_array($filters['role'] ?? null, ['user', 'admin'], true), fn ($query) => $query->where('role', $filters['role']))
+            ->when($segment !== null, fn ($query) => self::userSegments()[$segment]($query))
             ->when(filled($filters['search'] ?? null), function ($query) use ($filters): void {
-                $search = $filters['search'];
-                $query->where(function ($query) use ($search): void {
+                $search = ltrim(trim($filters['search']), '@');
+                $phone = self::phoneSearchKey($search);
+                $query->where(function ($query) use ($search, $phone): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('username', 'like', "%{$search}%")
                         ->orWhere('telegram_user_id', 'like', "%{$search}%");
+                    // Profildagi yoki e'lonlaridagi telefon raqami
+                    if ($phone !== null) {
+                        $query->orWhereRaw(str_replace('phone', 'users.phone', self::PHONE_KEY_SQL) . ' LIKE ?', ["%{$phone}%"])
+                            ->orWhereHas('products', fn ($productQuery) => $productQuery->withTrashed()
+                                ->whereRaw(str_replace('phone', 'products.phone', self::PHONE_KEY_SQL) . ' LIKE ?', ["%{$phone}%"]));
+                    }
                 });
             })
+            // "Bugun kirganlar" — oxirgi kirgan birinchi
+            ->when($segment === 'today' && ! isset($filters['sort']), fn ($query) => $query->orderByRaw('last_active_at IS NULL')->orderByDesc('last_active_at'))
             ->when(($filters['sort'] ?? 'new') === 'visits', fn ($query) => $query->orderByDesc('visit_days'))
             ->when(($filters['sort'] ?? 'new') === 'active', fn ($query) => $query->orderByRaw('last_active_at IS NULL')->orderByDesc('last_active_at'))
             ->latest('users.id')
@@ -584,7 +703,87 @@ class AdminController extends Controller
                 'visit_days' => (int) $user->visit_days,
             ]);
 
-        return response()->json([...$page->toArray(), 'visit_summary' => $this->visitSummary()]);
+        return response()->json([
+            ...$page->toArray(),
+            'visit_summary' => $this->visitSummary(),
+            'segment_counts' => collect(self::userSegments())
+                ->map(fn (\Closure $apply) => $apply(User::query())->count())
+                ->put('all', User::count()),
+        ]);
+    }
+
+    /**
+     * Foydalanuvchilar bo'limlari. "posters" / "city_only" / "idle" bir-birini kesmaydi:
+     * e'lon qo'ygan (arxivdagisi ham), faqat shahar tanlagan (e'lonsiz), hech narsa qilmagan.
+     *
+     * @return array<string, \Closure>
+     */
+    private static function userSegments(): array
+    {
+        $withArchived = fn ($query) => $query->withTrashed();
+
+        return [
+            'today' => fn ($query) => $query->where(fn ($query) => $query
+                ->whereExists(fn ($sub) => $sub->from('user_visits')
+                    ->whereColumn('user_visits.user_id', 'users.id')
+                    ->where('user_visits.date', now()->toDateString()))
+                ->orWhereExists(fn ($sub) => $sub->from('personal_access_tokens')
+                    ->where('tokenable_type', User::class)
+                    ->whereColumn('tokenable_id', 'users.id')
+                    ->where('last_used_at', '>=', now()->startOfDay()))),
+            'posters' => fn ($query) => $query->whereHas('products', $withArchived),
+            'city_only' => fn ($query) => $query->whereNotNull('active_district_id')->whereDoesntHave('products', $withArchived),
+            'idle' => fn ($query) => $query->whereNull('active_district_id')->whereDoesntHave('products', $withArchived),
+        ];
+    }
+
+    /**
+     * Foydalanuvchining ilovadagi yo'li (bir kun): qaysi sahifalarga kirdi, nimani ko'rdi, qayerda xato oldi.
+     * Xom yozuvlar oxirgi ActivityLog::rawDays() kun saqlanadi.
+     */
+    public function userJourney(Request $request, int $id)
+    {
+        $user = User::with('activeDistrict:id,name')->findOrFail($id);
+        $date = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']])['date'] ?? null;
+
+        ActivityLog::aggregate(now()->toDateString());
+        $since = now()->subDays(ActivityLog::rawDays() - 1)->toDateString();
+        $dates = DB::table('user_visits')->where('user_id', $id)->where('date', '>=', $since)
+            ->orderByDesc('date')->pluck('date')->map(fn ($value) => substr((string) $value, 0, 10))->values();
+        $date ??= $dates->first() ?? now()->toDateString();
+
+        $events = ActivityLog::userEvents($id, $date);
+
+        // Nomlar: e'lon sarlavhasi, kategoriya, hudud
+        $refs = fn (array $names) => collect($events)->whereIn('e', $names)->pluck('r')
+            ->filter(fn ($ref) => ctype_digit((string) $ref))->unique()->values();
+        $productEvents = ['product_view', 'ad_edited', 'ad_activated', 'ad_deactivated', 'report', 'contact_phone', 'contact_telegram'];
+        $categoryEvents = ['category_open', 'ad_created', 'ad_created_ai'];
+        $products = Product::withTrashed()->setEagerLoads([])->whereIn('id', $refs($productEvents))->pluck('title', 'id');
+        $categories = Category::withTrashed()->whereIn('id', $refs($categoryEvents))->pluck('name', 'id');
+        $districts = \App\Models\District::whereIn('id', $refs(['district_change']))->pluck('name', 'id');
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'username' => $user->username,
+                'district' => $user->activeDistrict?->name,
+            ],
+            'date' => $date,
+            'dates' => $dates,
+            'raw_days' => ActivityLog::rawDays(),
+            'events' => array_map(fn (array $event) => [
+                ...$event,
+                't' => $event['t'] ? Carbon::createFromTimestamp($event['t'])->toISOString() : null,
+                'label' => match (true) {
+                    in_array($event['e'], $productEvents, true) => $products[$event['r']] ?? null,
+                    in_array($event['e'], $categoryEvents, true) => $categories[$event['r']] ?? null,
+                    $event['e'] === 'district_change' => $event['r'] === 'all' ? 'Barcha shaharlar' : ($districts[$event['r']] ?? null),
+                    default => null,
+                },
+            ], $events),
+        ]);
     }
 
     /**

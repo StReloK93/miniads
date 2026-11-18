@@ -11,9 +11,22 @@ export type AdminMessageItem = {
    product: { id: number; title: string } | null;
 };
 
+/** Foydalanuvchining ilovadagi bir kunlik yo'li */
+export type JourneyEvent = { t: string | null; e: string; r: string | null; label: string | null };
+export type JourneyResponse = {
+   user: { id: number; name: string; username: string | null; district: string | null };
+   date: string;
+   dates: string[];
+   raw_days: number;
+   events: JourneyEvent[];
+};
+
 export default {
    sendMessage(payload: { product_id?: number; user_id?: number; type: "warning" | "info"; body: string }) {
       return api.post<{ message: string; item: AdminMessageItem }>("admin/messages", payload);
+   },
+   userJourney(userId: number, date?: string) {
+      return api.get<JourneyResponse>(`admin/users/${userId}/journey`, { params: date ? { date } : undefined });
    },
    userMessages(userId: number) {
       return api.get<AdminMessageItem[]>(`admin/users/${userId}/messages`);

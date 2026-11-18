@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ActivityLog;
 use App\Services\ErrorAlert;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,15 @@ class ClientErrorController extends Controller
                 'Tafsilot' => $details ? $details : null,
                 'Brauzer' => $request->userAgent(),
             ],
+        );
+
+        // Foydalanuvchining ilovadagi yo'lida ham ko'rinsin (admin: "qayerda nima qila olmadi")
+        ActivityLog::record(
+            [['e' => 'client_error', 'r' => $data['message']]],
+            $request->user()?->id,
+            $request->header('X-Session'),
+            $request->header('X-Client'),
+            app()->getLocale(),
         );
 
         return response()->noContent();

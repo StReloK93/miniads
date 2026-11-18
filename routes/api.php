@@ -82,6 +82,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('users/{id}/unblock', 'unblockUser');
         // Ogohlantirish/tushuntirish: e'lon muallifiga yoki foydalanuvchiga
         Route::get('users/{id}/messages', 'userMessages');
+        // Ilovadagi yo'li: qaysi sahifalarga kirdi, nimani ko'rdi, qayerda xato oldi (kunlar bo'yicha)
+        Route::get('users/{id}/journey', 'userJourney');
         Route::post('messages', 'sendUserMessage');
         Route::get('bot-settings', 'getBotSettings');
         Route::post('bot-settings', 'updateBotSettings');

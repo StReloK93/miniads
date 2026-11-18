@@ -1,5 +1,6 @@
 <template>
    <section class="admin-page">
+      <AdminUserJourney :user-id="journey?.userId ?? null" :date="journey?.date" @close="journey = null" />
       <header class="admin-page-heading">
          <div>
             <h1>Faollik</h1>
@@ -54,6 +55,33 @@
                   </span>
                </article>
             </div>
+
+            <!-- Qayerda qiynalyapti: bosilsa o'sha kungi yo'li ochiladi -->
+            <section class="admin-chart-card">
+               <div class="admin-card-header">
+                  <h2 class="admin-card-title">E'lon qo'ya olmaganlar va xatolar</h2>
+                  <span class="admin-card-subtitle">bosing — ilovadagi yo'li</span>
+               </div>
+               <ul v-if="stats.struggles.length" class="grid gap-1">
+                  <li v-for="row in stats.struggles" :key="`${row.user_id}-${row.date}`">
+                     <button
+                        type="button"
+                        class="w-full text-left rounded-lg px-2 py-2 -mx-2 hover:bg-(--z-muted)/60 cursor-pointer transition"
+                        @click="journey = { userId: row.user_id, date: row.date }"
+                     >
+                        <span class="flex items-baseline justify-between gap-2">
+                           <b class="min-w-0 truncate text-sm">{{ row.name }}</b>
+                           <small class="shrink-0 text-xs text-(--z-muted-text) tabular-nums">{{ shortDate(row.date) }}</small>
+                        </span>
+                        <span class="block text-xs text-(--z-muted-text) mt-0.5" :class="{ 'text-(--z-danger)!': row.failed.length || row.errors.length }">
+                           {{ struggleText(row) }}
+                        </span>
+                     </button>
+                  </li>
+               </ul>
+               <p v-else class="admin-muted text-sm">Bu davrda hammasi joyida — muammo qayd etilmagan.</p>
+               <p class="admin-field-hint mt-2">Faqat ro'yxatdan o'tganlar; batafsil yo'l oxirgi {{ stats.raw_days }} kun saqlanadi.</p>
+            </section>
 
             <section v-if="days > 1" class="admin-chart-card">
                <div class="admin-card-header">
@@ -142,6 +170,8 @@ import { computed, onMounted, ref } from "vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import AdminTabs from "@admin/components/AdminTabs.vue";
 import AdminRankList from "@admin/components/AdminRankList.vue";
+import AdminUserJourney from "@admin/components/AdminUserJourney.vue";
+import { failedFieldsLabel, pageLabel, sourceLabel } from "@admin/modules/activityLabels";
 
 type Group = { ref: string | null; hits: number; users: number; label?: string };
 type Stats = {
@@ -168,38 +198,26 @@ type Stats = {
    sources: Group[];
    clients: Group[];
    locales: Group[];
+   struggles: Struggle[];
+   raw_days: number;
+};
+/** E'lon qo'ya olmagan / xatoga uchragan foydalanuvchi (bir kunda) */
+type Struggle = {
+   user_id: number;
+   name: string;
+   username: string | null;
+   date: string;
+   started: boolean;
+   created: number;
+   failed: string[];
+   errors: string[];
+   last_at: string | null;
 };
 type Row = { label: string; value: number; detail: string };
 
-// Ilova route nomlari → tushunarli nom
-const PAGES: Record<string, string> = {
-   home: "Bosh sahifa",
-   categories: "Kategoriyalar ro'yxati",
-   category: "Kategoriya ichi",
-   "product-id": "E'lon sahifasi",
-   favorites: "Sevimlilar",
-   profile: "Profil",
-   "my-ads": "Mening e'lonlarim",
-   "create-select-category": "E'lon qo'yish: kategoriya",
-   "create-select-city": "E'lon qo'yish: shahar",
-   "create-product": "E'lon qo'yish: forma",
-   "edit-product": "E'lonni tahrirlash",
-   login: "Kirish sahifasi",
-};
-const SOURCES: Record<string, string> = {
-   direct: "Telegram: bot / menyu orqali",
-   product: "E'lon havolasi (kanal, ulashish)",
-   create: "\"E'lon qo'yish\" tugmasi (kanal)",
-   ss: "Kuzatuv xabari (bot)",
-   my_ads: "E'lon muddati xabari (bot)",
-   admin_reported: "Admin xabari (shikoyat)",
-   browser: "Brauzer (sayt)",
-};
 const CLIENTS: Record<string, string> = { telegram: "Telegram ilovasi", browser: "Brauzer" };
 const LOCALES: Record<string, string> = { uz: "Til: O'zbekcha", ru: "Til: Русский", en: "Til: English" };
 
-const pageLabel = (ref: string) => PAGES[ref] ?? ref;
-const sourceLabel = (ref: string) => SOURCES[ref] ?? ref;
 const clientLabel = (ref: string) => CLIENTS[ref] ?? ref;
 const localeLabel = (ref: string) => LOCALES[ref] ?? ref;
 
@@ -228,6 +246,19 @@ const days = ref(7);
 const stats = ref<Stats | null>(null);
 const loading = ref(true);
 const error = ref("");
+
+// Yo'li ochilgan foydalanuvchi va kun
+const journey = ref<{ userId: number; date: string } | null>(null);
+
+const shortDate = (date: string) => new Date(date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+
+function struggleText(row: Struggle) {
+   const parts: string[] = [];
+   if (row.failed.length) parts.push(`Forma rad etildi: ${row.failed.map(failedFieldsLabel).join("; ")}`);
+   if (row.started && !row.created) parts.push("Formani ochdi, joylamadi");
+   if (row.errors.length) parts.push(`Xato: ${row.errors.join("; ")}`);
+   return parts.join(" · ");
+}
 
 const abandoned = computed(() => Math.max(0, (stats.value?.funnel.started ?? 0) - (stats.value?.funnel.created ?? 0)));
 

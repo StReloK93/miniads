@@ -6,6 +6,7 @@
          @close="messageTarget = null"
          @sent="(text) => (notice = text)"
       />
+      <AdminUserJourney :user-id="journeyUserId" @close="journeyUserId = null" />
 
       <BaseModal
          :open="confirmState !== null"
@@ -73,10 +74,23 @@
                <input
                   v-model="searchInput"
                   type="search"
-                  placeholder="Ism, username yoki Telegram ID"
+                  placeholder="Ism, username, Telegram ID yoki telefon"
                   @keyup.enter="load(1)"
                />
             </label>
+            <div class="sm:w-40">
+               <FieldSelect
+                  v-model="roleFilter"
+                  size="sm"
+                  :options="[
+                     { label: 'Barcha rollar', value: 'all' },
+                     { label: 'Oddiy foydalanuvchi', value: 'user' },
+                     { label: 'Adminlar', value: 'admin' },
+                     { label: 'Bloklanganlar', value: 'blocked' },
+                  ]"
+                  @change="load(1)"
+               />
+            </div>
             <div class="sm:w-44">
                <FieldSelect
                   v-model="sort"
@@ -95,16 +109,19 @@
             </BaseButton>
          </div>
 
-         <nav class="admin-filter-chips" aria-label="Rol bo'yicha">
+         <!-- Bo'limlar: bugun kirganlar, e'lon qo'yganlar, faqat shahar tanlaganlar, hech narsa qilmaganlar -->
+         <nav ref="segmentNav" class="admin-filter-chips" aria-label="Bo'limlar">
             <button
-               v-for="chip in roleChips"
+               v-for="chip in segmentChips"
                :key="chip.value"
                type="button"
-               class="admin-filter-chip pr-3!"
-               :class="{ 'is-active': roleFilter === chip.value }"
-               @click="setRole(chip.value)"
+               class="admin-filter-chip"
+               :class="{ 'is-active': segment === chip.value }"
+               :title="chip.hint"
+               @click="setSegment(chip.value)"
             >
                {{ chip.label }}
+               <span>{{ segmentCounts[chip.value || "all"] ?? "·" }}</span>
             </button>
          </nav>
 
@@ -161,6 +178,8 @@
                                        {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
                                     </span>
                                     <span class="admin-only-narrow">{{ visitLabel(user.visit_days) }}</span>
+                                    <span v-if="user.active_district" class="admin-only-narrow">{{ user.active_district.name }}</span>
+                                    <span v-if="user.products_count" class="admin-only-narrow">{{ user.products_count }} e'lon</span>
                                  </div>
                               </div>
                            </div>
@@ -196,6 +215,10 @@
                                     <dt>Shahar</dt>
                                     <dd>{{ user.active_district?.name || "Tanlanmagan" }}</dd>
                                  </div>
+                                 <div v-if="user.phone">
+                                    <dt>Telefon</dt>
+                                    <dd><a :href="`tel:${user.phone}`">{{ user.phone }}</a></dd>
+                                 </div>
                                  <div>
                                     <dt>E'lonlar (faol / jami)</dt>
                                     <dd class="tabular-nums">{{ user.active_products_count ?? 0 }} / {{ user.products_count }}</dd>
@@ -222,6 +245,10 @@
                               </dl>
 
                               <div class="admin-xactions admin-xfull">
+                                 <BaseButton size="sm" severity="secondary" @click="journeyUserId = user.id">
+                                    <template #icon><Route class="size-3.5" /></template>
+                                    Ilovadagi yo'li
+                                 </BaseButton>
                                  <BaseButton v-if="user.products_count" size="sm" severity="secondary" @click="openProducts(user)">
                                     <template #icon><FileText class="size-3.5" /></template>
                                     E'lonlari
@@ -299,9 +326,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { Ban, ChevronDown, FileText, MessageSquare, Search, Send, ShieldCheck, Unlock, X } from "lucide-vue-next";
+import { useRoute, useRouter } from "vue-router";
+import { Ban, ChevronDown, FileText, MessageSquare, Route, Search, Send, ShieldCheck, Unlock, X } from "lucide-vue-next";
 import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
+import AdminUserJourney from "@admin/components/AdminUserJourney.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import { useAuth } from "@shared/store/useAuth";
 import BaseButton from "@shared/ui/BaseButton.vue";
@@ -314,6 +342,7 @@ type UserItem = {
    name: string;
    username: string | null;
    telegram_user_id: number | null;
+   phone?: string | null;
    role: "user" | "admin";
    products_count: number;
    active_products_count?: number;
@@ -353,21 +382,31 @@ type ConfirmState = {
    run: () => Promise<unknown>;
 };
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuth();
 const currentUserId = authStore.user?.id ?? 0;
 
-const roleChips = [
-   { value: "", label: "Hammasi" },
-   { value: "user", label: "Foydalanuvchilar" },
-   { value: "admin", label: "Adminlar" },
-   { value: "blocked", label: "Bloklanganlar" },
+type Segment = "" | "today" | "posters" | "city_only" | "idle";
+const segmentChips: { value: Segment; label: string; hint: string }[] = [
+   { value: "", label: "Hammasi", hint: "Barcha foydalanuvchilar" },
+   { value: "today", label: "Bugun kirgan", hint: "Bugun ilovani ochganlar — oxirgi kirgan birinchi" },
+   { value: "posters", label: "E'lon qo'ygan", hint: "Kamida bitta e'lon joylagan (arxivdagisi ham)" },
+   { value: "city_only", label: "Faqat shahar tanlagan", hint: "Shaharni tanlagan, lekin e'lon qo'ymagan" },
+   { value: "idle", label: "Hech narsa qilmagan", hint: "Shahar ham tanlamagan, e'lon ham qo'ymagan" },
 ];
 
 const users = ref<UserItem[]>([]);
 const pagination = ref<PaginationMeta | null>(null);
 const searchInput = ref("");
-const roleFilter = ref("");
+// "all" — FieldSelect bo'sh qiymatni "Tanlang" deb ko'rsatadi
+const roleFilter = ref("all");
+const segment = ref<Segment>(
+   (["today", "posters", "city_only", "idle"] as const).find((value) => value === route.query.segment) ?? "",
+);
+const segmentCounts = ref<Record<string, number>>({});
+// "Ilovadagi yo'li" oynasi ochilgan foydalanuvchi
+const journeyUserId = ref<number | null>(null);
 const visitsFilter = ref<VisitsFilter>("");
 const sort = ref("new");
 const summary = ref<VisitSummary | null>(null);
@@ -417,13 +456,15 @@ async function load(page = 1) {
    try {
       const params: Record<string, any> = { page };
       if (searchInput.value.trim()) params.search = searchInput.value.trim();
-      if (roleFilter.value) params.role = roleFilter.value;
+      if (roleFilter.value !== "all") params.role = roleFilter.value;
+      if (segment.value) params.segment = segment.value;
       if (visitsFilter.value) params.visits = visitsFilter.value;
       if (sort.value !== "new") params.sort = sort.value;
 
       const { data } = await AdminRepo.users(params);
       users.value = data.data;
       summary.value = data.visit_summary ?? null;
+      segmentCounts.value = data.segment_counts ?? {};
       pagination.value = {
          current_page: data.current_page,
          last_page: data.last_page,
@@ -439,10 +480,12 @@ async function load(page = 1) {
    }
 }
 
-function setRole(value: string) {
-   if (roleFilter.value === value) return;
-   roleFilter.value = value;
+function setSegment(value: Segment) {
+   if (segment.value === value) return;
+   segment.value = value;
    openId.value = null;
+   // Havola saqlanadi: bosh sahifadan "Bugun kirganlar"ga to'g'ridan-to'g'ri o'tish mumkin
+   router.replace({ query: value ? { segment: value } : {} });
    load(1);
 }
 
@@ -514,5 +557,11 @@ function runConfirm() {
    state?.run();
 }
 
-onMounted(() => load(1));
+const segmentNav = ref<HTMLElement | null>(null);
+
+onMounted(async () => {
+   await load(1);
+   // Havoladan kelgan bo'lim (masalan "Faqat shahar tanlagan") telefonda ekran tashqarisida qolmasin
+   segmentNav.value?.querySelector<HTMLElement>(".is-active")?.scrollIntoView({ block: "nearest", inline: "center" });
+});
 </script>

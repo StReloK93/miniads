@@ -33,6 +33,8 @@ class ActivityLog
             's' => $session && preg_match('/^[A-Za-z0-9-]{8,40}$/', $session) ? $session : null,
             'c' => in_array($client, ['telegram', 'browser'], true) ? $client : null,
             'l' => in_array($locale, ['uz', 'ru', 'en'], true) ? $locale : null,
+            // Vaqt: admin foydalanuvchining ilovadagi yo'lini ketma-ket ko'radi
+            't' => now()->timestamp,
         ];
 
         $lines = '';
@@ -131,6 +133,104 @@ class ActivityLog
                 $existing->map(fn ($id) => ['user_id' => $id, 'date' => $date])->all(),
             );
         }
+    }
+
+    /** Xom fayllar saqlanadigan kunlar (yo'l va "qiynalganlar" faqat shu oraliqda ko'rinadi) */
+    public static function rawDays(): int
+    {
+        return self::KEEP_RAW_DAYS;
+    }
+
+    /**
+     * Bitta foydalanuvchining bir kunlik harakatlari (vaqt bo'yicha): ilova ochildi, sahifalar, e'lon ko'rdi, xato...
+     *
+     * @return array<int, array{t: ?int, e: string, r: ?string}>
+     */
+    public static function userEvents(int $userId, string $date, int $limit = 500): array
+    {
+        $events = [];
+        self::eachRow($date, function (array $row) use ($userId, &$events) {
+            if ((int) ($row['u'] ?? 0) === $userId) {
+                $events[] = ['t' => isset($row['t']) ? (int) $row['t'] : null, 'e' => $row['e'], 'r' => $row['r'] ?? null];
+            }
+        });
+
+        // Ilova paketlari ~30 soniyada keladi — server hodisalaridan keyin yozilgan bo'lishi mumkin
+        usort($events, fn ($a, $b) => ($a['t'] ?? 0) <=> ($b['t'] ?? 0));
+
+        return array_slice($events, -$limit);
+    }
+
+    /**
+     * "Qiynalganlar": e'lon formasini ochib joylamaganlar, forma rad etilganlar, ilovada xatoga uchraganlar.
+     * Har bir (foydalanuvchi, kun) — bitta qator. Faqat ro'yxatdan o'tganlar (mehmonni aniqlab bo'lmaydi).
+     *
+     * @return array<int, array{user_id: int, date: string, started: bool, created: int, failed: array<int, string>, errors: array<int, string>, last_at: ?int}>
+     */
+    public static function struggles(int $days): array
+    {
+        $days = min($days, self::KEEP_RAW_DAYS);
+        $result = [];
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = now()->subDays($i)->toDateString();
+            $perUser = [];
+            self::eachRow($date, function (array $row) use (&$perUser) {
+                $userId = (int) ($row['u'] ?? 0);
+                if (! $userId) {
+                    return;
+                }
+                $item = &$perUser[$userId];
+                $item ??= ['started' => false, 'created' => 0, 'failed' => [], 'errors' => [], 'last_at' => null];
+                $ref = $row['r'] ?? null;
+
+                match ($row['e']) {
+                    'page' => $item['started'] = $item['started'] || $ref === 'create-product',
+                    'ad_created' => $item['created']++,
+                    'ad_failed', 'ai_draft_failed' => $item['failed'][] = (string) $ref,
+                    'client_error' => $item['errors'][] = (string) $ref,
+                    default => null,
+                };
+                if (in_array($row['e'], ['ad_failed', 'ai_draft_failed', 'client_error'], true)
+                    || ($row['e'] === 'page' && $ref === 'create-product')) {
+                    $item['last_at'] = max($item['last_at'] ?? 0, (int) ($row['t'] ?? 0)) ?: null;
+                }
+            });
+
+            foreach ($perUser as $userId => $item) {
+                $abandoned = $item['started'] && ! $item['created'];
+                if (! $abandoned && ! $item['failed'] && ! $item['errors']) {
+                    continue;
+                }
+                $result[] = [
+                    'user_id' => $userId,
+                    'date' => $date,
+                    'started' => $item['started'],
+                    'created' => $item['created'],
+                    'failed' => array_values(array_unique($item['failed'])),
+                    'errors' => array_values(array_unique($item['errors'])),
+                    'last_at' => $item['last_at'],
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    private static function eachRow(string $date, callable $callback): void
+    {
+        $path = self::path($date);
+        if (! is_file($path)) {
+            return;
+        }
+        $handle = fopen($path, 'r');
+        while (($line = fgets($handle)) !== false) {
+            $row = json_decode($line, true);
+            if (is_array($row) && ! empty($row['e'])) {
+                $callback($row);
+            }
+        }
+        fclose($handle);
     }
 
     public static function pruneRawFiles(): void

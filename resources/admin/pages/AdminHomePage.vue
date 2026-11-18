@@ -40,14 +40,15 @@
                   <strong>{{ num(todayAds) }}</strong>
                   <span class="admin-stat-detail">14 kunda {{ num(totalAds14) }} ta</span>
                </article>
-               <article class="admin-stat-card">
+               <!-- Bosilsa: bugun kirganlar ro'yxati -->
+               <RouterLink :to="{ name: 'admin-users', query: { segment: 'today' } }" class="admin-stat-card">
                   <span class="admin-stat-label">Foydalanuvchilar</span>
                   <strong>{{ num(dashboard.stats.users) }}</strong>
                   <span class="admin-stat-detail">
                      <b class="text-emerald-600">{{ num(dashboard.stats.active_users_today) }} bugun</b>
                      · +{{ num(dashboard.stats.new_users_week) }} hafta
                   </span>
-               </article>
+               </RouterLink>
                <article class="admin-stat-card">
                   <span class="admin-stat-label">Ko'rishlar</span>
                   <strong>{{ num(dashboard.stats.total_views) }}</strong>
@@ -170,7 +171,7 @@
 
                <div class="admin-card-header mb-0!">
                   <h2 class="admin-card-title">So'nggi kirganlar</h2>
-                  <RouterLink :to="{ name: 'admin-users' }" class="admin-text-link">Hammasi</RouterLink>
+                  <RouterLink :to="{ name: 'admin-users', query: { segment: 'today' } }" class="admin-text-link">Bugun kirganlar</RouterLink>
                </div>
                <div class="admin-list">
                   <div v-for="user in dashboard.recent_users" :key="user.id" class="admin-list-row">

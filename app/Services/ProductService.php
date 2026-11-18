@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Carbon;
+
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductParameterValue;
@@ -292,9 +294,23 @@ class ProductService
         }
     }
 
+    /** Egasi muddat tugashidan shuncha kun oldin uzaytira oladi (ilovadagi "Uzaytirish" tugmasi ham shu oraliqda) */
+    public const EXTEND_WINDOW_DAYS = 3;
+
+    /**
+     * Faollashtirish (o'chiq e'lon) yoki uzaytirish (faol, muddati tugayotgan): muddat qolgan kunlar ustiga qo'shiladi —
+     * aks holda qisqa muddatli kategoriyada "uzaytirish" muddatni qisqartirib qo'yardi.
+     */
     public function activate(Product $product): Product
     {
-        $product->expires_at = $product->category->listingExpiresAt();
+        $expiresAt = $product->category->listingExpiresAt();
+        $current = $product->isPermanent() || ! $product->expires_at ? null : Carbon::parse($product->expires_at);
+        if ($expiresAt && $current?->isFuture()) {
+            $remaining = now()->diffInSeconds($current);
+            // Oldindan ko'p marta bosib cheksiz yig'ib bo'lmaydi: qolgan qismi ko'pi bilan EXTEND_WINDOW_DAYS kun
+            $expiresAt = $expiresAt->copy()->addSeconds((int) min($remaining, self::EXTEND_WINDOW_DAYS * 86400));
+        }
+        $product->expires_at = $expiresAt;
         $product->published_at = now();
         // Qayta sotuvga chiqdi — "Sotildi" belgisi olinadi
         $product->sold_at = null;

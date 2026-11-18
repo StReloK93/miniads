@@ -139,8 +139,10 @@
                   :key="product.id"
                   :product="product"
                   @deActivate="deActivateProduct"
+                  :extending="extendingId === product.id"
                   @activate="activateProduct"
                   @delete="deleteProduct"
+                  @extend="extendProduct"
                />
             </div>
 
@@ -317,6 +319,20 @@ function activateProduct(product: IProduct) {
    };
    nextTick();
    isOpen.value = true;
+}
+
+// Uzaytirish tasdiqsiz: zararsiz amal, natija kartada darhol ko'rinadi ("30 kun qoldi")
+const extendingId = ref<number | null>(null);
+
+async function extendProduct(product: IProduct) {
+   if (extendingId.value) return;
+   extendingId.value = product.id;
+   try {
+      await ProductRepo.activate(product.id);
+      await reload();
+   } finally {
+      extendingId.value = null;
+   }
 }
 
 function deleteProduct(product: IProduct) {

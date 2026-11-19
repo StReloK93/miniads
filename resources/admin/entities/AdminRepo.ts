@@ -21,6 +21,18 @@ export type JourneyResponse = {
    events: JourneyEvent[];
 };
 
+/** Bot obunachilariga yuborilgan post va uning hisobi */
+export type BroadcastItem = {
+   id: number;
+   text: string;
+   total: number;
+   sent: number;
+   failed: number;
+   author: string | null;
+   created_at: string;
+   finished_at: string | null;
+};
+
 export default {
    sendMessage(payload: { product_id?: number; user_id?: number; type: "warning" | "info"; body: string }) {
       return api.post<{ message: string; item: AdminMessageItem }>("admin/messages", payload);
@@ -95,12 +107,30 @@ export default {
       return api.post<{ message: string }>(`admin/users/${id}/unblock`);
    },
    channelPostDefaults() {
-      return api.get<{ channels: string[]; button_text: string; button_url: string }>("admin/channel-post");
+      return api.get<{ channels: string[]; button_text: string; button_url: string; bot_audience: number }>(
+         "admin/channel-post",
+      );
    },
-   sendChannelPost(payload: { text: string; photo: File | null; button_text: string | null; button_url: string | null }) {
-      return api.post<{ message: string }>("admin/channel-post", payload, {
+   /** Kanal(lar)ga va/yoki bot obunachilariga; test=1 — faqat adminning o'ziga */
+   sendChannelPost(payload: {
+      text: string;
+      photo: File | null;
+      button_text: string | null;
+      button_url: string | null;
+      targets: ("channel" | "bot")[];
+      test?: boolean;
+   }) {
+      // FormData'da true "true" bo'lib ketadi — Laravel boolean qoidasi uni qabul qilmaydi
+      return api.post<{ message: string }>("admin/channel-post", { ...payload, test: payload.test ? 1 : 0 }, {
          headers: { "Content-Type": "multipart/form-data" },
       });
+   },
+   /** Yuborishdagi o'sha Telegram HTML (oldindan ko'rish uchun) */
+   postPreview(text: string) {
+      return api.post<{ html: string; length: number }>("admin/post-preview", { text });
+   },
+   broadcasts() {
+      return api.get<BroadcastItem[]>("admin/broadcasts");
    },
    /** Kanaldagi qadalgan "jonli" post (tezkor bo'limlardagi faol e'lonlar soni) */
    channelLivePost() {

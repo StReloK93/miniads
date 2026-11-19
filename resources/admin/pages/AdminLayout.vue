@@ -123,7 +123,7 @@ const mainLinks = [
    { name: "admin-moderation", label: "Moderatsiya", icon: ShieldAlert },
    { name: "admin-activity", label: "Faollik", icon: Activity },
    { name: "admin-search-stats", label: "Qidiruvlar", icon: SearchCheck },
-   { name: "admin-channel-post", label: "Kanalga post", icon: Send },
+   { name: "admin-channel-post", label: "Post (kanal va bot)", icon: Send },
    { name: "admin-bot", label: "Avto-e'lonlar (Bot)", icon: Bot },
 ];
 const catalogLinks = [

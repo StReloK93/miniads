@@ -92,6 +92,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('bot-import-text', 'importBotText');
         Route::get('channel-post', 'channelPostDefaults');
         Route::post('channel-post', 'sendChannelPost');
+        Route::post('post-preview', 'postPreview');
+        Route::get('broadcasts', 'broadcasts');
         Route::get('channel-live-post', 'channelLivePost');
         Route::post('channel-live-post', 'updateChannelLivePost');
         Route::get('vitrinas', [App\Http\Controllers\VitrinaController::class, 'adminIndex']);

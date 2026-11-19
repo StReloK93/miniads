@@ -58,9 +58,11 @@ class AdminController extends Controller
         $rawDaily = DB::table('products')
             ->whereNull('deleted_at')
             ->where('created_at', '>=', now()->subDays(13)->startOfDay())
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            // ai — Telegram assistent kanallardan AI bilan qo'ygan e'lonlar (is_bot), qolgani odamlarniki
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(CASE WHEN is_bot = 1 THEN 1 ELSE 0 END) as ai')
             ->groupBy('date')
-            ->pluck('count', 'date')
+            ->get()
+            ->keyBy('date')
             ->all();
 
         // Carbon format('w'): 0 = yakshanba
@@ -82,13 +84,16 @@ class AdminController extends Controller
             $dateObj = now()->subDays($i);
             $dateKey = $dateObj->toDateString();
             $w = (int) $dateObj->format('w');
-            $count = (int) ($rawDaily[$dateKey] ?? 0);
+            $count = (int) ($rawDaily[$dateKey]->count ?? 0);
+            $ai = (int) ($rawDaily[$dateKey]->ai ?? 0);
 
             $dailyAds[] = [
                 'date' => $dateKey,
                 'day_label' => $dateObj->format('d.m'),
                 'day_name' => $dayNames[$w][0],
                 'count' => $count,
+                'people' => $count - $ai,
+                'ai' => $ai,
             ];
             $dowCounts[$w] += $count;
         }
@@ -162,6 +167,9 @@ class AdminController extends Controller
                 // Shikoyat qilingan (hali ko'rilmagan) e'lonlar soni — bosh sahifadagi ogohlantirish uchun
                 'reported_products' => Product::whereHas('openReports')->count(),
                 'blocked_users' => User::whereNotNull('blocked_at')->count(),
+                // Bot orqali kirgan / botni ishga tushirgan: bot ularga xabar yubora oladi
+                'bot_reachable' => self::userSegments()['bot'](User::query())->count(),
+                'bot_reachable_active' => self::userSegments()['bot'](User::query())->whereNull('blocked_at')->count(),
             ],
             'districts_breakdown' => $districtsBreakdown,
             'categories_breakdown' => $categoriesBreakdown,
@@ -734,6 +742,8 @@ class AdminController extends Controller
             'posters' => fn ($query) => $query->whereHas('products', $withArchived),
             'city_only' => fn ($query) => $query->whereNotNull('active_district_id')->whereDoesntHave('products', $withArchived),
             'idle' => fn ($query) => $query->whereNull('active_district_id')->whereDoesntHave('products', $withArchived),
+            // Bot xabar yubora oladi (botga /start bosgan yoki mini app'da yozishga ruxsat bergan)
+            'bot' => fn ($query) => $query->where('bot_can_message', true),
         ];
     }
 
@@ -1063,6 +1073,8 @@ class AdminController extends Controller
             'channels' => \App\Services\TelegramProductService::channels(),
             'button_text' => "E'lon joylash",
             'button_url' => rtrim(config('services.telegram.mini_app_url'), '/') . '?startapp=create',
+            // Bot xabar yubora oladigan (bloklanmagan) foydalanuvchilar — "Bot obunachilari" tanlovida
+            'bot_audience' => \App\Services\BroadcastService::audience()->count(),
         ]);
     }
 
@@ -1110,37 +1122,106 @@ class AdminController extends Controller
     }
 
     /**
-     * Kanal(lar)ga ixtiyoriy post: matn, ixtiyoriy rasm va ixtiyoriy tugma (matni va havolasi admin tomonidan).
+     * Post: kanal(lar)ga va/yoki bot obunachilariga (bot xabar yubora oladiganlarga).
+     * Matn Telegram uslubidagi belgilar bilan (**qalin**, __qiya__, ||spoiler||, [havola](url), "> " iqtibos) —
+     * TelegramMarkdown uni Telegram HTML'ga aylantiradi. test=1 — faqat adminning o'ziga sinov uchun.
      */
-    public function sendChannelPost(Request $request, \App\Services\ChannelPostService $service)
+    public function sendChannelPost(Request $request, \App\Services\ChannelPostService $service, \App\Services\BroadcastService $broadcasts)
     {
-        $hasPhoto = $request->hasFile('photo');
-
         $validated = $request->validate([
-            // Rasmli postda Telegram izoh (caption) uzunligi 1024 belgi bilan cheklangan
-            'text' => ['required', 'string', 'max:' . ($hasPhoto ? 1024 : 4096)],
+            'text' => ['required', 'string', 'max:8000'],
+            // Sinovda (faqat o'ziga) qayerga tanlash shart emas
+            'targets' => [Rule::requiredIf(fn () => ! $request->boolean('test')), 'array'],
+            'targets.*' => [Rule::in(['channel', 'bot'])],
+            'test' => ['nullable', 'boolean'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:20480'],
             'button_text' => ['nullable', 'required_with:button_url', 'string', 'max:64'],
             'button_url' => ['nullable', 'required_with:button_text', 'string', 'max:512', 'regex:/^(https?:\/\/|tg:\/\/)\S+$/i'],
         ], [
             'button_url.regex' => "Havola https://, http:// yoki tg:// bilan boshlanishi kerak.",
+            'targets.required' => "Qayerga yuborishni tanlang: kanal yoki bot obunachilari.",
         ]);
 
-        try {
-            $sent = $service->send(
-                $validated['text'],
-                $request->file('photo'),
-                $validated['button_text'] ?? null,
-                $validated['button_url'] ?? null,
-            );
-        } catch (\Throwable $e) {
-            return response()->json(['message' => "Telegram postni qabul qilmadi: {$e->getMessage()}"], 422);
+        $html = \App\Support\TelegramMarkdown::toHtml($validated['text']);
+        // Telegram cheklovi ko'rinadigan matnga: rasm izohi 1024, oddiy xabar 4096 belgi
+        $limit = $request->hasFile('photo') ? 1024 : 4096;
+        if (\App\Support\TelegramMarkdown::visibleLength($html) > $limit) {
+            return response()->json([
+                'message' => "Matn juda uzun: Telegram {$limit} belgidan ko'pini qabul qilmaydi.",
+                'errors' => ['text' => ["Matn {$limit} belgidan oshmasin."]],
+            ], 422);
         }
 
-        return response()->json([
-            'message' => count($sent) > 1 ? count($sent) . " ta kanalga yuborildi." : "Post kanalga yuborildi.",
-            'sent' => $sent,
-        ]);
+        $buttonText = $validated['button_text'] ?? null;
+        $buttonUrl = $validated['button_url'] ?? null;
+        $targets = $validated['targets'] ?? [];
+        $photoPath = $request->hasFile('photo') ? $service->preparePhoto($request->file('photo')) : null;
+
+        try {
+            if ($request->boolean('test')) {
+                $ok = $broadcasts->sendTest($request->user(), $html, $photoPath, $buttonText, $buttonUrl);
+
+                return $ok
+                    ? response()->json(['message' => "Sinov posti sizga botda yuborildi — Telegram'da tekshiring."])
+                    : response()->json(['message' => "Sizga yuborib bo'lmadi: botni ishga tushirganingizni (/start) tekshiring yoki matndagi formatlashni ko'ring."], 422);
+            }
+
+            $messages = [];
+            $sent = [];
+            if (in_array('channel', $targets, true)) {
+                try {
+                    $sent = $service->send($html, $photoPath, $buttonText, $buttonUrl);
+                } catch (\Throwable $e) {
+                    return response()->json(['message' => "Telegram postni qabul qilmadi: {$e->getMessage()}"], 422);
+                }
+                $messages[] = count($sent) > 1 ? count($sent) . ' ta kanalga yuborildi' : 'Kanalga yuborildi';
+            }
+
+            if (in_array('bot', $targets, true)) {
+                // Rasm butun yuborish davomida kerak — vaqtinchalik papkadan alohida joyga (tugagach o'chiriladi)
+                $keptPhoto = null;
+                if ($photoPath) {
+                    $keptPhoto = storage_path('app/broadcasts/' . basename($photoPath));
+                    \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($keptPhoto));
+                    \Illuminate\Support\Facades\File::copy($photoPath, $keptPhoto);
+                }
+                $broadcast = $broadcasts->start($request->user(), $validated['text'], $html, $keptPhoto, $buttonText, $buttonUrl);
+                $messages[] = $broadcast->total
+                    ? "bot orqali {$broadcast->total} kishiga yuborilmoqda (bir necha daqiqa)"
+                    : "bot obunachilari hozircha yo'q";
+            }
+
+            return response()->json(['message' => ucfirst(implode('; ', $messages)) . '.', 'sent' => $sent]);
+        } finally {
+            if ($photoPath) {
+                \Illuminate\Support\Facades\File::delete($photoPath);
+            }
+        }
+    }
+
+    /** Oldindan ko'rish: yuborishda ishlatiladigan o'sha HTML (ko'rinish va natija bir xil bo'lsin) */
+    public function postPreview(Request $request)
+    {
+        $text = (string) $request->validate(['text' => ['nullable', 'string', 'max:8000']])['text'];
+        $html = \App\Support\TelegramMarkdown::toHtml($text);
+
+        return response()->json(['html' => $html, 'length' => \App\Support\TelegramMarkdown::visibleLength($html)]);
+    }
+
+    /** Bot obunachilariga yuborilgan oxirgi postlar va ularning hisobi */
+    public function broadcasts()
+    {
+        return \App\Models\Broadcast::with('author:id,name')->latest('id')->take(10)->get()
+            ->map(fn (\App\Models\Broadcast $broadcast) => [
+                'id' => $broadcast->id,
+                'text' => \Illuminate\Support\Str::limit($broadcast->text, 140),
+                'total' => $broadcast->total,
+                'sent' => $broadcast->sent,
+                'failed' => $broadcast->failed,
+                'author' => $broadcast->author?->name,
+                'created_at' => $broadcast->created_at?->toISOString(),
+                'finished_at' => $broadcast->finished_at?->toISOString(),
+            ]);
     }
 
     /**

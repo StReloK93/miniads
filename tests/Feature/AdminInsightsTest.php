@@ -100,3 +100,22 @@ test('extending an expiring ad adds the remaining time instead of shortening it'
     $expires = Carbon::parse($product->fresh()->getRawOriginal('expires_at'));
     expect(now()->diffInHours($expires))->toBeGreaterThan(23)->toBeLessThan(25);
 });
+
+test('dashboard splits daily ads into people and AI and counts users the bot can message', function () {
+    Sanctum::actingAs(User::create(['name' => 'Administrator', 'role' => 'admin']));
+    $category = Category::create(['name' => 'Avto']);
+    $owner = User::create(['name' => 'Sotuvchi']);
+    $owner->forceFill(['bot_can_message' => true])->save();
+    User::create(['name' => 'Botsiz']);
+    Product::create(['title' => 'Nexia', 'category_id' => $category->id, 'user_id' => $owner->id]);
+    Product::create(['title' => 'Cobalt', 'category_id' => $category->id, 'user_id' => $owner->id, 'is_bot' => true]);
+    Product::create(['title' => 'Spark', 'category_id' => $category->id, 'user_id' => $owner->id, 'is_bot' => true]);
+
+    $response = $this->getJson('/api/admin/dashboard')->assertOk();
+    expect($response->json('daily_ads.13'))->toMatchArray(['count' => 3, 'people' => 1, 'ai' => 2])
+        ->and($response->json('stats.bot_reachable'))->toBe(1);
+
+    $this->getJson('/api/admin/users?segment=bot')->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $owner->id);
+});

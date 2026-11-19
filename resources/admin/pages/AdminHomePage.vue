@@ -38,7 +38,9 @@
                <article class="admin-stat-card">
                   <span class="admin-stat-label">Bugun qo'shildi</span>
                   <strong>{{ num(todayAds) }}</strong>
-                  <span class="admin-stat-detail">14 kunda {{ num(totalAds14) }} ta</span>
+                  <span class="admin-stat-detail">
+                     <b class="text-emerald-600">{{ num(today?.people) }} odam</b> · {{ num(today?.ai) }} AI
+                  </span>
                </article>
                <!-- Bosilsa: bugun kirganlar ro'yxati -->
                <RouterLink :to="{ name: 'admin-users', query: { segment: 'today' } }" class="admin-stat-card">
@@ -66,7 +68,12 @@
                <div class="admin-card-header">
                   <div>
                      <h2 class="admin-card-title">Kunlik yangi e'lonlar</h2>
-                     <p class="admin-card-subtitle">So'nggi 14 kun</p>
+                     <p class="admin-card-subtitle">So'nggi 14 kun · {{ num(totalAds14) }} ta</p>
+                     <!-- Bitta ustunda ikki rang: pastda odamlar (yashil), ustida AI — Telegram assistent (to'q) -->
+                     <p class="admin-bar-legend">
+                        <span><i class="is-people" /> Odamlar {{ num(totalPeople14) }}</span>
+                        <span><i class="is-ai" /> AI (assistent) {{ num(totalAds14 - totalPeople14) }}</span>
+                     </p>
                   </div>
                   <span v-if="dashboard.stats.busiest_day" class="admin-badge admin-badge-muted shrink-0">
                      <Flame class="size-3 text-amber-500" /> {{ dashboard.stats.busiest_day }}
@@ -79,10 +86,13 @@
                      :key="day.date"
                      class="admin-bar-col"
                      :class="{ 'is-peak': isPeakDay(day.count) }"
-                     :title="`${day.day_label}: ${day.count} ta`"
+                     :title="`${day.day_label}: ${day.count} ta — odam ${day.people ?? day.count}, AI ${day.ai ?? 0}`"
                   >
-                     <span class="admin-bar-tooltip">{{ day.count }}</span>
-                     <div class="admin-bar-pill" :style="{ height: getBarHeight(day.count) }" />
+                     <span class="admin-bar-tooltip">{{ day.people ?? day.count }}<template v-if="day.ai"> · {{ day.ai }}</template></span>
+                     <div class="admin-bar-pill is-stacked" :style="{ height: getBarHeight(day.count) }">
+                        <div v-if="day.ai" class="admin-bar-seg is-ai" :style="{ flexGrow: day.ai }" />
+                        <div v-if="day.people ?? day.count" class="admin-bar-seg is-people" :style="{ flexGrow: day.people ?? day.count }" />
+                     </div>
                      <span class="admin-bar-label">{{ day.day_name.slice(0, 2) }}</span>
                   </div>
                </div>
@@ -169,6 +179,18 @@
                   </div>
                </div>
 
+               <!-- Botni ishga tushirgan / yozishga ruxsat bergan: bot ularga xabar (eslatma, kuzatuv) yubora oladi -->
+               <RouterLink :to="{ name: 'admin-users', query: { segment: 'bot' } }" class="admin-list-row mb-3">
+                  <Send class="size-4.5 text-(--z-primary) shrink-0" />
+                  <span class="admin-list-main">
+                     <span class="admin-list-title">Bot xabar yubora oladi: {{ num(dashboard.stats.bot_reachable) }}</span>
+                     <span class="admin-list-meta">
+                        foydalanuvchilarning {{ botPercent }} · botni ishga tushirganlar
+                     </span>
+                  </span>
+                  <ChevronRight class="size-4 text-(--admin-muted) shrink-0" />
+               </RouterLink>
+
                <div class="admin-card-header mb-0!">
                   <h2 class="admin-card-title">So'nggi kirganlar</h2>
                   <RouterLink :to="{ name: 'admin-users', query: { segment: 'today' } }" class="admin-text-link">Bugun kirganlar</RouterLink>
@@ -206,7 +228,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { Activity, ChevronRight, Flag, Flame } from "lucide-vue-next";
+import { Activity, ChevronRight, Flag, Flame, Send } from "lucide-vue-next";
 import AdminRepo from "@admin/entities/AdminRepo";
 import AdminTabs from "@admin/components/AdminTabs.vue";
 import AdminRankList from "@admin/components/AdminRankList.vue";
@@ -216,7 +238,7 @@ type Dashboard = {
    stats: Record<string, any>;
    districts_breakdown: Array<{ name: string; count: number; percentage: number }>;
    categories_breakdown: Array<{ id: number; name: string; count: number; percentage: number }>;
-   daily_ads: Array<{ date: string; day_label: string; day_name: string; count: number }>;
+   daily_ads: Array<{ date: string; day_label: string; day_name: string; count: number; people?: number; ai?: number }>;
    weekly_distribution: Array<{ day: string; count: number }>;
    recent_users: Array<Record<string, any>>;
    recent_products: Array<Record<string, any>>;
@@ -235,7 +257,14 @@ const error = ref("");
 
 const num = (value: number | null | undefined) => Number(value ?? 0).toLocaleString("ru-RU");
 
-const todayAds = computed(() => dashboard.value?.daily_ads.at(-1)?.count ?? 0);
+const botPercent = computed(() => {
+   const total = dashboard.value?.stats.users ?? 0;
+   return total ? `${Math.round(((dashboard.value?.stats.bot_reachable ?? 0) / total) * 100)}%` : "0%";
+});
+
+const today = computed(() => dashboard.value?.daily_ads.at(-1));
+const todayAds = computed(() => today.value?.count ?? 0);
+const totalPeople14 = computed(() => dashboard.value?.daily_ads.reduce((sum, day) => sum + (day.people ?? day.count), 0) ?? 0);
 const totalAds14 = computed(() => dashboard.value?.daily_ads.reduce((sum, day) => sum + day.count, 0) ?? 0);
 
 const maxDailyCount = computed(() => Math.max(1, ...(dashboard.value?.daily_ads ?? []).map((d) => d.count)));

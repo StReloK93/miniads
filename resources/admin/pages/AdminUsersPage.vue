@@ -215,6 +215,10 @@
                                     <dt>Shahar</dt>
                                     <dd>{{ user.active_district?.name || "Tanlanmagan" }}</dd>
                                  </div>
+                                 <div>
+                                    <dt>Bot xabar yubora oladimi</dt>
+                                    <dd>{{ user.bot_can_message ? "Ha" : "Yo'q — botni ishga tushirmagan" }}</dd>
+                                 </div>
                                  <div v-if="user.phone">
                                     <dt>Telefon</dt>
                                     <dd><a :href="`tel:${user.phone}`">{{ user.phone }}</a></dd>
@@ -343,6 +347,8 @@ type UserItem = {
    username: string | null;
    telegram_user_id: number | null;
    phone?: string | null;
+   /** Bot unga xabar yubora oladi */
+   bot_can_message?: boolean;
    role: "user" | "admin";
    products_count: number;
    active_products_count?: number;
@@ -387,13 +393,14 @@ const router = useRouter();
 const authStore = useAuth();
 const currentUserId = authStore.user?.id ?? 0;
 
-type Segment = "" | "today" | "posters" | "city_only" | "idle";
+type Segment = "" | "today" | "posters" | "city_only" | "idle" | "bot";
 const segmentChips: { value: Segment; label: string; hint: string }[] = [
    { value: "", label: "Hammasi", hint: "Barcha foydalanuvchilar" },
    { value: "today", label: "Bugun kirgan", hint: "Bugun ilovani ochganlar — oxirgi kirgan birinchi" },
    { value: "posters", label: "E'lon qo'ygan", hint: "Kamida bitta e'lon joylagan (arxivdagisi ham)" },
    { value: "city_only", label: "Faqat shahar tanlagan", hint: "Shaharni tanlagan, lekin e'lon qo'ymagan" },
    { value: "idle", label: "Hech narsa qilmagan", hint: "Shahar ham tanlamagan, e'lon ham qo'ymagan" },
+   { value: "bot", label: "Bot yoza oladi", hint: "Botga /start bosgan yoki yozishga ruxsat bergan — bot ularga xabar yubora oladi" },
 ];
 
 const users = ref<UserItem[]>([]);
@@ -402,7 +409,7 @@ const searchInput = ref("");
 // "all" — FieldSelect bo'sh qiymatni "Tanlang" deb ko'rsatadi
 const roleFilter = ref("all");
 const segment = ref<Segment>(
-   (["today", "posters", "city_only", "idle"] as const).find((value) => value === route.query.segment) ?? "",
+   (["today", "posters", "city_only", "idle", "bot"] as const).find((value) => value === route.query.segment) ?? "",
 );
 const segmentCounts = ref<Record<string, number>>({});
 // "Ilovadagi yo'li" oynasi ochilgan foydalanuvchi

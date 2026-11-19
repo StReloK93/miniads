@@ -15,7 +15,7 @@ use Intervention\Image\ImageManager;
 use RuntimeException;
 
 /**
- * Admin paneldan kanal(lar)ga ixtiyoriy post yuborish: matn, ixtiyoriy rasm va ixtiyoriy tugma.
+ * Admin paneldan kanal(lar)ga ixtiyoriy post yuborish: tayyor Telegram HTML (TelegramMarkdown), ixtiyoriy rasm va tugma.
  */
 class ChannelPostService
 {
@@ -25,50 +25,40 @@ class ChannelPostService
     /**
      * @return array<string, int> [kanal_id => xabar_id]
      */
-    public function send(string $text, ?UploadedFile $photo = null, ?string $buttonText = null, ?string $buttonUrl = null): array
+    public function send(string $html, ?string $photoPath = null, ?string $buttonText = null, ?string $buttonUrl = null): array
     {
-        $html = nl2br(e(trim($text)), false);
-        // nl2br <br> qo'shadi, Telegram HTML esa uni tanimaydi — oddiy qator tashlashni qoldiramiz
-        $html = str_replace('<br>', '', $html);
-
         $keyboard = filled($buttonText) && filled($buttonUrl)
             ? Keyboard::make()->buttons([Button::make($buttonText)->url($buttonUrl)->style('success')])
             : null;
 
-        $photoPath = $photo ? $this->preparePhoto($photo) : null;
         $sent = [];
 
-        try {
-            foreach (TelegramProductService::channels() as $channelId) {
-                $message = Telegraph::chat($channelId);
-                if ($photoPath) {
-                    $message = $message->photo($photoPath, 'post.jpg');
-                }
-                $message = $message->html($html);
-                if ($keyboard) {
-                    $message = $message->keyboard($keyboard);
-                }
-
-                $response = $message->send();
-
-                if (! $response->telegraphOk()) {
-                    $description = (string) ($response->json('description') ?: "Telegram javob bermadi");
-                    Log::error('Kanalga post yuborilmadi', ['channel_id' => $channelId, 'description' => $description]);
-                    throw new RuntimeException($description);
-                }
-
-                $sent[$channelId] = (int) $response->telegraphMessageId();
-            }
-        } finally {
+        foreach (TelegramProductService::channels() as $channelId) {
+            $message = Telegraph::chat($channelId);
             if ($photoPath) {
-                File::delete($photoPath);
+                $message = $message->photo($photoPath, 'post.jpg');
             }
+            $message = $message->html($html);
+            if ($keyboard) {
+                $message = $message->keyboard($keyboard);
+            }
+
+            $response = $message->send();
+
+            if (! $response->telegraphOk()) {
+                $description = (string) ($response->json('description') ?: "Telegram javob bermadi");
+                Log::error('Kanalga post yuborilmadi', ['channel_id' => $channelId, 'description' => $description]);
+                throw new RuntimeException($description);
+            }
+
+            $sent[$channelId] = (int) $response->telegraphMessageId();
         }
 
         return $sent;
     }
 
-    private function preparePhoto(UploadedFile $photo): string
+    /** Rasm Telegram cheklovlariga moslab JPEG qilinadi (vaqtinchalik fayl — chaqiruvchi o'chiradi) */
+    public function preparePhoto(UploadedFile $photo): string
     {
         $path = storage_path('app/tmp/' . Str::uuid() . '.jpg');
         File::ensureDirectoryExists(dirname($path));

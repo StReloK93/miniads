@@ -35,8 +35,10 @@ class TelegramNotifier
 
     /**
      * @param  array<int, array{0: string, 1: string}>  $buttons  [matn, havola] — har biri alohida qatorda
+     * @param  string|null  $photoUrl  havola, diskdagi fayl yoki Telegram file_id
+     * @param  string|null  $photoFileId  rasm yuborilsa — Telegram bergan file_id (keyingilarga qayta yuklamaslik uchun)
      */
-    public function toUser(User $user, string $html, array $buttons = [], ?string $photoUrl = null, bool $force = false): bool
+    public function toUser(User $user, string $html, array $buttons = [], ?string $photoUrl = null, bool $force = false, ?string &$photoFileId = null): bool
     {
         if (! $user->telegram_user_id) {
             return false;
@@ -46,7 +48,7 @@ class TelegramNotifier
             return false;
         }
 
-        $ok = $this->send((string) $user->telegram_user_id, $html, $buttons, $photoUrl, $description);
+        $ok = $this->send((string) $user->telegram_user_id, $html, $buttons, $photoUrl, $description, $photoFileId);
 
         // Foydalanuvchi botni to'xtatgan/o'chirgan: keyingi safar urinib o'tirmaymiz (ilovada qayta ruxsat so'raladi)
         $isUnreachable = $description && preg_match('/blocked|deactivated|chat not found|forbidden/i', $description);
@@ -86,7 +88,7 @@ class TelegramNotifier
         return $sent;
     }
 
-    private function send(string $chatId, string $html, array $buttons, ?string $photoUrl = null, ?string &$description = null): bool
+    private function send(string $chatId, string $html, array $buttons, ?string $photoUrl = null, ?string &$description = null, ?string &$photoFileId = null): bool
     {
         try {
             $message = Telegraph::chat($chatId);
@@ -103,6 +105,9 @@ class TelegramNotifier
 
             $response = $message->send();
             if ($response->telegraphOk()) {
+                // Eng katta o'lchamdagi rasm oxirida turadi
+                $photoFileId = $photoUrl ? (collect($response->json('result.photo', []))->last()['file_id'] ?? null) : null;
+
                 return true;
             }
 

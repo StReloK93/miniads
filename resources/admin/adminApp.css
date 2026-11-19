@@ -1727,6 +1727,68 @@ textarea.admin-input {
    opacity: 1;
 }
 
+/* Ikki rangli ustun: pastda odamlar (yashil), ustida AI (to'q). Bo'sh kun — oddiy kulrang chiziq */
+.admin-bar-pill.is-stacked {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+   background: var(--z-muted);
+}
+
+.admin-bar-seg {
+   flex-basis: 0;
+   min-height: 2px;
+   opacity: 0.75;
+   transition: opacity 0.2s ease;
+}
+
+.admin-bar-seg.is-people {
+   background: rgb(16 185 129);
+}
+
+.admin-bar-seg.is-ai {
+   background: var(--admin-ink);
+}
+
+.admin-bar-col:hover .admin-bar-pill.is-stacked,
+.admin-bar-col.is-peak .admin-bar-pill.is-stacked {
+   background: var(--z-muted);
+}
+
+.admin-bar-col:hover .admin-bar-seg,
+.admin-bar-col.is-peak .admin-bar-seg {
+   opacity: 1;
+}
+
+.admin-bar-legend {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px 12px;
+   margin-top: 6px;
+   font-size: 12px;
+   color: var(--admin-muted);
+}
+
+.admin-bar-legend span {
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.admin-bar-legend i {
+   width: 8px;
+   height: 8px;
+   border-radius: 2px;
+}
+
+.admin-bar-legend .is-people {
+   background: rgb(16 185 129);
+}
+
+.admin-bar-legend .is-ai {
+   background: var(--admin-ink);
+}
+
 /* User Activity List */
 .admin-user-activity-list {
    display: flex;

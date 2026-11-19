@@ -8,7 +8,10 @@
          @submitted="onSubmit"
       >
          <template #heading>
-            <h3 class="font-extrabold text-xl mb-1">{{ $t("create.editTitle") }}</h3>
+            <div class="flex items-center gap-2 mb-1">
+               <PageBackButton :fallback="{ name: 'my-ads' }" />
+               <h3 class="font-extrabold text-xl">{{ $t("create.editTitle") }}</h3>
+            </div>
             <p class="title text-xs mb-4">{{ $t("create.details") }}</p>
          </template>
       </ProductFormShell>
@@ -16,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import ProductFormShell from "@/features/product/ProductFormShell.vue";
 import ProductRepo from "@shared/entities/Product/ProductRepo";
 import CategoryRepo from "@shared/entities/Category/CategoryRepo";

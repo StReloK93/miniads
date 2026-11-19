@@ -2,7 +2,8 @@
    <section class="h-full flex flex-col min-h-0 overflow-hidden">
       <aside class="shrink-0 pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex gap-2 items-center justify-between">
-            <h3 class="font-extrabold text-xl">{{ $t("common.postAd") }}</h3>
+            <PageBackButton />
+            <h3 class="grow font-extrabold text-xl">{{ $t("common.postAd") }}</h3>
             <span class="text-xs text-(--z-muted-text) font-medium">1 / 2</span>
          </div>
 
@@ -31,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import CategorySelector from "@/features/category/CategorySelector.vue";
 import BlockedNotice from "@/features/auth/BlockedNotice.vue";
 import AiDraftCard from "@/features/product/AiDraftCard.vue";

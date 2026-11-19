@@ -2,15 +2,7 @@
    <section class="grid grid-rows-[auto_1fr]">
       <aside class="pb-3 mb-3 border-b border-(--z-border) -mx-4 px-4">
          <div class="flex items-center gap-2">
-            <button
-               v-if="showAppBackButton"
-               type="button"
-               class="-ml-1.5 p-1.5 rounded-full active:bg-(--z-muted)"
-               :aria-label="$t('common.back')"
-               @click="goBack(router)"
-            >
-               <ArrowLeft class="size-5" />
-            </button>
+            <PageBackButton />
             <h3 class="grow font-extrabold text-xl">{{ $t("help.title") }}</h3>
          </div>
       </aside>
@@ -74,10 +66,10 @@
 </template>
 
 <script setup lang="ts">
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import { nextTick, onMounted, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import {
-   ArrowLeft,
    BellRing,
    ChevronDown,
    ChevronRight,
@@ -87,12 +79,10 @@ import {
    ShieldCheck,
    Store,
 } from "lucide-vue-next";
-import { goBack, showAppBackButton } from "@/modules/navigation";
 import { channelName, channelUrl, openChannel } from "@/features/help/helpLinks";
 import { useOnboardingTour } from "@/features/help/useOnboardingTour";
 
 const tour = useOnboardingTour();
-const router = useRouter();
 const route = useRoute();
 
 // Savollar tartibi; matnlar help.faq.<id>.q / .a da (uz/ru/en)

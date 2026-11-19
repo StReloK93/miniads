@@ -1,7 +1,10 @@
 <template>
    <section class="grid grid-rows-[auto_1fr]">
       <aside class="pb-4 mb-4 border-b border-(--z-border) -mx-4 px-4">
-         <h3 class="font-extrabold text-xl mb-1">{{ $t("common.postAd") }}</h3>
+         <div class="flex items-center gap-2 mb-1">
+            <PageBackButton />
+            <h3 class="font-extrabold text-xl">{{ $t("common.postAd") }}</h3>
+         </div>
          <p class="title text-xs inline-flex">{{ $t("create.step", { n: 1 }) }}: {{ $t("district.choose") }}</p>
       </aside>
       <div class="relative">
@@ -24,6 +27,7 @@
 
 <script setup lang="ts">
 import { ChevronRight } from "lucide-vue-next";
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import { useRouter } from "vue-router";
 import { onMounted } from "vue";
 import { IDistrict } from "@shared/types";

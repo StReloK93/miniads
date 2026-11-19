@@ -3,7 +3,8 @@
       <ProductFormShell :category="selectedCategory" :inputs="formInputs" :submit="submitForm" @submitted="onSubmit">
          <template #heading>
             <div class="flex items-center gap-2">
-               <h3 class="font-extrabold text-xl mb-1">{{ $t("common.postAd") }}</h3>
+               <PageBackButton :fallback="{ name: 'create-select-category' }" />
+               <h3 class="font-extrabold text-xl">{{ $t("common.postAd") }}</h3>
                <span class="text-xs text-(--z-muted-text) font-medium">2 / 2</span>
             </div>
 
@@ -119,6 +120,7 @@
 </template>
 
 <script setup lang="ts">
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import ProductFormShell from "@/features/product/ProductFormShell.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import BaseButton from "@shared/ui/BaseButton.vue";

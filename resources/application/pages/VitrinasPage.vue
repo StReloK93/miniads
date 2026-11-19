@@ -2,15 +2,7 @@
    <NavigationPageDecorator :header-class="['border-b', 'border-(--z-border)']">
       <template #header>
          <div class="flex items-center gap-2 mb-1">
-            <button
-               v-if="showAppBackButton"
-               type="button"
-               class="-ml-1.5 p-1.5 rounded-full active:bg-(--z-muted)"
-               :aria-label="$t('common.back')"
-               @click="goBack(router)"
-            >
-               <ArrowLeft class="size-5" />
-            </button>
+            <PageBackButton />
             <h3 class="font-bold text-xl">{{ $t("vitrina.title") }}</h3>
          </div>
          <p class="mb-3 text-sm text-(--z-muted-text)">
@@ -82,19 +74,17 @@
 </template>
 
 <script setup lang="ts">
+import PageBackButton from "@/layouts/PageBackButton.vue";
 import { computed, onMounted, ref, watch } from "vue";
-import { useRouter } from "vue-router";
-import { ArrowLeft, ChevronRight, Sparkles, Store } from "lucide-vue-next";
+import { ChevronRight, Sparkles, Store } from "lucide-vue-next";
 import NavigationPageDecorator from "@/layouts/NavigationPageDecorator.vue";
 import VitrinaRepo from "@shared/entities/Vitrina/VitrinaRepo";
 import { useAuth } from "@shared/store/useAuth";
 import type { IVitrina, VitrinaType } from "@shared/types";
-import { goBack, showAppBackButton } from "@/modules/navigation";
 import VitrinaAvatar from "@/features/vitrina/VitrinaAvatar.vue";
 import VitrinaVerified from "@/features/vitrina/VitrinaVerified.vue";
 import { VITRINA_TYPES, VITRINA_TYPE_KEYS } from "@/features/vitrina/vitrinaKit";
 
-const router = useRouter();
 const authStore = useAuth();
 
 const vitrinas = ref<IVitrina[]>([]);

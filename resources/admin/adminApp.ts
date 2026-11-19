@@ -10,6 +10,7 @@ import { isTMA } from "@tma.js/bridge";
 import { setupTelegramSafeArea } from "@shared/modules/telegramSafeArea";
 import { i18n } from "@shared/i18n";
 import { setupStaleChunkReload } from "@shared/modules/staleChunks";
+import { setupTelegramBackButton } from "@admin/modules/telegramBack";
 initTheme();
 if (isTMA()) setupTelegramSafeArea();
 const app = createApp(App);
@@ -37,6 +38,8 @@ const initApp = async () => {
    }
 
    app.use(router).mount("#app");
+   // Telegram'ning tepadagi "orqaga" tugmasi admin panelda ham ishlasin
+   setupTelegramBackButton(router);
 };
 
 initApp();

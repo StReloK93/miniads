@@ -453,6 +453,8 @@ const en: MessageSchema = {
    imageField: {
       selected: "Selected photo",
       remove: "Remove photo",
+      main: "Main",
+      makeMain: "Make main photo",
       crop: "Crop photo",
       result: "Preview",
       frame: "Crop frame",

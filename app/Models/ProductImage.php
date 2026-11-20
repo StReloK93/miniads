@@ -16,11 +16,13 @@ class ProductImage extends Model
         'crop_y',
         'crop_scale',
         'product_id',
+        'sort',
     ];
 
     protected $casts = [
         'crop_x' => 'integer',
         'crop_y' => 'integer',
         'crop_scale' => 'float',
+        'sort' => 'integer',
     ];
 }

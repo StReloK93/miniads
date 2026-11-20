@@ -20,6 +20,8 @@ use Intervention\Image\ImageManager;
 
 class BotAdImportService
 {
+    public const NO_CONTACT_MESSAGE = "Murojaat uchun ma'lumot yetarli emas: bog'lanish uchun telefon raqami yoki @username bering.";
+
     public function __construct(
         protected TelegramChannelScraperService $scraper,
         protected AdAiParserService $aiParser,
@@ -292,6 +294,11 @@ class BotAdImportService
             return ['status' => 'not_found', 'message' => "Post topilmadi yoki matni yo'q (kanal yopiq yoki post o'chirilgan)."];
         }
 
+        // Telefon yoki @nick bo'lmasa xaridor muallifga yeta olmaydi — e'lon joylanmaydi (AI'ga ham yuborilmaydi)
+        if (!$this->hasContact($text, $channel)) {
+            return ['status' => 'invalid', 'message' => self::NO_CONTACT_MESSAGE];
+        }
+
         $result = $this->storeChosen($post, $channel, $post['images'] ?? [], $publish);
         BotSeenPost::mark($channel, $messageId, 'imported', 'admin havolasi');
 
@@ -319,12 +326,19 @@ class BotAdImportService
         }
 
         // Telefon yoki @nick bo'lmasa xaridor muallifga yeta olmaydi — e'lon joylanmaydi (AI'ga ham yuborilmaydi)
-        $contactText = $this->prefilter->stripChannelNoise($text, null);
-        if (!$this->extractPhone($contactText) && !$this->extractTelegramUsername($contactText)) {
-            return ['status' => 'invalid', 'message' => "Murojaat uchun ma'lumot yetarli emas: matnda telefon raqami yoki @username yo'q."];
+        if (!$this->hasContact($text, null)) {
+            return ['status' => 'invalid', 'message' => self::NO_CONTACT_MESSAGE];
         }
 
         return $this->storeChosen(['text' => $text, 'message_id' => null], null, $images, $publish, $expiry);
+    }
+
+    /** Matnda telefon yoki @username bormi (kanalning o'z imzosi — @KanalNomi, t.me/... — hisoblanmaydi) */
+    protected function hasContact(string $text, ?string $channel): bool
+    {
+        $contactText = $this->prefilter->stripChannelNoise($text, $channel);
+
+        return $this->extractPhone($contactText) !== null || $this->extractTelegramUsername($contactText) !== null;
     }
 
     /**

@@ -34,7 +34,7 @@ class PageMeta
         }
 
         $price = $product->price === null
-            ? 'Kelishiladi'
+            ? null
             : number_format((float) $product->price, 0, '.', ' ') . ($product->price_type?->type ? ' ' . $product->price_type->type : '');
         $summary = collect([$price, $product->district?->name])->filter()->implode(' · ');
         $description = trim($summary . ($product->description ? ' — ' . Str::limit(Str::squish($product->description), 160) : ''));

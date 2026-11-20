@@ -19,7 +19,27 @@
                   class="h-full w-full"
                   :alt="$t('imageField.selected')"
                />
+               <span
+                  v-if="attrs.multiple && index === 0 && imagesSource.length > 1"
+                  class="absolute top-1 left-1 z-10 rounded-full bg-black/45 px-2 py-0.5 text-[11px] text-white backdrop-blur-sm"
+               >
+                  {{ $t("imageField.main") }}
+               </span>
                <div class="absolute! bottom-1 right-1 z-10 flex gap-2">
+                  <BaseButton
+                     v-if="attrs.multiple && index > 0"
+                     @click="makeMain(index, field)"
+                     rounded
+                     severity="glass"
+                     icon-only
+                     size="sm"
+                     :aria-label="$t('imageField.makeMain')"
+                     :title="$t('imageField.makeMain')"
+                  >
+                     <template #icon>
+                        <Star class="size-4.5 opacity-80" />
+                     </template>
+                  </BaseButton>
                   <BaseButton
                      @click="deleteImage(index, field)"
                      rounded
@@ -294,6 +314,7 @@ import {
    Minus,
    Plus,
    ZoomIn,
+   Star,
 } from "lucide-vue-next";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import ProductImageView from "@shared/ui/ProductImageView.vue";
@@ -518,6 +539,13 @@ function deleteImage(index: number, field: { onInput: (value: IImage[] | null) =
 
    imagesSource.value = imagesSource.value.filter((_, imageIndex) => imageIndex !== index);
    field.onInput(attrs.multiple ? imagesSource.value.map(fieldImageValue) : null);
+}
+
+/** Rasmni birinchi o'ringa o'tkazadi: birinchi rasm — asosiy (kartada va kanal postida shu chiqadi) */
+function makeMain(index: number, field: { onInput: (value: IImage[]) => void }) {
+   const [image] = imagesSource.value.splice(index, 1);
+   imagesSource.value.unshift(image);
+   field.onInput(imagesSource.value.map(fieldImageValue));
 }
 
 function fieldImageValue(image: IImage) {

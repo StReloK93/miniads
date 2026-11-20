@@ -18,7 +18,7 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 /** Admin havola bergan post: kontakt yo'q va yangilikka o'xshaydi — avto-importda filtrlanardi */
-const CHOSEN_TEXT = "Ish bor! Zavodga svarchik va malyar kerak. Ish vaqti 9:00-18:00, tushlik bepul.";
+const CHOSEN_TEXT = "Ish bor! Zavodga svarchik va malyar kerak. Ish vaqti 9:00-18:00, tushlik bepul. Tel: 91 234 56 78";
 
 function fakeChosenPost(?array $post): void
 {
@@ -132,6 +132,18 @@ test('chosen post keeps photos only where the category allows them', function (i
     "rasmi o'chirilgan kategoriya (Doimiy ish)" => [2, 0],
     "rasmi bor kategoriya" => [3, 2],
 ]);
+
+test('chosen post without a phone or @nick is not imported', function () {
+    fakeChosenPost(['channel' => 'Navoiy_kerak_ishchi', 'message_id' => 4254, 'text' => 'Ish bor! Zavodga svarchik kerak, tushlik bepul.', 'images' => []]);
+    Http::fake();
+
+    $result = app(BotAdImportService::class)->importChosen('https://t.me/Navoiy_kerak_ishchi/4254');
+
+    expect($result['status'])->toBe('invalid')
+        ->and($result['message'])->toContain("bog'lanish uchun")
+        ->and(Product::count())->toBe(0);
+    Http::assertNothingSent();
+});
 
 test('private links and missing posts are rejected with a reason', function () {
     fakeChosenPost(null);

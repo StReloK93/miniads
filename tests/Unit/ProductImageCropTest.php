@@ -80,6 +80,7 @@ test('saving an existing image crop only updates metadata and clears its legacy 
     Schema::create('product_images', function (Blueprint $table) {
         $table->id();
         $table->foreignId('product_id');
+        $table->unsignedTinyInteger('sort')->default(0);
         $table->string('src');
         $table->string('crop_src')->nullable();
         $table->unsignedTinyInteger('crop_x')->default(50);
@@ -141,6 +142,7 @@ test('adding an image stores its original and crop metadata without a derivative
     Schema::create('product_images', function (Blueprint $table) {
         $table->id();
         $table->foreignId('product_id');
+        $table->unsignedTinyInteger('sort')->default(0);
         $table->string('src');
         $table->string('thumb_src')->nullable();
         $table->string('crop_src')->nullable();

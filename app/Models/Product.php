@@ -190,7 +190,8 @@ class Product extends Model
 
     public function images()
     {
-        return $this->hasMany(ProductImage::class, 'product_id');
+        // Birinchisi — foydalanuvchi tanlagan asosiy rasm
+        return $this->hasMany(ProductImage::class, 'product_id')->orderBy('sort')->orderBy('id');
     }
 
     public function price_type()

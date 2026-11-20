@@ -343,7 +343,7 @@
                   <MessageCircle class="size-5 inline" />
                </template>
             </BaseButton>
-            <BaseButton @click="callPhone(phoneNumber)" severity="primary" class="grow">
+            <BaseButton @click="callPhone(phoneNumber)" severity="primary" class="grow" :title="phoneTitle">
                <template #icon>
                   <Phone class="size-4 inline" />
                </template>
@@ -487,6 +487,12 @@ const contactNick = computed(() => {
    return phone.startsWith("@") ? phone.slice(1) : null;
 });
 const phoneNumber = computed(() => (product.value?.phone && !contactNick.value ? product.value.phone : null));
+// Kompyuterda sichqoncha tugma ustida turganda raqam ko'rinadi: +998 93-123-45-67
+const phoneTitle = computed(() => {
+   const phone = phoneNumber.value;
+   if (!phone) return undefined;
+   return phone.replace(/\D/g, "").length === 9 ? `+998 ${phone}` : phone;
+});
 // Kimga yozish: e'londagi @nick, bo'lmasa e'lon egasining username'i (bot akkauntiga emas)
 const chatUsername = computed(
    () => contactNick.value || (!isBotProduct.value ? product.value?.user?.username?.trim().replace(/^@/, "") : null) || null,

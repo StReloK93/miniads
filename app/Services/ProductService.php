@@ -83,6 +83,7 @@ class ProductService
                         'product_id' => $product->id,
                         'src' => $src,
                         'thumb_src' => $thumb,
+                        'sort' => (int) $index,
                         ...$crop,
                     ]);
                 }
@@ -200,9 +201,18 @@ class ProductService
             $image->delete();
         }
 
+        // Formadagi tartib saqlanadi: birinchi rasm — asosiy (kanal postida ham shu chiqadi)
+        $sort = 0;
         foreach ($images as $image) {
             if (!empty($image['id'])) {
                 $existingImage = $product->images()->find($image['id']);
+
+                if ($existingImage && $existingImage->sort !== $sort) {
+                    $existingImage->update(['sort' => $sort]);
+                }
+                if ($existingImage) {
+                    $sort++;
+                }
 
                 if ($existingImage && $this->hasCropData($image)) {
                     $crop = $this->normalizeCrop($image);
@@ -237,6 +247,7 @@ class ProductService
                 'product_id' => $product->id,
                 'src' => $path,
                 'thumb_src' => ProductThumbnail::make($path),
+                'sort' => $sort++,
                 ...$crop,
             ]);
         }

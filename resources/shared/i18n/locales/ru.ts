@@ -453,6 +453,8 @@ const ru: MessageSchema = {
    imageField: {
       selected: "Выбранное фото",
       remove: "Удалить фото",
+      main: "Главное",
+      makeMain: "Сделать главным",
       crop: "Обрезать фото",
       result: "Результат",
       frame: "Рамка обрезки",

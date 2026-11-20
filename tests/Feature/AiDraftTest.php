@@ -69,6 +69,19 @@ test('city and phone written in the text are not reported as missing', function 
         ->and($response->json('missing'))->toBe([]);
 });
 
+test('a phone the AI invented is dropped, a "negotiable" price line is not kept', function () {
+    Http::fake(fn () => Http::response(draftGeminiReply([
+        'is_valid' => true, 'title' => "Do'kon sotiladi", 'category_id' => $this->shop->id, 'phone' => '99-123-45-67',
+        'description' => "Markazda do'kon sotiladi.\n\n• Narxi: kelishiladi\n• Manzil: 99-123-45-67 yonida",
+    ])));
+
+    $response = $this->postJson('/api/products/ai-draft', ['text' => "Navoiyda do'kon sotiladi"])->assertOk();
+
+    expect($response->json('draft.phone'))->toBeNull()
+        ->and($response->json('draft.description'))->not->toContain('99-123-45-67')
+        ->and($response->json('draft.description'))->not->toContain('kelishiladi');
+});
+
 test('a user gets at most five drafts a day, admins are not limited', function () {
     Http::fake(fn () => Http::response(draftGeminiReply(['is_valid' => true, 'title' => "Do'kon", 'category_id' => $this->shop->id])));
 

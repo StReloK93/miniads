@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Vitrina;
 use App\Models\VitrinaItem;
 use App\Models\VitrinaSection;
+use App\Services\ActivityLog;
 use App\Services\TelegramNotifier;
 use App\Support\Phone;
 use App\Support\UzbekText;
@@ -351,14 +352,37 @@ class VitrinaController extends Controller
 
     /* ================= Admin ================= */
 
+    /**
+     * Admin ro'yxati. Har vitrina uchun: jami ko'rishlar (views_count) va so'nggi 30 kunda
+     * qo'ng'iroq / Telegram tugmasini bosishlar (activity_stats, ref = "v<id>").
+     */
     public function adminIndex(Request $request)
     {
-        return Vitrina::with('user:id,name,username')
+        $vitrinas = Vitrina::with('user:id,name,username')
             ->withCount('items')
             ->when($request->input('status'), fn ($q, string $status) => $q->where('status', $status))
             ->orderByRaw("status = 'pending' desc")
             ->latest('updated_at')
             ->get();
+
+        // Bugungi bosishlar ham ko'rinsin
+        ActivityLog::aggregate(now()->toDateString());
+
+        $clicks = DB::table('activity_stats')
+            ->whereIn('ref', $vitrinas->map(fn (Vitrina $v) => "v{$v->id}"))
+            ->whereIn('event', ['contact_phone', 'contact_telegram'])
+            ->where('date', '>=', now()->subDays(29)->toDateString())
+            ->groupBy('ref', 'event')
+            ->selectRaw('ref, event, SUM(hits) as hits')
+            ->get()
+            ->groupBy('ref');
+
+        return $vitrinas->map(function (Vitrina $vitrina) use ($clicks) {
+            $rows = $clicks->get("v{$vitrina->id}", collect())->pluck('hits', 'event');
+
+            return $vitrina->setAttribute('phone_clicks', (int) ($rows['contact_phone'] ?? 0))
+                ->setAttribute('telegram_clicks', (int) ($rows['contact_telegram'] ?? 0));
+        });
     }
 
     /** Admin: nomaqbul vitrinani butunlay o'chirish (rasmlari diskdan ham) */

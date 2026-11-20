@@ -44,4 +44,18 @@ class Phone
     {
         return preg_replace_callback(self::IN_TEXT, fn (array $m) => "{$m[1]}-{$m[2]}-{$m[3]}-{$m[4]}", $text) ?? $text;
     }
+
+    /** Matndagi har bir raqamni (93-123-45-67 ko'rinishida) $replace natijasiga almashtiradi. */
+    public static function replaceInText(string $text, callable $replace): string
+    {
+        return preg_replace_callback(self::IN_TEXT, fn (array $m) => $replace("{$m[1]}-{$m[2]}-{$m[3]}-{$m[4]}"), $text) ?? $text;
+    }
+
+    /** Raqam matnda bormi — har qanday ko'rinishda (+998 93 123 45 67, 931234567, 93-123-45-67) */
+    public static function inText(string $phone, string $text): bool
+    {
+        $digits = substr(preg_replace('/\D/', '', $phone), -9);
+
+        return strlen($digits) === 9 && str_contains(preg_replace('/\D/', '', $text), $digits);
+    }
 }

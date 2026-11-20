@@ -65,6 +65,12 @@
                      {{ item.user?.name }}<template v-if="item.user?.username"> (@{{ item.user.username }})</template>
                      <template v-if="item.reject_reason"> · Sabab: {{ item.reject_reason }}</template>
                   </span>
+                  <span class="admin-list-meta" title="Ko'rishlar — jami; qo'ng'iroq va Telegram bosishlari — so'nggi 30 kun">
+                     <Eye class="inline size-3.5 -mt-0.5" /> {{ item.views_count ?? 0 }} ko'rish ·
+                     <Phone class="inline size-3.5 -mt-0.5" /> {{ item.phone_clicks ?? 0 }} qo'ng'iroq ·
+                     <Send class="inline size-3.5 -mt-0.5" /> {{ item.telegram_clicks ?? 0 }} Telegram
+                     <span class="opacity-70">(30 kun)</span>
+                  </span>
                </span>
                <BaseButton v-if="item.status !== 'approved'" size="xs" severity="success" :loading="busyId === item.id" @click="update(item, { status: 'approved' })">
                   Tasdiqlash
@@ -96,10 +102,14 @@ import { onMounted, ref, watch } from "vue";
 import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
-import { Trash2 } from "lucide-vue-next";
+import { Eye, Phone, Send, Trash2 } from "lucide-vue-next";
 import type { IVitrina } from "@shared/types";
 
-type AdminVitrina = IVitrina & { user?: { id: number; name: string; username: string | null } };
+type AdminVitrina = IVitrina & {
+   user?: { id: number; name: string; username: string | null };
+   phone_clicks?: number;
+   telegram_clicks?: number;
+};
 type Status = "pending" | "approved" | "rejected";
 
 const filters: { value: Status | ""; label: string }[] = [

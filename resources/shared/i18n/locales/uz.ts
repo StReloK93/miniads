@@ -458,6 +458,8 @@ const uz = {
    imageField: {
       selected: "Tanlangan rasm",
       remove: "Rasmni o'chirish",
+      main: "Asosiy",
+      makeMain: "Asosiy rasm qilish",
       crop: "Rasmni kesish",
       result: "Real natija",
       frame: "Kesish ramkasi",

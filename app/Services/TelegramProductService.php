@@ -124,8 +124,9 @@ class TelegramProductService
 
     private function makeCaption(Product $product): string
     {
+        // Narx yo'q (topilma, kelishiladigan e'lon) — narx qatori chiqmaydi, o'quvchi o'zi tushunadi
         $price = $product->price === null
-            ? 'Kelishiladi'
+            ? null
             : number_format((float) $product->price, 0, '.', ' ')
                 .($product->price_type?->type ? ' '.e($product->price_type->type) : '');
 
@@ -137,8 +138,10 @@ class TelegramProductService
 
         $title = mb_strtoupper(Str::limit($product->title, 120), 'UTF-8');
         $caption = implode(' ', $hashtags)."\n\n";
-        $caption .= '<b>'.e($title)."</b>\n";
-        $caption .= '<b>'.$price.'</b>';
+        $caption .= '<b>'.e($title).'</b>';
+        if ($price !== null) {
+            $caption .= "\n<b>".$price.'</b>';
+        }
 
         if ($product->description) {
             $caption .= "\n\n<i>".e(Str::limit(trim($product->description), 180)).'</i>';

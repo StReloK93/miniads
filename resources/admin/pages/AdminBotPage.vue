@@ -52,7 +52,11 @@
                class="admin-input"
                placeholder="E'lon matnini shu yerga joylang"
                :disabled="importing"
+               @input="draft.error = ''"
             />
+            <p v-if="draft.error || needsContact(draft)" class="text-xs text-rose-500 -mt-1">
+               {{ draft.error || "Bog'lanish uchun ma'lumot bering: matnga telefon raqami yoki @username yozing." }}
+            </p>
             <div class="flex flex-wrap gap-2">
                <span v-for="(image, imageIndex) in draft.images" :key="image.url" class="relative">
                   <img :src="image.url" class="size-16 rounded-lg object-cover" alt="" />
@@ -519,12 +523,20 @@ const MAX_IMAGES = 10;
 type DraftImage = { file: File; url: string };
 // Muddat: "category" — kategoriya bo'yicha, "days" — N kun, "permanent" — muddatsiz (o'chmaydi)
 type Duration = "category" | "days" | "permanent";
-type Draft = { id: number; text: string; images: DraftImage[]; duration: Duration; days: number };
+type Draft = { id: number; text: string; images: DraftImage[]; duration: Duration; days: number; error: string };
 
 let draftSeq = 0;
-const newDraft = (): Draft => ({ id: ++draftSeq, text: "", images: [], duration: "category", days: 30 });
+const newDraft = (): Draft => ({ id: ++draftSeq, text: "", images: [], duration: "category", days: 30, error: "" });
 const drafts = ref<Draft[]>([newDraft()]);
-const readyDrafts = computed(() => drafts.value.filter((draft) => draft.text.trim().length >= 10));
+
+// Telefon (93 123 45 67, +998931234567, 93-123-45-67) yoki @username — server ham shuni talab qiladi
+const PHONE_RE = /(?<!\d)(?:\+?998[\s.-]*)?\(?[2-9]\d\)?[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}(?!\d)/;
+const USERNAME_RE = /@[A-Za-z][A-Za-z0-9_]{3,}/;
+const hasContact = (text: string) => PHONE_RE.test(text) || USERNAME_RE.test(text);
+/** Matn yozilgan, lekin xaridor muallifga yeta oladigan aloqa yo'q — e'lon joylanmaydi */
+const needsContact = (draft: Draft) => draft.text.trim().length >= 10 && !hasContact(draft.text);
+
+const readyDrafts = computed(() => drafts.value.filter((draft) => draft.text.trim().length >= 10 && hasContact(draft.text)));
 
 function addDraft() {
    drafts.value.push(newDraft());
@@ -603,6 +615,8 @@ async function importDrafts() {
       } catch (e: any) {
          const data = e?.response?.data ?? {};
          importResults.value.unshift({ url: label, status: data.status ?? "error", message: data.message || "Joylab bo'lmadi." });
+         // Server rad etgan sabab shu e'lon ostida qizil yozuv bo'lib qoladi
+         draft.error = data.message || "Joylab bo'lmadi.";
       } finally {
          importDone.value++;
       }

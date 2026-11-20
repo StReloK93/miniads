@@ -219,11 +219,11 @@ Sotish/olish/ijara/ish/xizmat niyati aniq ko'rinmasa — is_valid: false.
   1) 1-2 gaplik qisqa tavsif;
   2) asosiy parametrlar ("• Holati: a'lo", "• Rangi: oq");
   3) "• Manzil: ..." (postda bo'lsa);
-  4) "• Narxi: ..." (postda bo'lsa; [narxsiz] kategoriyada bu qator YO'Q);
-  5) "• Bog'lanish uchun: ..." — faqat telefon yoki @username. Telefon doim "93-123-45-67" ko'rinishida, +998 va 998 qo'shimchasisiz.
+  4) "• Narxi: ..." — faqat postda aniq summa yozilgan bo'lsa. Narx yo'q bo'lsa bu qator YO'Q, "kelishiladi" deb yozma; [narxsiz] kategoriyada (topilma, ish va h.k.) ham YO'Q;
+  5) "• Bog'lanish uchun: ..." — faqat postda yozilgan telefon yoki @username, raqamlari aynan postdagidek. Postda aloqa bo'lmasa bu qator YO'Q. Telefon "XX-XXX-XX-XX" ko'rinishida, +998 va 998 qo'shimchasisiz.
   Begona kanal havolalari (@kanal, t.me/...) olib tashlanadi. Postda yo'q ma'lumotni o'ylab topma.
 - price: faqat raqam yoki null. Postda narx aniq yozilmagan bo'lsa — null (narxni HECH QACHON o'ylab topma, taxmin qilma). Kategoriya [narxsiz] bo'lsa (kafe, restoran, ish va h.k.) — doim null. currency: "UZS", "USD" yoki null.
-- phone: "93-123-45-67" ko'rinishida (+998siz) yoki null.
+- phone: postda yozilgan raqam "XX-XXX-XX-XX" ko'rinishida (+998siz) yoki null. Raqamni HECH QACHON o'ylab topma va namunadan olma: postda yo'q bo'lsa — null.
 - parameters: tanlangan kategoriyaning {...} ichidagi parametrlari, {"<parametr ID>": qiymat} ko'rinishida (ID — # dan keyingi son).
   Faqat postda ANIQ yozilganlarini to'ldir, yo'g'ini qo'shma va taxmin qilma. Variantli parametrda qiymat — ro'yxatdagi variantlardan biri,
   aynan shu yozilishda. "son" — faqat raqam, birliksiz (masalan 3, 2019, 65.5). Boshqa kategoriyaning parametrini yozma. Hech biri bo'lmasa — {}.
@@ -235,7 +235,7 @@ Kategoriyalar: {$categoriesContext}
 Shahar/tumanlar: {$districtsContext}
 
 Haqiqiy e'lon uchun JSON:
-{"is_valid": true, "title": "...", "description": "...", "price": 12000000, "currency": "UZS", "phone": "90-123-45-67", "category_id": 12, "district_id": 1, "parameters": {"5": "Avtomat", "8": 2019}}
+{"is_valid": true, "title": "...", "description": "...", "price": 12000000, "currency": "UZS", "phone": null, "category_id": 12, "district_id": 1, "parameters": {"5": "Avtomat", "8": 2019}}
 PROMPT;
     }
 
@@ -625,25 +625,49 @@ PROMPT;
 
         $title = self::cleanTitle($title);
         $desc = Phone::formatInText(self::cleanDescription($desc));
+        $desc = self::stripInventedPhones($desc, $rawText);
 
         // Narxsiz kategoriya (kafe, restoran, ish...): narx ham, tavsifdagi "Narxi" qatori ham bo'lmaydi
         $withPrice = Category::whereKey($categoryId)->value('with_price') !== false;
+        $price = $withPrice ? $this->priceFromText($data['price'] ?? null, $rawText) : null;
         if (!$withPrice) {
             $desc = preg_replace('/^[ \t]*•?[ \t]*Narx(?:i)?\s*:.*$\R?/mu', '', $desc);
-            $desc = trim(preg_replace("/\n{3,}/", "\n\n", $desc));
+        } elseif ($price === null) {
+            // Narx yo'q — "Narxi: kelishiladi" kerak emas, o'quvchi o'zi tushunadi
+            $desc = preg_replace('/^[ \t]*•?[ \t]*Narx(?:i)?\s*:[^\n\d]*(?:kelish|dogovor|договор|келиш)[^\n\d]*$\R?/miu', '', $desc);
         }
+        $desc = trim(preg_replace("/\n{3,}/", "\n\n", $desc));
+
+        // AI ba'zan namunadagi yoki o'ylab topilgan raqamni yozadi: raqam faqat matnda haqiqatan bo'lsa olinadi
+        $phone = Phone::format($data['phone'] ?? null);
+        if ($phone !== null && !str_starts_with($phone, '@') && !Phone::inText($phone, $rawText)) {
+            $phone = null;
+        }
+        $phone ??= $this->fallbackParse($rawText, $channel)['phone'] ?? null;
 
         return [
             'is_valid' => true,
             'title' => mb_substr($title, 0, 80),
             'description' => $desc,
-            'price' => $withPrice ? $this->priceFromText($data['price'] ?? null, $rawText) : null,
+            'price' => $price,
             'price_type_id' => $priceTypeId,
-            'phone' => Phone::format($data['phone'] ?? null),
+            'phone' => $phone,
             'category_id' => $categoryId,
             'district_id' => $districtId,
             'parameters' => $this->validParameters($data['parameters'] ?? null, $categoryId, $rawText),
         ];
+    }
+
+    /**
+     * Tavsifdagi, post matnida yo'q telefon raqamlarini olib tashlaydi (AI o'ylab topgan bo'ladi).
+     * Raqamsiz qolgan "Bog'lanish uchun" qatori butunlay o'chadi.
+     */
+    private static function stripInventedPhones(string $desc, string $rawText): string
+    {
+        $desc = Phone::replaceInText($desc, fn (string $phone) => Phone::inText($phone, $rawText) ? $phone : '');
+        $desc = preg_replace("/^[ \t]*•?[ \t]*Bog['‘’`]lanish uchun\s*:[\s,;]*$\R?/mu", '', $desc);
+
+        return trim(preg_replace("/\n{3,}/", "\n\n", $desc));
     }
 
     /**

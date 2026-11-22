@@ -72,6 +72,8 @@ const uz = {
       region: "Butun viloyat",
       field: "Shahar / Tuman",
       city: "Shahar",
+      nudge: "Shahringizni tanlang — bosh sahifada o'sha shahar e'lonlari chiqadi",
+      nudgeDismiss: "Yopish",
    },
    categories: {
       title: "Bo'limlar",
@@ -574,6 +576,10 @@ const uz = {
          next: "Keyingi",
          start: "Boshlash",
          slides: {
+            city: {
+               title: "Shahringizni tanlang",
+               text: "Tepada shahar nomini bosing va shahringizni tanlang. Bosh sahifa, bo'limlar va e'lonlar soni shu shahar bo'yicha ko'rsatiladi. Qidiruv esa barcha shaharlar bo'yicha ishlaydi.",
+            },
             post: {
                title: "E'lonni ikki xil usulda joylaysiz",
                text: "1) Formani o'zingiz to'ldirasiz. 2) Yoki guruhga yozgandek oddiy matn yozasiz — AI formani siz uchun to'ldirib, sarlavha va tavsifni chiroyli qilib beradi. Siz faqat tekshirib joylaysiz.",

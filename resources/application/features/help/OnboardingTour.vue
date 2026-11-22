@@ -61,13 +61,15 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { BellRing, ImagePlus, Megaphone, Store } from "lucide-vue-next";
+import { BellRing, ImagePlus, MapPin, Megaphone, Store } from "lucide-vue-next";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import { pushBackHandler } from "@/modules/navigation";
 import { useOnboardingTour } from "./useOnboardingTour";
 import { channelName } from "./helpLinks";
 
 const slides = [
+   // Birinchi: ko'pchilik shaharni tanlamay, butun viloyat aralash lentasini ko'radi
+   { id: "city", icon: MapPin },
    { id: "post", icon: Megaphone },
    { id: "photos", icon: ImagePlus },
    { id: "watch", icon: BellRing },

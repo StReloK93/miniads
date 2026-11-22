@@ -68,6 +68,8 @@ const en: MessageSchema = {
       region: "Whole region",
       field: "City / district",
       city: "City",
+      nudge: "Pick your city — the home feed will show ads from that city",
+      nudgeDismiss: "Close",
    },
    categories: {
       title: "Categories",
@@ -569,6 +571,10 @@ const en: MessageSchema = {
          next: "Next",
          start: "Get started",
          slides: {
+            city: {
+               title: "Pick your city",
+               text: "Tap the city name at the top and choose yours. The home feed, categories and ad counts will follow that city. Search still covers all cities.",
+            },
             post: {
                title: "Two ways to post an ad",
                text: "1) Fill in the form yourself. 2) Or write plain text, the way you would in a group, and AI fills in the form for you and polishes the title and description. You just check it and post.",

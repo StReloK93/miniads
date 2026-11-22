@@ -324,18 +324,23 @@ class TelegramProductService
         return mb_strlen($plainText, 'UTF-8');
     }
 
-    /** "Batafsil" — postning asosiy harakati: ilovadagi urg'u rangi (yashil); "E'lon berish" — Telegram'ning oddiy rangi */
+    /**
+     * "Batafsil" — e'lonni ilovada ochadi; "Shunga o'xshash" — ilovada shu bo'limning barcha faol e'lonlari
+     * (kanalda yo'q imkoniyat). Ikkalasi Telegram'ning oddiy rangida — minimalist.
+     */
     private function makeKeyboard(Product $product): Keyboard
     {
-        return Keyboard::make()
-            ->buttons([
-                Button::make('Batafsil')
-                    ->url(TelegramNotifier::appLink('product_'.$product->id))
-                    ->style('success'),
-                Button::make("E'lon berish")
-                    ->url(TelegramNotifier::appLink('create')),
-            ])
-            ->chunk(2);
+        $buttons = [
+            Button::make('Batafsil')
+                ->url(TelegramNotifier::appLink('product_'.$product->id)),
+        ];
+
+        if ($product->category_id) {
+            $buttons[] = Button::make("Shunga o'xshash")
+                ->url(TelegramNotifier::appLink('cat_'.$product->category_id));
+        }
+
+        return Keyboard::make()->buttons($buttons)->chunk(2);
     }
 
     private function getMainImage(Product $product): ?string

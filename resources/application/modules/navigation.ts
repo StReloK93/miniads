@@ -28,6 +28,26 @@ export function goBack(router: Router, fallback: RouteLocationRaw = { name: "hom
 }
 
 /**
+ * Batafsil sahifalar: e'lon va vitrina. Ular ichida yurish (o'xshash e'lon, sotuvchining boshqa e'loni,
+ * vitrina) tarixga yangi qadam qo'shmaydi — joriy yozuv almashtiriladi. Natija: qancha ichkariga kirilmasin,
+ * bir marta "orqaga" bosilsa ro'yxatga (bosh sahifa, kategoriya, qidiruv) qaytiladi.
+ */
+const DETAIL_ROUTES = new Set(["product-id", "vitrina"]);
+
+export function flattenDetailHistory(router: Router) {
+   router.beforeEach((to, from) => {
+      if (!DETAIL_ROUTES.has(String(to.name)) || !DETAIL_ROUTES.has(String(from.name))) return;
+      // Vitrina ichida ?item= o'zgarishi — o'sha sahifa, tegmaymiz
+      if (to.path === from.path) return;
+      // Orqaga/oldinga (popstate): brauzer allaqachon manzil yozuviga o'tgan — qayta yo'naltirmaymiz
+      if (window.history.state?.current === to.fullPath) return;
+      // Shu yo'naltirishning o'zi (replace bilan qayta kelgan) — cheksiz siklga tushmaslik uchun
+      if (to.redirectedFrom) return;
+      return { path: to.path, query: to.query, hash: to.hash, replace: true };
+   });
+}
+
+/**
  * E'lon joylash bosqichlari. E'lon joylangandan keyin ular tarixdan olib tashlanadi,
  * shunda "orqaga" bosilganda to'ldirilgan forma qayta ochilmaydi.
  */

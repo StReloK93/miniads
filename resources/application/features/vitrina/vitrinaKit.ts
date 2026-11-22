@@ -46,7 +46,8 @@ export function callPhone(phone: string) {
 /** Telegram'da yozish; text — tayyor xabar ("«Divan» haqida so'ramoqchi edim") */
 export function openTelegram(username: string, text?: string) {
    const path = `${username.replace(/^@/, "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
-   if (isTMA()) postEvent("web_app_open_tg_link", { path_full: path });
+   // iOS'da path_full "/" bilan boshlanmasa havola ochilmaydi (Android kechiradi)
+   if (isTMA()) postEvent("web_app_open_tg_link", { path_full: `/${path}` });
    else window.open(`https://t.me/${path}`, "_blank", "noopener");
 }
 

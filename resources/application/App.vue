@@ -5,7 +5,12 @@
       >
          <RouterView v-slot="{ Component, route }">
             <transition :name="animationName" mode="out-in">
-               <component :is="Component" :key="route.meta.layoutKey" @vue:mounted="onComponentMounted" />
+               <!--
+                  Layout ichidagi sahifalar bitta kalit ostida (o'tishni layout o'zi boshqaradi).
+                  E'lon/vitrina — manzil bo'yicha: e'londan o'xshash e'longa o'tish yangi sahifa bo'lib ochiladi,
+                  eski sahifa joyida ma'lumot almashib, pastdan tepaga aylanib qolmaydi.
+               -->
+               <component :is="Component" :key="route.meta.layoutKey ?? route.path" @vue:mounted="onComponentMounted" />
             </transition>
          </RouterView>
          <OnboardingTour />

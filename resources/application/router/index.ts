@@ -4,7 +4,7 @@ import { useAuth } from "@shared/store/useAuth";
 import { track } from "@/modules/activity";
 import { postEvent } from "@tma.js/bridge";
 import { isTMA, retrieveRawInitData } from "@tma.js/bridge";
-import { trackCreateFlow } from "@/modules/navigation";
+import { flattenDetailHistory, trackCreateFlow } from "@/modules/navigation";
 const router = createRouter({
    history: createWebHistory(),
    routes,
@@ -12,6 +12,9 @@ const router = createRouter({
 
 // E'lon joylangandan keyin forma sahifalarini tarixdan olib tashlash uchun
 trackCreateFlow(router);
+
+// E'lon/vitrina ichida yurish tarixni uzaytirmaydi: bir "orqaga" bilan ro'yxatga qaytiladi
+flattenDetailHistory(router);
 
 // Telegram tugmalari yakuniy sahifaga qarab sozlanadi (yo'naltirishlardan keyin)
 router.afterEach((to) => {

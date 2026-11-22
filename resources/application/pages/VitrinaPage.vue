@@ -154,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, type Component } from "vue";
+import { computed, onMounted, ref, type Component } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { isTMA, postEvent } from "@tma.js/bridge";
 import {
@@ -293,7 +293,7 @@ async function load() {
    if (itemId) openedItem.value = vitrina.value?.items?.find((item) => item.id === itemId) ?? null;
 }
 
-watch(() => route.params.slug, (slug) => slug && load());
+// Boshqa vitrinaga o'tilganda sahifa qaytadan yaratiladi (App.vue: key = route.path)
 onMounted(load);
 </script>
 

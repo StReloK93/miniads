@@ -27,6 +27,16 @@
                      </button>
                   </swiper-slide>
                </swiper>
+               <!-- Orqaga: faqat brauzerda (Telegram mini app'da tepada Telegram'ning o'z tugmasi bor) -->
+               <button
+                  v-if="showAppBackButton"
+                  type="button"
+                  class="absolute top-[calc(var(--safe-area-top)+0.75rem)] left-3 z-10 size-9 grid place-items-center rounded-full bg-black/45 text-white backdrop-blur-md border border-white/15 cursor-pointer active:scale-95 transition"
+                  :aria-label="$t('common.back')"
+                  @click="goBackOrHome"
+               >
+                  <ArrowLeft class="size-5" />
+               </button>
                <!-- Rasm soni va "kattalashtirish" belgisi -->
                <button
                   v-if="product?.images.length"
@@ -404,7 +414,7 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 import type { Swiper as SwiperType } from "swiper";
 import { useRoute, useRouter } from "vue-router";
 import { useFetchDecorator } from "@shared/composables/useFetch";
-import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
 import { IProduct } from "@shared/types";
 import { preloadImages } from "@shared/modules/helpers";
 import ReportDrawer from "@/features/product/ReportDrawer.vue";
@@ -515,7 +525,8 @@ function openSellerChat(product: IProduct) {
    }
 
    postEvent("web_app_open_tg_link", {
-      path_full: pathFull,
+      // iOS'da path_full "/" bilan boshlanmasa havola ochilmaydi (Android kechiradi)
+      path_full: `/${pathFull}`,
    });
 }
 
@@ -617,16 +628,7 @@ async function loadProduct(id: string | number | string[]) {
    }
 }
 
-watch(
-   () => route.params.id,
-   (newId) => {
-      if (newId) {
-         loadProduct(newId);
-         scrollContainer.value?.scrollTo({ top: 0, behavior: "smooth" });
-      }
-   },
-);
-
+// Boshqa e'longa o'tilganda sahifa qaytadan yaratiladi (App.vue: key = route.path) — shu yetarli
 onMounted(async () => {
    if (route.params.id) {
       await loadProduct(route.params.id);

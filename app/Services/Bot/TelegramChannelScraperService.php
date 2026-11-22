@@ -187,14 +187,8 @@ class TelegramChannelScraperService
                 }
             }
 
-            // Also check for video preview thumbnails if any
-            if (preg_match_all('/class="[^"]*tgme_widget_message_video_thumb[^"]*"[^>]*style="[^"]*background-image:\s*url\([\'"]?([^\'")\s]+)[\'"]?\)/i', $block, $videoMatches)) {
-                foreach ($videoMatches[1] as $imgUrl) {
-                    if (str_starts_with($imgUrl, 'http') && !str_contains($imgUrl, 'emoji') && !in_array($imgUrl, $images, true)) {
-                        $images[] = $imgUrl;
-                    }
-                }
-            }
+            // Video kadrlari (tgme_widget_message_video_thumb) ataylab olinmaydi: video postdan faqat matn
+            // olinadi, rasmlar faqat haqiqiy foto (photo_wrap) bo'lsa.
 
             // If empty text and no images, skip
             if (empty($text) && empty($images)) {

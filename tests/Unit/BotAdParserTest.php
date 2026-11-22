@@ -67,3 +67,19 @@ HTML;
     expect($posts[0]['text'])->toContain('7000$');
     expect($posts[0]['images'])->toContain('https://cdn4.telegram-cdn.org/file/sample.jpg');
 });
+
+test('scraper skips video thumbnails and keeps only text for video posts', function () {
+    $scraper = new TelegramChannelScraperService;
+    $html = <<<HTML
+    <div class="tgme_widget_message" data-post="navoiy_bozor/556">
+        <a class="tgme_widget_message_video_player"><i class="tgme_widget_message_video_thumb" style="background-image:url('https://cdn4.telegram-cdn.org/file/video_frame.jpg')"></i></a>
+        <div class="tgme_widget_message_text">Cobalt 2020 sotiladi Tel: +998 91 333-22-11</div>
+    </div>
+HTML;
+
+    $posts = $scraper->parseHtml($html, 'navoiy_bozor', 10);
+
+    expect($posts)->toHaveCount(1)
+        ->and($posts[0]['text'])->toContain('Cobalt 2020')
+        ->and($posts[0]['images'])->toBe([]);
+});

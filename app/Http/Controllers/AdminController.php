@@ -9,6 +9,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\ActivityLog;
 use App\Services\ProductService;
+use App\Jobs\SyncProductToTelegram;
 use App\Services\TelegramProductService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -399,6 +400,7 @@ class AdminController extends Controller
                         'published_at' => now(),
                         'sold_at' => null,
                     ])->save();
+                    SyncProductToTelegram::dispatch($product->id, SyncProductToTelegram::REPOST);
                     $done++;
                 });
                 break;
@@ -576,6 +578,8 @@ class AdminController extends Controller
                 'published_at' => now(),
                 'sold_at' => null,
             ])->save();
+            // Kanalda ham "hali faol" ekani ko'rinsin: post kanal oxiriga qayta chiqadi
+            SyncProductToTelegram::dispatch($product->id, SyncProductToTelegram::REPOST);
         } else {
             $product->update(['expires_at' => now()->subMinute()]);
         }

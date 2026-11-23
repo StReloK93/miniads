@@ -73,26 +73,45 @@ class TelegramProductService
                 $newMessageId = $this->sendToChannel($product, $channelId);
                 $oldMessageId = (int) $telegramId->message_id;
                 $telegramId->update(['message_id' => $newMessageId]);
-
-                $response = Telegraph::chat($channelId)
-                    ->deleteMessage($oldMessageId)
-                    ->send();
-
-                if (! $response->telegraphOk()) {
-                    $description = mb_strtolower((string) $response->json('description'));
-                    if (
-                        ! str_contains($description, 'message to delete not found')
-                        && ! str_contains($description, 'message_id_invalid')
-                        && ! str_contains($description, 'message not found')
-                    ) {
-                        $this->throwTelegramError($response, $product, $channelId, "o'chirish");
-                    }
-                }
+                $this->removeChannelMessage($channelId, $oldMessageId, "E'lon yangilandi — yangi post kanal oxirida.");
 
                 continue;
             }
 
             $this->editChannelMessage($product, $telegramId, $channelId, $hasImage);
+        }
+    }
+
+    /**
+     * Qayta faollashtirilgan e'lon: Telegram postni yuqoriga ko'tarolmaydi, shuning uchun yangi post
+     * kanal oxiriga chiqadi, eskisi o'chadi (yoki o'chmasa "yangilandi" deb belgilanadi).
+     * Avval yangisi yuboriladi — yuborish xato bersa eski post joyida qoladi.
+     */
+    public function repost(Product $product): void
+    {
+        $this->loadProductRelations($product);
+
+        foreach (self::channels() as $channelId) {
+            $newMessageId = $this->sendToChannel($product, $channelId);
+
+            $telegramId = ProductTelegramId::query()
+                ->where('product_id', $product->id)
+                ->where('channel_id', $channelId)
+                ->first();
+
+            if (! $telegramId) {
+                ProductTelegramId::create([
+                    'product_id' => $product->id,
+                    'channel_id' => $channelId,
+                    'message_id' => $newMessageId,
+                ]);
+
+                continue;
+            }
+
+            $oldMessageId = (int) $telegramId->message_id;
+            $telegramId->update(['message_id' => $newMessageId]);
+            $this->removeChannelMessage($channelId, $oldMessageId, "E'lon qayta joylandi — yangi post kanal oxirida.");
         }
     }
 
@@ -103,23 +122,42 @@ class TelegramProductService
             ->get();
 
         foreach ($telegramIds as $telegramId) {
-            $response = Telegraph::chat($telegramId->channel_id)
-                ->deleteMessage((int) $telegramId->message_id)
-                ->send();
-
-            if (! $response->telegraphOk()) {
-                $description = mb_strtolower((string) $response->json('description'));
-                if (
-                    ! str_contains($description, 'message to delete not found')
-                    && ! str_contains($description, 'message_id_invalid')
-                    && ! str_contains($description, 'message not found')
-                ) {
-                    $this->throwTelegramError($response, $product, (string) $telegramId->channel_id, "o'chirish");
-                }
-            }
-
+            $this->removeChannelMessage((string) $telegramId->channel_id, (int) $telegramId->message_id, "E'lon o'chirildi.");
             $telegramId->delete();
         }
+    }
+
+    /**
+     * Kanal postini o'chiradi. Telegram rad etsa (eski post, botda huquq yo'q) — post matni $fallback bilan
+     * almashtiriladi va tugmalar olib tashlanadi: kanalda o'lik e'lon "faol" bo'lib turmasin.
+     */
+    private function removeChannelMessage(string $channelId, int $messageId, string $fallback): void
+    {
+        $response = Telegraph::chat($channelId)->deleteMessage($messageId)->send();
+        if ($response->telegraphOk() || $this->isMissingMessage($response)) {
+            return;
+        }
+
+        Log::warning("Kanal postini o'chirib bo'lmadi, belgilanadi.", [
+            'channel_id' => $channelId,
+            'message_id' => $messageId,
+            'description' => $response->json('description'),
+        ]);
+
+        // Rasmli post — caption, rasmsiz — matn tahrirlanadi; reply_markup yuborilmasa tugmalar o'chadi
+        $edited = Telegraph::chat($channelId)->editCaption($messageId)->html('<i>'.e($fallback).'</i>')->send();
+        if (! $edited->telegraphOk()) {
+            Telegraph::chat($channelId)->html('<i>'.e($fallback).'</i>')->edit($messageId)->send();
+        }
+    }
+
+    private function isMissingMessage(TelegraphResponse $response): bool
+    {
+        $description = mb_strtolower((string) $response->json('description'));
+
+        return str_contains($description, 'message to delete not found')
+            || str_contains($description, 'message_id_invalid')
+            || str_contains($description, 'message not found');
     }
 
     private function makeCaption(Product $product): string

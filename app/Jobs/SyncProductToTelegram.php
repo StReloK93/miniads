@@ -19,6 +19,8 @@ class SyncProductToTelegram implements ShouldQueue
     public const PUBLISH = 'publish';
     public const UPDATE = 'update';
     public const DELETE = 'delete';
+    /** Qayta faollashtirildi: eski post o'chadi, yangisi kanal oxiriga chiqadi */
+    public const REPOST = 'repost';
 
     public int $tries = 3;
 
@@ -46,6 +48,8 @@ class SyncProductToTelegram implements ShouldQueue
             self::PUBLISH => $product->trashed() ? null : $telegram->publish($product),
             self::UPDATE => $product->trashed() ? null : $telegram->synchronize($product, $this->previouslyHadImage),
             self::DELETE => $telegram->deleteFromChannels($product),
+            // Navbatda turganda yana to'xtatilgan/o'chirilgan e'lon kanalga qaytmasin
+            self::REPOST => $product->trashed() || ($product->expires_at && now()->greaterThan($product->expires_at)) ? null : $telegram->repost($product),
         };
     }
 }

@@ -62,6 +62,15 @@
                <RouterLink v-if="activeMetric?.to" class="adm-link" :to="activeMetric.to">Ro'yxat</RouterLink>
             </div>
 
+            <!-- Bosilgan ustun: sana va son (kunga o'tmaydi — kun tepadagi kalendardan tanlanadi) -->
+            <div class="adm-inspect" aria-live="polite">
+               <span>{{ longLabel(inspectedRow?.date ?? data.date) }}</span>
+               <b>{{ num(inspectedRow ? trendValue(inspectedRow) : 0) }}</b>
+               <small v-if="trendMetric === 'ads' && inspectedRow?.ads">
+                  {{ inspectedRow.ads - inspectedRow.ads_ai }} odam · {{ inspectedRow.ads_ai }} AI
+               </small>
+            </div>
+
             <div class="adm-bars" role="list">
                <button
                   v-for="row in data.trend"
@@ -69,9 +78,10 @@
                   type="button"
                   role="listitem"
                   class="adm-bar"
-                  :class="{ 'is-selected': row.date === data.date }"
+                  :class="{ 'is-selected': row.date === inspectedDate, 'is-day': row.date === data.date }"
                   :aria-label="`${longLabel(row.date)}: ${trendValue(row)}`"
-                  @click="selectDay(row.date)"
+                  :aria-pressed="row.date === inspectedDate"
+                  @click="inspected = row.date"
                >
                   <span class="adm-bar-value">{{ trendValue(row) || "" }}</span>
                   <span class="adm-bar-track">
@@ -91,7 +101,7 @@
                   <span><i class="is-people" />Odamlar</span>
                   <span><i class="is-ai" />AI (kanallardan)</span>
                </template>
-               <span class="ml-auto">▲▼ — oldingi kunga nisbatan · ustunni bosing — o'sha kun</span>
+               <span class="ml-auto">▲▼ — oldingi kunga nisbatan · ustunni bosing — sonini ko'rasiz</span>
             </p>
          </section>
 
@@ -333,9 +343,12 @@ async function load() {
 watch(date, load);
 onMounted(load);
 
-function selectDay(key: string) {
-   selection.value = { date: key, days: null };
-}
+// Grafikda bosilgan ustun (faqat sonini ko'rsatish uchun); bo'sh — tanlangan kun
+const inspected = ref<string | null>(null);
+const inspectedDate = computed(() => inspected.value ?? data.value?.date ?? null);
+const inspectedRow = computed(() => data.value?.trend.find((row) => row.date === inspectedDate.value) ?? null);
+// Boshqa kun yuklanganda — yana o'sha kun ko'rsatiladi
+watch(date, () => (inspected.value = null));
 
 type TrendMetric = "ads" | "new_users" | "visitors" | "product_views" | "contacts" | "searches";
 

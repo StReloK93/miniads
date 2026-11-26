@@ -2,10 +2,13 @@
    <div class="adm-shell z-ambient admin-shell">
       <!-- Kompyuter: yon panel (shisha) -->
       <aside class="adm-side z-glass" aria-label="Bo'limlar">
-         <RouterLink class="adm-brand" :to="{ name: 'admin-home' }">
-            <span class="adm-brand-mark">M</span>
-            <span><strong>Miniads</strong><small>Admin</small></span>
-         </RouterLink>
+         <div class="adm-brand-row">
+            <RouterLink class="adm-brand" :to="{ name: 'admin-home' }">
+               <span class="adm-brand-mark">M</span>
+               <span><strong>Miniads</strong><small>Admin</small></span>
+            </RouterLink>
+            <ThemeSwitcher variant="toggle" />
+         </div>
          <button type="button" class="adm-side-search" @click="openMenu(true)">
             <Search class="size-4" aria-hidden="true" />
             Qidirish…
@@ -26,13 +29,7 @@
       </aside>
 
       <div class="adm-main">
-         <header class="adm-top z-glass">
-            <h1 class="adm-top-title">{{ current?.label ?? "Admin panel" }}</h1>
-            <button type="button" class="adm-icon-btn" aria-label="Qidirish" @click="openMenu(true)">
-               <Search class="size-5" />
-            </button>
-            <ThemeSwitcher variant="toggle" />
-         </header>
+         <!-- Tepada panel yo'q: sahifa darhol boshlanadi (kun/tun — "Ko'proq" menyusida) -->
          <main class="adm-content">
             <RouterView v-slot="{ Component, route: viewRoute }">
                <Transition name="adm-fade" mode="out-in">
@@ -68,6 +65,12 @@
             <div class="adm-sheet-backdrop z-overlay" aria-hidden="true" @click="closeMenu" />
             <section id="adm-menu" ref="menuPanel" class="adm-sheet z-glass-strong" role="dialog" aria-modal="true" aria-label="Bo'limlar va qidiruv">
                <div class="adm-sheet-grip" aria-hidden="true" />
+               <!-- Kun / tun rejimi — menyuning eng tepasida -->
+               <div class="adm-theme-row">
+                  <span class="adm-menu-icon"><SunMoon class="size-4.5" aria-hidden="true" /></span>
+                  <span class="adm-menu-text"><b>Kun / tun rejimi</b><small>Bosing — almashtiriladi</small></span>
+                  <ThemeSwitcher variant="toggle" />
+               </div>
                <label class="adm-sheet-search">
                   <Search class="size-4.5 shrink-0 opacity-60" aria-hidden="true" />
                   <input
@@ -135,6 +138,7 @@ import {
    ShieldAlert,
    SlidersHorizontal,
    Store,
+   SunMoon,
    Tags,
    Users,
    Workflow,
@@ -183,7 +187,6 @@ const dock = groups[0].links.map((link) => ({ ...link, short: link.short ?? link
 
 const route = useRoute();
 const router = useRouter();
-const current = computed(() => allLinks.find((item) => item.name === route.name));
 const inMenuOnly = computed(() => !dock.some((item) => item.name === route.name));
 
 const menuOpen = ref(false);

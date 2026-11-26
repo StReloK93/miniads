@@ -5,19 +5,8 @@
             <h1>Qidiruvlar</h1>
             <p class="admin-muted">Odamlar nimani qidiryapti va nima topilmayapti — talab bor, e'lon yo'q joylar.</p>
          </div>
-         <div class="flex gap-1.5">
-            <button
-               v-for="option in [1, 7, 30]"
-               :key="option"
-               type="button"
-               class="admin-filter-chip pr-3!"
-               :class="{ 'is-active': days === option }"
-               @click="setDays(option)"
-            >
-               {{ option === 1 ? "Bugun" : `${option} kun` }}
-            </button>
-         </div>
       </header>
+      <AdminDateBar v-model="selection" ranges />
 
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
       <div v-if="loading && !stats" class="admin-panel admin-loading">Statistika yuklanmoqda…</div>
@@ -66,7 +55,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import AdminDateBar from "@admin/components/AdminDateBar.vue";
+import { useDateSelection } from "@admin/modules/useDateSelection";
 import AdminRepo from "@admin/entities/AdminRepo";
 import AdminTabs from "@admin/components/AdminTabs.vue";
 import AdminRankList from "@admin/components/AdminRankList.vue";
@@ -76,7 +67,8 @@ type Stats = { days: number; total: number; top: Row[]; not_found: Row[] };
 
 const tab = ref("not_found");
 
-const days = ref(7);
+// Standart: oxirgi 7 kun (qidiruvlar bir kunda kam bo'ladi); istalgan kunni ham tanlash mumkin
+const { selection, params } = useDateSelection({ date: null, days: 7 });
 const stats = ref<Stats | null>(null);
 const loading = ref(true);
 const error = ref("");
@@ -85,7 +77,7 @@ async function load() {
    loading.value = true;
    error.value = "";
    try {
-      const { data } = await AdminRepo.searchStats(days.value);
+      const { data } = await AdminRepo.searchStats(params());
       stats.value = data;
    } catch (exception) {
       console.error("Qidiruv statistikasi yuklanmadi.", exception);
@@ -95,11 +87,6 @@ async function load() {
    }
 }
 
-function setDays(value: number) {
-   if (days.value === value) return;
-   days.value = value;
-   load();
-}
-
+watch(selection, load);
 onMounted(load);
 </script>

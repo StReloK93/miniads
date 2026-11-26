@@ -26,6 +26,11 @@ export const SOURCES: Record<string, string> = {
    direct: "Telegram: bot / menyu orqali",
    product: "E'lon havolasi (kanal, ulashish)",
    create: "\"E'lon qo'yish\" tugmasi (kanal)",
+   // Kanaldagi qadalgan jonli post: bo'lim tugmalari (📱 Telefonlar, 🏠 Uylar...).
+   // 2026-11-26 gacha kanal postlaridagi "Shunga o'xshash" tugmasi ham cat_ edi — eski postlardan kelganlar ham shu yerda
+   cat: "Kanal: bo'lim tugmasi (jonli post)",
+   cats: "Kanal: bo'lim tugmasi (jonli post)",
+   like: "Kanal: «Shunga o'xshash» tugmasi",
    ss: "Kuzatuv xabari (bot)",
    my_ads: "E'lon muddati xabari (bot)",
    admin_reported: "Admin xabari (shikoyat)",

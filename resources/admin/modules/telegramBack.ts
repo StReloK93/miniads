@@ -24,7 +24,7 @@ export function setupTelegramBackButton(router: Router) {
          return;
       }
 
-      if (document.querySelector('[role="dialog"]') || document.querySelector(".admin-shell.is-menu-open")) {
+      if (document.querySelector('[role="dialog"]') || document.querySelector(".adm-sheet-layer")) {
          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
          return;
       }

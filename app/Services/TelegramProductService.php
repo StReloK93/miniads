@@ -375,7 +375,8 @@ class TelegramProductService
 
         if ($product->category_id) {
             $buttons[] = Button::make("Shunga o'xshash")
-                ->url(TelegramNotifier::appLink('cat_'.$product->category_id));
+                // like_ — ilovada cat_ kabi ochiladi, lekin admin statistikasida jonli post tugmalaridan ajraladi
+                ->url(TelegramNotifier::appLink('like_'.$product->category_id));
         }
 
         return Keyboard::make()->buttons($buttons)->chunk(2);

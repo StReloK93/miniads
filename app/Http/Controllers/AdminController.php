@@ -8,6 +8,7 @@ use App\Models\ProductReport;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\ActivityLog;
+use App\Services\ChannelMembershipService;
 use App\Services\ProductService;
 use App\Jobs\SyncProductToTelegram;
 use App\Services\TelegramProductService;
@@ -199,9 +200,12 @@ class AdminController extends Controller
             'sort' => ['nullable', Rule::in(['new', 'views', 'reports'])],
             // Bir xil telefon raqami bilan bir nechta e'lon (takror kiritilgan)
             'duplicates' => ['nullable', 'boolean'],
+            // Shu kuni joylangan e'lonlar (bosh sahifadagi "Hammasi" havolasi)
+            'date' => ['nullable', 'date_format:Y-m-d'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
         $status = $filters['status'] ?? 'all';
+        $day = filled($filters['date'] ?? null) ? Carbon::parse($filters['date']) : null;
         $duplicates = (bool) ($filters['duplicates'] ?? false);
         $phoneKey = self::PHONE_KEY_SQL;
         $sort = $filters['sort'] ?? ($status === 'reported' ? 'reports' : 'new');
@@ -211,6 +215,7 @@ class AdminController extends Controller
         // Holat chiplaridagi sonlar uchun: qidiruv/manba/muallif/kategoriya/hudud filtrlari hisobga olinadi, holat — yo'q
         $base = fn () => Product::query()
             ->withTrashed()
+            ->when($day !== null, fn ($query) => $query->whereBetween('products.created_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()]))
             ->when(($filters['is_bot'] ?? 'all') === 'bot', fn ($query) => $query->where('is_bot', true))
             ->when(($filters['is_bot'] ?? 'all') === 'user', fn ($query) => $query->where('is_bot', false))
             ->when(filled($filters['user_id'] ?? null), fn ($query) => $query->where('user_id', $filters['user_id']))
@@ -277,6 +282,7 @@ class AdminController extends Controller
 
         $page = $query->paginate($filters['per_page'] ?? 20);
         $samePhone = $this->samePhoneCounts($page->getCollection());
+        $contacts = $this->contactCounts($page->getCollection()->pluck('id'));
 
         $page = $page
             ->through(fn (Product $product) => [
@@ -287,9 +293,38 @@ class AdminController extends Controller
                 'is_active' => $this->isActive($product),
                 // Shu raqam bilan yana nechta e'lon bor (o'zidan tashqari, arxivsiz)
                 'same_phone_count' => max(0, ($samePhone[self::phoneKey($product->phone)] ?? 0) - ($product->trashed() ? 0 : 1)),
+                // Sotuvchiga murojaat: "Qo'ng'iroq" va "Telegram" tugmasini necha marta bosishgan (butun davr)
+                'phone_clicks' => (int) ($contacts[$product->id]['contact_phone'] ?? 0),
+                'telegram_clicks' => (int) ($contacts[$product->id]['contact_telegram'] ?? 0),
             ]);
 
         return response()->json([...$page->toArray(), 'counts' => $counts]);
+    }
+
+    /**
+     * E'lonlar bo'yicha bosishlar (activity_stats, ref = e'lon ID). Bitta so'rov — sahifadagi barcha e'lonlar uchun.
+     * Bugungi bosishlar cron (activity:aggregate, 10 daqiqada) yig'gach qo'shiladi.
+     *
+     * @return array<int, array<string, int>>
+     */
+    private function contactCounts(\Illuminate\Support\Collection $ids): array
+    {
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $result = [];
+        DB::table('activity_stats')
+            ->whereIn('event', ['contact_phone', 'contact_telegram'])
+            ->whereIn('ref', $ids->map(fn ($id) => (string) $id)->all())
+            ->groupBy('ref', 'event')
+            ->selectRaw('ref, event, SUM(hits) as hits')
+            ->get()
+            ->each(function ($row) use (&$result) {
+                $result[(int) $row->ref][$row->event] = (int) $row->hits;
+            });
+
+        return $result;
     }
 
     /** Telefonning oxirgi 9 raqami (SQL): "+998 93 123-45-67", "93-123-45-67" va "931234567" bir xil kalit */
@@ -420,13 +455,33 @@ class AdminController extends Controller
      * Qidiruv statistikasi: eng ko'p qidirilgan so'zlar va natija bermaganlari (talab bor, e'lon yo'q).
      * Bir so'rovni bir foydalanuvchi ko'p marta yozsa ham "odamlar soni" alohida ko'rinadi.
      */
+    /**
+     * Davr: ?date=YYYY-MM-DD — bitta kun (istalgan), aks holda ?days=1|7|30 — bugun bilan tugaydigan oxirgi kunlar.
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: int, 3: ?string} [boshi, oxiri, kunlar soni, tanlangan kun]
+     */
+    private function period(Request $request): array
+    {
+        $validated = $request->validate([
+            'days' => ['nullable', 'integer', Rule::in([1, 7, 30])],
+            'date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+        ]);
+        if (filled($validated['date'] ?? null)) {
+            $day = Carbon::parse($validated['date']);
+
+            return [$day->copy()->startOfDay(), $day->copy()->endOfDay(), 1, $day->toDateString()];
+        }
+        $days = (int) ($validated['days'] ?? 7);
+
+        return [now()->subDays($days - 1)->startOfDay(), now()->endOfDay(), $days, null];
+    }
+
     public function searchStats(Request $request)
     {
-        $days = (int) ($request->validate(['days' => ['nullable', 'integer', Rule::in([1, 7, 30])]])['days'] ?? 7);
-        $since = now()->subDays($days);
+        [$from, $to, $days, $date] = $this->period($request);
 
         $aggregate = fn ($query) => $query
-            ->where('created_at', '>=', $since)
+            ->whereBetween('created_at', [$from, $to])
             ->selectRaw('query, COUNT(*) as searches, COUNT(DISTINCT user_id) as users, MAX(created_at) as last_at')
             ->groupBy('query')
             ->orderByDesc('searches')
@@ -435,7 +490,8 @@ class AdminController extends Controller
 
         return response()->json([
             'days' => $days,
-            'total' => DB::table('search_logs')->where('created_at', '>=', $since)->count(),
+            'date' => $date,
+            'total' => DB::table('search_logs')->whereBetween('created_at', [$from, $to])->count(),
             'top' => $aggregate(DB::table('search_logs')->selectRaw('ROUND(AVG(results_count)) as avg_results')),
             // So'nggi marta ham natija bermagan so'rovlar
             'not_found' => $aggregate(DB::table('search_logs')->where('results_count', 0)),
@@ -448,12 +504,11 @@ class AdminController extends Controller
      */
     public function activity(Request $request)
     {
-        $days = (int) ($request->validate(['days' => ['nullable', 'integer', Rule::in([1, 7, 30])]])['days'] ?? 7);
-        $since = now()->subDays($days - 1)->toDateString();
+        [$from, $to, $days, $date] = $this->period($request);
 
         ActivityLog::aggregate(now()->toDateString());
 
-        $base = fn () => DB::table('activity_stats')->where('date', '>=', $since);
+        $base = fn () => DB::table('activity_stats')->whereBetween('date', [$from->toDateString(), $to->toDateString()]);
         $grouped = fn (string $event, int $limit = 10) => $base()
             ->where('event', $event)
             ->selectRaw('ref, SUM(hits) as hits, SUM(users) as users')
@@ -478,6 +533,7 @@ class AdminController extends Controller
 
         return response()->json([
             'days' => $days,
+            'date' => $date,
             'summary' => [
                 'visitors' => $visitors,
                 'avg_daily' => $daily->count() ? (int) round($visitors / $daily->count()) : 0,
@@ -510,15 +566,15 @@ class AdminController extends Controller
             'sources' => $grouped('app_open'),
             'clients' => $grouped('client'),
             'locales' => $grouped('locale'),
-            'struggles' => $this->struggles($days),
+            'struggles' => $this->struggles($days, $to->toDateString()),
             'raw_days' => ActivityLog::rawDays(),
         ]);
     }
 
     /** E'lon qo'ya olmagan / xatoga uchragan foydalanuvchilar (ism bilan), eng yangisi birinchi */
-    private function struggles(int $days): array
+    private function struggles(int $days, ?string $until = null): array
     {
-        $rows = collect(ActivityLog::struggles($days));
+        $rows = collect(ActivityLog::struggles($days, $until));
         $users = User::whereIn('id', $rows->pluck('user_id')->unique())->get(['id', 'name', 'username'])->keyBy('id');
 
         return $rows
@@ -659,9 +715,15 @@ class AdminController extends Controller
             'sort' => ['nullable', Rule::in(['new', 'visits', 'active'])],
             // Bugun kirgan / e'lon qo'ygan / faqat shahar tanlagan / hech narsa qilmagan
             'segment' => ['nullable', Rule::in(array_keys(self::userSegments()))],
+            // Kanal va bot: ikkalasida / faqat kanalda / faqat botda / hech birida / hali tekshirilmagan
+            'subscription' => ['nullable', Rule::in(array_keys(self::subscriptionFilters()))],
+            // Shu kuni ro'yxatdan o'tganlar
+            'date' => ['nullable', 'date_format:Y-m-d'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
+        $joinedOn = filled($filters['date'] ?? null) ? Carbon::parse($filters['date']) : null;
         $segment = $filters['segment'] ?? null;
+        $subscription = $filters['subscription'] ?? null;
         if ($segment === 'today') {
             // Oxirgi daqiqalar ham ko'rinsin (cron 10 daqiqada bir yig'adi)
             ActivityLog::aggregate(now()->toDateString());
@@ -671,7 +733,12 @@ class AdminController extends Controller
         $lastVisit = DB::table('user_visits')->whereColumn('user_visits.user_id', 'users.id')->selectRaw('MAX(date)');
 
         $page = User::query()
-            ->with('activeDistrict:id,name')
+            ->with([
+                'activeDistrict:id,name',
+                'channelMemberships' => fn ($query) => $query->select(['id', 'user_id', 'chat_id', 'is_member']),
+            ])
+            ->when($subscription !== null, fn ($query) => self::subscriptionFilters()[$subscription]($query))
+            ->when($joinedOn !== null, fn ($query) => $query->whereBetween('users.created_at', [$joinedOn->copy()->startOfDay(), $joinedOn->copy()->endOfDay()]))
             ->withCount(['products', 'products as active_products_count' => fn ($query) => $query->active()])
             ->addSelect([
                 'users.*',
@@ -710,13 +777,17 @@ class AdminController extends Controller
             ->latest('users.id')
             ->paginate($filters['per_page'] ?? 20)
             ->through(fn (User $user) => [
-                ...$user->toArray(),
+                ...collect($user->toArray())->except('channel_memberships')->all(),
                 'last_active_at' => $this->lastActiveAt($user),
                 'visit_days' => (int) $user->visit_days,
+                ...self::channelFields($user),
             ]);
 
         return response()->json([
             ...$page->toArray(),
+            'channels' => app(ChannelMembershipService::class)->channels(),
+            'subscription_counts' => collect(self::subscriptionFilters())
+                ->map(fn (\Closure $apply) => $apply(User::query()->whereNotNull('telegram_user_id'))->count()),
             'visit_summary' => $this->visitSummary(),
             'segment_counts' => collect(self::userSegments())
                 ->map(fn (\Closure $apply) => $apply(User::query())->count())
@@ -749,6 +820,52 @@ class AdminController extends Controller
             // Bot xabar yubora oladi (botga /start bosgan yoki mini app'da yozishga ruxsat bergan)
             'bot' => fn ($query) => $query->where('bot_can_message', true),
         ];
+    }
+
+    /**
+     * Kanal + bot obunasi bo'yicha bo'limlar (bir-birini kesmaydi). "Kanalda" — sozlangan kanallardan
+     * kamida bittasiga a'zo. "Tekshirilmagan" — kanal a'zoligi hali so'ralmagan (users:check-channels).
+     *
+     * @return array<string, \Closure>
+     */
+    private static function subscriptionFilters(): array
+    {
+        $inChannel = fn ($query) => $query->whereHas('channelMemberships', fn ($sub) => $sub->where('is_member', true));
+        $notInChannel = fn ($query) => $query->whereNotNull('channels_checked_at')
+            ->whereDoesntHave('channelMemberships', fn ($sub) => $sub->where('is_member', true));
+
+        return [
+            'both' => fn ($query) => $inChannel($query)->where('bot_can_message', true),
+            'channel_only' => fn ($query) => $inChannel($query)->where('bot_can_message', false),
+            'bot_only' => fn ($query) => $notInChannel($query)->where('bot_can_message', true),
+            'none' => fn ($query) => $notInChannel($query)->where('bot_can_message', false),
+            'unchecked' => fn ($query) => $query->whereNull('channels_checked_at')
+                ->whereDoesntHave('channelMemberships', fn ($sub) => $sub->where('is_member', true)),
+        ];
+    }
+
+    /** Ro'yxat qatori uchun: qaysi kanallarga a'zo va qachon tekshirilgan */
+    private static function channelFields(User $user): array
+    {
+        return [
+            'channel_ids' => $user->channelMemberships->where('is_member', true)->pluck('chat_id')->values()->all(),
+            'channels_checked_at' => $user->channels_checked_at?->toIso8601String(),
+        ];
+    }
+
+    /** Bitta foydalanuvchining kanal a'zoligini hozir Telegram'dan qayta so'rash */
+    public function checkUserChannels(int $id, ChannelMembershipService $service)
+    {
+        $user = User::findOrFail($id);
+        abort_unless($user->telegram_user_id, 422, "Bu foydalanuvchida Telegram ID yo'q.");
+
+        $ok = $service->check($user);
+        $user->load('channelMemberships');
+
+        return response()->json([
+            ...self::channelFields($user),
+            'message' => $ok ? 'Kanal a\'zoligi yangilandi.' : "Telegram javob bermadi — keyinroq qayta urinib ko'ring.",
+        ], $ok ? 200 : 502);
     }
 
     /**

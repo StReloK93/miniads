@@ -14,15 +14,111 @@
 
       <AdminTabs v-model="tab" :tabs="tabs" />
 
-      <!-- MATNDAN: guruhdan nusxalangan e'lon matni + rasmlar — filtrsiz, albatta joylanadi -->
-      <template v-if="tab === 'text'">
-         <section class="admin-chart-card flex flex-col gap-1">
-            <h2 class="admin-card-title">Matndan e'lon</h2>
-            <p class="admin-card-subtitle">
-               Guruhdagi e'lon matnini nusxalab joylang, rasmlarini shu yerga Ctrl+V qiling yoki tanlang. AI sarlavha,
-               narx, kategoriya va hududni o'zi ajratadi. Rasmlar ixtiyoriy va har qanday kategoriyada saqlanadi; narx
-               topilmasa — «Kelishiladi». Har bir e'lon qancha turishini o'zingiz tanlaysiz (muddatsiz ham bo'ladi).
-            </p>
+      <!-- HAVOLA: tanlangan postlar — filtrsiz, albatta joylanadi -->
+      <template v-if="tab === 'link'">
+         <!-- Buferda havola bor (ruxsat bo'lsa o'zi topadi) yoki "Buferdan" bosildi: avval ko'rib olasiz -->
+         <section v-if="clipLinks.length || clipNote" class="adm-clip">
+            <header class="adm-clip-head">
+               <ClipboardPaste class="size-4.5 shrink-0" aria-hidden="true" />
+               <b v-if="clipLinks.length">Buferda {{ clipLinks.length }} ta havola</b>
+               <b v-else>{{ clipNote }}</b>
+               <button type="button" class="adm-icon-btn is-small ml-auto" aria-label="Yopish" @click="dismissClip">
+                  <X class="size-4" />
+               </button>
+            </header>
+            <ul v-if="clipLinks.length" class="adm-link-list">
+               <li v-for="link in clipLinks" :key="link.url" class="adm-link-card">
+                  <span class="adm-link-icon"><Send class="size-4" aria-hidden="true" /></span>
+                  <span class="adm-link-text"><b>@{{ link.channel }}</b><small>post №{{ link.post }}</small></span>
+                  <span v-if="hasLink(link)" class="admin-badge admin-badge-muted">ro'yxatda</span>
+               </li>
+            </ul>
+            <div v-if="clipLinks.length" class="adm-clip-actions">
+               <BaseButton size="sm" severity="secondary" @click="dismissClip">Kerak emas</BaseButton>
+               <BaseButton size="sm" :disabled="!newClipLinks.length" @click="acceptClip">
+                  <template #icon><Plus class="size-4" /></template>
+                  {{ newClipLinks.length ? `${newClipLinks.length} tasini qo'shish` : "Hammasi ro'yxatda" }}
+               </BaseButton>
+            </div>
+         </section>
+
+         <section class="admin-chart-card flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-3">
+               <div class="min-w-0">
+                  <h2 class="admin-card-title">Post havolasidan e'lon</h2>
+                  <p class="admin-card-subtitle">Ochiq kanal posti: t.me/kanal/123. AI kategoriya, narx, hudud va rasmlarni o'zi oladi.</p>
+               </div>
+               <BaseButton size="sm" severity="secondary" class="shrink-0" @click="peekLinks">
+                  <template #icon><ClipboardPaste class="size-4" /></template>
+                  Buferdan
+               </BaseButton>
+            </div>
+
+            <!-- Qo'shilgan havolalar: kartochka ko'rinishida -->
+            <ul v-if="links.length" class="adm-link-list">
+               <li v-for="link in links" :key="link.url" class="adm-link-card">
+                  <span class="adm-link-icon"><Send class="size-4" aria-hidden="true" /></span>
+                  <span class="adm-link-text">
+                     <b>@{{ link.channel }}</b>
+                     <small>post №{{ link.post }}</small>
+                  </span>
+                  <a :href="link.url" target="_blank" rel="noopener" class="adm-icon-btn is-small" aria-label="Postni ochish">
+                     <ExternalLink class="size-4" />
+                  </a>
+                  <button type="button" class="adm-icon-btn is-small" aria-label="Olib tashlash" :disabled="importing" @click="removeLink(link)">
+                     <X class="size-4" />
+                  </button>
+               </li>
+            </ul>
+
+            <!-- Qo'lda: yozing yoki Ctrl+V — havola darhol kartochkaga aylanadi -->
+            <label class="admin-search">
+               <Link2 class="size-4 shrink-0" aria-hidden="true" />
+               <input
+                  v-model="linkDraft"
+                  type="url"
+                  inputmode="url"
+                  enterkeyhint="done"
+                  placeholder="Havolani shu yerga joylang (Ctrl+V)"
+                  :disabled="importing"
+                  @paste="onLinkPaste"
+                  @keydown.enter.prevent="commitLinkDraft"
+                  @blur="commitLinkDraft"
+               />
+            </label>
+            <p v-if="linkDraftError" class="text-xs text-(--z-danger) -mt-1">{{ linkDraftError }}</p>
+
+            <BaseSwitch v-model="publishToChannel" :disabled="importing">
+               <span class="admin-card-title block text-sm!">Kanalga ham chiqarish</span>
+               <span class="admin-card-subtitle block">Joylangach, Telegram kanalingizga yuboriladi</span>
+            </BaseSwitch>
+            <BaseButton :disabled="importing || !links.length" @click="importLinks">
+               <template #icon><Sparkles class="size-4" :class="{ 'animate-pulse': importing }" /></template>
+               {{ importing ? `Joylanmoqda… ${importDone}/${importTotal}` : links.length > 1 ? `${links.length} ta e'lonni joylash` : "Joylash" }}
+            </BaseButton>
+            <p class="admin-field-hint">Guruh va yopiq kanaldan o'qib bo'lmaydi. Bir post ikki marta qo'shilmaydi.</p>
+         </section>
+      </template>
+
+      <!-- MATN: guruhdan nusxalangan e'lon matni + rasmlar — filtrsiz, albatta joylanadi -->
+      <template v-else-if="tab === 'text'">
+         <!-- Buferda matn bor (ruxsat bo'lsa o'zi topadi) -->
+         <section v-if="clipText" class="adm-clip">
+            <header class="adm-clip-head">
+               <ClipboardPaste class="size-4.5 shrink-0" aria-hidden="true" />
+               <b>Buferda matn bor</b>
+               <button type="button" class="adm-icon-btn is-small ml-auto" aria-label="Yopish" @click="dismissClip">
+                  <X class="size-4" />
+               </button>
+            </header>
+            <p class="adm-clip-text">{{ clipText }}</p>
+            <div class="adm-clip-actions">
+               <BaseButton size="sm" severity="secondary" @click="dismissClip">Kerak emas</BaseButton>
+               <BaseButton size="sm" @click="acceptClipText">
+                  <template #icon><ClipboardPaste class="size-4" /></template>
+                  Qo'yish
+               </BaseButton>
+            </div>
          </section>
 
          <section
@@ -35,22 +131,28 @@
          >
             <div class="flex items-center justify-between gap-2">
                <span class="admin-card-title text-sm!">E'lon {{ index + 1 }}</span>
-               <button
-                  v-if="drafts.length > 1"
-                  type="button"
-                  class="admin-icon-button"
-                  title="Olib tashlash"
-                  :disabled="importing"
-                  @click="removeDraft(draft)"
-               >
-                  <X class="size-4" />
-               </button>
+               <div class="flex items-center gap-1.5">
+                  <BaseButton size="sm" severity="secondary" :disabled="importing" @click="pasteInto(draft)">
+                     <template #icon><ClipboardPaste class="size-4" /></template>
+                     Buferdan qo'yish
+                  </BaseButton>
+                  <button
+                     v-if="drafts.length > 1"
+                     type="button"
+                     class="admin-icon-button"
+                     aria-label="Olib tashlash"
+                     :disabled="importing"
+                     @click="removeDraft(draft)"
+                  >
+                     <X class="size-4" />
+                  </button>
+               </div>
             </div>
             <textarea
                v-model="draft.text"
                rows="6"
                class="admin-input"
-               placeholder="E'lon matnini shu yerga joylang"
+               placeholder="E'lon matnini joylang (Ctrl+V). Rasmlarni ham shu yerga Ctrl+V qilish mumkin."
                :disabled="importing"
                @input="draft.error = ''"
             />
@@ -63,7 +165,7 @@
                   <button
                      type="button"
                      class="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-rose-500 text-white grid place-items-center"
-                     title="Rasmni olib tashlash"
+                     aria-label="Rasmni olib tashlash"
                      :disabled="importing"
                      @click="removeImage(draft, imageIndex)"
                   >
@@ -76,33 +178,26 @@
                   title="Rasm qo'shish"
                >
                   <ImagePlus class="size-5" />
-                  <input
-                     type="file"
-                     accept="image/*"
-                     multiple
-                     class="hidden"
-                     :disabled="importing"
-                     @change="onPick(draft, $event)"
-                  />
+                  <input type="file" accept="image/*" multiple class="hidden" :disabled="importing" @change="onPick(draft, $event)" />
                </label>
             </div>
             <!-- E'lon qancha turadi: kategoriya muddati, o'zim aytgan kun yoki muddatsiz -->
             <div class="flex flex-wrap items-center gap-2">
                <span class="text-xs text-(--admin-muted)">Turadi:</span>
-               <select v-model="draft.duration" class="admin-input w-auto! h-9! py-0! text-sm" :disabled="importing">
-                  <option value="category">Kategoriya muddati</option>
-                  <option value="days">Necha kun…</option>
-                  <option value="permanent">Muddatsiz (o'chmaydi)</option>
-               </select>
-               <template v-if="draft.duration === 'days'">
-                  <input
-                     v-model.number="draft.days"
-                     type="number"
-                     min="1"
-                     max="3650"
-                     class="admin-input w-24! h-9! py-0! text-sm"
+               <div class="min-w-48">
+                  <FieldSelect
+                     v-model="draft.duration"
+                     size="sm"
                      :disabled="importing"
+                     :options="[
+                        { label: 'Kategoriya muddati', value: 'category' },
+                        { label: 'Necha kun…', value: 'days' },
+                        { label: 'Muddatsiz (o\'chmaydi)', value: 'permanent' },
+                     ]"
                   />
+               </div>
+               <template v-if="draft.duration === 'days'">
+                  <input v-model.number="draft.days" type="number" min="1" max="3650" class="admin-input w-24! h-9! py-0! text-sm" :disabled="importing" />
                   <span class="text-xs text-(--admin-muted)">kun</span>
                </template>
             </div>
@@ -121,51 +216,16 @@
                <template #icon><Sparkles class="size-4" :class="{ 'animate-pulse': importing }" /></template>
                {{ importing ? `Joylanmoqda… ${importDone}/${importTotal}` : readyDrafts.length > 1 ? `${readyDrafts.length} ta e'lonni joylash` : "Joylash" }}
             </BaseButton>
-            <p class="admin-field-hint">Aynan shu matn avval qo'shilgan bo'lsa, qayta qo'shilmaydi.</p>
+            <p class="admin-field-hint">AI sarlavha, narx, kategoriya va hududni o'zi ajratadi. Aynan shu matn avval qo'shilgan bo'lsa, qayta qo'shilmaydi.</p>
          </section>
       </template>
 
-      <!-- HAVOLADAN: admin tanlagan postlar — filtrsiz, albatta joylanadi -->
-      <template v-else-if="tab === 'link'">
+      <!-- AI: avtomatik import — holat, sozlamalar, kanallar va model bitta joyda -->
+      <template v-else>
          <section class="admin-chart-card flex flex-col gap-3">
-            <div>
-               <h2 class="admin-card-title">Post havolasidan e'lon</h2>
-               <p class="admin-card-subtitle">
-                  O'zingiz tanlagan postlar filtrsiz joylanadi: AI kategoriya, hudud, sarlavha va narxni aniqlaydi,
-                  rasmlarni oladi (rasmi o'chirilgan kategoriyalarda — Ish, Ta'lim — rasmsiz).
-               </p>
-            </div>
-            <textarea
-               v-model="linksInput"
-               rows="4"
-               class="admin-input font-mono"
-               placeholder="https://t.me/kanal/1234&#10;Bir nechta bo'lsa — har qatorda bittadan"
-               :disabled="importing"
-            />
-            <BaseSwitch v-model="publishToChannel" :disabled="importing">
-               <span class="admin-card-title block text-sm!">Kanalga ham chiqarish</span>
-               <span class="admin-card-subtitle block">Joylangach, Telegram kanalingizga yuboriladi</span>
-            </BaseSwitch>
-            <BaseButton :disabled="importing || !links.length" @click="importLinks">
-               <template #icon><Link2 class="size-4" :class="{ 'animate-pulse': importing }" /></template>
-               {{ importing ? `Joylanmoqda… ${importDone}/${importTotal}` : links.length > 1 ? `${links.length} ta e'lonni joylash` : "Joylash" }}
-            </BaseButton>
-            <p class="admin-field-hint">
-               Faqat ochiq kanal posti (t.me/kanal/123). Guruh va yopiq kanaldan o'qib bo'lmaydi. Bir post ikki marta
-               qo'shilmaydi.
-            </p>
-         </section>
-      </template>
-
-      <!-- HOLAT: bot ishlayaptimi va bugun nima bo'ldi -->
-      <template v-else-if="tab === 'status'">
-         <section class="admin-chart-card">
             <div class="admin-switch-row">
                <div class="flex items-center gap-2.5 min-w-0">
-                  <span
-                     class="size-2.5 rounded-full shrink-0"
-                     :class="saved.is_enabled ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-rose-500'"
-                  />
+                  <span class="adm-dot" :class="saved.is_enabled ? 'is-active' : ''" />
                   <div class="min-w-0">
                      <h2 class="admin-card-title">{{ saved.is_enabled ? "Bot ishlayapti" : "Bot to'xtatilgan" }}</h2>
                      <p class="admin-card-subtitle">
@@ -175,9 +235,13 @@
                </div>
                <BaseButton size="sm" severity="secondary" :disabled="runningBatch" @click="runBatchNow">
                   <template #icon><RefreshCw class="size-4" :class="{ 'animate-spin': runningBatch }" /></template>
-                  {{ runningBatch ? "Ishlayapti…" : "Ishga tushirish" }}
+                  {{ runningBatch ? "Ishlayapti…" : "Hozir ishga tushirish" }}
                </BaseButton>
             </div>
+            <BaseSwitch v-model="form.is_enabled">
+               <span class="admin-card-title block text-sm!">Har soatda avtomatik</span>
+               <span class="admin-card-subtitle block">O'chirilsa, kanallardan o'zi olib kelmaydi</span>
+            </BaseSwitch>
          </section>
 
          <div class="admin-stats-grid">
@@ -193,21 +257,16 @@
                <strong>{{ num(stats.total_bot_products) }}</strong>
                <span class="admin-stat-detail">odamlarniki: {{ num(stats.total_user_products) }}</span>
             </article>
-            <article class="admin-stat-card col-span-2 min-[701px]:col-span-1">
+            <article class="admin-stat-card">
                <span class="admin-stat-label">AI bugun ({{ aiLabel }})</span>
                <template v-if="saved.ai_provider === 'regex'">
-                  <span class="admin-stat-detail whitespace-normal!">AI o'chirilgan — e'lonlar qoidalar bo'yicha ajratiladi.</span>
+                  <span class="admin-stat-detail whitespace-normal!">AI o'chirilgan — qoidalar bo'yicha.</span>
                </template>
                <template v-else>
                   <strong>{{ num(stats.ai_usage.requests) }} <small class="text-sm text-(--admin-muted)">so'rov</small></strong>
-                  <span class="admin-stat-detail">
-                     {{ formatTokens(stats.ai_usage.tokens) }} / {{ formatTokens(stats.ai_usage.limit) }} token (kunlik limit)
-                  </span>
+                  <span class="admin-stat-detail">{{ formatTokens(stats.ai_usage.tokens) }} / {{ formatTokens(stats.ai_usage.limit) }} token</span>
                   <div class="admin-rank-track mt-1.5">
-                     <div
-                        class="admin-rank-fill"
-                        :style="{ width: `${percent(stats.ai_usage.tokens, stats.ai_usage.limit)}%`, background: '#8b5cf6' }"
-                     />
+                     <div class="admin-rank-fill" :style="{ width: `${percent(stats.ai_usage.tokens, stats.ai_usage.limit)}%`, background: 'var(--chart-b)' }" />
                   </div>
                </template>
             </article>
@@ -223,110 +282,55 @@
             <AdminRankList :rows="seenRows" empty="Bugun hali post ko'rilmagan." :limit="8" />
          </section>
 
-         <details class="admin-chart-card group">
-            <summary class="admin-card-title cursor-pointer list-none flex items-center justify-between">
-               Bot qanday ishlaydi?
-               <ChevronDown class="size-4 text-(--admin-muted) transition-transform group-open:rotate-180" />
-            </summary>
-            <ol class="mt-3 flex flex-col gap-2 text-[12.5px] leading-relaxed text-(--admin-muted) list-decimal pl-4">
-               <li>Har soatda (cron) kanallarning so'nggi postlari ochiq <code>t.me/s/kanal</code> sahifasidan o'qiladi.</li>
-               <li>7 kundan eski postlar olinmaydi. Bir marta ko'rilgan post qayta tahlil qilinmaydi.</li>
-               <li>Telefon yoki @username bo'lmagan, tijoriy reklama va yangilik/tabrik postlari tashlab yuboriladi.</li>
-               <li>Bir xil matn (har qanday kanaldan) yoki bir xil telefon bilan o'xshash e'lon qayta qo'shilmaydi.</li>
-               <li>
-                  AI e'lonmi-yo'qmi aniqlaydi va sarlavha, narx, kategoriya, hududni ajratadi. AI kaliti bo'lmasa yoki
-                  "AI'siz" tanlangan bo'lsa — qoidalar bo'yicha, faqat taklif aniq bo'lgan postlar olinadi.
-               </li>
-               <li>
-                  Rasmlar (4 tagacha) WebP qilib saqlanadi. Rasmi o'chirilgan kategoriyalarga (Kategoriyalar bo'limida,
-                  hozir: Ish va Ta'lim) rasm olinmaydi.
-               </li>
-               <li>Taqiqlangan so'zlar (Moderatsiya bo'limi) bot e'lonlariga ham qo'llanadi.</li>
-               <li>Bir siklda ko'pi bilan 1 ta bot e'loni sizning kanalingizga chiqadi (Sozlamalar → Kanalga chiqarish).</li>
-            </ol>
-         </details>
-      </template>
-
-      <!-- SOZLAMALAR: yoqish, limitlar, kanalga chiqarish -->
-      <template v-else-if="tab === 'settings'">
-         <section class="admin-chart-card flex flex-col gap-4">
-            <BaseSwitch v-model="form.is_enabled">
-               <span class="admin-card-title block">Botni yoqish</span>
-               <span class="admin-card-subtitle block">O'chirilsa, soatlik import ishlamaydi</span>
-            </BaseSwitch>
-
-            <div class="admin-field">
-               <label for="bot-hourly">Bir siklda qo'shiladigan e'lonlar</label>
-               <input id="bot-hourly" v-model.number="form.hourly_limit" type="number" min="1" max="50" class="admin-input" />
-               <p class="admin-field-hint">Har soatlik ishga tushishda nechta e'lon qo'shilsin (1–50).</p>
-            </div>
-
-            <div class="admin-field">
-               <label for="bot-daily">Kunlik chegara</label>
-               <input id="bot-daily" v-model.number="form.daily_limit" type="number" min="1" max="1000" class="admin-input" />
-               <p class="admin-field-hint">Bugun shuncha e'lon qo'shilgach, bot ertagacha to'xtaydi.</p>
-            </div>
-         </section>
-
-         <section class="admin-chart-card flex flex-col gap-4">
-            <BaseSwitch v-model="form.telegram_post_enabled">
-               <span class="admin-card-title block">Kanalga chiqarish</span>
-               <span class="admin-card-subtitle block">Bot e'lonlaridan sizning kanalingizga</span>
-            </BaseSwitch>
-
-            <template v-if="form.telegram_post_enabled">
-               <p class="admin-field-hint">
-                  Har siklda ko'pi bilan <b>1 ta</b> e'lon chiqadi: rasmli va narxli bo'lsa birinchi navbatda, bo'lmasa
-                  rasmlisi. Rasmsiz bot e'lonlari kanalga chiqmaydi. Odamlar qo'ygan e'lonlar esa bu sozlamaga bog'liq emas
-                  — doim darhol chiqadi.
-               </p>
-               <div class="grid grid-cols-2 gap-3">
-                  <div class="admin-field">
-                     <label for="bot-start">Boshlanish soati</label>
-                     <input id="bot-start" v-model.number="form.telegram_start_hour" type="number" min="0" max="23" class="admin-input" />
-                  </div>
-                  <div class="admin-field">
-                     <label for="bot-end">Tugash soati</label>
-                     <input id="bot-end" v-model.number="form.telegram_end_hour" type="number" min="0" max="23" class="admin-input" />
-                  </div>
-               </div>
-               <p class="admin-field-hint">
-                  Kanalga soat {{ pad(form.telegram_start_hour) }}:00 dan {{ pad(form.telegram_end_hour) }}:59 gacha chiqariladi.
-               </p>
-            </template>
-         </section>
-      </template>
-
-      <!-- KANALLAR: qaysi kanallardan o'qiladi -->
-      <template v-else-if="tab === 'channels'">
+         <!-- Manba kanallar -->
          <section class="admin-chart-card flex flex-col gap-3">
-            <div class="admin-card-header mb-0!">
-               <div>
-                  <h2 class="admin-card-title">Manba kanallar</h2>
-                  <p class="admin-card-subtitle">{{ channelCount }} ta kanal · har qatorda bittadan</p>
+            <div>
+               <h2 class="admin-card-title">Qaysi kanallardan olinadi</h2>
+               <p class="admin-card-subtitle">{{ channelCount }} ta kanal · har qatorda bittadan · faqat ochiq kanallar</p>
+            </div>
+            <textarea v-model="form.channels" rows="6" class="admin-input font-mono text-xs" placeholder="@navoiy_bozor&#10;@karmana_bozor" />
+         </section>
+
+         <!-- Limitlar va kanalga chiqarish -->
+         <section class="admin-chart-card flex flex-col gap-4">
+            <h2 class="admin-card-title">Qancha va qachon</h2>
+            <div class="grid grid-cols-2 gap-3">
+               <div class="admin-field">
+                  <label for="bot-hourly">Bir siklda</label>
+                  <input id="bot-hourly" v-model.number="form.hourly_limit" type="number" min="1" max="50" class="admin-input" />
+                  <p class="admin-field-hint">har soatda (1–50)</p>
+               </div>
+               <div class="admin-field">
+                  <label for="bot-daily">Kunlik chegara</label>
+                  <input id="bot-daily" v-model.number="form.daily_limit" type="number" min="1" max="1000" class="admin-input" />
+                  <p class="admin-field-hint">keyin ertagacha to'xtaydi</p>
                </div>
             </div>
-            <textarea
-               v-model="form.channels"
-               rows="8"
-               class="admin-input font-mono text-xs"
-               placeholder="@navoiy_bozor&#10;@karmana_bozor"
-            />
-            <p class="admin-field-hint">
-               Kanal ochiq (public) bo'lishi shart: bot uni <code>t.me/s/kanal</code> sahifasidan o'qiydi. Yopiq kanal va
-               guruhlardan o'qib bo'lmaydi. <code>@kanal</code> yoki <code>t.me/kanal</code> ko'rinishida yozish mumkin.
-            </p>
+            <BaseSwitch v-model="form.telegram_post_enabled">
+               <span class="admin-card-title block text-sm!">Kanalimga ham chiqarish</span>
+               <span class="admin-card-subtitle block">Har siklda ko'pi bilan 1 ta, rasmlisi birinchi</span>
+            </BaseSwitch>
+            <div v-if="form.telegram_post_enabled" class="grid grid-cols-2 gap-3">
+               <div class="admin-field">
+                  <label for="bot-start">Soatdan</label>
+                  <input id="bot-start" v-model.number="form.telegram_start_hour" type="number" min="0" max="23" class="admin-input" />
+               </div>
+               <div class="admin-field">
+                  <label for="bot-end">Soatgacha</label>
+                  <input id="bot-end" v-model.number="form.telegram_end_hour" type="number" min="0" max="23" class="admin-input" />
+               </div>
+               <p class="admin-field-hint col-span-2">
+                  Kanalga {{ pad(form.telegram_start_hour) }}:00 – {{ pad(form.telegram_end_hour) }}:59 oralig'ida chiqadi.
+               </p>
+            </div>
          </section>
-      </template>
 
-      <!-- AI: qaysi model e'lonni tahlil qiladi -->
-      <template v-else>
+         <!-- Model -->
          <section class="admin-chart-card flex flex-col gap-3">
             <div>
                <h2 class="admin-card-title">E'lonni kim tahlil qiladi</h2>
-               <p class="admin-card-subtitle">E'lonmi-yo'qmi va sarlavha, narx, kategoriya, hududni ajratish</p>
+               <p class="admin-card-subtitle">Havola va matn bilan qo'shishda ham shu ishlatiladi</p>
             </div>
-
             <div class="admin-list">
                <button
                   v-for="option in providerOptions"
@@ -347,10 +351,7 @@
                   </span>
                </button>
             </div>
-         </section>
-
-         <section v-if="form.ai_provider !== 'regex'" class="admin-chart-card flex flex-col gap-3">
-            <div class="admin-field">
+            <div v-if="form.ai_provider !== 'regex'" class="admin-field">
                <label for="bot-key">API kalit</label>
                <input
                   id="bot-key"
@@ -360,21 +361,32 @@
                   class="admin-input font-mono text-xs"
                   :placeholder="envKeyExists ? 'Bo\'sh — .env dagi kalit ishlatiladi' : 'Kalitni kiriting'"
                />
-               <p v-if="form.ai_api_key" class="admin-field-hint">
-                  Shu yerda saqlangan kalit ishlatiladi. O'chirsangiz, serverdagi
-                  <code>{{ envKeyName }}</code> ishlatiladi ({{ envKeyExists ? "u o'rnatilgan" : "u yo'q" }}).
-               </p>
-               <p v-else class="admin-field-hint">
-                  Bo'sh — serverdagi <code>{{ envKeyName }}</code> ishlatiladi:
-                  <b :class="envKeyExists ? 'text-emerald-600' : 'text-(--z-danger)'">{{ envKeyExists ? "o'rnatilgan" : "o'rnatilmagan" }}</b>.
-                  <template v-if="!envKeyExists"> Kalitsiz bot AI'siz (qoidalar bo'yicha) ishlaydi.</template>
+               <p class="admin-field-hint">
+                  <template v-if="form.ai_api_key">Shu yerdagi kalit ishlatiladi.</template>
+                  <template v-else>
+                     Bo'sh — serverdagi <code>{{ envKeyName }}</code>:
+                     <b :class="envKeyExists ? 'text-emerald-600' : 'text-(--z-danger)'">{{ envKeyExists ? "o'rnatilgan" : "o'rnatilmagan" }}</b>.
+                  </template>
+                  Kunlik limit: {{ formatTokens(stats.ai_usage.limit) }} token.
                </p>
             </div>
-            <p class="admin-field-hint">
-               Kunlik limit: {{ formatTokens(stats.ai_usage.limit) }} token (<code>AI_DAILY_TOKEN_LIMIT</code>). Tugasa, import
-               ertagacha to'xtaydi. AI xato bersa, sizga bot orqali shaxsan xabar keladi.
-            </p>
          </section>
+
+         <details class="admin-chart-card group">
+            <summary class="admin-card-title cursor-pointer list-none flex items-center justify-between">
+               Bot qanday ishlaydi?
+               <ChevronDown class="size-4 text-(--admin-muted) transition-transform group-open:rotate-180" />
+            </summary>
+            <ol class="mt-3 flex flex-col gap-2 text-[13px] leading-relaxed text-(--admin-muted) list-decimal pl-4">
+               <li>Har soatda kanallarning so'nggi postlari ochiq <code>t.me/s/kanal</code> sahifasidan o'qiladi.</li>
+               <li>7 kundan eski postlar olinmaydi. Bir marta ko'rilgan post qayta tahlil qilinmaydi.</li>
+               <li>Telefon yoki @username bo'lmagan, tijoriy reklama va yangilik/tabrik postlari tashlab yuboriladi.</li>
+               <li>Bir xil matn yoki bir xil telefon bilan o'xshash e'lon qayta qo'shilmaydi.</li>
+               <li>AI e'lonmi-yo'qmi aniqlaydi va sarlavha, narx, kategoriya, hududni ajratadi.</li>
+               <li>Rasmlar (4 tagacha) saqlanadi; rasmi o'chirilgan kategoriyalarga (Ish, Ta'lim) rasm olinmaydi.</li>
+               <li>Taqiqlangan so'zlar (Moderatsiya) bot e'lonlariga ham qo'llanadi.</li>
+            </ol>
+         </details>
       </template>
 
       <!-- Matndan va havoladan qo'shish natijalari -->
@@ -415,7 +427,7 @@
       </section>
 
       <!-- Saqlanmagan o'zgarishlar bo'lsa — pastda doim ko'rinadi -->
-      <div v-if="dirty && ['settings', 'channels', 'ai'].includes(tab)" class="admin-savebar">
+      <div v-if="dirty && tab === 'ai'" class="admin-savebar">
          <span class="text-xs font-semibold">Saqlanmagan o'zgarishlar bor</span>
          <BaseButton size="sm" :disabled="saving" @click="saveSettings">
             <template #icon><Save class="size-4" /></template>
@@ -426,8 +438,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { ChevronDown, ImageOff, ImagePlus, Link2, Plus, RefreshCw, Save, Sparkles, X } from "lucide-vue-next";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { ChevronDown, ClipboardPaste, ExternalLink, ImageOff, ImagePlus, Link2, Plus, RefreshCw, Save, Send, Sparkles, X } from "lucide-vue-next";
+import { canReadSilently, parsePostLinks, readClipboardImages, readClipboardText, type PostLink } from "@admin/modules/clipboard";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseSwitch from "@shared/ui/BaseSwitch.vue";
 import AdminTabs from "@admin/components/AdminTabs.vue";
@@ -459,15 +472,13 @@ interface IBotSetting {
    ai_api_key: string;
 }
 
+// Uch yo'l: havola, matn va AI (avtomatik import: holat, sozlamalar, kanallar, model)
 const tabs = [
-   { value: "text", label: "Matndan" },
-   { value: "link", label: "Havoladan" },
-   { value: "status", label: "Holat" },
-   { value: "settings", label: "Sozlamalar" },
-   { value: "channels", label: "Kanallar" },
-   { value: "ai", label: "AI" },
+   { value: "link", label: "Havola" },
+   { value: "text", label: "Matn" },
+   { value: "ai", label: "AI (avtomatik)" },
 ];
-const tab = ref("text");
+const tab = ref("link");
 
 /* ---------- Havoladan qo'shish ---------- */
 
@@ -483,36 +494,159 @@ const STATUS: Record<string, { label: string; class: string }> = {
    exists: { label: "Avval qo'shilgan", class: "admin-badge-muted" },
 };
 
-const linksInput = ref("");
 const publishToChannel = ref(true);
 const importing = ref(false);
 const importDone = ref(0);
 const importTotal = ref(0);
 const importResults = ref<ImportResult[]>([]);
-const links = computed(() => [...new Set(linksInput.value.split(/\s+/).map((line) => line.trim()).filter(Boolean))]);
 
-// Bittadan ketma-ket: har biri AI va rasm yuklashni kutadi; muvaffaqiyatlisi maydondan olib tashlanadi
+// Havolalar — kartochkalar ro'yxati; qo'lda yozilgani "linkDraft"da turadi
+const links = ref<PostLink[]>([]);
+const linkDraft = ref("");
+const linkDraftError = ref("");
+
+const hasLink = (link: PostLink) => links.value.some((item) => item.url.toLowerCase() === link.url.toLowerCase());
+
+function addLinks(found: PostLink[]) {
+   for (const link of found) if (!hasLink(link)) links.value.push(link);
+}
+
+function removeLink(link: PostLink) {
+   links.value = links.value.filter((item) => item.url !== link.url);
+}
+
+/** Ctrl+V: havola(lar) bo'lsa — darhol kartochkaga aylanadi */
+function onLinkPaste(event: ClipboardEvent) {
+   const found = parsePostLinks(event.clipboardData?.getData("text/plain") ?? "");
+   if (!found.length) return;
+   event.preventDefault();
+   addLinks(found);
+   linkDraftError.value = "";
+}
+
+function commitLinkDraft() {
+   const text = linkDraft.value.trim();
+   if (!text) {
+      linkDraftError.value = "";
+      return;
+   }
+   const found = parsePostLinks(text);
+   if (found.length) {
+      addLinks(found);
+      linkDraft.value = "";
+      linkDraftError.value = "";
+   } else {
+      linkDraftError.value = "Bu post havolasi emas. Namuna: https://t.me/kanal/1234";
+   }
+}
+
+/* ---------- Bufer: nima borligini oldindan ko'rsatish ---------- */
+
+const clipLinks = ref<PostLink[]>([]);
+const clipText = ref("");
+const clipNote = ref("");
+// Bir marta "Kerak emas" deyilgan bufer qayta taklif qilinmaydi
+let dismissed = "";
+let lastClip = "";
+
+const newClipLinks = computed(() => clipLinks.value.filter((link) => !hasLink(link)));
+
+function dismissClip() {
+   dismissed = lastClip;
+   clipLinks.value = [];
+   clipText.value = "";
+   clipNote.value = "";
+}
+
+function showClip(text: string, silent: boolean) {
+   lastClip = text;
+   if (silent && (!text.trim() || text === dismissed)) return;
+   clipNote.value = "";
+   if (tab.value === "link") {
+      const found = parsePostLinks(text);
+      // Jim tekshiruvda: faqat yangi havola bo'lsa taklif qilinadi
+      if (silent && !found.some((link) => !hasLink(link))) return;
+      clipLinks.value = found;
+      if (!found.length) clipNote.value = text.trim() ? "Buferda post havolasi yo'q" : "Bufer bo'sh";
+   } else if (tab.value === "text") {
+      const trimmed = text.trim();
+      if (silent && (trimmed.length < 10 || drafts.value.some((draft) => draft.text.trim() === trimmed))) return;
+      clipText.value = trimmed;
+   }
+}
+
+/** "Buferdan" tugmasi: o'qiydi va avval ko'rsatadi (darhol qo'shmaydi) */
+async function peekLinks() {
+   const text = await readClipboardText();
+   if (text === null) {
+      clipLinks.value = [];
+      clipNote.value = "Brauzer buferni bermadi — havolani pastdagi maydonga bosib turib «Qo'yish» qiling yoki Ctrl+V";
+      return;
+   }
+   showClip(text, false);
+}
+
+function acceptClip() {
+   addLinks(newClipLinks.value);
+   dismissClip();
+}
+
+function acceptClipText() {
+   const target = drafts.value.find((draft) => !draft.text.trim()) ?? (addDraft(), drafts.value[drafts.value.length - 1]);
+   target.text = clipText.value;
+   target.error = "";
+   dismissClip();
+}
+
+/** Ruxsat avval berilgan bo'lsa (Chrome) — sahifaga qaytganda bufer jim tekshiriladi */
+async function checkClipboardSilently() {
+   if (document.visibilityState !== "visible" || tab.value === "ai" || importing.value) return;
+   if (!(await canReadSilently())) return;
+   const text = await readClipboardText();
+   if (text !== null && text !== lastClip) showClip(text, true);
+}
+
+watch(tab, () => {
+   clipLinks.value = [];
+   clipText.value = "";
+   clipNote.value = "";
+   lastClip = "";
+   checkClipboardSilently();
+});
+
+onMounted(() => {
+   window.addEventListener("focus", checkClipboardSilently);
+   document.addEventListener("visibilitychange", checkClipboardSilently);
+   checkClipboardSilently();
+});
+onBeforeUnmount(() => {
+   window.removeEventListener("focus", checkClipboardSilently);
+   document.removeEventListener("visibilitychange", checkClipboardSilently);
+});
+
+// Bittadan ketma-ket: har biri AI va rasm yuklashni kutadi; muvaffaqiyatlisi ro'yxatdan olib tashlanadi
 async function importLinks() {
-   const queue = links.value;
+   commitLinkDraft();
+   const queue = [...links.value];
    importing.value = true;
    importDone.value = 0;
    importTotal.value = queue.length;
-   const failed: string[] = [];
+   const failed: PostLink[] = [];
 
-   for (const url of queue) {
+   for (const link of queue) {
       try {
-         const { data } = await api.post("admin/bot-import-url", { url, publish: publishToChannel.value });
-         importResults.value.unshift({ url, ...data });
+         const { data } = await api.post("admin/bot-import-url", { url: link.url, publish: publishToChannel.value });
+         importResults.value.unshift({ url: link.url, ...data });
       } catch (e: any) {
          const data = e?.response?.data ?? {};
-         importResults.value.unshift({ url, status: data.status ?? "error", message: data.message || "Joylab bo'lmadi." });
-         failed.push(url);
+         importResults.value.unshift({ url: link.url, status: data.status ?? "error", message: data.message || "Joylab bo'lmadi." });
+         failed.push(link);
       } finally {
          importDone.value++;
       }
    }
 
-   linksInput.value = failed.join("\n");
+   links.value = failed;
    importing.value = false;
    loadSettings();
 }
@@ -591,6 +725,20 @@ function onPaste(draft: Draft, event: ClipboardEvent) {
    if (!files.length) return;
    if (!event.clipboardData?.getData("text/plain")) event.preventDefault();
    addImages(draft, files);
+}
+
+/** "Buferdan qo'yish": matn — maydonga (bor matn o'rniga), rasm bo'lsa — rasmlarga */
+async function pasteInto(draft: Draft) {
+   const [text, images] = await Promise.all([readClipboardText(), readClipboardImages()]);
+   if (text === null && !images.length) {
+      draft.error = "Brauzer buferni bermadi — maydonni bosib turib «Qo'yish» qiling yoki Ctrl+V.";
+      return;
+   }
+   if (text?.trim()) draft.text = text.trim();
+   if (images.length) await addImages(draft, images);
+   if (!text?.trim() && !images.length) draft.error = "Bufer bo'sh.";
+   else draft.error = "";
+   dismissClip();
 }
 
 async function importDrafts() {

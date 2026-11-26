@@ -37,6 +37,11 @@ Schedule::command('channel:live-post')
     ->everyFifteenMinutes()
     ->withoutOverlapping(10);
 
+// Foydalanuvchilar kanalga a'zomi (admin panel: kanal / bot / ikkalasi). Har safar 300 nafar, eng eskisi birinchi
+Schedule::command('users:check-channels --limit=300')
+    ->everyTenMinutes()
+    ->withoutOverlapping(15);
+
 // Fon vazifalari (e'lonni kanalga chiqarish, narx tushgani haqida xabar...): har daqiqa ~55 soniya ishlaydigan ishchi.
 // Alohida supervisor kerak emas — scheduler o'zi ishga tushiradi; withoutOverlapping ikkinchisini ochmaydi
 Schedule::command('queue:work --sleep=1 --tries=3 --max-time=55')

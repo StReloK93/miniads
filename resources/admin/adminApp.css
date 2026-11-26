@@ -2,13 +2,15 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-   MOBILE FIRST: asosiy qoidalar — telefon (admin ko'pincha Telegram ichidan ochiladi).
-   Kattaroq ekranlar uchun faqat "min-width" bo'limlari qo'shimcha qiladi:
-     701px+  — planshet (grid'lar kengayadi)
-     901px+  — kompyuter (yon panel, oddiy jadval, pastki panel yo'q)
+   ADMIN PANEL — yangi uslub (2026-11). Telefon birinchi o'rinda, ilovadagi shisha (glass) dizayn bilan bir xil.
+   Ranglar va shisha ilovaniki: shared/css/ui.scss + glass.scss (--z-*). Bu yerda faqat admin qoliplari.
+
+   Qoidalar: bosiladigan joy ≥ 44px · yozuv ≥ 12px (maydonlarda 16px — iOS kattalashtirmasin)
+   · ma'no faqat rang bilan berilmaydi · bitta ekranda bitta asosiy amal.
+   Bo'limlar: 1) tokenlar  2) karkas  3) yangi qoliplar (adm-*)  4) sahifalar ishlatadigan klasslar (admin-*)
 */
 
-/* Telegram ichida shared/modules/telegramSafeArea.ts bu qiymatlarni bridge hodisalaridan qayta yozadi */
+/* Telegram ichida shared/modules/telegramSafeArea.ts bu qiymatlarni qayta yozadi */
 :root {
    --safe-area-top: env(safe-area-inset-top, 0px);
    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
@@ -20,410 +22,1371 @@
 }
 
 @layer base {
-   body:has(.admin-shell) {
+   body:has(.adm-shell) {
       @apply m-0 antialiased;
    }
 }
 
 /* ==========================================================================
-   KARKAS: qobiq, yon panel (telefonda — chiqib keladigan menyu), yuqori panel
+   1. TOKENLAR
    ========================================================================== */
 
-.admin-shell {
+.adm-shell {
    --admin-ink: var(--z-foreground);
    --admin-muted: var(--z-muted-text);
-   --admin-border: var(--z-border);
+   --admin-border: var(--z-glass-border, var(--z-border));
+   --admin-line: var(--z-border);
    --admin-accent: var(--z-primary);
-   display: flex;
-   min-height: 100vh;
+   --admin-tint: color-mix(in srgb, var(--z-primary) 9%, transparent);
+
+   --admin-success: #15803d;
+   --admin-success-bg: rgb(34 197 94 / 0.13);
+   --admin-warning: #a16207;
+   --admin-warning-bg: rgb(245 158 11 / 0.15);
+   --admin-danger: #b91c1c;
+   --admin-danger-bg: rgb(239 68 68 / 0.12);
+   --admin-info: #1d4ed8;
+   --admin-info-bg: rgb(59 130 246 / 0.12);
+
+   /* Grafiklar: odamlar — ko'k, AI — binafsha (har doim yozuvli izoh bilan) */
+   --chart-a: #3b82f6;
+   --chart-b: #8b5cf6;
+   --chart-track: color-mix(in srgb, var(--z-foreground) 6%, transparent);
+
+   --admin-control: 44px;
+   --r-lg: 20px;
+   --r-md: 14px;
+   --r-sm: 10px;
+   --top-h: 54px;
+   --dock-h: 64px;
+   --gutter: 14px;
+
+   min-height: 100dvh;
    color: var(--admin-ink);
-   background-color: var(--z-background);
-   background-image: var(--z-ambient);
+   -webkit-tap-highlight-color: transparent;
 }
 
-.admin-sidebar {
-   position: fixed;
-   z-index: 40;
-   inset: 0 auto 0 0;
+html.dark .adm-shell {
+   color-scheme: dark;
+   --admin-success: #4ade80;
+   --admin-warning: #fbbf24;
+   --admin-danger: #f87171;
+   --admin-info: #60a5fa;
+   --chart-a: #60a5fa;
+   --chart-b: #a78bfa;
+}
+
+html.adm-lock,
+html.adm-lock body {
+   overflow: hidden;
+}
+
+.adm-shell a,
+.adm-shell button {
+   touch-action: manipulation;
+}
+
+.adm-shell :focus-visible {
+   outline: 2px solid var(--admin-accent);
+   outline-offset: 2px;
+}
+
+/* ==========================================================================
+   2. KARKAS: yuqori panel, kontent, pastki "dock", "Ko'proq" oynasi, kompyuterda yon panel
+   ========================================================================== */
+
+.adm-side {
+   display: none;
+}
+
+.adm-main {
    display: flex;
-   width: min(280px, 85vw);
+   min-width: 0;
+   min-height: 100dvh;
    flex-direction: column;
-   overflow-y: auto;
-   border-right: 1px solid var(--admin-border);
-   background: var(--z-glass-strong);
-   padding: calc(var(--safe-area-top) + 20px) 16px calc(var(--safe-area-bottom) + 18px);
-   transform: translateX(-100%);
-   transition: transform 0.25s ease;
-   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   backdrop-filter: blur(var(--z-blur)) saturate(170%);
 }
 
-.admin-shell.is-menu-open .admin-sidebar {
-   transform: none;
-   box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
+.adm-top {
+   position: sticky;
+   z-index: 40;
+   top: 0;
+   display: flex;
+   min-height: calc(var(--safe-area-top) + var(--top-h));
+   align-items: center;
+   gap: 6px;
+   border-width: 0 0 1px;
+   border-style: solid;
+   padding: var(--safe-area-top) 10px 0 var(--gutter);
+   box-shadow: none !important;
 }
 
-.admin-backdrop {
+.adm-top-title {
+   min-width: 0;
+   flex: 1;
+   margin: 0;
+   overflow: hidden;
+   font-size: 18px;
+   font-weight: 750;
+   letter-spacing: -0.02em;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-icon-btn {
+   display: inline-grid;
+   width: 44px;
+   height: 44px;
+   flex-shrink: 0;
+   place-items: center;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   color: var(--admin-ink);
+   cursor: pointer;
+   transition: background 0.15s ease;
+}
+
+.adm-icon-btn:active,
+.adm-icon-btn:hover {
+   background: var(--z-muted);
+}
+
+.adm-icon-btn.is-small {
+   width: 32px;
+   height: 32px;
+}
+
+.adm-content {
+   width: 100%;
+   max-width: 1180px;
+   margin: 0 auto;
+   padding: 12px var(--gutter) calc(var(--safe-area-bottom) + var(--dock-h) + 32px);
+}
+
+/* Suzib turuvchi shisha panel — ilovadagi pastki menyu bilan bir xil */
+.adm-dock {
    position: fixed;
-   z-index: 30;
-   inset: 0;
-   background: rgb(0 0 0 / 0.4);
-   backdrop-filter: blur(2px);
+   z-index: 50;
+   right: 8px;
+   bottom: calc(var(--safe-area-bottom) + 8px);
+   left: 8px;
+   display: grid;
+   grid-template-columns: repeat(5, minmax(0, 1fr));
+   gap: 2px;
+   border-width: 1px;
+   border-style: solid;
+   border-radius: 999px;
+   padding: 4px;
 }
 
-.admin-brand {
+.adm-dock-item {
+   display: flex;
+   min-width: 0;
+   height: calc(var(--dock-h) - 10px);
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 4px;
+   border: 0;
+   border-radius: 22px;
+   background: transparent;
+   padding: 0 2px;
+   color: var(--admin-muted);
+   font-size: 11px;
+   font-weight: 650;
+   line-height: 1;
+   white-space: nowrap;
+   text-decoration: none;
+   cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.adm-dock-item span {
+   max-width: 100%;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.adm-dock-item.router-link-exact-active,
+.adm-dock-item.is-active {
+   background: var(--admin-tint);
+   color: var(--admin-accent);
+}
+
+.adm-dock-item:active {
+   transform: scale(0.96);
+}
+
+/* "Ko'proq": pastdan chiqadigan shisha oyna */
+.adm-sheet-layer {
+   position: fixed;
+   z-index: 80;
+   inset: 0;
+}
+
+.adm-sheet-backdrop {
+   position: absolute;
+   inset: 0;
+}
+
+.adm-sheet {
+   position: absolute;
+   right: 0;
+   bottom: 0;
+   left: 0;
+   max-height: calc(100dvh - var(--safe-area-top) - 24px);
+   overflow-y: auto;
+   overscroll-behavior: contain;
+   border-width: 1px 0 0;
+   border-style: solid;
+   border-radius: 26px 26px 0 0;
+   padding: 8px 14px calc(var(--safe-area-bottom) + 16px);
+}
+
+.adm-sheet-grip {
+   width: 40px;
+   height: 5px;
+   margin: 0 auto 10px;
+   border-radius: 999px;
+   background: color-mix(in srgb, var(--z-foreground) 18%, transparent);
+}
+
+.adm-sheet-search {
+   display: flex;
+   min-height: 48px;
+   align-items: center;
+   gap: 10px;
+   margin-bottom: 6px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-field-background);
+   padding: 0 6px 0 14px;
+}
+
+.adm-sheet-search input {
+   width: 100%;
+   min-width: 0;
+   border: 0;
+   outline: 0;
+   background: transparent;
+   color: var(--admin-ink);
+   font-size: 16px;
+}
+
+.adm-group-title {
+   margin: 16px 4px 6px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 700;
+   letter-spacing: 0.04em;
+   text-transform: uppercase;
+}
+
+.adm-menu-list {
+   display: flex;
+   flex-direction: column;
+   overflow: hidden;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+}
+
+.adm-menu-row {
+   display: flex;
+   min-height: 58px;
+   align-items: center;
+   gap: 12px;
+   border: 0;
+   border-bottom: 1px solid var(--admin-line);
+   background: transparent;
+   padding: 8px 12px;
+   color: var(--admin-ink);
+   font: inherit;
+   text-align: left;
+   text-decoration: none;
+   cursor: pointer;
+}
+
+.adm-menu-row:last-child {
+   border-bottom: 0;
+}
+
+.adm-menu-row:active {
+   background: var(--z-muted);
+}
+
+.adm-menu-row.router-link-exact-active .adm-menu-icon {
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+}
+
+.adm-menu-icon {
+   display: grid;
+   width: 36px;
+   height: 36px;
+   flex-shrink: 0;
+   place-items: center;
+   border-radius: 11px;
+   background: var(--z-muted);
+}
+
+.adm-menu-text {
+   display: flex;
+   min-width: 0;
+   flex: 1;
+   flex-direction: column;
+   gap: 2px;
+}
+
+.adm-menu-text b {
+   font-size: 15px;
+   font-weight: 650;
+}
+
+.adm-menu-text small {
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-menu-back {
+   margin-top: 14px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+}
+
+/* Animatsiyalar */
+.adm-sheet-enter-active,
+.adm-sheet-leave-active {
+   transition: opacity 0.22s ease;
+}
+
+.adm-sheet-enter-active .adm-sheet,
+.adm-sheet-leave-active .adm-sheet {
+   transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.adm-sheet-leave-active,
+.adm-sheet-leave-active .adm-sheet {
+   transition-duration: 0.18s;
+}
+
+.adm-sheet-enter-from,
+.adm-sheet-leave-to {
+   opacity: 0;
+}
+
+.adm-sheet-enter-from .adm-sheet,
+.adm-sheet-leave-to .adm-sheet {
+   transform: translateY(100%);
+}
+
+.adm-fade-enter-active,
+.adm-fade-leave-active {
+   transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.adm-fade-enter-from {
+   opacity: 0;
+   transform: translateY(4px);
+}
+
+.adm-fade-leave-to {
+   opacity: 0;
+}
+
+/* Kompyuter: yon panel */
+.adm-brand {
    display: flex;
    align-items: center;
-   gap: 11px;
-   padding: 0 10px 28px;
+   gap: 10px;
+   padding: 2px 8px 18px;
    color: inherit;
    text-decoration: none;
 }
 
-.admin-brand-mark {
+.adm-brand-mark {
    display: grid;
-   width: 38px;
-   height: 38px;
+   width: 36px;
+   height: 36px;
    place-items: center;
-   border-radius: var(--z-rounded);
-   background: var(--z-muted);
-   color: var(--admin-accent);
-   font-size: 20px;
+   border-radius: 12px;
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+   font-size: 18px;
    font-weight: 800;
 }
 
-.admin-brand strong,
-.admin-brand small,
-.admin-user-label strong,
-.admin-user-label small {
+.adm-brand strong,
+.adm-brand small {
    display: block;
 }
 
-.admin-brand strong {
+.adm-brand strong {
    font-size: 15px;
-   letter-spacing: -0.02em;
 }
 
-.admin-brand small,
-.admin-user-label small {
-   margin-top: 3px;
+.adm-brand small {
    color: var(--admin-muted);
-   font-size: 11px;
-   font-weight: 700;
-   letter-spacing: 0.13em;
+   font-size: 12px;
 }
 
-.admin-nav-label {
-   margin: 0 10px 9px;
-   color: var(--z-muted-text);
-   font-size: 11px;
-   font-weight: 800;
-   letter-spacing: 0.13em;
-}
-
-.admin-nav-label-spaced {
-   margin-top: 27px;
-}
-
-.admin-nav {
-   display: grid;
-   gap: 4px;
-}
-
-.admin-nav-link {
+.adm-side-search {
    display: flex;
-   min-height: 46px;
+   min-height: 40px;
    align-items: center;
-   gap: 12px;
-   border-radius: 10px;
-   padding: 0 11px;
-   color: var(--z-muted-text);
-   font-size: 15px;
-   font-weight: 600;
-   text-decoration: none;
-   transition: background 0.15s ease, color 0.15s ease;
-}
-
-.admin-nav-link:hover,
-.admin-nav-link.router-link-exact-active {
-   background: var(--z-muted);
-   color: var(--admin-accent);
-}
-
-.admin-nav-badge {
-   margin-left: auto;
-   display: grid;
-   min-width: 20px;
-   height: 20px;
-   place-items: center;
-   border-radius: 999px;
-   background: var(--z-danger);
-   padding: 0 6px;
-   color: #fff;
-   font-size: 11px;
-   font-weight: 700;
-}
-
-.admin-sidebar-footer {
-   margin-top: auto;
-   border-top: 1px solid var(--admin-border);
-   padding-top: 15px;
-}
-
-.admin-user-chip {
-   display: flex;
-   align-items: center;
-   gap: 10px;
-   padding: 2px 3px 13px;
-}
-
-.admin-avatar {
-   display: grid;
-   width: 34px;
-   height: 34px;
-   flex-shrink: 0;
-   place-items: center;
-   border-radius: 50%;
-   background: var(--z-muted);
-   color: var(--z-foreground);
-   font-size: 13px;
-   font-weight: 800;
-}
-
-.admin-user-label {
-   min-width: 0;
-}
-
-.admin-user-label strong {
-   overflow: hidden;
-   max-width: 150px;
-   font-size: 13px;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-}
-
-.admin-user-label small {
-   letter-spacing: 0;
-}
-
-.admin-site-link,
-.admin-topbar-link {
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   color: var(--admin-muted);
-   font-size: 13px;
-   text-decoration: none;
-}
-
-.admin-site-link {
-   border-radius: 10px;
-   padding: 9px 5px;
-}
-
-.admin-site-link:hover,
-.admin-topbar-link:hover,
-.admin-text-link:hover {
-   color: var(--admin-accent);
-}
-
-/* Telefonda menyuda "Ilovaga qaytish" bor — yuqorida joy tejaymiz */
-.admin-topbar-link {
-   display: none;
    gap: 8px;
-}
-
-.admin-main {
-   display: flex;
-   min-width: 0;
-   min-height: 100vh;
-   flex: 1;
-   flex-direction: column;
-}
-
-.admin-topbar {
-   position: sticky;
-   z-index: 5;
-   top: 0;
-   display: flex;
-   min-height: 56px;
-   align-items: center;
-   justify-content: space-between;
-   gap: 10px;
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-glass);
-   padding: var(--safe-area-top) 12px 0;
-   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   backdrop-filter: blur(var(--z-blur)) saturate(170%);
-}
-
-.admin-topbar-label {
-   color: var(--admin-ink);
-   font-size: 15px;
-   font-weight: 700;
-   letter-spacing: -0.01em;
-}
-
-.admin-topbar-user {
-   display: none;
-}
-
-/* Telefonda pastki panelda "Menyu" bor — "☰" faqat planshet/kompyuter oralig'i uchun zaxira */
-.admin-menu-button {
-   display: none;
-   width: 38px;
-   height: 38px;
-   align-items: center;
-   justify-content: center;
+   margin-bottom: 6px;
    border: 1px solid var(--admin-border);
-   border-radius: 999px;
-   background: var(--z-card);
-   color: var(--admin-ink);
+   border-radius: var(--r-sm);
+   background: var(--z-field-background);
+   padding: 0 12px;
+   color: var(--admin-muted);
+   font: inherit;
+   font-size: 14px;
    cursor: pointer;
 }
 
-.admin-content {
-   width: 100%;
-   max-width: 1500px;
-   margin: 0 auto;
-   padding: 16px 12px calc(var(--safe-area-bottom) + 100px);
-}
-
-/* Pastki navigatsiya (ilovadagi pastki panel uslubida) */
-.admin-tabbar {
-   position: fixed;
-   z-index: 20;
-   right: 10px;
-   bottom: calc(var(--safe-area-bottom) + 10px);
-   left: 10px;
+.adm-side-nav {
    display: grid;
-   grid-template-columns: repeat(5, minmax(0, 1fr));
    gap: 2px;
-   border: 1px solid var(--admin-border);
-   border-radius: 999px;
-   background: var(--z-glass);
-   padding: 5px;
-   box-shadow: var(--z-glass-shadow);
-   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   backdrop-filter: blur(var(--z-blur)) saturate(170%);
 }
 
-.admin-tab {
-   position: relative;
+.adm-side-link {
    display: flex;
-   min-width: 0;
-   flex-direction: column;
+   min-height: 40px;
    align-items: center;
-   justify-content: center;
-   gap: 3px;
-   border: 0;
-   border-radius: 999px;
-   background: transparent;
-   padding: 7px 2px;
+   gap: 11px;
+   border-radius: var(--r-sm);
+   padding: 0 10px;
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 14px;
    font-weight: 600;
    text-decoration: none;
-   cursor: pointer;
    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.admin-tab span {
-   max-width: 100%;
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-}
-
-.admin-tab .admin-tab-dot {
-   position: absolute;
-   top: 5px;
-   right: calc(50% - 16px);
-   width: 8px;
-   height: 8px;
-   border: 2px solid var(--z-background);
-   border-radius: 50%;
-   background: var(--z-danger);
-}
-
-.admin-tab.router-link-exact-active,
-.admin-tab.is-active {
+.adm-side-link:hover {
    background: var(--z-muted);
    color: var(--admin-ink);
 }
 
-@media (min-width: 901px) {
-   .admin-sidebar {
-      z-index: 10;
-      width: 240px;
-      overflow-y: visible;
-      background: var(--z-card);
-      padding: 25px 16px 18px;
-      transform: none;
-      transition: none;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
+.adm-side-link.router-link-exact-active {
+   background: var(--admin-tint);
+   color: var(--admin-accent);
+}
+
+@media (min-width: 960px) {
+   .adm-shell {
+      --gutter: 28px;
+      --top-h: 60px;
    }
 
-   .admin-shell.is-menu-open .admin-sidebar {
-      box-shadow: none;
+   .adm-side {
+      position: fixed;
+      z-index: 30;
+      inset: 12px auto 12px 12px;
+      display: flex;
+      width: 236px;
+      flex-direction: column;
+      overflow-y: auto;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: var(--r-lg);
+      padding: 18px 12px 12px;
    }
 
-   .admin-backdrop,
-   .admin-tabbar {
+   .adm-side .adm-group-title {
+      margin-top: 14px;
+   }
+
+   .adm-main {
+      margin-left: 260px;
+   }
+
+   .adm-top {
+      top: 12px;
+      margin: 12px var(--gutter) 0;
+      border-width: 1px;
+      border-radius: var(--r-lg);
+      padding: 0 8px 0 18px;
+   }
+
+   .adm-dock,
+   .adm-sheet-grip {
       display: none;
    }
 
-   .admin-nav-link {
-      min-height: 42px;
-      font-size: 14px;
+   /* Kompyuterda "Ko'proq" o'rniga markazda qidiruv oynasi */
+   .adm-sheet {
+      top: 12vh;
+      right: auto;
+      bottom: auto;
+      left: 50%;
+      width: min(560px, calc(100vw - 40px));
+      max-height: 76vh;
+      border-width: 1px;
+      border-radius: var(--r-lg);
+      padding: 14px;
+      transform: translateX(-50%);
    }
 
-   .admin-main {
-      margin-left: 240px;
+   .adm-sheet-enter-from .adm-sheet,
+   .adm-sheet-leave-to .adm-sheet {
+      transform: translate(-50%, 12px);
    }
 
-   .admin-topbar {
-      min-height: 62px;
-      padding: 0 28px;
-   }
-
-   .admin-topbar-link {
-      display: flex;
-   }
-
-   .admin-content {
-      padding: 28px 28px 50px;
+   .adm-content {
+      padding: 22px var(--gutter) 48px;
    }
 }
 
-@media (min-width: 1200px) {
-   .admin-sidebar {
-      width: 250px;
-   }
-
-   .admin-main {
-      margin-left: 250px;
-   }
-
-   .admin-topbar {
-      padding: 0 34px;
-   }
-
-   .admin-content {
-      padding: 32px 34px 50px;
+@media (prefers-reduced-motion: reduce) {
+   .adm-sheet-enter-active,
+   .adm-sheet-leave-active,
+   .adm-sheet-enter-active .adm-sheet,
+   .adm-sheet-leave-active .adm-sheet,
+   .adm-fade-enter-active,
+   .adm-fade-leave-active {
+      transition: none;
    }
 }
 
 /* ==========================================================================
-   SAHIFA, PANEL, STATISTIKA
+   3. YANGI QOLIPLAR (adm-*): bosh sahifa, kun tanlash, grafiklar, ro'yxatlar
    ========================================================================== */
 
+.adm-page {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr);
+   gap: 12px;
+}
+
+.adm-card {
+   min-width: 0;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-lg);
+   background: var(--z-card);
+   box-shadow: var(--z-glass-edge, none);
+   padding: 14px;
+}
+
+.adm-card-head {
+   display: flex;
+   min-height: 32px;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   margin-bottom: 10px;
+}
+
+.adm-card-head h2 {
+   min-width: 0;
+   margin: 0;
+   overflow: hidden;
+   font-size: 15px;
+   font-weight: 700;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-card-meta {
+   flex-shrink: 0;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+}
+
+.adm-link {
+   display: inline-flex;
+   min-height: 32px;
+   flex-shrink: 0;
+   align-items: center;
+   border-radius: 999px;
+   background: var(--admin-tint);
+   padding: 0 12px;
+   color: var(--admin-accent);
+   font-size: 13px;
+   font-weight: 650;
+   text-decoration: none;
+}
+
+.adm-grid-2 {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr);
+   gap: 12px;
+}
+
+@media (min-width: 820px) {
+   .adm-grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+   }
+
+   .adm-page {
+      gap: 14px;
+   }
+}
+
+/* Chip (tez tanlash, filtrlar) */
+.adm-chip {
+   display: inline-flex;
+   height: 36px;
+   flex-shrink: 0;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
+   border: 1px solid var(--admin-border);
+   border-radius: 999px;
+   background: var(--z-card);
+   padding: 0 14px;
+   color: var(--admin-ink);
+   font: inherit;
+   font-size: 13.5px;
+   font-weight: 600;
+   white-space: nowrap;
+   cursor: pointer;
+   transition: background 0.15s ease, color 0.15s ease;
+}
+
+.adm-chip.is-active {
+   border-color: transparent;
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+}
+
+/* Kun tanlash: ‹ [📅 Bugun · Seshanba, 24-noyabr ▾] › — o'rtasi bosilsa kalendar ochiladi */
+.adm-datebar {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   border: 1px solid var(--admin-border);
+   border-radius: 999px;
+   background: var(--z-glass);
+   box-shadow: var(--z-glass-shadow);
+   padding: 5px;
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+.adm-sticky {
+   position: sticky;
+   z-index: 20;
+   top: calc(var(--safe-area-top) + var(--top-h) + 6px);
+}
+
+.adm-datebar-arrow {
+   display: grid;
+   width: 44px;
+   height: 44px;
+   flex-shrink: 0;
+   place-items: center;
+   border: 0;
+   border-radius: 999px;
+   background: var(--z-muted);
+   color: var(--admin-ink);
+   cursor: pointer;
+   transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+}
+
+.adm-datebar-arrow:hover:not(:disabled) {
+   background: var(--admin-tint);
+   color: var(--admin-accent);
+}
+
+.adm-datebar-arrow:active:not(:disabled) {
+   transform: scale(0.9);
+}
+
+.adm-datebar-arrow:disabled {
+   opacity: 0.3;
+   cursor: default;
+}
+
+.adm-datebar-current {
+   display: flex;
+   min-width: 0;
+   height: 44px;
+   flex: 1;
+   align-items: center;
+   justify-content: center;
+   gap: 10px;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   padding: 0 10px;
+   color: var(--admin-ink);
+   font: inherit;
+   cursor: pointer;
+}
+
+.adm-datebar-current:active {
+   background: var(--z-muted);
+}
+
+.adm-datebar-icon {
+   display: grid;
+   width: 32px;
+   height: 32px;
+   flex-shrink: 0;
+   place-items: center;
+   border-radius: 10px;
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+}
+
+.adm-datebar-text {
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   align-items: flex-start;
+   line-height: 1.2;
+}
+
+.adm-datebar-text b {
+   max-width: 100%;
+   overflow: hidden;
+   font-size: 15px;
+   font-weight: 700;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-datebar-text small {
+   max-width: 100%;
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 12px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+/* Kalendar (AdminSheet ichida) */
+.adm-cal {
+   display: grid;
+   gap: 14px;
+}
+
+.adm-cal-quick {
+   display: grid;
+   grid-auto-columns: minmax(0, 1fr);
+   grid-auto-flow: column;
+   gap: 6px;
+}
+
+.adm-cal-quick .adm-chip {
+   height: 40px;
+   padding: 0 6px;
+}
+
+.adm-cal-head {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 8px;
+}
+
+.adm-cal-head b {
+   font-size: 16px;
+   font-weight: 700;
+}
+
+.adm-cal-nav {
+   display: grid;
+   width: 40px;
+   height: 40px;
+   place-items: center;
+   border: 0;
+   border-radius: 999px;
+   background: var(--z-muted);
+   color: var(--admin-ink);
+   cursor: pointer;
+}
+
+.adm-cal-nav:disabled {
+   opacity: 0.3;
+   cursor: default;
+}
+
+.adm-cal-grid {
+   display: grid;
+   grid-template-columns: repeat(7, minmax(0, 1fr));
+   gap: 4px;
+}
+
+.adm-cal-weekday {
+   padding: 4px 0;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 650;
+   text-align: center;
+}
+
+.adm-cal-day {
+   position: relative;
+   display: grid;
+   aspect-ratio: 1;
+   max-height: 52px;
+   place-items: center;
+   border: 0;
+   border-radius: 14px;
+   background: transparent;
+   color: var(--admin-ink);
+   font: inherit;
+   font-size: 15px;
+   font-weight: 600;
+   font-variant-numeric: tabular-nums;
+   cursor: pointer;
+   transition: background 0.12s ease, transform 0.1s ease;
+}
+
+.adm-cal-day:hover:not(:disabled) {
+   background: var(--z-muted);
+}
+
+.adm-cal-day:active:not(:disabled) {
+   transform: scale(0.92);
+}
+
+.adm-cal-day.is-weekend {
+   color: var(--admin-danger);
+}
+
+.adm-cal-day:disabled {
+   color: var(--admin-muted);
+   opacity: 0.35;
+   cursor: default;
+}
+
+/* Bugun — halqa, tanlangan — to'liq bo'yalgan */
+.adm-cal-day.is-today {
+   box-shadow: inset 0 0 0 2px var(--chart-a);
+}
+
+.adm-cal-day.is-selected,
+.adm-cal-day.is-selected:hover {
+   background: var(--admin-accent);
+   box-shadow: none;
+   color: var(--z-primary-foreground);
+}
+
+/* Diqqat: shikoyatlar, e'lon qo'ya olmaganlar */
+.adm-attention {
+   display: grid;
+   gap: 8px;
+}
+
+.adm-attention-item {
+   display: flex;
+   min-height: 48px;
+   align-items: center;
+   gap: 10px;
+   border: 1px solid transparent;
+   border-radius: var(--r-md);
+   padding: 0 14px;
+   font-size: 14px;
+   text-decoration: none;
+}
+
+.adm-attention-item.is-danger {
+   border-color: color-mix(in srgb, var(--admin-danger) 25%, transparent);
+   background: var(--admin-danger-bg);
+   color: var(--admin-danger);
+}
+
+.adm-attention-item.is-warning {
+   border-color: color-mix(in srgb, var(--admin-warning) 25%, transparent);
+   background: var(--admin-warning-bg);
+   color: var(--admin-warning);
+}
+
+/* Asosiy raqamlar */
+.adm-kpis {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+   transition: opacity 0.15s ease;
+}
+
+.adm-kpis.is-loading {
+   opacity: 0.55;
+}
+
+.adm-kpi {
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   gap: 4px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+   box-shadow: var(--z-glass-edge, none);
+   padding: 12px;
+   color: inherit;
+   text-decoration: none;
+}
+
+a.adm-kpi:active {
+   transform: scale(0.98);
+}
+
+.adm-kpi-label {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-weight: 600;
+   white-space: nowrap;
+}
+
+.adm-kpi-value {
+   font-size: 26px;
+   font-weight: 750;
+   line-height: 1.1;
+   letter-spacing: -0.03em;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-kpi-foot {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+   gap: 6px;
+   color: var(--admin-muted);
+   font-size: 12px;
+}
+
+.adm-delta {
+   flex-shrink: 0;
+   border-radius: 999px;
+   padding: 1px 7px;
+   font-weight: 700;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-delta.is-up {
+   background: var(--admin-success-bg);
+   color: var(--admin-success);
+}
+
+.adm-delta.is-down {
+   background: var(--admin-danger-bg);
+   color: var(--admin-danger);
+}
+
+.adm-delta.is-flat {
+   background: var(--z-muted);
+}
+
+@media (min-width: 820px) {
+   .adm-kpis {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+   }
+}
+
+.adm-footnote {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px 14px;
+   margin: 0;
+   padding: 0 4px;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+}
+
+.adm-footnote b {
+   color: var(--admin-ink);
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-footnote.is-center {
+   justify-content: center;
+   padding: 6px 4px;
+   text-align: center;
+}
+
+/* Segment (grafikdagi ko'rsatkich tanlovi) */
+.adm-segment {
+   display: inline-flex;
+   flex-shrink: 0;
+   border-radius: 999px;
+   background: var(--z-muted);
+   padding: 3px;
+}
+
+.adm-segment button {
+   height: 30px;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   padding: 0 11px;
+   color: var(--admin-muted);
+   font: inherit;
+   font-size: 12.5px;
+   font-weight: 650;
+   cursor: pointer;
+}
+
+.adm-segment button.is-active {
+   background: var(--z-primary);
+   color: var(--z-primary-foreground);
+}
+
+/* 14 kunlik ustunli grafik: ixcham, har ustun — tugma */
+.adm-bars {
+   display: grid;
+   grid-template-columns: repeat(14, minmax(0, 1fr));
+   gap: 3px;
+   height: 128px;
+}
+
+.adm-bar {
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   align-items: center;
+   gap: 3px;
+   border: 0;
+   border-radius: 8px;
+   background: transparent;
+   padding: 0;
+   color: var(--admin-muted);
+   font: inherit;
+   cursor: pointer;
+}
+
+.adm-bar-value {
+   height: 14px;
+   overflow: hidden;
+   font-size: 10.5px;
+   font-weight: 650;
+   font-variant-numeric: tabular-nums;
+   opacity: 0;
+}
+
+.adm-bar.is-selected .adm-bar-value {
+   color: var(--admin-ink);
+   opacity: 1;
+}
+
+.adm-bar-track {
+   position: relative;
+   display: flex;
+   width: 100%;
+   max-width: 22px;
+   flex: 1;
+   align-items: flex-end;
+   overflow: hidden;
+   border-radius: 6px;
+   background: var(--chart-track);
+}
+
+.adm-bar-fill {
+   position: relative;
+   display: flex;
+   width: 100%;
+   flex-direction: column;
+   overflow: hidden;
+   border-radius: 6px;
+   background: color-mix(in srgb, var(--chart-a) 45%, transparent);
+   transition: height 0.3s ease;
+}
+
+.adm-bar-ai {
+   width: 100%;
+   background: color-mix(in srgb, var(--chart-b) 55%, transparent);
+}
+
+.adm-bar.is-selected .adm-bar-fill {
+   background: var(--chart-a);
+}
+
+.adm-bar.is-selected .adm-bar-ai {
+   background: var(--chart-b);
+}
+
+.adm-bar-label {
+   display: grid;
+   min-width: 22px;
+   height: 22px;
+   place-items: center;
+   border-radius: 999px;
+   font-size: 11px;
+   font-weight: 600;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-bar.is-selected .adm-bar-label {
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+}
+
+.adm-legend {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 4px 12px;
+   margin: 10px 0 0;
+   color: var(--admin-muted);
+   font-size: 12px;
+}
+
+.adm-legend span {
+   display: inline-flex;
+   align-items: center;
+   gap: 5px;
+}
+
+.adm-legend i {
+   width: 9px;
+   height: 9px;
+   border-radius: 3px;
+}
+
+.adm-legend .is-people {
+   background: var(--chart-a);
+}
+
+.adm-legend .is-ai {
+   background: var(--chart-b);
+}
+
+/* Soatlar bo'yicha: 24 ta ingichka ustun */
+.adm-hours {
+   display: flex;
+   height: 56px;
+   align-items: flex-end;
+   gap: 2px;
+}
+
+.adm-hour {
+   min-height: 2px;
+   flex: 1;
+   border-radius: 3px;
+   background: color-mix(in srgb, var(--chart-a) 40%, var(--chart-track));
+}
+
+.adm-hour.is-peak {
+   background: var(--chart-a);
+}
+
+.adm-hours-axis {
+   display: flex;
+   justify-content: space-between;
+   margin-top: 4px;
+   color: var(--admin-muted);
+   font-size: 11px;
+   font-variant-numeric: tabular-nums;
+}
+
+/* Ro'yxat qatorlari */
+.adm-rows {
+   display: flex;
+   flex-direction: column;
+   margin: 0 -6px;
+   padding: 0;
+   list-style: none;
+}
+
+.adm-row {
+   display: flex;
+   min-height: 56px;
+   align-items: center;
+   gap: 10px;
+   border-radius: var(--r-sm);
+   padding: 6px;
+   color: inherit;
+   text-decoration: none;
+}
+
+a.adm-row:active {
+   background: var(--z-muted);
+}
+
+.adm-rows.is-compact .adm-row {
+   min-height: 44px;
+}
+
+.adm-row-main {
+   display: flex;
+   min-width: 0;
+   flex: 1;
+   flex-direction: column;
+   gap: 2px;
+}
+
+.adm-row-title {
+   overflow: hidden;
+   font-size: 14.5px;
+   font-weight: 600;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-row-meta {
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-thumb,
+.adm-avatar {
+   display: grid;
+   width: 44px;
+   height: 44px;
+   flex-shrink: 0;
+   place-items: center;
+   overflow: hidden;
+   border-radius: 12px;
+   background: var(--z-muted);
+   color: var(--admin-muted);
+   object-fit: cover;
+}
+
+.adm-avatar {
+   border-radius: 999px;
+   color: var(--admin-ink);
+   font-size: 14px;
+   font-weight: 750;
+}
+
+.adm-count {
+   min-width: 28px;
+   flex-shrink: 0;
+   font-size: 14px;
+   font-weight: 700;
+   text-align: right;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-empty {
+   margin: 0;
+   padding: 18px 0 8px;
+   color: var(--admin-muted);
+   font-size: 14px;
+   text-align: center;
+}
+
+/* Reyting (kategoriyalar) */
+.adm-ranks {
+   display: grid;
+   gap: 2px;
+   margin: 0 -6px;
+   padding: 0;
+   list-style: none;
+}
+
+.adm-rank {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr) auto;
+   gap: 5px 10px;
+   border-radius: var(--r-sm);
+   padding: 8px 6px;
+   color: inherit;
+   text-decoration: none;
+}
+
+a.adm-rank:active {
+   background: var(--z-muted);
+}
+
+.adm-rank-name {
+   overflow: hidden;
+   font-size: 14px;
+   font-weight: 600;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-rank-count {
+   font-size: 14px;
+   font-weight: 700;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-rank-track {
+   grid-column: 1 / -1;
+   height: 6px;
+   overflow: hidden;
+   border-radius: 999px;
+   background: var(--chart-track);
+}
+
+.adm-rank-track span {
+   display: block;
+   height: 100%;
+   border-radius: 999px;
+   background: var(--chart-a);
+}
+
+/* Yuklanish */
+.adm-skeleton {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+}
+
+.adm-skeleton span {
+   height: 96px;
+   border-radius: var(--r-md);
+   background: linear-gradient(90deg, var(--z-muted), color-mix(in srgb, var(--z-muted) 40%, transparent), var(--z-muted));
+   background-size: 200% 100%;
+   animation: adm-shimmer 1.2s linear infinite;
+}
+
+@keyframes adm-shimmer {
+   to {
+      background-position: -200% 0;
+   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+   .adm-skeleton span {
+      animation: none;
+   }
+}
+
+/* Ro'yxat sahifalaridagi faol filtr (masalan "24-noyabr kuni ×") */
+.adm-filter-tag {
+   display: inline-flex;
+   min-height: 36px;
+   max-width: 100%;
+   align-items: center;
+   gap: 6px;
+   border: 0;
+   border-radius: 999px;
+   background: var(--admin-tint);
+   padding: 0 6px 0 14px;
+   color: var(--admin-accent);
+   font: inherit;
+   font-size: 13.5px;
+   font-weight: 650;
+   cursor: pointer;
+}
+
+.adm-filter-tag svg {
+   box-sizing: content-box;
+   flex-shrink: 0;
+   border-radius: 999px;
+   background: color-mix(in srgb, var(--admin-accent) 14%, transparent);
+   padding: 3px;
+}
+
+/* ==========================================================================
+   4. SAHIFALAR ISHLATADIGAN KLASSLAR (admin-*): yangi uslubda
+   ========================================================================== */
+
+/* Sahifa va sarlavha. Telefonda sahifa nomi yuqori panelda — h1 takrorlanmaydi */
 .admin-page {
    display: grid;
-   /* Ustun ichidagi uzun matn yoki jadval sahifani ekrandan kengaytirib yubormasin */
    grid-template-columns: minmax(0, 1fr);
-   gap: 14px;
+   gap: 12px;
 }
 
 .admin-page-heading,
@@ -434,125 +1397,70 @@
 }
 
 .admin-page-heading {
-   align-items: flex-start;
+   align-items: stretch;
    flex-direction: column;
+}
+
+.admin-page-heading h1 {
+   display: none;
+   margin: 0;
+   font-size: 24px;
+   font-weight: 750;
+   letter-spacing: -0.03em;
+}
+
+.admin-page-heading .admin-muted {
+   margin: 0;
+   padding: 0 2px;
+}
+
+.admin-page-heading > :nth-child(2) > button,
+.admin-page-heading > a > button,
+.admin-page-heading > button {
+   width: 100%;
+   height: var(--admin-control);
 }
 
 .admin-section-heading {
    align-items: center;
-   padding: 16px;
+   padding: 14px;
+}
+
+.admin-section-heading h2 {
+   margin: 0;
+   font-size: 15px;
+   font-weight: 700;
 }
 
 .admin-eyebrow {
-   margin: 0 0 7px;
-   color: var(--admin-accent);
-   font-size: 11px;
-   font-weight: 800;
-   letter-spacing: 0.13em;
-}
-
-.admin-page-heading h1 {
-   margin: 0;
-   color: var(--admin-ink);
-   font-size: 22px;
-   font-weight: 750;
-   letter-spacing: -0.04em;
+   margin: 0 0 6px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 700;
 }
 
 .admin-muted {
    margin: 4px 0 0;
    color: var(--admin-muted);
-   font-size: 13px;
-   line-height: 1.45;
-}
-
-.admin-panel {
-   border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
-   background: var(--z-card);
-   box-shadow: 0 2px 8px rgba(23, 43, 77, 0.025);
-}
-
-.admin-stats-grid {
-   display: grid;
-   grid-template-columns: repeat(2, minmax(0, 1fr));
-   gap: 8px;
-}
-
-.admin-stat-card {
-   display: flex;
-   min-width: 0;
-   flex-direction: column;
-   justify-content: center;
-   border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
-   background: var(--z-card);
-   padding: 11px 12px;
-}
-
-/* Filtr vazifasini ham bajaradigan karta (masalan "Qayta kirayotganlar") */
-button.admin-stat-card {
-   cursor: pointer;
-   font: inherit;
-   text-align: left;
-   transition:
-      border-color 0.15s ease,
-      box-shadow 0.15s ease;
-}
-
-button.admin-stat-card:hover {
-   border-color: color-mix(in srgb, var(--admin-accent) 45%, var(--admin-border));
-}
-
-button.admin-stat-card.is-active {
-   border-color: var(--admin-accent);
-   box-shadow: 0 0 0 1px var(--admin-accent);
-}
-
-.admin-stat-label {
-   overflow: hidden;
-   color: var(--admin-muted);
-   font-size: 12px;
-   font-weight: 600;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-}
-
-.admin-stat-card strong {
-   margin-top: 4px;
-   color: var(--admin-ink);
-   font-size: 21px;
-   line-height: 1.15;
-   font-weight: 750;
-   letter-spacing: -0.04em;
-}
-
-.admin-stat-detail {
-   overflow: hidden;
-   margin-top: 3px;
-   color: var(--z-muted-text);
-   font-size: 11.5px;
-   text-overflow: ellipsis;
-   white-space: nowrap;
-}
-
-.admin-section-heading h2 {
-   margin: 0;
-   color: var(--admin-ink);
-   font-size: 14px;
-   font-weight: 700;
+   font-size: 13.5px;
+   line-height: 1.5;
 }
 
 .admin-text-link {
+   border: 0;
+   background: none;
+   padding: 0;
    color: var(--admin-accent);
-   font-size: 13px;
-   font-weight: 700;
+   font: inherit;
+   font-size: 13.5px;
+   font-weight: 650;
    text-decoration: none;
+   cursor: pointer;
 }
 
 @media (min-width: 701px) {
    .admin-page {
-      gap: 20px;
+      gap: 16px;
    }
 
    .admin-page-heading {
@@ -561,120 +1469,239 @@ button.admin-stat-card.is-active {
       gap: 20px;
    }
 
-   .admin-page-heading h1 {
-      font-size: clamp(23px, 3vw, 30px);
-      letter-spacing: -0.045em;
-   }
-
-   .admin-muted {
-      margin-top: 6px;
-      font-size: 14px;
-      line-height: 1.6;
-   }
-
-   .admin-stats-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-   }
-
-   .admin-stat-card {
-      padding: 16px 18px;
-   }
-
-   .admin-stat-card strong {
-      font-size: 25px;
-   }
-
-   .admin-section-heading {
-      padding: 18px 20px;
+   .admin-page-heading > :nth-child(2) > button,
+   .admin-page-heading > a > button,
+   .admin-page-heading > button {
+      width: auto;
    }
 }
 
-/* ==========================================================================
-   NISHONLAR, OGOHLANTIRISHLAR, YUKLANISH
-   ========================================================================== */
+@media (min-width: 960px) {
+   .admin-page-heading h1 {
+      display: block;
+   }
 
+   .admin-page-heading .admin-muted {
+      margin-top: 4px;
+   }
+}
+
+/* Kartalar */
+.admin-panel,
+.admin-chart-card,
+.admin-table-panel {
+   min-width: 0;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-lg);
+   background: var(--z-card);
+}
+
+.admin-table-panel {
+   overflow: clip;
+}
+
+.admin-chart-card {
+   display: flex;
+   flex-direction: column;
+   padding: 14px;
+}
+
+.admin-card-header {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-between;
+   gap: 10px;
+   margin-bottom: 10px;
+}
+
+.admin-card-title {
+   margin: 0;
+   font-size: 15px;
+   font-weight: 700;
+}
+
+.admin-card-subtitle {
+   margin: 2px 0 0;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   line-height: 1.4;
+}
+
+.admin-dashboard-grid {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr);
+   gap: 12px;
+}
+
+@media (min-width: 1025px) {
+   .admin-dashboard-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+   }
+}
+
+/* Raqamli kartalar */
+.admin-stats-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+}
+
+.admin-stats-grid > :last-child:nth-child(odd) {
+   grid-column: 1 / -1;
+}
+
+.admin-stat-card {
+   display: flex;
+   min-width: 0;
+   min-height: 84px;
+   flex-direction: column;
+   justify-content: center;
+   gap: 3px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+   padding: 12px;
+   color: inherit;
+   font: inherit;
+   text-align: left;
+}
+
+button.admin-stat-card {
+   cursor: pointer;
+}
+
+button.admin-stat-card.is-active {
+   border-color: var(--admin-accent);
+   box-shadow: inset 0 0 0 1px var(--admin-accent);
+}
+
+.admin-stat-label {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 2;
+   line-clamp: 2;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-weight: 600;
+   line-height: 1.3;
+}
+
+.admin-stat-card strong {
+   font-size: 24px;
+   font-weight: 750;
+   line-height: 1.15;
+   letter-spacing: -0.03em;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-stat-detail {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 2;
+   line-clamp: 2;
+   color: var(--admin-muted);
+   font-size: 12px;
+   line-height: 1.35;
+}
+
+@media (min-width: 820px) {
+   .admin-stats-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+   }
+
+   .admin-stats-grid > :last-child:nth-child(odd) {
+      grid-column: auto;
+   }
+}
+
+/* Nishonlar */
 .admin-badge {
    display: inline-flex;
+   flex-shrink: 0;
    align-items: center;
    gap: 4px;
-   border-radius: 20px;
-   padding: 4px 8px;
-   font-size: 11px;
+   border-radius: 999px;
+   padding: 3px 9px;
+   font-size: 12px;
    font-weight: 700;
+   line-height: 1.35;
    white-space: nowrap;
 }
 
 .admin-badge-success {
-   background: #e8f7ef;
-   color: #167247;
+   background: var(--admin-success-bg);
+   color: var(--admin-success);
 }
 
 .admin-badge-warning {
-   background: #fff5df;
-   color: #97650d;
+   background: var(--admin-warning-bg);
+   color: var(--admin-warning);
 }
 
 .admin-badge-danger {
-   background: #fdecec;
-   color: #b42318;
-}
-
-.admin-badge-muted {
-   background: #edf1f5;
-   color: #67768a;
+   background: var(--admin-danger-bg);
+   color: var(--admin-danger);
 }
 
 .admin-badge-info {
-   background: #e9f1ff;
-   color: #335fa8;
+   background: var(--admin-info-bg);
+   color: var(--admin-info);
 }
 
-.admin-empty-cell {
-   padding: 35px 15px !important;
-   color: var(--admin-muted) !important;
-   text-align: center;
-}
-
-.admin-loading {
-   padding: 25px;
+.admin-badge-muted {
+   background: var(--z-muted);
    color: var(--admin-muted);
-   font-size: 14px;
 }
 
+/* Ogohlantirishlar, bo'sh holat, yuklanish */
 .admin-alert {
    border: 1px solid transparent;
-   border-radius: 10px;
-   padding: 11px 14px;
-   font-size: 13px;
+   border-radius: var(--r-md);
+   padding: 12px 14px;
+   font-size: 14px;
+   line-height: 1.45;
 }
 
 .admin-alert-error {
-   border-color: #f3cbcb;
-   background: #fff3f3;
-   color: #9c3434;
+   border-color: color-mix(in srgb, var(--admin-danger) 28%, transparent);
+   background: var(--admin-danger-bg);
+   color: var(--admin-danger);
 }
 
 .admin-alert-success {
-   border-color: #bee4cf;
-   background: #effaf3;
-   color: #237247;
+   border-color: color-mix(in srgb, var(--admin-success) 28%, transparent);
+   background: var(--admin-success-bg);
+   color: var(--admin-success);
 }
 
 .admin-alert-warning {
    display: flex;
    align-items: center;
    gap: 10px;
-   border-color: #f5dfa8;
-   background: #fff8e6;
-   color: #8a5a00;
+   border-color: color-mix(in srgb, var(--admin-warning) 28%, transparent);
+   background: var(--admin-warning-bg);
+   color: var(--admin-warning);
    text-decoration: none;
 }
 
-/* ==========================================================================
-   FORMALAR, QIDIRUV, TUGMALAR
-   ========================================================================== */
+.admin-empty-cell {
+   padding: 40px 16px !important;
+   color: var(--admin-muted) !important;
+   font-size: 14px;
+   text-align: center;
+}
 
+.admin-loading {
+   padding: 28px 16px;
+   color: var(--admin-muted);
+   font-size: 14px;
+   text-align: center;
+}
+
+/* Maydonlar va tugmalar */
 .admin-toolbar {
    display: flex;
    align-items: stretch;
@@ -688,18 +1715,17 @@ button.admin-stat-card.is-active {
    min-width: 100%;
    flex: 1;
    align-items: center;
-   gap: 9px;
+   gap: 10px;
    border: 1px solid var(--admin-border);
-   border-radius: 10px;
+   border-radius: var(--r-md);
    background: var(--z-field-background);
-   padding: 0 11px;
-   color: var(--z-muted-text);
+   padding: 0 12px;
+   color: var(--admin-muted);
 }
 
-/* iOS 16px'dan kichik maydonda fokusda sahifani kattalashtiradi */
 .admin-search input {
    width: 100%;
-   min-height: 37px;
+   min-height: calc(var(--admin-control) - 2px);
    border: 0;
    outline: 0;
    background: transparent;
@@ -709,18 +1735,18 @@ button.admin-stat-card.is-active {
 
 .admin-select,
 .admin-input {
-   min-height: 38px;
+   min-height: var(--admin-control);
    border: 1px solid var(--admin-border);
-   border-radius: 10px;
+   border-radius: var(--r-md);
    background: var(--z-field-background);
-   padding: 0 10px;
+   padding: 0 12px;
    color: var(--admin-ink);
    font-size: 16px;
    outline-color: var(--z-primary);
 }
 
 textarea.admin-input {
-   padding: 8px 10px;
+   padding: 10px 12px;
    line-height: 1.5;
 }
 
@@ -730,17 +1756,17 @@ textarea.admin-input {
 
 .admin-button {
    display: inline-flex;
-   min-height: 38px;
+   min-height: var(--admin-control);
    align-items: center;
    justify-content: center;
+   gap: 8px;
    border: 1px solid transparent;
-   border-radius: 10px;
-   padding: 0 14px;
-   font-size: 13px;
+   border-radius: var(--r-md);
+   padding: 0 16px;
+   font-size: 14px;
    font-weight: 700;
    text-decoration: none;
    cursor: pointer;
-   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .admin-button:disabled {
@@ -749,56 +1775,41 @@ textarea.admin-input {
 }
 
 .admin-button-primary {
-   background: var(--z-primary);
-   color: var(--z-background);
-}
-
-.admin-button-primary:hover:not(:disabled) {
-   background: color-mix(in srgb, var(--z-primary) 82%, var(--z-background));
+   background-color: var(--z-primary);
+   color: var(--z-primary-foreground);
 }
 
 .admin-button-secondary {
-   border-color: var(--admin-border);
-   background: var(--z-card);
    color: var(--z-foreground);
 }
 
-.admin-button-secondary:hover:not(:disabled) {
-   border-color: color-mix(in srgb, var(--admin-border) 60%, var(--admin-ink));
-   background: var(--z-muted);
-}
-
 .admin-button-small {
-   min-height: 30px;
-   padding: 0 9px;
-   font-size: 11px;
+   min-height: 38px;
+   padding: 0 12px;
+   font-size: 13px;
 }
 
 .admin-icon-button {
+   position: relative;
    display: inline-grid;
-   width: 30px;
-   height: 30px;
+   width: 40px;
+   height: 40px;
+   flex-shrink: 0;
    place-items: center;
    border: 1px solid var(--admin-border);
-   border-radius: 10px;
-   background: transparent;
+   border-radius: var(--r-sm);
    color: var(--admin-muted);
    cursor: pointer;
-   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.admin-icon-button:hover {
-   background: var(--z-muted);
-   color: var(--admin-ink);
+.admin-icon-button::after {
+   content: "";
+   position: absolute;
+   inset: -2px;
 }
 
 .admin-icon-button.admin-danger {
-   margin-left: 5px;
-   color: var(--z-danger);
-}
-
-.admin-icon-button.admin-danger:hover {
-   background: color-mix(in srgb, var(--z-danger) 15%, transparent);
+   margin-left: 6px;
    color: var(--z-danger);
 }
 
@@ -809,9 +1820,9 @@ textarea.admin-input {
 }
 
 .admin-select-small {
-   min-height: 30px;
-   padding: 0 6px;
-   font-size: 11px;
+   min-height: 38px;
+   padding: 0 8px;
+   font-size: 14px;
 }
 
 .admin-reference-form {
@@ -819,7 +1830,7 @@ textarea.admin-input {
    align-items: stretch;
    flex-direction: column;
    gap: 12px;
-   padding: 17px;
+   padding: 16px;
 }
 
 .admin-reference-form label {
@@ -828,27 +1839,105 @@ textarea.admin-input {
    flex: 1;
    gap: 6px;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 13px;
    font-weight: 700;
 }
 
 .admin-reference-actions {
    display: flex;
    flex-wrap: wrap;
-   gap: 7px;
+   gap: 8px;
 }
 
 .admin-label {
-   color: var(--admin-ink);
-   font-size: 13px;
+   font-size: 14px;
    font-weight: 600;
 }
 
 .admin-hint {
    margin-top: 5px;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 12.5px;
    line-height: 1.5;
+}
+
+.admin-field {
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+}
+
+.admin-field > label,
+.admin-field-label {
+   font-size: 13.5px;
+   font-weight: 650;
+}
+
+.admin-field-hint {
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   line-height: 1.45;
+}
+
+.admin-switch-row {
+   display: flex;
+   min-height: 48px;
+   align-items: center;
+   justify-content: space-between;
+   gap: 12px;
+}
+
+.admin-switch-row > :first-child {
+   min-width: 0;
+   flex: 1;
+}
+
+.admin-switch-row > :last-child {
+   flex-shrink: 0;
+}
+
+/* Saqlanmagan o'zgarishlar: pastki panel ustida */
+.admin-savebar {
+   position: sticky;
+   z-index: 30;
+   bottom: calc(var(--safe-area-bottom) + var(--dock-h) + 16px);
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-glass-strong);
+   box-shadow: var(--z-glass-shadow);
+   padding: 8px 8px 8px 14px;
+   font-size: 14px;
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+/* Umumiy BaseButton telefonda kattaroq: xs → 38px, sm → 42px */
+@media (max-width: 959px) {
+   .adm-content button.h-7 {
+      height: 38px;
+      padding-inline: 12px;
+      font-size: 13px;
+   }
+
+   .adm-content button.h-9 {
+      height: 42px;
+      padding-inline: 14px;
+      font-size: 13.5px;
+   }
+
+   .adm-content button.size-7 {
+      width: 38px;
+      height: 38px;
+   }
+
+   .adm-content button.size-9 {
+      width: 42px;
+      height: 42px;
+   }
 }
 
 @media (min-width: 701px) {
@@ -876,34 +1965,33 @@ textarea.admin-input {
    }
 }
 
-@media (min-width: 901px) {
+@media (min-width: 960px) {
+   .adm-shell {
+      --admin-control: 40px;
+   }
+
    .admin-search input,
    .admin-select,
    .admin-input {
-      font-size: 13px;
+      font-size: 14px;
+   }
+
+   .admin-icon-button {
+      width: 34px;
+      height: 34px;
+   }
+
+   .admin-savebar {
+      bottom: 16px;
    }
 }
 
-/* ==========================================================================
-   JADVAL PANELI: filtrlar + jadval + sahifalash bitta kartada
-   ========================================================================== */
-
-.admin-table-panel {
-   overflow: hidden;
-   border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
-   background: var(--z-card);
-   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-/* Telefonda filtrlar ixcham: qidiruv to'liq qatorda, tanlovlar yonma-yon */
+/* Ro'yxat paneli: qidiruv + filtrlar + jadval + sahifalash */
 .admin-table-panel > .admin-toolbar {
    display: grid;
    grid-template-columns: repeat(2, minmax(0, 1fr));
    gap: 8px;
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-card);
-   padding: 12px;
+   border-bottom: 1px solid var(--admin-line);
 }
 
 .admin-table-panel > .admin-toolbar .admin-search {
@@ -911,33 +1999,29 @@ textarea.admin-input {
    min-width: 0;
 }
 
-/* Juft sondagi oxirgi element (masalan "Qidirish" tugmasi) yolg'iz qolmasin — to'liq qatorni oladi */
 .admin-table-panel > .admin-toolbar > :last-child:nth-child(even) {
    grid-column: 1 / -1;
 }
 
-@media (min-width: 901px) {
+@media (min-width: 960px) {
    .admin-table-panel > .admin-toolbar {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       padding: 12px 16px;
-   }
-
-   .admin-table-panel > .admin-toolbar .admin-search {
-      min-width: 220px;
    }
 }
 
-/* Holat chiplari (Hammasi · Faol · Shikoyat...) — telefonda gorizontal suriladi */
 .admin-filter-chips {
    display: flex;
-   gap: 6px;
+   gap: 8px;
    overflow-x: auto;
-   border-bottom: 1px solid var(--admin-border);
+   border-bottom: 1px solid var(--admin-line);
    padding: 10px 12px;
    scrollbar-width: none;
+   -webkit-mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 24px), transparent);
+   mask-image: linear-gradient(to right, transparent, #000 12px, #000 calc(100% - 24px), transparent);
 }
 
 .admin-filter-chips::-webkit-scrollbar {
@@ -946,36 +2030,37 @@ textarea.admin-input {
 
 .admin-filter-chip {
    display: inline-flex;
-   height: 32px;
+   height: 38px;
    flex-shrink: 0;
    align-items: center;
-   gap: 6px;
-   border: 1px solid var(--z-glass-border, var(--admin-border));
+   gap: 7px;
+   border: 1px solid var(--admin-border);
    border-radius: 999px;
-   background: transparent;
-   padding: 0 8px 0 12px;
+   background: var(--z-card);
+   padding: 0 10px 0 14px;
    color: var(--admin-ink);
-   font-size: 12.5px;
+   font: inherit;
+   font-size: 13.5px;
    font-weight: 600;
+   white-space: nowrap;
    cursor: pointer;
-   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .admin-filter-chip span {
    display: grid;
-   min-width: 20px;
-   height: 20px;
+   min-width: 22px;
+   height: 22px;
    place-items: center;
    border-radius: 999px;
    background: color-mix(in srgb, currentColor 12%, transparent);
-   padding: 0 5px;
-   font-size: 11px;
+   padding: 0 6px;
+   font-size: 12px;
    font-variant-numeric: tabular-nums;
 }
 
 .admin-filter-chip.is-active {
    border-color: transparent;
-   background: var(--z-primary);
+   background: var(--admin-accent);
    color: var(--z-primary-foreground);
 }
 
@@ -984,303 +2069,127 @@ textarea.admin-input {
    color: #fff;
 }
 
+@media (min-width: 960px) {
+   .admin-filter-chips {
+      flex-wrap: wrap;
+      -webkit-mask-image: none;
+      mask-image: none;
+   }
+
+   .admin-filter-chip {
+      height: 34px;
+      font-size: 13px;
+   }
+}
+
 .admin-filter-note {
    display: flex;
    align-items: center;
    justify-content: space-between;
    gap: 8px;
-   border-bottom: 1px solid var(--admin-border);
-   background: color-mix(in srgb, var(--z-primary) 6%, transparent);
+   border-bottom: 1px solid var(--admin-line);
+   background: var(--admin-tint);
    padding: 8px 12px;
-   font-size: 12.5px;
+   font-size: 13.5px;
 }
 
 .admin-pagination {
    display: flex;
+   flex-wrap: wrap;
    align-items: center;
    justify-content: space-between;
-   border-top: 1px solid var(--admin-border);
-   padding: 12px 15px;
+   gap: 10px;
+   border-top: 1px solid var(--admin-line);
+   padding: 12px;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 13px;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-pagination > span:first-child {
+   width: 100%;
+   text-align: center;
 }
 
 .admin-pagination > div {
-   display: flex;
+   display: grid;
+   width: 100%;
+   grid-template-columns: 1fr auto 1fr;
    align-items: center;
-   gap: 9px;
+   gap: 10px;
+}
+
+.admin-pagination > div > button {
+   width: 100%;
+   height: var(--admin-control) !important;
 }
 
 .admin-page-number {
-   min-width: 50px;
+   min-width: 56px;
    color: var(--admin-ink);
+   font-weight: 650;
    text-align: center;
 }
 
-/* ==========================================================================
-   ODDIY JADVAL (.admin-table): telefonda qatorlar kartaga aylanadi
-   (v-responsive-table har katakka ustun nomini data-label qilib yozadi)
-   ========================================================================== */
-
-.admin-table-wrap {
-   overflow-x: auto;
-   width: 100%;
-}
-
-.admin-table {
-   display: block;
-   width: 100%;
-   border-collapse: collapse;
-   text-align: left;
-   white-space: normal;
-}
-
-.admin-table thead {
-   display: none;
-}
-
-.admin-table tbody {
-   display: block;
-}
-
-.admin-table tbody tr {
-   display: flex;
-   flex-direction: column;
-   gap: 8px;
-   border-bottom: 1px solid var(--admin-border);
-   padding: 14px 16px;
-}
-
-.admin-table tbody tr:last-child {
-   border-bottom: 0;
-}
-
-.admin-table td {
-   display: flex;
-   min-width: 0;
-   align-items: center;
-   justify-content: flex-end;
-   gap: 6px 8px;
-   border: 0;
-   padding: 0;
-   color: var(--admin-ink);
-   font-size: 14px;
-   text-align: right;
-}
-
-/* Yorliq chapda, katakdagi barcha qiymatlar birga o'ngda */
-.admin-table td::before {
-   content: attr(data-label);
-   margin-right: auto;
-   flex-shrink: 0;
-   color: var(--admin-muted);
-   font-size: 12px;
-   font-weight: 600;
-   text-align: left;
-}
-
-/* Birinchi katak — sarlavha (e'lon nomi, foydalanuvchi): yorliqsiz, to'liq kenglikda */
-.admin-table td:first-child {
-   display: block;
-   font-size: 15px;
-   font-weight: 600;
-   text-align: left;
-}
-
-.admin-table td:first-child::before,
-.admin-table td[data-label=""]::before,
-.admin-table td.admin-actions::before {
-   content: none;
-}
-
-.admin-table td strong,
-.admin-table td small {
-   display: block;
-}
-
-.admin-table td strong {
-   overflow: hidden;
-   text-overflow: ellipsis;
-}
-
-.admin-table td:first-child strong {
-   font-size: 15px;
-}
-
-.admin-table td small,
-.admin-cell-subtitle {
-   margin-top: 4px;
-   color: var(--admin-muted);
-   font-size: 11px;
-}
-
-/* Amallar — kartaning pastida, alohida qatorda */
-.admin-table td.admin-actions {
-   justify-content: flex-end;
-   margin-top: 2px;
-   border-top: 1px solid var(--admin-border);
-   padding-top: 10px;
-}
-
-.admin-table td.admin-empty-cell {
-   display: block;
-   text-align: center;
-}
-
-.admin-actions-heading {
-   text-align: right !important;
-}
-
-.admin-actions {
-   text-align: right;
-}
-
-.admin-product-cell {
-   min-width: 0;
-}
-
-.admin-product-cell img {
-   float: left;
-   width: 38px;
-   height: 38px;
-   margin-right: 10px;
-   border-radius: 10px;
-   background: var(--z-muted);
-   object-fit: cover;
-}
-
-.admin-product-copy {
-   display: block;
-   overflow: hidden;
-   padding-top: 3px;
-}
-
-@media (min-width: 901px) {
-   .admin-table {
-      display: table;
-      white-space: nowrap;
+@media (min-width: 701px) {
+   .admin-pagination {
+      flex-wrap: nowrap;
+      padding: 12px 16px;
    }
 
-   .admin-table thead {
-      display: table-header-group;
-   }
-
-   .admin-table tbody {
-      display: table-row-group;
-   }
-
-   .admin-table tbody tr {
-      display: table-row;
-      padding: 0;
-   }
-
-   .admin-table th {
-      border-top: 1px solid var(--admin-border);
-      border-bottom: 1px solid var(--admin-border);
-      background: var(--z-muted);
-      color: var(--z-muted-text);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-   }
-
-   .admin-table th,
-   .admin-table td {
-      padding: 12px;
-   }
-
-   .admin-table td,
-   .admin-table td:first-child {
-      display: table-cell;
-      border-bottom: 1px solid var(--admin-border);
-      font-size: 13px;
-      font-weight: 400;
+   .admin-pagination > span:first-child {
+      width: auto;
       text-align: left;
    }
 
-   .admin-table td::before {
-      content: none;
+   .admin-pagination > div {
+      display: flex;
+      width: auto;
    }
 
-   .admin-table tbody tr:last-child td {
-      border-bottom: 0;
-   }
-
-   /* Uzun sarlavha ikki qatorga o'tadi — jadval amallar ustunigacha sig'adi */
-   .admin-table td strong,
-   .admin-table td:first-child strong {
-      min-width: 160px;
-      max-width: 280px;
-      font-size: inherit;
-      white-space: normal;
-   }
-
-   .admin-table td.admin-actions {
-      margin: 0;
-      border-top: 0;
-      padding-top: 12px;
-      text-align: right;
-   }
-
-   .admin-product-cell {
-      min-width: 220px;
+   .admin-pagination > div > button {
+      width: auto;
+      height: 34px !important;
    }
 }
 
-/* ==========================================================================
-   ACCORDION JADVAL (.admin-xtable): telefonda ham jadval — asosiy ustunlar ko'rinadi,
-   qator bosilganda ostida qolgan ma'lumotlar va amallar ochiladi.
-   .admin-col-wide — faqat kompyuterda ko'rinadigan ustun; .admin-only-narrow — faqat telefonda.
-   ========================================================================== */
+/* Ochiladigan qatorli ro'yxat (.admin-xtable): telefonda ixcham, bosilsa tafsilot */
+.admin-table-wrap {
+   width: 100%;
+   overflow-x: auto;
+}
 
 .admin-xtable {
    width: 100%;
    border-collapse: collapse;
-   table-layout: auto;
    text-align: left;
 }
 
 .admin-xtable th {
-   border-bottom: 1px solid var(--admin-border);
-   background: color-mix(in srgb, var(--z-muted) 70%, transparent);
-   padding: 8px 12px;
-   color: var(--z-muted-text);
-   font-size: 10.5px;
-   font-weight: 800;
-   letter-spacing: 0.08em;
-   text-transform: uppercase;
+   border-bottom: 1px solid var(--admin-line);
+   padding: 9px 12px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-weight: 650;
    white-space: nowrap;
 }
 
 .admin-xtable td {
-   border-bottom: 1px solid var(--admin-border);
-   padding: 10px 12px;
-   color: var(--admin-ink);
-   font-size: 13px;
+   border-bottom: 1px solid var(--admin-line);
+   padding: 12px;
+   font-size: 14px;
    vertical-align: middle;
 }
 
-.admin-xtable th:first-child,
-.admin-xtable td:first-child {
-   padding-left: 12px;
-}
-
-/*
-   Asosiy ustun qolgan joyni egallaydi, lekin mazmuni uni kengaytirmaydi (max-width: 0):
-   bo'sh joysiz uzun ism yoki sarlavha jadvalni ekrandan chiqarib yubormaydi — qisqartiriladi
-*/
 .admin-xtable .admin-col-main {
    width: 100%;
    max-width: 0;
 }
 
-/* Qolgan ustunlar qisilmaydi — o'z kengligida, bitta qatorda turadi */
 .admin-xrow td:not(.admin-col-main) {
    white-space: nowrap;
 }
 
-/* Asosiy ustundagi sarlavha bitta qatorda qisqartiriladi (to'liqi — qator ochilganda) */
 .admin-xtable .admin-col-main .admin-xtitle {
    display: block;
    overflow: hidden;
@@ -1298,47 +2207,43 @@ textarea.admin-input {
    padding-right: 0;
 }
 
+.admin-col-wide {
+   display: none;
+}
+
 .admin-check {
-   width: 18px;
-   height: 18px;
+   width: 20px;
+   height: 20px;
    accent-color: var(--z-primary);
    cursor: pointer;
    vertical-align: middle;
 }
 
-/* Belgilanganda jadval ustida: nechta tanlangan + amallar */
 .admin-bulk-bar {
    display: flex;
    flex-wrap: wrap;
    align-items: center;
    justify-content: space-between;
    gap: 8px;
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-glass-strong);
+   border-bottom: 1px solid var(--admin-line);
+   background: var(--admin-tint);
    padding: 8px 12px;
-   font-size: 13px;
-   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   animation: admin-expand 0.18s ease;
-}
-
-.admin-col-wide {
-   display: none;
+   font-size: 14px;
 }
 
 .admin-xrow {
    cursor: pointer;
-   transition: background-color 0.15s ease;
    -webkit-tap-highlight-color: transparent;
 }
 
+.admin-xrow:active td,
 .admin-xrow:hover td {
-   background: color-mix(in srgb, var(--z-muted) 35%, transparent);
+   background: color-mix(in srgb, var(--z-muted) 60%, transparent);
 }
 
 .admin-xrow.is-open td {
    border-bottom-color: transparent;
-   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+   background: var(--z-muted);
 }
 
 .admin-xrow.is-muted .admin-xtitle,
@@ -1350,17 +2255,17 @@ textarea.admin-input {
    display: flex;
    min-width: 0;
    align-items: center;
-   gap: 10px;
+   gap: 12px;
 }
 
 .admin-xthumb {
    display: grid;
-   width: 44px;
-   height: 44px;
+   width: 48px;
+   height: 48px;
    flex-shrink: 0;
    place-items: center;
    overflow: hidden;
-   border-radius: 10px;
+   border-radius: 12px;
    background: var(--z-muted);
    color: var(--admin-muted);
    object-fit: cover;
@@ -1372,7 +2277,7 @@ textarea.admin-input {
    -webkit-box-orient: vertical;
    -webkit-line-clamp: 2;
    line-clamp: 2;
-   font-size: 13.5px;
+   font-size: 15px;
    font-weight: 600;
    line-height: 1.3;
    overflow-wrap: anywhere;
@@ -1385,7 +2290,7 @@ textarea.admin-input {
    gap: 2px 8px;
    margin-top: 3px;
    color: var(--admin-muted);
-   font-size: 11.5px;
+   font-size: 12.5px;
 }
 
 .admin-xmeta b {
@@ -1404,14 +2309,14 @@ textarea.admin-input {
 
 .admin-xdetail > td {
    padding: 0;
-   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+   background: var(--z-muted);
 }
 
 .admin-xdetail-inner {
    display: grid;
    gap: 14px;
-   padding: 2px 12px 14px;
-   animation: admin-expand 0.22s var(--page-ease, ease);
+   padding: 4px 12px 14px;
+   animation: admin-expand 0.2s ease;
 }
 
 @keyframes admin-expand {
@@ -1421,23 +2326,22 @@ textarea.admin-input {
    }
 }
 
-/* Ma'lumotlar ro'yxati: telefonda 2 ustun */
 .admin-dl {
    display: grid;
    grid-template-columns: repeat(2, minmax(0, 1fr));
-   gap: 10px 14px;
+   gap: 12px 14px;
    margin: 0;
 }
 
 .admin-dl dt {
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 12px;
    font-weight: 600;
 }
 
 .admin-dl dd {
    margin: 2px 0 0;
-   font-size: 13px;
+   font-size: 14px;
    font-weight: 600;
    overflow-wrap: anywhere;
 }
@@ -1450,10 +2354,8 @@ textarea.admin-input {
 .admin-xsection-title {
    margin: 0 0 6px;
    color: var(--admin-muted);
-   font-size: 11px;
-   font-weight: 800;
-   letter-spacing: 0.08em;
-   text-transform: uppercase;
+   font-size: 12px;
+   font-weight: 700;
 }
 
 .admin-xdescription {
@@ -1463,7 +2365,7 @@ textarea.admin-input {
    -webkit-line-clamp: 6;
    line-clamp: 6;
    margin: 0;
-   font-size: 13px;
+   font-size: 14px;
    line-height: 1.55;
    white-space: pre-line;
    overflow-wrap: anywhere;
@@ -1482,10 +2384,10 @@ textarea.admin-input {
 
 .admin-thumbs img {
    display: block;
-   width: 72px;
-   height: 72px;
-   border-radius: 10px;
-   background: var(--z-muted);
+   width: 76px;
+   height: 76px;
+   border-radius: 12px;
+   background: var(--z-card);
    object-fit: cover;
 }
 
@@ -1495,26 +2397,46 @@ textarea.admin-input {
 }
 
 .admin-report {
-   border-left: 3px solid #f59e0b;
+   border-left: 3px solid var(--admin-warning);
    border-radius: 8px;
-   background: color-mix(in srgb, #f59e0b 9%, transparent);
+   background: var(--admin-warning-bg);
    padding: 8px 10px;
-   font-size: 12.5px;
+   font-size: 13.5px;
 }
 
 .admin-report small {
    display: block;
    margin-top: 2px;
    color: var(--admin-muted);
-   font-size: 11px;
+   font-size: 12px;
 }
 
+/* Ochilgan qator amallari: telefonda 2 ustun; xavfli amal — oxirida, to'liq qatorda */
 .admin-xactions {
-   display: flex;
-   flex-wrap: wrap;
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
    gap: 8px;
-   border-top: 1px solid var(--admin-border);
+   border-top: 1px solid var(--admin-line);
    padding-top: 12px;
+}
+
+.admin-xactions > button,
+.admin-xactions > a,
+.admin-xactions > a > button {
+   width: 100%;
+   min-width: 0;
+}
+
+.admin-xactions button > span {
+   min-width: 0;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.admin-xactions > .admin-xactions-wide {
+   order: 10;
+   grid-column: 1 / -1;
 }
 
 @media (min-width: 701px) {
@@ -1523,7 +2445,7 @@ textarea.admin-input {
    }
 }
 
-@media (min-width: 901px) {
+@media (min-width: 960px) {
    .admin-col-wide {
       display: table-cell;
    }
@@ -1538,15 +2460,21 @@ textarea.admin-input {
       padding-left: 14px;
    }
 
-   .admin-xtable td {
-      padding-top: 11px;
-      padding-bottom: 11px;
+   .admin-xtable td,
+   .admin-xtitle,
+   .admin-dl dd {
+      font-size: 13.5px;
+   }
+
+   .admin-xthumb {
+      width: 42px;
+      height: 42px;
    }
 
    .admin-xdetail-inner {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 18px 24px;
-      padding: 4px 20px 18px 68px;
+      padding: 4px 20px 18px 70px;
    }
 
    .admin-xdetail-inner > .admin-xfull {
@@ -1556,62 +2484,20 @@ textarea.admin-input {
    .admin-dl {
       grid-template-columns: repeat(2, minmax(0, 1fr));
    }
-}
 
-/* ==========================================================================
-   BOSH SAHIFA: grafiklar va vidjetlar
-   ========================================================================== */
+   .admin-xactions {
+      display: flex;
+      flex-wrap: wrap;
+   }
 
-.admin-dashboard-grid {
-   display: grid;
-   grid-template-columns: minmax(0, 1fr);
-   gap: 12px;
-}
-
-@media (min-width: 1025px) {
-   .admin-dashboard-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+   .admin-xactions > button,
+   .admin-xactions > a,
+   .admin-xactions > a > button {
+      width: auto;
    }
 }
 
-.admin-chart-card {
-   display: flex;
-   flex-direction: column;
-   border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
-   background: var(--z-card);
-   padding: 14px;
-   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-@media (min-width: 701px) {
-   .admin-chart-card {
-      padding: 20px;
-   }
-}
-
-.admin-card-header {
-   display: flex;
-   align-items: flex-start;
-   justify-content: space-between;
-   margin-bottom: 12px;
-   gap: 12px;
-}
-
-.admin-card-title {
-   margin: 0;
-   font-size: 15px;
-   font-weight: 700;
-   color: var(--admin-ink);
-}
-
-.admin-card-subtitle {
-   margin: 2px 0 0;
-   font-size: 12px;
-   color: var(--admin-muted);
-}
-
-/* Progress List (Districts & Categories) */
+/* Reyting ro'yxati (AdminRankList) */
 .admin-rank-list {
    display: flex;
    flex-direction: column;
@@ -1622,7 +2508,7 @@ textarea.admin-input {
    display: flex;
    min-width: 0;
    flex-direction: column;
-   gap: 4px;
+   gap: 5px;
 }
 
 .admin-rank-header {
@@ -1631,14 +2517,13 @@ textarea.admin-input {
    align-items: center;
    justify-content: space-between;
    gap: 10px;
-   font-size: 13px;
+   font-size: 14px;
 }
 
 .admin-rank-name {
    min-width: 0;
    overflow: hidden;
    font-weight: 600;
-   color: var(--admin-ink);
    text-overflow: ellipsis;
    white-space: nowrap;
 }
@@ -1646,80 +2531,76 @@ textarea.admin-input {
 .admin-rank-count {
    flex-shrink: 0;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 13px;
    font-variant-numeric: tabular-nums;
 }
 
 .admin-rank-track {
-   height: 5px;
    width: 100%;
-   background: var(--z-muted);
-   border-radius: 999px;
+   height: 6px;
    overflow: hidden;
+   border-radius: 999px;
+   background: var(--chart-track);
 }
 
 .admin-rank-fill {
    height: 100%;
    border-radius: 999px;
-   background: var(--admin-accent);
+   background: var(--chart-a);
    transition: width 0.4s ease;
 }
 
-/* Daily Ads Bar Chart */
+/* Ustunli grafik (faollik sahifasi) */
 .admin-bar-chart {
-   display: flex;
-   align-items: flex-end;
-   gap: 4px;
-   height: 118px;
-   padding-top: 20px;
-   padding-bottom: 20px;
-   margin-bottom: 4px;
-   border-bottom: 1px solid var(--admin-border);
    position: relative;
+   display: flex;
+   height: 110px;
+   align-items: flex-end;
+   gap: 3px;
+   margin-bottom: 4px;
+   padding: 18px 0 20px;
 }
 
 .admin-bar-col {
-   flex: 1;
+   position: relative;
    display: flex;
+   height: 100%;
+   flex: 1;
    flex-direction: column;
    align-items: center;
-   height: 100%;
    justify-content: flex-end;
-   position: relative;
 }
 
 .admin-bar-pill {
    width: 100%;
-   max-width: 24px;
-   min-height: 4px;
-   border-radius: 4px 4px 0 0;
-   background: color-mix(in srgb, var(--admin-accent) 25%, var(--z-muted));
-   transition: height 0.3s ease, background-color 0.2s ease;
+   max-width: 20px;
+   min-height: 3px;
+   border-radius: 5px;
+   background: color-mix(in srgb, var(--chart-a) 45%, var(--chart-track));
+   transition: height 0.3s ease;
 }
 
 .admin-bar-col:hover .admin-bar-pill,
 .admin-bar-col.is-peak .admin-bar-pill {
-   background: var(--admin-accent);
+   background: var(--chart-a);
 }
 
 .admin-bar-label {
    position: absolute;
    bottom: -18px;
-   font-size: 10px;
-   font-weight: 600;
    color: var(--admin-muted);
+   font-size: 11px;
+   font-weight: 600;
    white-space: nowrap;
 }
 
 .admin-bar-tooltip {
    position: absolute;
-   top: -20px;
-   font-size: 12px;
+   top: -18px;
+   font-size: 11.5px;
    font-weight: 700;
-   color: var(--admin-ink);
    white-space: nowrap;
    opacity: 0;
-   transition: opacity 0.15s ease;
 }
 
 .admin-bar-col:hover .admin-bar-tooltip,
@@ -1727,37 +2608,24 @@ textarea.admin-input {
    opacity: 1;
 }
 
-/* Ikki rangli ustun: pastda odamlar (yashil), ustida AI (to'q). Bo'sh kun — oddiy kulrang chiziq */
 .admin-bar-pill.is-stacked {
    display: flex;
    flex-direction: column;
    overflow: hidden;
-   background: var(--z-muted);
+   background: var(--chart-track);
 }
 
 .admin-bar-seg {
-   flex-basis: 0;
    min-height: 2px;
-   opacity: 0.75;
-   transition: opacity 0.2s ease;
+   flex-basis: 0;
 }
 
 .admin-bar-seg.is-people {
-   background: rgb(16 185 129);
+   background: var(--chart-a);
 }
 
 .admin-bar-seg.is-ai {
-   background: var(--admin-ink);
-}
-
-.admin-bar-col:hover .admin-bar-pill.is-stacked,
-.admin-bar-col.is-peak .admin-bar-pill.is-stacked {
-   background: var(--z-muted);
-}
-
-.admin-bar-col:hover .admin-bar-seg,
-.admin-bar-col.is-peak .admin-bar-seg {
-   opacity: 1;
+   background: var(--chart-b);
 }
 
 .admin-bar-legend {
@@ -1765,8 +2633,8 @@ textarea.admin-input {
    flex-wrap: wrap;
    gap: 4px 12px;
    margin-top: 6px;
-   font-size: 12px;
    color: var(--admin-muted);
+   font-size: 12px;
 }
 
 .admin-bar-legend span {
@@ -1776,116 +2644,20 @@ textarea.admin-input {
 }
 
 .admin-bar-legend i {
-   width: 8px;
-   height: 8px;
-   border-radius: 2px;
+   width: 9px;
+   height: 9px;
+   border-radius: 3px;
 }
 
 .admin-bar-legend .is-people {
-   background: rgb(16 185 129);
+   background: var(--chart-a);
 }
 
 .admin-bar-legend .is-ai {
-   background: var(--admin-ink);
+   background: var(--chart-b);
 }
 
-/* User Activity List */
-.admin-user-activity-list {
-   display: flex;
-   flex-direction: column;
-   gap: 10px;
-}
-
-.admin-user-activity-item {
-   display: flex;
-   align-items: center;
-   justify-content: space-between;
-   padding: 8px 10px;
-   border-radius: 10px;
-   background: color-mix(in srgb, var(--z-muted) 50%, transparent);
-   transition: background 0.15s ease;
-}
-
-.admin-user-activity-item:hover {
-   background: var(--z-muted);
-}
-
-/* ==========================================================================
-   TABLAR VA IXCHAM RO'YXAT (telefon uchun: bir ekranda ko'proq ma'lumot)
-   ========================================================================== */
-
-/* Sahifa ichidagi bo'limlar — yuqoriga yopishib turadi, telefonda gorizontal suriladi */
-.admin-tabs {
-   position: sticky;
-   z-index: 4;
-   top: calc(var(--safe-area-top) + 56px);
-   display: flex;
-   gap: 4px;
-   overflow-x: auto;
-   margin: 0 -12px;
-   border-bottom: 1px solid var(--admin-border);
-   background: var(--z-glass);
-   padding: 8px 12px;
-   scrollbar-width: none;
-   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
-   backdrop-filter: blur(var(--z-blur)) saturate(170%);
-}
-
-.admin-tabs::-webkit-scrollbar {
-   display: none;
-}
-
-.admin-tabs-item {
-   display: inline-flex;
-   height: 34px;
-   flex-shrink: 0;
-   align-items: center;
-   gap: 6px;
-   border: 0;
-   border-radius: 999px;
-   background: transparent;
-   padding: 0 14px;
-   color: var(--admin-muted);
-   font-size: 13px;
-   font-weight: 650;
-   cursor: pointer;
-   transition: background 0.15s ease, color 0.15s ease;
-}
-
-.admin-tabs-item span {
-   display: grid;
-   min-width: 18px;
-   height: 18px;
-   place-items: center;
-   border-radius: 999px;
-   background: color-mix(in srgb, currentColor 14%, transparent);
-   padding: 0 5px;
-   font-size: 10.5px;
-   font-variant-numeric: tabular-nums;
-}
-
-.admin-tabs-item.is-active {
-   background: var(--z-primary);
-   color: var(--z-primary-foreground);
-}
-
-.admin-tabs-item.is-danger span {
-   background: var(--z-danger);
-   color: #fff;
-}
-
-@media (min-width: 901px) {
-   .admin-tabs {
-      top: 62px;
-      margin: 0;
-      border: 1px solid var(--admin-border);
-      border-radius: 999px;
-      padding: 5px;
-      width: fit-content;
-   }
-}
-
-/* Ixcham ro'yxat: bitta qatorda nom, ostida qisqa ma'lumot, o'ngda holat/amal */
+/* Ixcham ro'yxat (faollik, qidiruvlar, post tarixi) */
 .admin-list {
    display: flex;
    flex-direction: column;
@@ -1894,9 +2666,10 @@ textarea.admin-input {
 .admin-list-row {
    display: flex;
    min-width: 0;
+   min-height: 48px;
    align-items: center;
    gap: 10px;
-   border-bottom: 1px solid var(--admin-border);
+   border-bottom: 1px solid var(--admin-line);
    padding: 10px 0;
    color: inherit;
    text-decoration: none;
@@ -1916,9 +2689,8 @@ textarea.admin-input {
 
 .admin-list-title {
    overflow: hidden;
-   color: var(--admin-ink);
-   font-size: 13.5px;
-   font-weight: 650;
+   font-size: 14.5px;
+   font-weight: 600;
    text-overflow: ellipsis;
    white-space: nowrap;
 }
@@ -1926,12 +2698,11 @@ textarea.admin-input {
 .admin-list-meta {
    overflow: hidden;
    color: var(--admin-muted);
-   font-size: 12px;
+   font-size: 12.5px;
    text-overflow: ellipsis;
    white-space: nowrap;
 }
 
-/* Kichik ko'rsatkichlar qatori (3 ta raqam yonma-yon) */
 .admin-mini-stats {
    display: grid;
    grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1940,8 +2711,8 @@ textarea.admin-input {
 }
 
 .admin-mini-stats > div {
-   border-radius: 10px;
-   background: color-mix(in srgb, var(--z-muted) 55%, transparent);
+   border-radius: var(--r-sm);
+   background: var(--z-muted);
    padding: 8px 6px;
    text-align: center;
 }
@@ -1950,184 +2721,959 @@ textarea.admin-input {
    display: block;
    overflow: hidden;
    color: var(--admin-muted);
-   font-size: 10.5px;
+   font-size: 12px;
    text-overflow: ellipsis;
    white-space: nowrap;
 }
 
 .admin-mini-stats strong {
-   color: var(--admin-ink);
-   font-size: 15px;
+   font-size: 16px;
    font-weight: 750;
+   font-variant-numeric: tabular-nums;
 }
 
-/* Sozlamalar formasi: yorliq, maydon, izoh */
-.admin-field {
-   display: flex;
-   flex-direction: column;
-   gap: 5px;
-}
-
-.admin-field > label,
-.admin-field-label {
-   color: var(--admin-ink);
-   font-size: 12.5px;
-   font-weight: 650;
-}
-
-.admin-field-hint {
-   color: var(--admin-muted);
-   font-size: 11.5px;
-   line-height: 1.45;
-}
-
-/* Saqlanmagan o'zgarishlar paneli: pastki navigatsiya ustida yopishib turadi */
-.admin-savebar {
+/* Sahifa ichidagi bo'limlar (AdminTabs) */
+.admin-tabs {
    position: sticky;
-   z-index: 6;
-   bottom: calc(var(--safe-area-bottom) + 86px);
+   z-index: 15;
+   top: calc(var(--safe-area-top) + var(--top-h) + 6px);
    display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 10px;
+   gap: 4px;
+   overflow-x: auto;
    border: 1px solid var(--admin-border);
-   border-radius: var(--z-rounded);
+   border-radius: 999px;
    background: var(--z-glass);
-   padding: 8px 8px 8px 14px;
-   color: var(--admin-ink);
-   box-shadow: 0 8px 24px rgba(23, 43, 77, 0.12);
+   box-shadow: var(--z-glass-shadow);
+   padding: 4px;
+   scrollbar-width: none;
    -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
    backdrop-filter: blur(var(--z-blur)) saturate(170%);
 }
 
-@media (min-width: 901px) {
-   .admin-savebar {
-      bottom: 16px;
+.admin-tabs::-webkit-scrollbar {
+   display: none;
+}
+
+.admin-tabs-item {
+   display: inline-flex;
+   height: 38px;
+   flex-shrink: 0;
+   align-items: center;
+   gap: 6px;
+   border: 0;
+   border-radius: 999px;
+   background: transparent;
+   padding: 0 14px;
+   color: var(--admin-muted);
+   font: inherit;
+   font-size: 13.5px;
+   font-weight: 650;
+   cursor: pointer;
+}
+
+.admin-tabs-item span {
+   display: grid;
+   min-width: 20px;
+   height: 20px;
+   place-items: center;
+   border-radius: 999px;
+   background: color-mix(in srgb, currentColor 14%, transparent);
+   padding: 0 5px;
+   font-size: 11.5px;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-tabs-item.is-active {
+   background: var(--admin-accent);
+   color: var(--z-primary-foreground);
+}
+
+.admin-tabs-item.is-danger span {
+   background: var(--z-danger);
+   color: #fff;
+}
+
+@media (min-width: 960px) {
+   .admin-tabs {
+      top: calc(var(--top-h) + 30px);
+      width: fit-content;
    }
 }
 
-.admin-switch-row {
+/* Foydalanuvchi belgisi */
+.admin-user-chip {
    display: flex;
-   align-items: center;
-   justify-content: space-between;
-   gap: 12px;
-}
-
-.admin-switch-row > :first-child {
    min-width: 0;
-   flex: 1;
+   align-items: center;
+   gap: 10px;
 }
 
-.admin-switch-row > :last-child {
+.admin-avatar {
+   display: grid;
+   width: 38px;
+   height: 38px;
    flex-shrink: 0;
+   place-items: center;
+   border-radius: 50%;
+   background: var(--z-muted);
+   font-size: 13px;
+   font-weight: 800;
+}
+
+.admin-user-label strong,
+.admin-user-label small {
+   display: block;
+}
+
+.admin-user-label small {
+   color: var(--admin-muted);
+   font-size: 12px;
+}
+
+/* Kanal va bot obunasi (foydalanuvchilar sahifasi) */
+.admin-subs {
+   padding: 14px;
+}
+
+.admin-subs-head {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-between;
+   gap: 10px;
+   margin-bottom: 12px;
+}
+
+.admin-subs-head h2 {
+   margin: 0;
+   font-size: 15px;
+   font-weight: 700;
+}
+
+.admin-subs-head p {
+   margin: 2px 0 0;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   line-height: 1.4;
+}
+
+.admin-subs-grid {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+}
+
+.admin-subs-card {
+   display: flex;
+   min-width: 0;
+   min-height: 82px;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 2px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+   padding: 10px 12px;
+   color: var(--admin-ink);
+   font: inherit;
+   text-align: left;
+   cursor: pointer;
+}
+
+.admin-subs-card strong {
+   font-size: 22px;
+   font-weight: 750;
+   letter-spacing: -0.03em;
+   font-variant-numeric: tabular-nums;
+}
+
+.admin-subs-label {
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-weight: 600;
+}
+
+.admin-subs-card.is-active {
+   border-color: var(--admin-accent);
+   box-shadow: inset 0 0 0 1px var(--admin-accent);
+}
+
+.admin-subs-icons {
+   display: flex;
+   gap: 4px;
+   margin-bottom: 2px;
+}
+
+.admin-subs-icons svg {
+   box-sizing: content-box;
+   border-radius: 6px;
+   background: var(--admin-success-bg);
+   padding: 3px;
+   color: var(--admin-success);
+}
+
+.admin-subs-icons svg.is-off {
+   background: var(--z-muted);
+   color: color-mix(in srgb, var(--admin-muted) 60%, transparent);
+}
+
+.admin-sub-pills {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 4px;
+   margin-top: 5px;
+}
+
+.admin-sub-pill {
+   display: inline-flex;
+   align-items: center;
+   gap: 4px;
+   border: 1px solid transparent;
+   border-radius: 999px;
+   padding: 2px 8px;
+   font-size: 11.5px;
+   font-weight: 700;
+   line-height: 1.35;
+}
+
+.admin-sub-pill.is-on {
+   background: var(--admin-success-bg);
+   color: var(--admin-success);
+}
+
+.admin-sub-pill.is-off {
+   border-color: var(--admin-line);
+   color: var(--admin-muted);
+   text-decoration: line-through;
+}
+
+.admin-sub-pill.is-unknown {
+   border-style: dashed;
+   border-color: var(--admin-line);
+   color: var(--admin-muted);
+}
+
+@media (min-width: 701px) {
+   .admin-subs-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+   }
 }
 
 /* ==========================================================================
-   QORONG'I MAVZU: yumshoq, ko'zni qamashtirmaydigan ranglar
+   5. TAFSILOT OYNASI (AdminSheet) va ro'yxat qatori
    ========================================================================== */
 
-html.dark .admin-shell {
-   color-scheme: dark;
+/* Oyna: sarlavha tepada, ichi aylanadi, amallar pastda qotib turadi */
+.adm-sheet.adm-detail {
+   display: flex;
+   max-height: calc(100dvh - var(--safe-area-top) - 16px);
+   flex-direction: column;
+   overflow: hidden;
+   padding: 0;
 }
 
-html.dark .admin-badge-success {
-   background: rgba(34, 197, 94, 0.14);
-   color: #4ade80;
-   border: 1px solid rgba(34, 197, 94, 0.22);
+.adm-detail-head {
+   flex-shrink: 0;
+   border-bottom: 1px solid var(--admin-line);
+   padding: 8px 8px 8px 16px;
 }
 
-html.dark .admin-badge-warning {
-   background: rgba(245, 158, 11, 0.14);
-   color: #fbbf24;
-   border: 1px solid rgba(245, 158, 11, 0.22);
+.adm-detail-head .adm-sheet-grip {
+   margin-bottom: 4px;
 }
 
-html.dark .admin-badge-danger {
-   background: rgba(239, 68, 68, 0.14);
-   color: #f87171;
-   border: 1px solid rgba(239, 68, 68, 0.22);
+.adm-detail-title {
+   display: flex;
+   align-items: center;
+   gap: 8px;
 }
 
-html.dark .admin-badge-info {
-   background: rgba(59, 130, 246, 0.14);
-   color: #60a5fa;
-   border: 1px solid rgba(59, 130, 246, 0.22);
+.adm-detail-title h2 {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 2;
+   line-clamp: 2;
+   margin: 0;
+   font-size: 17px;
+   font-weight: 700;
+   line-height: 1.3;
+   overflow-wrap: anywhere;
 }
 
-html.dark .admin-badge-muted {
-   background: rgba(148, 163, 184, 0.12);
-   color: #94a3b8;
-   border: 1px solid rgba(148, 163, 184, 0.18);
+.adm-detail-title p {
+   margin: 2px 0 0;
+   color: var(--admin-muted);
+   font-size: 13px;
 }
 
-html.dark .admin-alert-error {
-   border-color: rgba(239, 68, 68, 0.35);
-   background: rgba(239, 68, 68, 0.12);
-   color: #fca5a5;
+.adm-detail-body {
+   display: grid;
+   min-height: 0;
+   flex: 1;
+   gap: 16px;
+   overflow-y: auto;
+   overscroll-behavior: contain;
+   padding: 14px 16px 18px;
 }
 
-html.dark .admin-alert-success {
-   border-color: rgba(34, 197, 94, 0.35);
-   background: rgba(34, 197, 94, 0.12);
-   color: #86efac;
+.adm-detail-actions {
+   display: grid;
+   flex-shrink: 0;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+   border-top: 1px solid var(--admin-line);
+   padding: 10px 12px calc(var(--safe-area-bottom) + 10px);
 }
 
-html.dark .admin-alert-warning {
-   border-color: rgba(245, 158, 11, 0.35);
-   background: rgba(245, 158, 11, 0.12);
-   color: #fcd34d;
+.adm-detail-actions > button,
+.adm-detail-actions > a,
+.adm-detail-actions > a > button {
+   width: 100%;
+   min-width: 0;
 }
 
-html.dark .admin-panel {
-   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35);
+.adm-detail-actions button > span {
+   min-width: 0;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
 }
 
-html.dark .admin-table tbody tr {
-   transition: background-color 0.15s ease;
+/* Xavfli amal (bloklash, arxivlash) — oxirida, to'liq qatorda */
+.adm-detail-actions > .admin-xactions-wide {
+   order: 10;
+   grid-column: 1 / -1;
 }
 
-html.dark .admin-table tbody tr:hover td {
-   background: color-mix(in srgb, var(--z-muted) 60%, transparent);
+.adm-detail-section h3 {
+   margin: 0 0 8px;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-weight: 700;
 }
 
-html.dark .admin-stat-card {
-   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
-
-html.dark .admin-stat-detail,
-html.dark .admin-topbar-label {
-   color: var(--z-muted-text);
-}
-
-html.dark .admin-brand-mark {
-   background: color-mix(in srgb, var(--admin-accent) 15%, var(--z-muted));
-}
-
-html.dark .admin-search input::placeholder {
-   color: color-mix(in srgb, var(--z-muted-text) 70%, transparent);
-}
-
-html.dark ::-webkit-scrollbar {
-   width: 8px;
-   height: 8px;
-}
-
-html.dark ::-webkit-scrollbar-track {
-   background: var(--z-background);
-}
-
-html.dark ::-webkit-scrollbar-thumb {
-   background: var(--z-muted);
-   border-radius: 4px;
-   border: 2px solid var(--z-background);
-}
-
-html.dark ::-webkit-scrollbar-thumb:hover {
-   background: color-mix(in srgb, var(--z-muted-text) 50%, var(--z-muted));
-}
-
-@media (prefers-reduced-motion: reduce) {
-   .admin-xdetail-inner {
-      animation: none;
+@media (min-width: 960px) {
+   .adm-sheet.adm-detail {
+      top: 6vh;
+      width: min(680px, calc(100vw - 40px));
+      max-height: 88vh;
    }
+
+   .adm-detail-head {
+      padding-top: 10px;
+   }
+
+   .adm-detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      padding-bottom: 12px;
+   }
+
+   .adm-detail-actions > button,
+   .adm-detail-actions > a,
+   .adm-detail-actions > a > button {
+      width: auto;
+   }
+}
+
+/* Holat nuqtasi: yashil — faol, sariq — muddati tugagan, kulrang — arxiv */
+.adm-dot {
+   display: inline-block;
+   width: 10px;
+   height: 10px;
+   flex-shrink: 0;
+   border-radius: 50%;
+   background: #94a3b8;
+   box-shadow: 0 0 0 3px color-mix(in srgb, #94a3b8 18%, transparent);
+}
+
+.adm-dot.is-active {
+   background: #22c55e;
+   box-shadow: 0 0 0 3px rgb(34 197 94 / 0.2);
+}
+
+.adm-dot.is-expired {
+   background: #f59e0b;
+   box-shadow: 0 0 0 3px rgb(245 158 11 / 0.22);
+}
+
+/* Ro'yxat qatori: butun qator bitta tugma — bosilsa oyna ochiladi */
+.adm-list {
+   display: flex;
+   flex-direction: column;
+   margin: 0;
+   padding: 0;
+   list-style: none;
+}
+
+.adm-list > li {
+   border-bottom: 1px solid var(--admin-line);
+}
+
+.adm-list > li:last-child {
+   border-bottom: 0;
+}
+
+.adm-item {
+   display: flex;
+   width: 100%;
+   min-height: 64px;
+   align-items: center;
+   gap: 12px;
+   border: 0;
+   background: transparent;
+   padding: 10px 12px;
+   color: inherit;
+   font: inherit;
+   text-align: left;
+   cursor: pointer;
+}
+
+.adm-item:active,
+.adm-item:hover {
+   background: color-mix(in srgb, var(--z-muted) 70%, transparent);
+}
+
+.adm-item.is-muted .adm-item-title {
+   opacity: 0.55;
+}
+
+.adm-item-check {
+   display: grid;
+   width: 36px;
+   height: 44px;
+   flex-shrink: 0;
+   place-items: center;
+   margin: -10px -8px -10px -6px;
+}
+
+.adm-item-main {
+   display: flex;
+   min-width: 0;
+   flex: 1;
+   flex-direction: column;
+   gap: 3px;
+}
+
+.adm-item-title {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+   gap: 6px;
+   font-size: 15px;
+   font-weight: 600;
+   line-height: 1.3;
+}
+
+.adm-item-title > span:first-child {
+   min-width: 0;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-item-meta {
+   display: flex;
+   min-width: 0;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 2px 8px;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+}
+
+.adm-item-meta b {
+   color: var(--admin-ink);
+   font-weight: 700;
+}
+
+.adm-item-side {
+   display: flex;
+   flex-shrink: 0;
+   flex-direction: column;
+   align-items: flex-end;
+   gap: 6px;
+   color: var(--admin-muted);
+   font-size: 12px;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-list-head {
+   display: flex;
+   min-height: 44px;
+   align-items: center;
+   gap: 12px;
+   border-bottom: 1px solid var(--admin-line);
+   padding: 0 12px;
+   color: var(--admin-muted);
+   font-size: 13px;
+}
+
+@media (min-width: 960px) {
+   .adm-item {
+      min-height: 58px;
+      padding: 8px 16px;
+   }
+
+   .adm-item-title {
+      font-size: 14px;
+   }
+
+   .adm-list-head {
+      padding: 0 16px;
+   }
+}
+
+/* ==========================================================================
+   6. VITRINALAR: holat ikonkalari (kutilmoqda — soat, tasdiqlangan — belgi, rad etilgan — x)
+   ========================================================================== */
+
+.adm-vstatus {
+   display: grid;
+   grid-template-columns: repeat(3, minmax(0, 1fr));
+   gap: 8px;
+}
+
+.adm-vstatus-card {
+   --tone: var(--admin-warning);
+   --tone-bg: var(--admin-warning-bg);
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 2px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+   padding: 10px;
+   color: var(--admin-ink);
+   font: inherit;
+   text-align: left;
+   cursor: pointer;
+}
+
+.adm-vstatus-card.is-approved {
+   --tone: var(--admin-success);
+   --tone-bg: var(--admin-success-bg);
+}
+
+.adm-vstatus-card.is-rejected {
+   --tone: var(--admin-danger);
+   --tone-bg: var(--admin-danger-bg);
+}
+
+.adm-vstatus-card.is-active {
+   border-color: var(--tone);
+   box-shadow: inset 0 0 0 1px var(--tone);
+}
+
+.adm-vstatus-icon {
+   display: grid;
+   width: 28px;
+   height: 28px;
+   place-items: center;
+   margin-bottom: 2px;
+   border-radius: 9px;
+   background: var(--tone-bg);
+   color: var(--tone);
+}
+
+.adm-vstatus-card strong {
+   font-size: 20px;
+   font-weight: 750;
+   line-height: 1.1;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-vstatus-card > span:not(.adm-vstatus-icon) {
+   overflow: hidden;
+   max-width: 100%;
+   font-size: 12.5px;
+   font-weight: 650;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+/* Izoh faqat kengroq ekranda — telefonda ikonka va nom yetarli */
+.adm-vstatus-card small {
+   display: none;
+   color: var(--admin-muted);
+   font-size: 12px;
+   line-height: 1.35;
+}
+
+@media (min-width: 701px) {
+   .adm-vstatus-card {
+      padding: 12px 14px;
+   }
+
+   .adm-vstatus-card small {
+      display: block;
+   }
+}
+
+/* Qatordagi holat ikonkasi */
+.adm-vstate {
+   --tone: var(--admin-warning);
+   --tone-bg: var(--admin-warning-bg);
+   display: grid;
+   width: 36px;
+   height: 36px;
+   flex-shrink: 0;
+   place-items: center;
+   border-radius: 11px;
+   background: var(--tone-bg);
+   color: var(--tone);
+}
+
+.adm-vstate.is-approved,
+.adm-vstate-line.is-approved {
+   --tone: var(--admin-success);
+   --tone-bg: var(--admin-success-bg);
+}
+
+.adm-vstate.is-rejected,
+.adm-vstate-line.is-rejected {
+   --tone: var(--admin-danger);
+   --tone-bg: var(--admin-danger-bg);
+}
+
+/* Oynadagi holat qatori */
+.adm-vstate-line {
+   --tone: var(--admin-warning);
+   --tone-bg: var(--admin-warning-bg);
+   display: flex;
+   align-items: flex-start;
+   gap: 10px;
+   border-radius: var(--r-md);
+   background: var(--tone-bg);
+   padding: 12px 14px;
+   color: var(--tone);
+}
+
+.adm-vstate-line b,
+.adm-vstate-line small {
+   display: block;
+}
+
+.adm-vstate-line b {
+   font-size: 14.5px;
+}
+
+.adm-vstate-line small {
+   margin-top: 2px;
+   color: var(--admin-ink);
+   font-size: 13px;
+   opacity: 0.8;
+}
+
+/* ==========================================================================
+   7. TANLASH (Telegramdagidek): bosib turish — tanlanadi; tanlangan qator ranglanadi
+   ========================================================================== */
+
+.adm-item.is-pressable {
+   -webkit-touch-callout: none;
+   user-select: none;
+   transition: background 0.15s ease;
+}
+
+.adm-item.is-selected,
+.adm-item.is-selected:hover {
+   background: var(--admin-tint);
+}
+
+.adm-item-tick {
+   color: var(--admin-accent);
+}
+
+/* Sarlavha 2 qatorgacha — rasm o'rni yo'q, ko'proq yozuv sig'adi */
+.adm-item-title.is-wrap > span:first-child {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 2;
+   line-clamp: 2;
+   white-space: normal;
+   overflow-wrap: anywhere;
+}
+
+/* Tanlash paneli: ro'yxat ustida yopishib turadi */
+.adm-select-bar {
+   position: sticky;
+   z-index: 15;
+   top: calc(var(--safe-area-top) + var(--top-h));
+   justify-content: flex-start;
+   gap: 8px 12px;
+   background: color-mix(in srgb, var(--z-card) 92%, var(--admin-accent) 8%);
+   -webkit-backdrop-filter: blur(var(--z-blur)) saturate(170%);
+   backdrop-filter: blur(var(--z-blur)) saturate(170%);
+}
+
+.adm-select-actions {
+   display: flex;
+   width: 100%;
+   gap: 6px;
+   overflow-x: auto;
+   scrollbar-width: none;
+}
+
+.adm-select-actions::-webkit-scrollbar {
+   display: none;
+}
+
+.adm-select-actions > button {
+   flex-shrink: 0;
+}
+
+@media (min-width: 960px) {
+   .adm-select-bar {
+      top: calc(var(--top-h) + 24px);
+   }
+
+   .adm-select-actions {
+      width: auto;
+      margin-left: auto;
+   }
+}
+
+/* E'lon qatoridagi raqamlar: ko'rish · qo'ng'iroq · Telegram · sevimli */
+.adm-item-stats {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 2px 12px;
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-item-stats > span {
+   display: inline-flex;
+   align-items: center;
+   gap: 4px;
+}
+
+/* Oynadagi 4 ta raqam */
+.adm-detail-stats {
+   display: grid;
+   grid-template-columns: repeat(4, minmax(0, 1fr));
+   gap: 6px;
+}
+
+.adm-detail-stats > div {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   gap: 2px;
+   border-radius: var(--r-md);
+   background: var(--z-muted);
+   padding: 10px 4px;
+   color: var(--admin-muted);
+}
+
+.adm-detail-stats b {
+   color: var(--admin-ink);
+   font-size: 18px;
+   font-weight: 750;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-detail-stats small {
+   font-size: 12px;
+}
+
+/* ==========================================================================
+   8. BOSH SAHIFA GRAFIGI: ko'rsatkich tugmalari (son + farq) — bosilsa grafik o'zgaradi
+   ========================================================================== */
+
+.adm-trend {
+   display: grid;
+   gap: 12px;
+   transition: opacity 0.15s ease;
+}
+
+.adm-trend.is-loading {
+   opacity: 0.6;
+}
+
+.adm-metrics {
+   display: grid;
+   grid-template-columns: repeat(3, minmax(0, 1fr));
+   gap: 6px;
+}
+
+.adm-metric {
+   display: flex;
+   min-width: 0;
+   flex-direction: column;
+   align-items: flex-start;
+   gap: 2px;
+   border: 1px solid transparent;
+   border-radius: var(--r-md);
+   background: var(--z-muted);
+   padding: 8px 9px;
+   color: var(--admin-ink);
+   font: inherit;
+   text-align: left;
+   cursor: pointer;
+   transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.adm-metric.is-active {
+   border-color: var(--chart-a);
+   background: color-mix(in srgb, var(--chart-a) 12%, var(--z-card));
+   box-shadow: inset 0 0 0 1px var(--chart-a);
+}
+
+.adm-metric-label {
+   display: flex;
+   max-width: 100%;
+   align-items: center;
+   gap: 4px;
+   overflow: hidden;
+   color: var(--admin-muted);
+   font-size: 11.5px;
+   font-weight: 600;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-metric-label svg {
+   flex-shrink: 0;
+}
+
+.adm-metric-value {
+   font-size: 19px;
+   font-weight: 750;
+   line-height: 1.15;
+   letter-spacing: -0.02em;
+   font-variant-numeric: tabular-nums;
+}
+
+.adm-metric .adm-delta {
+   font-size: 11px;
+}
+
+.adm-trend-head {
+   display: flex;
+   min-height: 32px;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+   color: var(--admin-muted);
+   font-size: 13px;
+}
+
+.adm-trend-head b {
+   color: var(--admin-ink);
+}
+
+@media (min-width: 820px) {
+   .adm-metrics {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+   }
+}
+
+/* ==========================================================================
+   9. AVTO-E'LONLAR: bufer taklifi va havola kartochkalari
+   ========================================================================== */
+
+.adm-clip {
+   display: grid;
+   gap: 10px;
+   border: 1px solid color-mix(in srgb, var(--chart-a) 35%, transparent);
+   border-radius: var(--r-lg);
+   background: color-mix(in srgb, var(--chart-a) 9%, var(--z-card));
+   padding: 12px;
+   animation: admin-expand 0.2s ease;
+}
+
+.adm-clip-head {
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   color: var(--chart-a);
+   font-size: 14px;
+}
+
+.adm-clip-head b {
+   color: var(--admin-ink);
+}
+
+.adm-clip-text {
+   display: -webkit-box;
+   overflow: hidden;
+   -webkit-box-orient: vertical;
+   -webkit-line-clamp: 4;
+   line-clamp: 4;
+   margin: 0;
+   border-radius: var(--r-sm);
+   background: var(--z-card);
+   padding: 10px 12px;
+   font-size: 13.5px;
+   line-height: 1.5;
+   white-space: pre-line;
+   overflow-wrap: anywhere;
+}
+
+.adm-clip-actions {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 8px;
+}
+
+.adm-clip-actions > button {
+   width: 100%;
+}
+
+.adm-link-list {
+   display: grid;
+   gap: 6px;
+   margin: 0;
+   padding: 0;
+   list-style: none;
+}
+
+.adm-link-card {
+   display: flex;
+   min-height: 52px;
+   align-items: center;
+   gap: 10px;
+   border: 1px solid var(--admin-border);
+   border-radius: var(--r-md);
+   background: var(--z-card);
+   padding: 6px 6px 6px 10px;
+   animation: admin-expand 0.18s ease;
+}
+
+.adm-link-icon {
+   display: grid;
+   width: 34px;
+   height: 34px;
+   flex-shrink: 0;
+   place-items: center;
+   border-radius: 999px;
+   background: rgb(42 171 238 / 0.14);
+   color: #229ed9;
+}
+
+.adm-link-text {
+   display: flex;
+   min-width: 0;
+   flex: 1;
+   flex-direction: column;
+   line-height: 1.25;
+}
+
+.adm-link-text b {
+   overflow: hidden;
+   font-size: 14.5px;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
+.adm-link-text small {
+   color: var(--admin-muted);
+   font-size: 12.5px;
+   font-variant-numeric: tabular-nums;
 }

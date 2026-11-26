@@ -64,6 +64,8 @@ Route::get('price-types/{id}', [App\Http\Controllers\PriceTypeController::class,
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::prefix('admin')->controller(App\Http\Controllers\AdminController::class)->group(function () {
         Route::get('dashboard', 'dashboard');
+        // Bosh sahifa: tanlangan bitta kun bo'yicha hisobot (?date=YYYY-MM-DD)
+        Route::get('day', App\Http\Controllers\AdminDayController::class);
         Route::get('products', 'products');
         Route::patch('products/{id}/status', 'updateProductStatus');
         Route::patch('products/{id}/expiry', 'updateProductExpiry');
@@ -80,6 +82,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::patch('users/{id}/role', 'updateUserRole');
         Route::post('users/{id}/block', 'blockUser');
         Route::post('users/{id}/unblock', 'unblockUser');
+        Route::post('users/{id}/check-channels', 'checkUserChannels');
         // Ogohlantirish/tushuntirish: e'lon muallifiga yoki foydalanuvchiga
         Route::get('users/{id}/messages', 'userMessages');
         // Ilovadagi yo'li: qaysi sahifalarga kirdi, nimani ko'rdi, qayerda xato oldi (kunlar bo'yicha)

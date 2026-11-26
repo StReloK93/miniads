@@ -67,6 +67,40 @@
          </article>
       </div>
 
+      <!-- Kanal va bot obunasi: kartani bosish — shu guruh bo'yicha filtr -->
+      <section class="admin-panel admin-subs">
+         <header class="admin-subs-head">
+            <div class="min-w-0">
+               <h2>Kanal va bot obunasi</h2>
+               <p v-if="channels.length">
+                  {{ channels.map((channel) => channel.title).join(", ") }}
+                  <span v-if="subscriptionCounts.unchecked"> · {{ num(subscriptionCounts.unchecked) }} nafari hali tekshirilmagan</span>
+               </p>
+            </div>
+            <button v-if="subscription" type="button" class="admin-text-link shrink-0" @click="setSubscription(subscription)">
+               Filtrni olish
+            </button>
+         </header>
+         <div class="admin-subs-grid">
+            <button
+               v-for="card in subscriptionCards"
+               :key="card.value"
+               type="button"
+               class="admin-subs-card"
+               :class="[`is-${card.value}`, { 'is-active': subscription === card.value }]"
+               :aria-pressed="subscription === card.value"
+               @click="setSubscription(card.value)"
+            >
+               <span class="admin-subs-icons" aria-hidden="true">
+                  <Megaphone class="size-3.5" :class="{ 'is-off': !card.channel }" />
+                  <Bot class="size-3.5" :class="{ 'is-off': !card.bot }" />
+               </span>
+               <strong>{{ num(subscriptionCounts[card.value] ?? 0) }}</strong>
+               <span class="admin-subs-label">{{ card.label }}</span>
+            </button>
+         </div>
+      </section>
+
       <section class="admin-panel admin-table-panel">
          <div class="admin-toolbar">
             <label class="admin-search">
@@ -125,6 +159,13 @@
             </button>
          </nav>
 
+         <div v-if="dateFilter" class="admin-filter-note">
+            <button type="button" class="adm-filter-tag" @click="clearDateFilter">
+               {{ relativeLabel(dateFilter) }} qo'shilganlar
+               <X class="size-3.5" aria-label="Olib tashlash" />
+            </button>
+         </div>
+
          <div v-if="visitsFilter" class="admin-filter-note">
             <span class="min-w-0 truncate">
                Ko'rsatilmoqda: <b>{{ visitsFilter === "once" ? "bir marta kirganlar" : "qayta-qayta kirayotganlar" }}</b>
@@ -136,171 +177,170 @@
          </div>
 
          <div v-if="loading && !users.length" class="admin-loading">Foydalanuvchilar yuklanmoqda…</div>
-         <div v-else class="admin-table-wrap transition-opacity" :class="{ 'opacity-60': loading }">
-            <table class="admin-xtable">
-               <thead>
-                  <tr>
-                     <th class="admin-col-main">Foydalanuvchi</th>
-                     <th class="admin-col-wide">Telegram ID</th>
-                     <th class="admin-col-wide">Shahar</th>
-                     <th class="admin-col-wide">Kirgan</th>
-                     <th class="admin-col-wide">Oxirgi faollik</th>
-                     <th class="admin-col-shrink">E'lonlar</th>
-                     <th class="admin-col-shrink"><span class="sr-only">Ochish</span></th>
-                  </tr>
-               </thead>
-               <tbody>
-                  <template v-for="user in users" :key="user.id">
-                     <tr
-                        class="admin-xrow"
-                        :class="{ 'is-open': openId === user.id, 'is-muted': !!user.blocked_at }"
-                        :aria-expanded="openId === user.id"
-                        tabindex="0"
-                        @click="toggle(user.id)"
-                        @keydown.enter.prevent="toggle(user.id)"
-                     >
-                        <td class="admin-col-main">
-                           <div class="admin-xmain">
-                              <span class="admin-xthumb rounded-full! font-bold text-sm text-(--z-foreground)">
-                                 {{ initials(user.name) }}
-                              </span>
-                              <div class="min-w-0 flex-1">
-                                 <!-- Uzun ism bitta qatorda qisqartiriladi, belgilar doim ko'rinadi -->
-                                 <div class="flex min-w-0 items-center gap-1.5 text-[13.5px] font-semibold leading-tight">
-                                    <span class="min-w-0 truncate" :title="user.name">{{ user.name }}</span>
-                                    <span v-if="user.role === 'admin'" class="admin-badge admin-badge-info shrink-0">Admin</span>
-                                    <span v-if="user.blocked_at" class="admin-badge admin-badge-danger shrink-0">Bloklangan</span>
-                                 </div>
-                                 <div class="admin-xmeta">
-                                    <span v-if="user.username" class="max-w-full truncate">@{{ user.username }}</span>
-                                    <span class="admin-only-narrow inline-flex items-center gap-1">
-                                       <span class="size-1.5 rounded-full" :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-400'" />
-                                       {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
-                                    </span>
-                                    <span class="admin-only-narrow">{{ visitLabel(user.visit_days) }}</span>
-                                    <span v-if="user.active_district" class="admin-only-narrow">{{ user.active_district.name }}</span>
-                                    <span v-if="user.products_count" class="admin-only-narrow">{{ user.products_count }} e'lon</span>
-                                 </div>
-                              </div>
-                           </div>
-                        </td>
-                        <td class="admin-col-wide tabular-nums">{{ user.telegram_user_id || "—" }}</td>
-                        <td class="admin-col-wide">{{ user.active_district?.name || "—" }}</td>
-                        <td class="admin-col-wide whitespace-nowrap">
-                           <span v-if="user.visit_days >= 2" class="admin-badge admin-badge-success">{{ visitLabel(user.visit_days) }}</span>
-                           <span v-else class="text-(--z-muted-text)">{{ visitLabel(user.visit_days) }}</span>
-                        </td>
-                        <td class="admin-col-wide whitespace-nowrap">
-                           <span class="inline-flex items-center gap-2">
-                              <span class="size-2 rounded-full" :class="isRecentlyActive(user.last_active_at) ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'" />
-                              {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
-                           </span>
-                        </td>
-                        <td class="admin-col-shrink text-right tabular-nums">
-                           <b>{{ user.active_products_count ?? 0 }}</b>
-                           <span class="text-(--z-muted-text)"> / {{ user.products_count }}</span>
-                        </td>
-                        <td class="admin-col-shrink"><ChevronDown class="admin-xchevron size-4" /></td>
-                     </tr>
+         <ul v-else class="adm-list transition-opacity" :class="{ 'opacity-60': loading }">
+            <li v-for="user in users" :key="user.id">
+               <button type="button" class="adm-item" :class="{ 'is-muted': !!user.blocked_at }" @click="openId = user.id">
+                  <span class="adm-item-main">
+                     <span class="adm-item-title">
+                        <span :title="user.name">{{ user.name }}</span>
+                        <span v-if="user.role === 'admin'" class="admin-badge admin-badge-info">Admin</span>
+                        <span v-if="user.blocked_at" class="admin-badge admin-badge-danger">Bloklangan</span>
+                     </span>
+                     <span class="adm-item-meta">
+                        <span v-if="user.username">@{{ user.username }}</span>
+                        <span v-if="user.active_district">{{ user.active_district.name }}</span>
+                        <span v-if="user.products_count"><b>{{ user.active_products_count ?? 0 }}</b>/{{ user.products_count }} e'lon</span>
+                     </span>
+                     <!-- Kanal / bot: yashil — a'zo, chizilgan — yo'q, "?" — hali tekshirilmagan -->
+                     <span class="admin-sub-pills">
+                        <span class="admin-sub-pill" :class="channelState(user)" :title="channelTitle(user)">
+                           <Megaphone class="size-3" aria-hidden="true" />
+                           Kanal{{ channelState(user) === "is-unknown" ? " ?" : "" }}
+                        </span>
+                        <span class="admin-sub-pill" :class="user.bot_can_message ? 'is-on' : 'is-off'">
+                           <Bot class="size-3" aria-hidden="true" />
+                           Bot
+                        </span>
+                     </span>
+                  </span>
+                  <span class="adm-item-side">
+                     <span class="inline-flex items-center gap-2">
+                        <i v-if="isRecentlyActive(user.last_active_at)" class="adm-dot is-active" title="Oxirgi 24 soatda faol" />
+                        {{ user.last_active_at ? timeAgo(user.last_active_at) : "Kirmagan" }}
+                     </span>
+                     <span>{{ visitLabel(user.visit_days) }}</span>
+                  </span>
+               </button>
+            </li>
+            <li v-if="users.length === 0" class="admin-empty-cell">Foydalanuvchi topilmadi.</li>
+         </ul>
 
-                     <tr v-if="openId === user.id" class="admin-xdetail">
-                        <td colspan="7">
-                           <div class="admin-xdetail-inner">
-                              <dl class="admin-dl admin-xfull">
-                                 <div>
-                                    <dt>Telegram ID</dt>
-                                    <dd class="tabular-nums">{{ user.telegram_user_id || "—" }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Shahar</dt>
-                                    <dd>{{ user.active_district?.name || "Tanlanmagan" }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Bot xabar yubora oladimi</dt>
-                                    <dd>{{ user.bot_can_message ? "Ha" : "Yo'q — botni ishga tushirmagan" }}</dd>
-                                 </div>
-                                 <div v-if="user.phone">
-                                    <dt>Telefon</dt>
-                                    <dd><a :href="`tel:${user.phone}`">{{ user.phone }}</a></dd>
-                                 </div>
-                                 <div>
-                                    <dt>E'lonlar (faol / jami)</dt>
-                                    <dd class="tabular-nums">{{ user.active_products_count ?? 0 }} / {{ user.products_count }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Ro'yxatdan o'tgan</dt>
-                                    <dd>{{ formatDateTime(user.created_at) }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Oxirgi faollik</dt>
-                                    <dd>{{ user.last_active_at ? formatDateTime(user.last_active_at) : "Kirmagan" }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Ilovaga kirgan</dt>
-                                    <dd>
-                                       {{ visitLabel(user.visit_days) }}
-                                       <span v-if="user.last_visit_on" class="text-(--z-muted-text)">· oxirgisi {{ formatDate(user.last_visit_on) }}</span>
-                                    </dd>
-                                 </div>
-                                 <div v-if="user.blocked_at">
-                                    <dt>Bloklangan</dt>
-                                    <dd>{{ formatDateTime(user.blocked_at) }}</dd>
-                                 </div>
-                              </dl>
+         <!-- Tafsilot: bosilgan foydalanuvchi oynada -->
+         <AdminSheet
+            :open="openUser !== null"
+            :title="openUser?.name ?? ''"
+            :subtitle="openUser ? [openUser.username ? `@${openUser.username}` : '', openUser.role === 'admin' ? 'Admin' : ''].filter(Boolean).join(' · ') : ''"
+            @close="openId = null"
+         >
+            <template v-if="openUser">
+               <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
+               <p v-else-if="notice" class="admin-alert admin-alert-success">{{ notice }}</p>
 
-                              <div class="admin-xactions admin-xfull">
-                                 <BaseButton size="sm" severity="secondary" @click="journeyUserId = user.id">
-                                    <template #icon><Route class="size-3.5" /></template>
-                                    Ilovadagi yo'li
-                                 </BaseButton>
-                                 <BaseButton v-if="user.products_count" size="sm" severity="secondary" @click="openProducts(user)">
-                                    <template #icon><FileText class="size-3.5" /></template>
-                                    E'lonlari
-                                 </BaseButton>
-                                 <BaseButton v-if="user.id !== currentUserId" size="sm" severity="secondary" @click="messageTarget = user">
-                                    <template #icon><MessageSquare class="size-3.5" /></template>
-                                    Xabar yozish
-                                 </BaseButton>
-                                 <a v-if="telegramLink(user)" :href="telegramLink(user)!" target="_blank" rel="noopener">
-                                    <BaseButton size="sm" severity="secondary">
-                                       <template #icon><Send class="size-3.5" /></template>
-                                       Telegramda yozish
-                                    </BaseButton>
-                                 </a>
+               <dl class="admin-dl">
+                  <div>
+                     <dt>Botga a'zo</dt>
+                     <dd>{{ openUser.bot_can_message ? "Ha — bot yoza oladi" : "Yo'q" }}</dd>
+                  </div>
+                  <div>
+                     <dt>Kanalga a'zo</dt>
+                     <dd>
+                        <template v-if="!openUser.channels_checked_at && !openUser.channel_ids?.length">Hali tekshirilmagan</template>
+                        <template v-else-if="openUser.channel_ids?.length">{{ channelNames(openUser) }}</template>
+                        <template v-else>Yo'q</template>
+                        <span v-if="openUser.channels_checked_at" class="block text-xs font-normal text-(--z-muted-text)">
+                           tekshirildi {{ timeAgo(openUser.channels_checked_at) }}
+                        </span>
+                     </dd>
+                  </div>
+                  <div>
+                     <dt>Shahar</dt>
+                     <dd>{{ openUser.active_district?.name || "Tanlanmagan" }}</dd>
+                  </div>
+                  <div v-if="openUser.phone">
+                     <dt>Telefon</dt>
+                     <dd><a :href="`tel:${openUser.phone}`">{{ openUser.phone }}</a></dd>
+                  </div>
+                  <div>
+                     <dt>E'lonlar (faol / jami)</dt>
+                     <dd class="tabular-nums">{{ openUser.active_products_count ?? 0 }} / {{ openUser.products_count }}</dd>
+                  </div>
+                  <div>
+                     <dt>Telegram ID</dt>
+                     <dd class="tabular-nums">{{ openUser.telegram_user_id || "—" }}</dd>
+                  </div>
+                  <div>
+                     <dt>Ro'yxatdan o'tgan</dt>
+                     <dd>{{ formatDateTime(openUser.created_at) }}</dd>
+                  </div>
+                  <div>
+                     <dt>Oxirgi faollik</dt>
+                     <dd>{{ openUser.last_active_at ? formatDateTime(openUser.last_active_at) : "Kirmagan" }}</dd>
+                  </div>
+                  <div>
+                     <dt>Ilovaga kirgan</dt>
+                     <dd>
+                        {{ visitLabel(openUser.visit_days) }}
+                        <span v-if="openUser.last_visit_on" class="block text-xs font-normal text-(--z-muted-text)">
+                           oxirgisi {{ formatDate(openUser.last_visit_on) }}
+                        </span>
+                     </dd>
+                  </div>
+                  <div v-if="openUser.blocked_at">
+                     <dt>Bloklangan</dt>
+                     <dd>{{ formatDateTime(openUser.blocked_at) }}</dd>
+                  </div>
+               </dl>
+            </template>
 
-                                 <template v-if="user.id !== currentUserId">
-                                    <BaseButton size="sm" severity="secondary" :loading="busyId === user.id" @click="askRole(user)">
-                                       <template #icon><ShieldCheck class="size-3.5" /></template>
-                                       {{ user.role === "admin" ? "Adminlikdan olish" : "Admin qilish" }}
-                                    </BaseButton>
-                                    <BaseButton
-                                       v-if="user.blocked_at"
-                                       size="sm"
-                                       severity="secondary"
-                                       :loading="busyId === user.id"
-                                       @click="unblock(user)"
-                                    >
-                                       <template #icon><Unlock class="size-3.5" /></template>
-                                       Blokdan chiqarish
-                                    </BaseButton>
-                                    <BaseButton v-else-if="user.role !== 'admin'" size="sm" severity="danger" @click="askBlock(user)">
-                                       <template #icon><Ban class="size-3.5" /></template>
-                                       Bloklash
-                                    </BaseButton>
-                                 </template>
-                                 <span v-else class="self-center text-xs text-(--z-muted-text)">Bu sizning hisobingiz</span>
-                              </div>
-                           </div>
-                        </td>
-                     </tr>
-                  </template>
+            <template v-if="openUser" #actions>
+               <BaseButton size="sm" severity="secondary" @click="journeyUserId = openUser.id">
+                  <template #icon><Route class="size-3.5" /></template>
+                  Ilovadagi yo'li
+               </BaseButton>
+               <BaseButton v-if="openUser.products_count" size="sm" severity="secondary" @click="openProducts(openUser)">
+                  <template #icon><FileText class="size-3.5" /></template>
+                  E'lonlari
+               </BaseButton>
+               <BaseButton v-if="openUser.id !== currentUserId" size="sm" severity="secondary" @click="messageTarget = openUser">
+                  <template #icon><MessageSquare class="size-3.5" /></template>
+                  Xabar yozish
+               </BaseButton>
+               <a v-if="telegramLink(openUser)" :href="telegramLink(openUser)!" target="_blank" rel="noopener">
+                  <BaseButton size="sm" severity="secondary">
+                     <template #icon><Send class="size-3.5" /></template>
+                     Telegramda
+                  </BaseButton>
+               </a>
+               <BaseButton
+                  v-if="openUser.telegram_user_id"
+                  size="sm"
+                  severity="secondary"
+                  :loading="checkingId === openUser.id"
+                  @click="checkChannels(openUser)"
+               >
+                  <template #icon><RefreshCw class="size-3.5" /></template>
+                  Kanalni tekshirish
+               </BaseButton>
 
-                  <tr v-if="users.length === 0">
-                     <td colspan="7" class="admin-empty-cell">Foydalanuvchi topilmadi.</td>
-                  </tr>
-               </tbody>
-            </table>
-         </div>
+               <template v-if="openUser.id !== currentUserId">
+                  <BaseButton size="sm" severity="secondary" :loading="busyId === openUser.id" @click="askRole(openUser)">
+                     <template #icon><ShieldCheck class="size-3.5" /></template>
+                     {{ openUser.role === "admin" ? "Adminlikdan olish" : "Admin qilish" }}
+                  </BaseButton>
+                  <BaseButton
+                     v-if="openUser.blocked_at"
+                     size="sm"
+                     severity="secondary"
+                     :loading="busyId === openUser.id"
+                     @click="unblock(openUser)"
+                  >
+                     <template #icon><Unlock class="size-3.5" /></template>
+                     Blokdan chiqarish
+                  </BaseButton>
+                  <BaseButton
+                     v-else-if="openUser.role !== 'admin'"
+                     size="sm"
+                     severity="danger"
+                     class="admin-xactions-wide"
+                     @click="askBlock(openUser)"
+                  >
+                     <template #icon><Ban class="size-3.5" /></template>
+                     Bloklash
+                  </BaseButton>
+               </template>
+            </template>
+         </AdminSheet>
+
 
          <footer v-if="pagination" class="admin-pagination">
             <span>{{ pagination.from || 0 }}–{{ pagination.to || 0 }} / {{ pagination.total }}</span>
@@ -329,12 +369,27 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { Ban, ChevronDown, FileText, MessageSquare, Route, Search, Send, ShieldCheck, Unlock, X } from "lucide-vue-next";
+import {
+   Ban,
+   Bot,
+   FileText,
+   Megaphone,
+   MessageSquare,
+   RefreshCw,
+   Route,
+   Search,
+   Send,
+   ShieldCheck,
+   Unlock,
+   X,
+} from "lucide-vue-next";
 import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
 import AdminUserJourney from "@admin/components/AdminUserJourney.vue";
+import AdminSheet from "@admin/components/AdminSheet.vue";
 import AdminRepo from "@admin/entities/AdminRepo";
+import { isValidKey, relativeLabel } from "@admin/modules/dates";
 import { useAuth } from "@shared/store/useAuth";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
@@ -349,6 +404,10 @@ type UserItem = {
    phone?: string | null;
    /** Bot unga xabar yubora oladi */
    bot_can_message?: boolean;
+   /** A'zo bo'lgan kanallar (config'dagi chat id) */
+   channel_ids?: string[];
+   /** Kanal a'zoligi oxirgi marta qachon tekshirilgan; null — hali tekshirilmagan */
+   channels_checked_at?: string | null;
    role: "user" | "admin";
    products_count: number;
    active_products_count?: number;
@@ -403,9 +462,33 @@ const segmentChips: { value: Segment; label: string; hint: string }[] = [
    { value: "bot", label: "Bot yoza oladi", hint: "Botga /start bosgan yoki yozishga ruxsat bergan — bot ularga xabar yubora oladi" },
 ];
 
+type Subscription = "" | "both" | "channel_only" | "bot_only" | "none";
+type ChannelInfo = { id: string; title: string; username: string | null };
+const subscriptionCards: { value: Exclude<Subscription, "">; label: string; channel: boolean; bot: boolean }[] = [
+   { value: "both", label: "Kanal va bot", channel: true, bot: true },
+   { value: "channel_only", label: "Faqat kanal", channel: true, bot: false },
+   { value: "bot_only", label: "Faqat bot", channel: false, bot: true },
+   { value: "none", label: "Hech biri", channel: false, bot: false },
+];
+const subscriptionValues = subscriptionCards.map((card) => card.value as string);
+const subscription = ref<Subscription>(
+   (subscriptionValues.includes(String(route.query.subscription)) ? route.query.subscription : "") as Subscription,
+);
+const subscriptionCounts = ref<Record<string, number>>({});
+const channels = ref<ChannelInfo[]>([]);
+const checkingId = ref<number | null>(null);
+
 const users = ref<UserItem[]>([]);
 const pagination = ref<PaginationMeta | null>(null);
-const searchInput = ref("");
+// Menyudagi qidiruvdan yoki bosh sahifadan kelganda: ?search= va ?date= (shu kuni qo'shilganlar)
+const searchInput = ref(typeof route.query.search === "string" ? route.query.search : "");
+const dateFilter = ref<string | null>(isValidKey(route.query.date) ? route.query.date : null);
+
+function clearDateFilter() {
+   dateFilter.value = null;
+   router.replace({ query: { ...route.query, date: undefined } });
+   load(1);
+}
 // "all" — FieldSelect bo'sh qiymatni "Tanlang" deb ko'rsatadi
 const roleFilter = ref("all");
 const segment = ref<Segment>(
@@ -419,7 +502,8 @@ const sort = ref("new");
 const summary = ref<VisitSummary | null>(null);
 const loading = ref(true);
 const busyId = ref<number | null>(null);
-const openId = ref<number | null>(null);
+// ?open=ID — bosh sahifadan kelganda shu yozuv darhol oynada ochiladi
+const openId = ref<number | null>(Number(route.query.open) || null);
 const error = ref("");
 const notice = ref("");
 const confirmState = ref<ConfirmState | null>(null);
@@ -444,13 +528,6 @@ function visitLabel(days: number) {
    return days === 1 ? "1 kun" : `${days} kun`;
 }
 
-function initials(name: string) {
-   return (name || "?")
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join("");
-}
 
 function telegramLink(user: UserItem) {
    if (user.username) return `https://t.me/${user.username}`;
@@ -467,9 +544,13 @@ async function load(page = 1) {
       if (segment.value) params.segment = segment.value;
       if (visitsFilter.value) params.visits = visitsFilter.value;
       if (sort.value !== "new") params.sort = sort.value;
+      if (subscription.value) params.subscription = subscription.value;
+      if (dateFilter.value) params.date = dateFilter.value;
 
       const { data } = await AdminRepo.users(params);
       users.value = data.data;
+      channels.value = data.channels ?? [];
+      subscriptionCounts.value = data.subscription_counts ?? {};
       summary.value = data.visit_summary ?? null;
       segmentCounts.value = data.segment_counts ?? {};
       pagination.value = {
@@ -492,8 +573,49 @@ function setSegment(value: Segment) {
    segment.value = value;
    openId.value = null;
    // Havola saqlanadi: bosh sahifadan "Bugun kirganlar"ga to'g'ridan-to'g'ri o'tish mumkin
-   router.replace({ query: value ? { segment: value } : {} });
+   router.replace({ query: { ...route.query, segment: value || undefined } });
    load(1);
+}
+
+/** Obuna kartasi: qayta bosilsa — filtr olib tashlanadi */
+function setSubscription(value: Exclude<Subscription, "">) {
+   subscription.value = subscription.value === value ? "" : value;
+   openId.value = null;
+   router.replace({ query: { ...route.query, subscription: subscription.value || undefined } });
+   load(1);
+}
+
+function channelState(user: UserItem) {
+   if (user.channel_ids?.length) return "is-on";
+   return user.channels_checked_at ? "is-off" : "is-unknown";
+}
+
+function channelNames(user: UserItem) {
+   return (user.channel_ids ?? [])
+      .map((id) => channels.value.find((channel) => channel.id === id)?.title ?? id)
+      .join(", ");
+}
+
+function channelTitle(user: UserItem) {
+   const state = channelState(user);
+   if (state === "is-on") return `Kanalga a'zo: ${channelNames(user)}`;
+   return state === "is-off" ? "Kanalga a'zo emas" : "Kanal a'zoligi hali tekshirilmagan";
+}
+
+async function checkChannels(user: UserItem) {
+   checkingId.value = user.id;
+   error.value = "";
+   notice.value = "";
+   try {
+      const { data } = await AdminRepo.checkUserChannels(user.id);
+      user.channel_ids = data.channel_ids;
+      user.channels_checked_at = data.channels_checked_at;
+      notice.value = data.message;
+   } catch (exception: any) {
+      error.value = exception?.response?.data?.message || "Kanal a'zoligini tekshirib bo'lmadi.";
+   } finally {
+      checkingId.value = null;
+   }
 }
 
 /** Karta qayta bosilsa — filtr olib tashlanadi */
@@ -503,9 +625,11 @@ function setVisits(value: Exclude<VisitsFilter, "">) {
    load(1);
 }
 
-function toggle(id: number) {
-   openId.value = openId.value === id ? null : id;
-}
+// Oynadagi foydalanuvchi: ro'yxat yangilansa (rol, blok) yangi holat ko'rinadi
+const openUser = computed(() => users.value.find((user) => user.id === openId.value) ?? null);
+watch(openId, () => {
+   notice.value = "";
+});
 
 function openProducts(user: UserItem) {
    router.push({ name: "admin-products", query: { user_id: user.id, user_name: user.name } });

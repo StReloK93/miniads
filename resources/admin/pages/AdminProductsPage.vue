@@ -113,6 +113,13 @@
             </button>
          </nav>
 
+         <div v-if="dateFilter" class="admin-filter-note">
+            <button type="button" class="adm-filter-tag" @click="clearDateFilter">
+               {{ relativeLabel(dateFilter) }} joylanganlar
+               <X class="size-3.5" aria-label="Olib tashlash" />
+            </button>
+         </div>
+
          <div v-if="userFilter" class="admin-filter-note">
             <span class="min-w-0 truncate">Muallif: <b>{{ userFilter.name }}</b></span>
             <BaseButton size="xs" severity="secondary" @click="clearUserFilter">
@@ -121,306 +128,269 @@
             </BaseButton>
          </div>
 
-         <!-- Ommaviy amallar: belgilanganda jadval ustida paydo bo'ladi -->
-         <div v-if="selected.length" class="admin-bulk-bar">
-            <span class="font-semibold tabular-nums">{{ selected.length }} ta tanlandi</span>
-            <div class="flex flex-wrap gap-1.5">
+         <!-- Tanlash rejimi (Telegramdagidek): qatorni bosib turing — tanlanadi, keyin bosib qo'shib boring -->
+         <div v-if="selected.length" class="admin-bulk-bar adm-select-bar">
+            <button type="button" class="adm-icon-btn is-small" aria-label="Tanlovni bekor qilish" @click="selected = []">
+               <X class="size-4.5" />
+            </button>
+            <span class="font-semibold tabular-nums">{{ selected.length }} ta</span>
+            <button
+               v-if="selected.length < products.length"
+               type="button"
+               class="admin-text-link"
+               @click="selected = products.map((product) => product.id)"
+            >
+               Hammasi
+            </button>
+            <div class="adm-select-actions">
                <template v-if="status === 'deleted'">
                   <BaseButton size="xs" severity="secondary" :loading="bulkBusy" @click="runBulk('restore')">Tiklash</BaseButton>
                </template>
                <template v-else>
                   <BaseButton size="xs" severity="secondary" :loading="bulkBusy" @click="runBulk('activate')">Faollashtirish</BaseButton>
                   <BaseButton size="xs" severity="secondary" :loading="bulkBusy" @click="runBulk('deactivate')">To'xtatish</BaseButton>
-                  <BaseButton size="xs" severity="secondary" :loading="bulkBusy" @click="runBulk('resolve')">Shikoyatlarni yopish</BaseButton>
+                  <BaseButton size="xs" severity="secondary" :loading="bulkBusy" @click="runBulk('resolve')">Shikoyatni yopish</BaseButton>
                   <BaseButton size="xs" severity="danger" :disabled="bulkBusy" @click="askBulkArchive">Arxivlash</BaseButton>
                </template>
-               <BaseButton size="xs" severity="secondary" icon-only aria-label="Tanlovni bekor qilish" @click="selected = []">
-                  <template #icon><X class="size-3.5" /></template>
-               </BaseButton>
             </div>
          </div>
 
          <div v-if="loading && !products.length" class="admin-loading">E'lonlar yuklanmoqda…</div>
-         <div v-else class="admin-table-wrap transition-opacity" :class="{ 'opacity-60': loading }">
-            <table class="admin-xtable">
-               <thead>
-                  <tr>
-                     <th class="admin-col-check">
-                        <input
-                           type="checkbox"
-                           class="admin-check"
-                           aria-label="Sahifadagi hammasini tanlash"
-                           :checked="products.length > 0 && selected.length === products.length"
-                           :indeterminate="selected.length > 0 && selected.length < products.length"
-                           @change="toggleAll"
-                        />
-                     </th>
-                     <th class="admin-col-main">E'lon</th>
-                     <th class="admin-col-wide">Muallif</th>
-                     <th class="admin-col-wide">Narx</th>
-                     <th class="admin-col-wide">Ko'rishlar</th>
-                     <th class="admin-col-wide">Joylangan</th>
-                     <th class="admin-col-shrink">Holat</th>
-                     <th class="admin-col-shrink"><span class="sr-only">Ochish</span></th>
-                  </tr>
-               </thead>
-               <tbody>
-                  <template v-for="product in products" :key="product.id">
-                     <tr
-                        class="admin-xrow"
-                        :class="{ 'is-open': openId === product.id, 'is-muted': !!product.deleted_at }"
-                        :aria-expanded="openId === product.id"
-                        tabindex="0"
-                        @click="toggle(product.id)"
-                        @keydown.enter.prevent="toggle(product.id)"
-                     >
-                        <!-- Belgilash qatorni ochmaydi -->
-                        <td class="admin-col-check" @click.stop>
-                           <input v-model="selected" type="checkbox" class="admin-check" :value="product.id" :aria-label="`${product.title} — tanlash`" />
-                        </td>
-                        <td class="admin-col-main">
-                           <div class="admin-xmain">
-                              <img
-                                 v-if="product.images?.[0]"
-                                 class="admin-xthumb"
-                                 :src="imageUrl(product.images[0].thumb_src || product.images[0].src)"
-                                 alt=""
-                                 loading="lazy"
-                              />
-                              <span v-else class="admin-xthumb"><ImageOff class="size-4" /></span>
-                              <div class="min-w-0">
-                                 <div class="admin-xtitle">{{ product.title }}</div>
-                                 <!-- Telefonda: kompyuterdagi ustunlar o'rniga bitta ixcham qator -->
-                                 <div class="admin-xmeta admin-only-narrow">
-                                    <b v-if="product.price">{{ formatProductPrice(product.price, product.price_type) }}</b>
-                                    <span class="inline-flex items-center gap-1"><Eye class="size-3" />{{ product.views_count ?? 0 }}</span>
-                                    <span>{{ timeAgo(product.created_at) }}</span>
-                                 </div>
-                                 <div class="admin-xmeta">
-                                    <span>#{{ product.id }} · {{ product.category?.name || "Kategoriyasiz" }}</span>
-                                    <span v-if="product.is_bot" class="inline-flex items-center gap-0.5 text-emerald-600">
-                                       <Bot class="size-3" /> Bot
-                                    </span>
-                                 </div>
-                                 <div v-if="product.phone" class="admin-xmeta">
-                                    <span class="tabular-nums">{{ product.phone }}</span>
-                                    <!-- Shu raqam bilan boshqa e'lonlar: bosilsa hammasi ko'rinadi -->
-                                    <button
-                                       v-if="product.same_phone_count"
-                                       type="button"
-                                       class="admin-badge admin-badge-warning cursor-pointer"
-                                       :title="`Shu raqam bilan yana ${product.same_phone_count} ta e'lon — ko'rsatish`"
-                                       @click.stop="searchPhone(product.phone)"
-                                    >
-                                       <Copy class="size-3" /> yana {{ product.same_phone_count }} ta
-                                    </button>
-                                 </div>
-                              </div>
-                           </div>
-                        </td>
-                        <td class="admin-col-wide">
-                           <!-- Uzun ism ustunni kengaytirib yubormasin -->
-                           <div class="max-w-40 truncate font-medium" :title="product.user?.name">{{ product.user?.name || "—" }}</div>
-                           <div class="admin-xmeta max-w-40 truncate block!">{{ product.user?.username ? `@${product.user.username}` : "" }}</div>
-                        </td>
-                        <td class="admin-col-wide whitespace-nowrap">{{ formatProductPrice(product.price, product.price_type) }}</td>
-                        <td class="admin-col-wide tabular-nums">{{ (product.views_count ?? 0).toLocaleString("ru-RU") }}</td>
-                        <td class="admin-col-wide whitespace-nowrap">{{ timeAgo(product.created_at) }}</td>
-                        <td class="admin-col-shrink">
-                           <div class="flex flex-col items-end gap-1">
-                              <span class="admin-badge" :class="badgeClass(product)">{{ statusLabel(product) }}</span>
-                              <span v-if="product.open_reports_count" class="admin-badge admin-badge-danger">
-                                 <Flag class="size-3" />{{ product.open_reports_count }}
-                              </span>
-                           </div>
-                        </td>
-                        <td class="admin-col-shrink">
-                           <ChevronDown class="admin-xchevron size-4" />
-                        </td>
-                     </tr>
+         <template v-else>
+            <p v-if="products.length && !selected.length" class="adm-list-head">
+               <span class="inline-flex items-center gap-1.5"><i class="adm-dot is-active" />faol</span>
+               <span class="inline-flex items-center gap-1.5"><i class="adm-dot is-expired" />tugagan</span>
+               <span class="ml-auto text-xs">bosib turing — tanlash</span>
+            </p>
 
-                     <tr v-if="openId === product.id" class="admin-xdetail">
-                        <td colspan="8">
-                           <div class="admin-xdetail-inner">
-                              <!-- Shikoyatlar birinchi: admin aynan shu sababdan ochgan bo'lishi mumkin -->
-                              <section v-if="product.open_reports?.length" class="admin-xfull">
-                                 <p class="admin-xsection-title">Shikoyatlar ({{ product.open_reports.length }})</p>
-                                 <div class="admin-report-list">
-                                    <div v-for="report in product.open_reports" :key="report.id" class="admin-report">
-                                       <b>{{ report.reason_label }}</b>
-                                       <span v-if="report.comment"> — {{ report.comment }}</span>
-                                       <small>{{ report.user?.name || "Foydalanuvchi" }} · {{ timeAgo(report.created_at) }}</small>
-                                    </div>
-                                 </div>
-                              </section>
+            <ul class="adm-list transition-opacity" :class="{ 'opacity-60': loading, 'is-selecting': selected.length > 0 }">
+               <li v-for="product in products" :key="product.id">
+                  <div
+                     class="adm-item is-pressable"
+                     :class="{ 'is-muted': !!product.deleted_at, 'is-selected': selected.includes(product.id) }"
+                     role="button"
+                     tabindex="0"
+                     :aria-pressed="selected.length ? selected.includes(product.id) : undefined"
+                     v-on="pressHandlers(product.id)"
+                     @keydown.enter.prevent="tap(product.id)"
+                  >
+                     <span class="adm-item-main">
+                        <span class="adm-item-title is-wrap"><span>{{ product.title }}</span></span>
+                        <span class="adm-item-meta">
+                           <b v-if="product.price">{{ formatProductPrice(product.price, product.price_type) }}</b>
+                           <span>{{ product.category?.name || "Kategoriyasiz" }}</span>
+                           <span v-if="product.district?.name">{{ product.district.name }}</span>
+                           <span v-if="product.is_bot" class="inline-flex items-center gap-0.5"><Bot class="size-3" />AI</span>
+                           <span v-if="product.same_phone_count" class="admin-badge admin-badge-warning">
+                              <Copy class="size-3" />+{{ product.same_phone_count }}
+                           </span>
+                        </span>
+                        <!-- Ko'rishlar · qo'ng'iroq · Telegram · sevimli -->
+                        <span class="adm-item-stats">
+                           <span title="Ko'rishlar"><Eye class="size-3.5" aria-hidden="true" />{{ num(product.views_count) }}<span class="sr-only"> ko'rish</span></span>
+                           <span title="Qo'ng'iroq tugmasini bosishgan"><Phone class="size-3.5" aria-hidden="true" />{{ num(product.phone_clicks) }}<span class="sr-only"> qo'ng'iroq</span></span>
+                           <span title="Telegram tugmasini bosishgan"><Send class="size-3.5" aria-hidden="true" />{{ num(product.telegram_clicks) }}<span class="sr-only"> Telegram</span></span>
+                           <span title="Sevimlilarga qo'shganlar"><Heart class="size-3.5" aria-hidden="true" />{{ num(product.favorites_count) }}<span class="sr-only"> sevimli</span></span>
+                        </span>
+                     </span>
+                     <span class="adm-item-side">
+                        <span class="inline-flex items-center gap-2">
+                           <span v-if="product.open_reports_count" class="admin-badge admin-badge-danger">
+                              <Flag class="size-3" />{{ product.open_reports_count }}
+                           </span>
+                           <CircleCheck v-if="selected.includes(product.id)" class="adm-item-tick size-5" aria-hidden="true" />
+                           <i v-else class="adm-dot" :class="dotClass(product)" :title="statusLabel(product)" />
+                           <span class="sr-only">{{ statusLabel(product) }}</span>
+                        </span>
+                        <span>{{ timeAgo(product.created_at) }}</span>
+                     </span>
+                  </div>
+               </li>
+               <li v-if="products.length === 0" class="admin-empty-cell">Qidiruvga mos e'lon topilmadi.</li>
+            </ul>
+         </template>
 
-                              <div class="grid gap-3.5 content-start">
-                                 <section v-if="product.images?.length">
-                                    <p class="admin-xsection-title">Rasmlar ({{ product.images.length }})</p>
-                                    <div class="admin-thumbs">
-                                       <a v-for="image in product.images" :key="image.id" :href="imageUrl(image.src)" target="_blank" rel="noopener">
-                                          <img :src="imageUrl(image.thumb_src || image.src)" alt="" loading="lazy" />
-                                       </a>
-                                    </div>
-                                 </section>
-                                 <section v-if="product.description">
-                                    <p class="admin-xsection-title">Tavsif</p>
-                                    <p class="admin-xdescription">{{ product.description }}</p>
-                                 </section>
-                              </div>
+         <!-- Tafsilot: bosilgan e'lon oynada (ro'yxat joyida qoladi) -->
+         <AdminSheet
+            :open="openProduct !== null"
+            :title="openProduct?.title ?? ''"
+            :subtitle="openProduct ? `#${openProduct.id} · ${statusLabel(openProduct)} · ${timeAgo(openProduct.created_at)}` : ''"
+            @close="openId = null"
+         >
+            <template v-if="openProduct">
+               <!-- Amal natijasi oynaning o'zida ko'rinsin -->
+               <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
+               <p v-else-if="notice" class="admin-alert admin-alert-success">{{ notice }}</p>
 
-                              <dl class="admin-dl">
-                                 <div>
-                                    <dt>Muallif</dt>
-                                    <dd>
-                                       {{ product.user?.name || "—" }}
-                                       <a v-if="product.user?.username" :href="`https://t.me/${product.user.username}`" target="_blank" rel="noopener">
-                                          @{{ product.user.username }}
-                                       </a>
-                                       <span v-if="product.user?.blocked_at" class="admin-badge admin-badge-danger ml-1">Bloklangan</span>
-                                    </dd>
-                                 </div>
-                                 <div>
-                                    <dt>Telefon</dt>
-                                    <dd>
-                                       <a v-if="product.phone" :href="`tel:${product.phone}`">{{ product.phone }}</a>
-                                       <template v-else>—</template>
-                                       <button
-                                          v-if="product.phone"
-                                          type="button"
-                                          class="ml-2 text-xs underline underline-offset-2 text-(--z-muted-text) cursor-pointer"
-                                          @click="searchPhone(product.phone)"
-                                       >
-                                          shu raqamli e'lonlar
-                                       </button>
-                                    </dd>
-                                 </div>
-                                 <div>
-                                    <dt>Narx</dt>
-                                    <dd>{{ formatProductPrice(product.price, product.price_type) }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Hudud</dt>
-                                    <dd>{{ product.district?.name || "Butun viloyat" }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Kategoriya</dt>
-                                    <dd>{{ product.category?.name || "Kategoriyasiz" }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Ko'rishlar · Sevimli</dt>
-                                    <dd class="tabular-nums">{{ product.views_count ?? 0 }} · {{ product.favorites_count ?? 0 }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Joylangan</dt>
-                                    <dd>{{ formatDateTime(product.created_at) }}</dd>
-                                 </div>
-                                 <div>
-                                    <dt>Muddati</dt>
-                                    <dd>
-                                       {{ product.is_permanent ? "Muddatsiz" : product.expires_at ? formatDateTime(product.expires_at) : "—" }}
-                                       <!-- Har qanday e'lon (Telegram assistentniki ham): N kun, muddatsiz yoki kategoriya bo'yicha -->
-                                       <select
-                                          v-if="!product.deleted_at"
-                                          class="admin-input mt-1 h-8! py-0! text-xs"
-                                          :disabled="busyId === product.id"
-                                          @change="changeExpiry(product, $event)"
-                                       >
-                                          <option value="">Muddatni o'zgartirish…</option>
-                                          <option v-for="option in EXPIRY_OPTIONS" :key="option.value" :value="option.value">
-                                             {{ option.label }}
-                                          </option>
-                                       </select>
-                                    </dd>
-                                 </div>
-                                 <div v-if="product.is_bot">
-                                    <dt>Manba</dt>
-                                    <dd>{{ product.source_channel ? `@${product.source_channel.replace(/^@/, "")}` : "Bot" }}</dd>
-                                 </div>
-                                 <div v-for="value in product.parameter_values" :key="value.id">
-                                    <dt>{{ value.parameter?.title }}</dt>
-                                    <dd>{{ value.value }} {{ value.parameter?.unit || "" }}</dd>
-                                 </div>
-                              </dl>
+               <!-- Shikoyatlar birinchi: admin aynan shu sababdan ochgan bo'lishi mumkin -->
+               <section v-if="openProduct.open_reports?.length" class="adm-detail-section">
+                  <h3>Shikoyatlar ({{ openProduct.open_reports.length }})</h3>
+                  <div class="admin-report-list">
+                     <div v-for="report in openProduct.open_reports" :key="report.id" class="admin-report">
+                        <b>{{ report.reason_label }}</b>
+                        <span v-if="report.comment"> — {{ report.comment }}</span>
+                        <small>{{ report.user?.name || "Foydalanuvchi" }} · {{ timeAgo(report.created_at) }}</small>
+                     </div>
+                  </div>
+               </section>
 
-                              <div class="admin-xactions admin-xfull">
-                                 <a :href="`/product/${product.id}`" target="_blank" rel="noopener">
-                                    <BaseButton size="sm" severity="secondary">
-                                       <template #icon><ExternalLink class="size-3.5" /></template>
-                                       Ilovada ochish
-                                    </BaseButton>
-                                 </a>
+               <!-- Qiziqish: necha kishi ko'rdi, bog'landi, saqlab qo'ydi -->
+               <div class="adm-detail-stats">
+                  <div><Eye class="size-4" aria-hidden="true" /><b>{{ num(openProduct.views_count) }}</b><small>ko'rish</small></div>
+                  <div><Phone class="size-4" aria-hidden="true" /><b>{{ num(openProduct.phone_clicks) }}</b><small>qo'ng'iroq</small></div>
+                  <div><Send class="size-4" aria-hidden="true" /><b>{{ num(openProduct.telegram_clicks) }}</b><small>Telegram</small></div>
+                  <div><Heart class="size-4" aria-hidden="true" /><b>{{ num(openProduct.favorites_count) }}</b><small>sevimli</small></div>
+               </div>
 
-                                 <template v-if="product.deleted_at">
-                                    <BaseButton size="sm" severity="secondary" :loading="busyId === product.id" @click="restore(product)">
-                                       <template #icon><RotateCcw class="size-3.5" /></template>
-                                       Tiklash
-                                    </BaseButton>
-                                    <BaseButton size="sm" severity="danger" @click="askForceDelete(product)">
-                                       <template #icon><Trash2 class="size-3.5" /></template>
-                                       Butunlay o'chirish
-                                    </BaseButton>
-                                 </template>
+               <section v-if="openProduct.images?.length" class="adm-detail-section">
+                  <h3>Rasmlar ({{ openProduct.images.length }})</h3>
+                  <div class="admin-thumbs">
+                     <a v-for="image in openProduct.images" :key="image.id" :href="imageUrl(image.src)" target="_blank" rel="noopener">
+                        <img :src="imageUrl(image.thumb_src || image.src)" alt="" loading="lazy" />
+                     </a>
+                  </div>
+               </section>
 
-                                 <template v-else>
-                                    <!-- Admin panelning o'zida: ilovadagi forma (rasmlar, parametrlar) yon oynada ochiladi -->
-                                    <BaseButton size="sm" severity="secondary" @click="editId = product.id">
-                                       <template #icon><Pencil class="size-3.5" /></template>
-                                       Tahrirlash
-                                    </BaseButton>
-                                    <BaseButton size="sm" severity="secondary" :loading="busyId === product.id" @click="changeStatus(product)">
-                                       <template #icon>
-                                          <component :is="product.is_active ? PauseCircle : PlayCircle" class="size-3.5" />
-                                       </template>
-                                       {{ product.is_active ? "To'xtatish" : "Faollashtirish" }}
-                                    </BaseButton>
-                                    <!-- Muallifga ogohlantirish/tushuntirish (Telegram assistent e'lonida asl muallif yo'q) -->
-                                    <BaseButton
-                                       v-if="!product.is_bot && product.user"
-                                       size="sm"
-                                       severity="secondary"
-                                       @click="messageTarget = product"
-                                    >
-                                       <template #icon><MessageSquare class="size-3.5" /></template>
-                                       Muallifga yozish
-                                    </BaseButton>
-                                    <BaseButton
-                                       v-if="product.open_reports_count"
-                                       size="sm"
-                                       severity="secondary"
-                                       :loading="busyId === product.id"
-                                       @click="resolveReports(product)"
-                                    >
-                                       <template #icon><CheckCheck class="size-3.5" /></template>
-                                       Shikoyatlarni yopish
-                                    </BaseButton>
-                                    <BaseButton size="sm" severity="danger" @click="askArchive(product)">
-                                       <template #icon><Archive class="size-3.5" /></template>
-                                       Arxivlash
-                                    </BaseButton>
-                                 </template>
+               <section v-if="openProduct.description" class="adm-detail-section">
+                  <h3>Tavsif</h3>
+                  <p class="admin-xdescription">{{ openProduct.description }}</p>
+               </section>
 
-                                 <BaseButton
-                                    v-if="product.user && userFilter?.id !== product.user.id"
-                                    size="sm"
-                                    severity="secondary"
-                                    @click="filterByUser(product.user)"
-                                 >
-                                    <template #icon><UserRound class="size-3.5" /></template>
-                                    Muallifning e'lonlari
-                                 </BaseButton>
-                              </div>
-                           </div>
-                        </td>
-                     </tr>
-                  </template>
+               <dl class="admin-dl">
+                  <div>
+                     <dt>Muallif</dt>
+                     <dd>
+                        {{ openProduct.user?.name || "—" }}
+                        <a v-if="openProduct.user?.username" :href="`https://t.me/${openProduct.user.username}`" target="_blank" rel="noopener">
+                           @{{ openProduct.user.username }}
+                        </a>
+                        <span v-if="openProduct.user?.blocked_at" class="admin-badge admin-badge-danger ml-1">Bloklangan</span>
+                     </dd>
+                  </div>
+                  <div>
+                     <dt>Telefon</dt>
+                     <dd>
+                        <a v-if="openProduct.phone" :href="`tel:${openProduct.phone}`">{{ openProduct.phone }}</a>
+                        <template v-else>—</template>
+                        <button
+                           v-if="openProduct.phone"
+                           type="button"
+                           class="block mt-1 text-xs underline underline-offset-2 text-(--z-muted-text) cursor-pointer"
+                           @click="searchPhone(openProduct.phone)"
+                        >
+                           shu raqamli e'lonlar{{ openProduct.same_phone_count ? ` (+${openProduct.same_phone_count})` : "" }}
+                        </button>
+                     </dd>
+                  </div>
+                  <div>
+                     <dt>Narx</dt>
+                     <dd>{{ formatProductPrice(openProduct.price, openProduct.price_type) }}</dd>
+                  </div>
+                  <div>
+                     <dt>Hudud</dt>
+                     <dd>{{ openProduct.district?.name || "Butun viloyat" }}</dd>
+                  </div>
+                  <div>
+                     <dt>Kategoriya</dt>
+                     <dd>{{ openProduct.category?.name || "Kategoriyasiz" }}</dd>
+                  </div>
+                  <div>
+                     <dt>Joylangan</dt>
+                     <dd>{{ formatDateTime(openProduct.created_at) }}</dd>
+                  </div>
+                  <div>
+                     <dt>Muddati</dt>
+                     <dd>
+                        {{ openProduct.is_permanent ? "Muddatsiz" : openProduct.expires_at ? formatDateTime(openProduct.expires_at) : "—" }}
+                        <div v-if="!openProduct.deleted_at" class="mt-1.5">
+                           <FieldSelect
+                              :key="`expiry-${openProduct.id}-${openProduct.expires_at}`"
+                              size="sm"
+                              placeholder="Muddatni o'zgartirish…"
+                              :options="EXPIRY_OPTIONS"
+                              :disabled="busyId === openProduct.id"
+                              @change="(value: string) => changeExpiry(openProduct!, value)"
+                           />
+                        </div>
+                     </dd>
+                  </div>
+                  <div v-if="openProduct.is_bot">
+                     <dt>Manba</dt>
+                     <dd>{{ openProduct.source_channel ? `@${openProduct.source_channel.replace(/^@/, "")}` : "Bot" }}</dd>
+                  </div>
+                  <div v-for="value in openProduct.parameter_values" :key="value.id">
+                     <dt>{{ value.parameter?.title }}</dt>
+                     <dd>{{ value.value }} {{ value.parameter?.unit || "" }}</dd>
+                  </div>
+               </dl>
+            </template>
 
-                  <tr v-if="products.length === 0">
-                     <td colspan="8" class="admin-empty-cell">Qidiruvga mos e'lon topilmadi.</td>
-                  </tr>
-               </tbody>
-            </table>
-         </div>
+            <template v-if="openProduct" #actions>
+               <a :href="`/product/${openProduct.id}`" target="_blank" rel="noopener">
+                  <BaseButton size="sm" severity="secondary">
+                     <template #icon><ExternalLink class="size-3.5" /></template>
+                     Ilovada ochish
+                  </BaseButton>
+               </a>
+
+               <template v-if="openProduct.deleted_at">
+                  <BaseButton size="sm" severity="secondary" :loading="busyId === openProduct.id" @click="restore(openProduct)">
+                     <template #icon><RotateCcw class="size-3.5" /></template>
+                     Tiklash
+                  </BaseButton>
+                  <BaseButton size="sm" severity="danger" class="admin-xactions-wide" @click="askForceDelete(openProduct)">
+                     <template #icon><Trash2 class="size-3.5" /></template>
+                     Butunlay o'chirish
+                  </BaseButton>
+               </template>
+
+               <template v-else>
+                  <BaseButton size="sm" severity="secondary" @click="editId = openProduct.id">
+                     <template #icon><Pencil class="size-3.5" /></template>
+                     Tahrirlash
+                  </BaseButton>
+                  <BaseButton size="sm" severity="secondary" :loading="busyId === openProduct.id" @click="changeStatus(openProduct)">
+                     <template #icon>
+                        <component :is="openProduct.is_active ? PauseCircle : PlayCircle" class="size-3.5" />
+                     </template>
+                     {{ openProduct.is_active ? "To'xtatish" : "Faollashtirish" }}
+                  </BaseButton>
+                  <BaseButton
+                     v-if="!openProduct.is_bot && openProduct.user"
+                     size="sm"
+                     severity="secondary"
+                     @click="messageTarget = openProduct"
+                  >
+                     <template #icon><MessageSquare class="size-3.5" /></template>
+                     Muallifga yozish
+                  </BaseButton>
+                  <BaseButton
+                     v-if="openProduct.open_reports_count"
+                     size="sm"
+                     severity="secondary"
+                     :loading="busyId === openProduct.id"
+                     @click="resolveReports(openProduct)"
+                  >
+                     <template #icon><CheckCheck class="size-3.5" /></template>
+                     Shikoyatlarni yopish
+                  </BaseButton>
+                  <BaseButton size="sm" severity="danger" class="admin-xactions-wide" @click="askArchive(openProduct)">
+                     <template #icon><Archive class="size-3.5" /></template>
+                     Arxivlash
+                  </BaseButton>
+               </template>
+
+               <BaseButton
+                  v-if="openProduct.user && userFilter?.id !== openProduct.user.id"
+                  size="sm"
+                  severity="secondary"
+                  @click="filterByUser(openProduct.user)"
+               >
+                  <template #icon><UserRound class="size-3.5" /></template>
+                  Muallifning e'lonlari
+               </BaseButton>
+            </template>
+         </AdminSheet>
 
          <footer v-if="pagination" class="admin-pagination">
             <span>{{ pagination.from || 0 }}–{{ pagination.to || 0 }} / {{ pagination.total }}</span>
@@ -449,35 +419,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
    Archive,
    Bot,
    CheckCheck,
-   ChevronDown,
+   CircleCheck,
    Copy,
    ExternalLink,
    Eye,
    Flag,
-   ImageOff,
+   Heart,
    MessageSquare,
    PauseCircle,
+   Phone,
    Pencil,
    PlayCircle,
    RotateCcw,
    Search,
+   Send,
    Trash2,
    TriangleAlert,
    UserRound,
    X,
 } from "lucide-vue-next";
+import { isValidKey, relativeLabel } from "@admin/modules/dates";
 import AdminRepo from "@admin/entities/AdminRepo";
 import BaseButton from "@shared/ui/BaseButton.vue";
 import BaseModal from "@shared/ui/BaseModal.vue";
 import FieldSelect from "@shared/ui/FieldSelect.vue";
 import AdminMessageDialog from "@admin/components/AdminMessageDialog.vue";
 import AdminProductEditDrawer from "@admin/components/AdminProductEditDrawer.vue";
+import AdminSheet from "@admin/components/AdminSheet.vue";
 import { useCategory } from "@shared/entities/Category/useCategory";
 import { useCity } from "@shared/entities/District/useCity";
 import { formatDateTime, formatProductPrice, timeAgo } from "@shared/modules/formatters";
@@ -558,10 +532,13 @@ const districtOptions = computed(() => [
 const userFilter = ref<{ id: number; name: string } | null>(
    route.query.user_id ? { id: Number(route.query.user_id), name: String(route.query.user_name || `#${route.query.user_id}`) } : null,
 );
+// Bosh sahifadan: "shu kuni joylangan e'lonlar"
+const dateFilter = ref<string | null>(isValidKey(route.query.date) ? route.query.date : null);
 const loading = ref(true);
 const error = ref("");
 const notice = ref("");
-const openId = ref<number | null>(null);
+// ?open=ID — bosh sahifadan kelganda shu yozuv darhol oynada ochiladi
+const openId = ref<number | null>(Number(route.query.open) || null);
 const busyId = ref<number | null>(null);
 const confirmState = ref<ConfirmState | null>(null);
 // "Muallifga yozish" oynasi ochilgan e'lon
@@ -581,6 +558,7 @@ async function load(page = 1) {
          category_id: categoryId.value || undefined,
          district_id: districtId.value || undefined,
          duplicates: duplicates.value ? 1 : undefined,
+         date: dateFilter.value || undefined,
       });
       products.value = data.data;
       counts.value = data.counts ?? {};
@@ -630,10 +608,6 @@ function setStatus(value: Status) {
    load(1);
 }
 
-function toggle(id: number) {
-   openId.value = openId.value === id ? null : id;
-}
-
 function onEdited(message: string) {
    error.value = "";
    notice.value = message;
@@ -649,7 +623,13 @@ function filterByUser(user: { id: number; name: string }) {
 
 function clearUserFilter() {
    userFilter.value = null;
-   router.replace({ query: {} });
+   router.replace({ query: { ...route.query, user_id: undefined, user_name: undefined } });
+   load(1);
+}
+
+function clearDateFilter() {
+   dateFilter.value = null;
+   router.replace({ query: { ...route.query, date: undefined } });
    load(1);
 }
 
@@ -686,10 +666,7 @@ const EXPIRY_OPTIONS = [
    { value: "category", label: "Kategoriya muddati bo'yicha" },
 ];
 
-function changeExpiry(product: AdminProduct, event: Event) {
-   const select = event.target as HTMLSelectElement;
-   const value = select.value;
-   select.value = "";
+function changeExpiry(product: AdminProduct, value: string) {
    if (!value) return;
    const duration = value === "permanent" || value === "category" ? value : "days";
    return act(
@@ -736,8 +713,61 @@ const selected = ref<number[]>([]);
 const bulkBusy = ref(false);
 type BulkAction = Parameters<typeof AdminRepo.bulkProducts>[1];
 
-function toggleAll() {
-   selected.value = selected.value.length === products.value.length ? [] : products.value.map((product) => product.id);
+/*
+   Telegramdagidek tanlash: qatorni ~0.45 soniya bosib turish — tanlanadi va tanlash rejimi yoqiladi.
+   Rejimda oddiy bosish qo'shadi/olib tashlaydi; hech narsa tanlanmagan bo'lsa bosish — oynani ochadi.
+*/
+const LONG_PRESS_MS = 450;
+let pressTimer: ReturnType<typeof setTimeout> | null = null;
+let pressStart: { x: number; y: number } | null = null;
+let longPressed = false;
+
+function toggleSelected(id: number) {
+   selected.value = selected.value.includes(id) ? selected.value.filter((value) => value !== id) : [...selected.value, id];
+}
+
+function tap(id: number) {
+   if (selected.value.length) toggleSelected(id);
+   else openId.value = id;
+}
+
+function cancelPress() {
+   if (pressTimer) clearTimeout(pressTimer);
+   pressTimer = null;
+   pressStart = null;
+}
+
+function pressHandlers(id: number) {
+   return {
+      pointerdown: (event: PointerEvent) => {
+         if (event.button !== 0) return;
+         longPressed = false;
+         pressStart = { x: event.clientX, y: event.clientY };
+         pressTimer = setTimeout(() => {
+            longPressed = true;
+            pressTimer = null;
+            if (!selected.value.includes(id)) toggleSelected(id);
+            navigator.vibrate?.(12);
+         }, LONG_PRESS_MS);
+      },
+      // Barmoq siljisa (ro'yxatni aylantirish) — tanlanmaydi
+      pointermove: (event: PointerEvent) => {
+         if (pressStart && Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > 10) cancelPress();
+      },
+      pointerup: cancelPress,
+      pointercancel: cancelPress,
+      pointerleave: cancelPress,
+      // Bosib turish tugagach keladigan "click" oynani ochmasin
+      click: () => {
+         if (longPressed) {
+            longPressed = false;
+            return;
+         }
+         tap(id);
+      },
+      // Telefonda bosib turganda chiqadigan tizim menyusi kerak emas
+      contextmenu: (event: Event) => event.preventDefault(),
+   };
 }
 
 async function runBulk(action: BulkAction) {
@@ -781,9 +811,18 @@ function statusLabel(product: AdminProduct) {
    return product.deleted_at ? "Arxiv" : product.is_active ? "Faol" : "Tugagan";
 }
 
-function badgeClass(product: AdminProduct) {
-   return product.deleted_at ? "admin-badge-muted" : product.is_active ? "admin-badge-success" : "admin-badge-warning";
+const num = (value?: number | null) => (value ?? 0).toLocaleString("ru-RU");
+/** Yashil — faol, sariq — muddati tugagan/to'xtatilgan, kulrang — arxiv */
+function dotClass(product: AdminProduct) {
+   return product.deleted_at ? "" : product.is_active ? "is-active" : "is-expired";
 }
+
+// Oynada ko'rsatiladigan e'lon: ro'yxat yangilansa (amal bajarilgach) yangi ma'lumot ko'rinadi
+const openProduct = computed(() => products.value.find((product) => product.id === openId.value) ?? null);
+// Boshqa e'lon ochilganda oldingi amal xabari ko'rinmasin
+watch(openId, () => {
+   notice.value = "";
+});
 
 onMounted(() => {
    load();

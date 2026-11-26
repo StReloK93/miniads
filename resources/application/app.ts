@@ -70,8 +70,9 @@ const initApp = async () => {
          const startParam = launchParams.tgWebAppStartParam;
          const productStartParam = /^product_(\d+)$/.exec(startParam ?? "");
          const savedSearchParam = /^ss_(\d+)$/.exec(startParam ?? "");
-         // Kanaldagi jonli post tugmalari: cat_ID — e'lonlar sahifasi, cats_ID — ichki bo'limlari bor kategoriya
-         const categoryParam = /^cat_(\d+)$/.exec(startParam ?? "");
+         // Kanaldagi jonli post tugmalari: cat_ID — e'lonlar sahifasi, cats_ID — ichki bo'limlari bor kategoriya.
+         // Kanal postidagi "Shunga o'xshash" tugmasi: like_ID (xuddi cat_ kabi ochiladi, statistikada alohida ko'rinadi)
+         const categoryParam = /^(?:cat|like)_(\d+)$/.exec(startParam ?? "");
          const categoryTreeParam = /^cats_(\d+)$/.exec(startParam ?? "");
          // Ulashilgan vitrina: v_<slug> (slug — lotin harflari, raqam va "-")
          const vitrinaParam = /^v_([a-z0-9-]+)$/.exec(startParam ?? "");

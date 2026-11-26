@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
@@ -167,13 +168,14 @@ class ActivityLog
      *
      * @return array<int, array{user_id: int, date: string, started: bool, created: int, failed: array<int, string>, errors: array<int, string>, last_at: ?int}>
      */
-    public static function struggles(int $days): array
+    public static function struggles(int $days, ?string $until = null): array
     {
         $days = min($days, self::KEEP_RAW_DAYS);
+        $end = $until ? Carbon::parse($until) : now();
         $result = [];
 
         for ($i = 0; $i < $days; $i++) {
-            $date = now()->subDays($i)->toDateString();
+            $date = $end->copy()->subDays($i)->toDateString();
             $perUser = [];
             self::eachRow($date, function (array $row) use (&$perUser) {
                 $userId = (int) ($row['u'] ?? 0);

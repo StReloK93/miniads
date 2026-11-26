@@ -29,7 +29,14 @@ class User extends Authenticatable
         'notify_saved_searches' => 'boolean',
         'notify_expiry' => 'boolean',
         'notify_price_drop' => 'boolean',
+        'channels_checked_at' => 'datetime',
     ];
+
+    /** Kanallardagi a'zolik (ChannelMembershipService) */
+    public function channelMemberships()
+    {
+        return $this->hasMany(ChannelMember::class);
+    }
 
     public function savedSearches()
     {

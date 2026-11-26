@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\ChannelMembershipService;
 use App\Services\GroupSubscriptionGate;
 use App\Services\TelegramNotifier;
 use Illuminate\Http\Request;
@@ -19,6 +20,17 @@ class TelegramController extends Controller
     {
         // Telegram'dan kelgan barcha ma'lumotlarni olish
         $data = $request->all();
+
+        // Kanal a'zoligi o'zgardi (kimdir kanalga qo'shildi / chiqdi). Webhook'da "chat_member" yoqilgan bo'lsagina keladi
+        if (isset($data['chat_member'])) {
+            try {
+                app(ChannelMembershipService::class)->handleUpdate($data['chat_member']);
+            } catch (\Throwable $e) {
+                Log::warning("Webhook: kanal a'zoligi yozilmadi: {$e->getMessage()}");
+            }
+
+            return response()->json(['status' => 'ok'], 200);
+        }
 
         // Guruhlar: kanalga a'zolik nazorati. Guruh xabarlari ko'p — logga yozilmaydi
         try {

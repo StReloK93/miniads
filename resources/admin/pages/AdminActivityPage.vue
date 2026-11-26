@@ -6,19 +6,8 @@
             <h1>Faollik</h1>
             <p class="admin-muted">Foydalanuvchilar ilovada nimalarni ko'ryapti va qayerdan kelyapti.</p>
          </div>
-         <div class="flex gap-1.5">
-            <button
-               v-for="option in [1, 7, 30]"
-               :key="option"
-               type="button"
-               class="admin-filter-chip pr-3!"
-               :class="{ 'is-active': days === option }"
-               @click="setDays(option)"
-            >
-               {{ option === 1 ? "Bugun" : `${option} kun` }}
-            </button>
-         </div>
       </header>
+      <AdminDateBar v-model="selection" ranges />
 
       <p v-if="error" class="admin-alert admin-alert-error">{{ error }}</p>
       <div v-if="loading && !stats" class="admin-panel admin-loading">Statistika yuklanmoqda…</div>
@@ -30,7 +19,7 @@
          <template v-if="tab === 'overview'">
             <div class="admin-stats-grid">
                <article class="admin-stat-card">
-                  <span class="admin-stat-label">{{ days === 1 ? "Bugun kirganlar" : "Kunlik o'rtacha" }}</span>
+                  <span class="admin-stat-label">{{ days === 1 ? "Kirganlar" : "Kunlik o'rtacha" }}</span>
                   <strong>{{ num(days === 1 ? stats.summary.visitors : stats.summary.avg_daily) }}</strong>
                   <span class="admin-stat-detail">kishi (mehmonlar ham)</span>
                </article>
@@ -83,16 +72,28 @@
                <p class="admin-field-hint mt-2">Faqat ro'yxatdan o'tganlar; batafsil yo'l oxirgi {{ stats.raw_days }} kun saqlanadi.</p>
             </section>
 
-            <section v-if="days > 1" class="admin-chart-card">
-               <div class="admin-card-header">
-                  <h2 class="admin-card-title">Kunlar bo'yicha</h2>
-                  <span class="admin-card-subtitle">kirgan kishilar</span>
+            <!-- Kunlar bo'yicha: ustunni bosing — o'sha kun alohida ochiladi -->
+            <section v-if="days > 1 && stats.daily.length" class="adm-card">
+               <header class="adm-card-head">
+                  <h2>Kunlar bo'yicha kirganlar</h2>
+                  <span class="adm-card-meta">bosing — o'sha kun</span>
+               </header>
+               <div class="adm-bars" :style="{ gridTemplateColumns: `repeat(${stats.daily.length}, minmax(0, 1fr))` }">
+                  <button
+                     v-for="row in stats.daily"
+                     :key="row.date"
+                     type="button"
+                     class="adm-bar"
+                     :aria-label="`${dayLabel(row.date)}: ${row.users} kishi`"
+                     @click="selection = { date: row.date, days: null }"
+                  >
+                     <span class="adm-bar-value">{{ row.users }}</span>
+                     <span class="adm-bar-track">
+                        <span class="adm-bar-fill" :style="{ height: `${barHeight(row.users)}%` }" />
+                     </span>
+                     <span class="adm-bar-label">{{ stats.daily.length > 14 ? "" : new Date(row.date).getDate() }}</span>
+                  </button>
                </div>
-               <AdminRankList
-                  :rows="[...stats.daily].reverse().map((d) => ({ label: dayLabel(d.date), value: d.users, detail: `${num(d.users)} kishi` }))"
-                  empty="Bu davrda hali ma'lumot yo'q."
-                  :limit="7"
-               />
             </section>
 
             <section class="admin-chart-card">
@@ -166,7 +167,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import AdminDateBar from "@admin/components/AdminDateBar.vue";
+import { todayKey } from "@admin/modules/dates";
+import { useDateSelection } from "@admin/modules/useDateSelection";
 import AdminRepo from "@admin/entities/AdminRepo";
 import AdminTabs from "@admin/components/AdminTabs.vue";
 import AdminRankList from "@admin/components/AdminRankList.vue";
@@ -242,8 +246,14 @@ const tabs = [
 ];
 const tab = ref("overview");
 
-const days = ref(7);
+const { selection, params } = useDateSelection({ date: todayKey(), days: null });
+const days = computed(() => (selection.value.date ? 1 : (selection.value.days ?? 7)));
 const stats = ref<Stats | null>(null);
+
+function barHeight(value: number) {
+   const max = Math.max(1, ...(stats.value?.daily ?? []).map((row) => row.users));
+   return value ? Math.max(6, Math.round((value / max) * 100)) : 0;
+}
 const loading = ref(true);
 const error = ref("");
 
@@ -266,7 +276,7 @@ async function load() {
    loading.value = true;
    error.value = "";
    try {
-      const { data } = await AdminRepo.activity(days.value);
+      const { data } = await AdminRepo.activity(params());
       stats.value = data;
    } catch (exception) {
       console.error("Faollik statistikasi yuklanmadi.", exception);
@@ -276,11 +286,6 @@ async function load() {
    }
 }
 
-function setDays(value: number) {
-   if (days.value === value) return;
-   days.value = value;
-   load();
-}
-
+watch(selection, load);
 onMounted(load);
 </script>

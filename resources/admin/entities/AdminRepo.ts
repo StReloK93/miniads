@@ -43,6 +43,10 @@ export default {
    userMessages(userId: number) {
       return api.get<AdminMessageItem[]>(`admin/users/${userId}/messages`);
    },
+   /** Bitta kun bo'yicha hisobot (bosh sahifa) */
+   day(date: string) {
+      return api.get("admin/day", { params: { date } });
+   },
    dashboard() {
       return api.get("admin/dashboard");
    },
@@ -82,11 +86,11 @@ export default {
    deleteVitrina(id: number) {
       return api.delete(`admin/vitrinas/${id}`);
    },
-   searchStats(days: number) {
-      return api.get("admin/search-stats", { params: { days } });
+   searchStats(params: { date?: string; days?: number }) {
+      return api.get("admin/search-stats", { params });
    },
-   activity(days: number) {
-      return api.get("admin/activity", { params: { days } });
+   activity(params: { date?: string; days?: number }) {
+      return api.get("admin/activity", { params });
    },
    moderation() {
       return api.get<{ banned_words: string }>("admin/moderation");
@@ -102,6 +106,12 @@ export default {
    },
    blockUser(id: number, archiveProducts: boolean) {
       return api.post<{ message: string }>(`admin/users/${id}/block`, { archive_products: archiveProducts });
+   },
+   /** Kanal a'zoligini hozir Telegram'dan qayta so'rash */
+   checkUserChannels(id: number) {
+      return api.post<{ message: string; channel_ids: string[]; channels_checked_at: string | null }>(
+         `admin/users/${id}/check-channels`,
+      );
    },
    unblockUser(id: number) {
       return api.post<{ message: string }>(`admin/users/${id}/unblock`);

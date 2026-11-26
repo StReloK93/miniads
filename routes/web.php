@@ -21,6 +21,8 @@ Route::view('/privacy', 'privacy')->name('privacy');
 Route::get('/product/{id}', fn (int $id) => view('app', ['meta' => \App\Support\PageMeta::forProduct($id)]))
     ->whereNumber('id');
 
+// api/ — bu yerga tushmaydi: noma'lum API manzili HTML sahifa emas, JSON 404 qaytarsin
+// (aks holda keshlangan route'lar eskirganda admin panel HTML'ni ma'lumot deb o'qib yiqiladi)
 Route::get('/{any}', function () {
     return view('app');
-})->where('any', '.*');
+})->where('any', '^(?!api(/|$)).*');

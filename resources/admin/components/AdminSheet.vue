@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { X } from "lucide-vue-next";
+import { useSwipeToClose } from "@admin/modules/useSwipeToClose";
 
 /**
  * E'lon / foydalanuvchi tafsiloti: telefonda pastdan chiqadi (ichi o'zi aylanadi, amallar pastda),
@@ -57,6 +58,9 @@ let opener: HTMLElement | null = null;
 function close() {
    emit("close");
 }
+
+// Telefonda pastga surib yopish; ichi aylantirilgan bo'lsa — avval aylanadi
+useSwipeToClose(panel, close, () => panel.value?.querySelector<HTMLElement>(".adm-detail-body") ?? null);
 
 /** Esc: ustida boshqa oyna (tasdiqlash, xabar yozish) ochiq bo'lsa — avval o'sha yopiladi */
 function onKeydown(event: KeyboardEvent) {

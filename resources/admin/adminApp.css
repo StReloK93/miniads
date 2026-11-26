@@ -3677,3 +3677,13 @@ textarea.admin-input {
    font-size: 12.5px;
    font-variant-numeric: tabular-nums;
 }
+
+/* Pastga surib yopish: tutqich va sarlavhada barmoq bilan tortish aylantirish bo'lib ketmasin */
+.adm-sheet-grip,
+.adm-detail-head {
+   touch-action: none;
+}
+
+.adm-sheet-grip {
+   cursor: grab;
+}

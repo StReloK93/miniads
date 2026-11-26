@@ -317,10 +317,14 @@ async function load() {
    error.value = "";
    try {
       const { data: response } = await AdminRepo.day(date.value);
+      // Server eski bo'lsa yoki boshqa narsa qaytarsa (masalan HTML) — sahifa yiqilmasin, sababini ko'rsatamiz
+      if (!response || typeof response !== "object" || !response.metrics || !response.attention) {
+         throw new Error("Kutilmagan javob: /api/admin/day");
+      }
       data.value = response;
    } catch (exception) {
       console.error("Kunlik hisobot yuklanmadi.", exception);
-      error.value = "Ma'lumot yuklanmadi.";
+      error.value = "Ma'lumot yuklanmadi. Server yangilanmagan bo'lishi mumkin: serverda php artisan optimize:clear bajaring.";
    } finally {
       loading.value = false;
    }

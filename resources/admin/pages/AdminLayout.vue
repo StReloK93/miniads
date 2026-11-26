@@ -66,7 +66,7 @@
       <Transition name="adm-sheet">
          <div v-if="menuOpen" class="adm-sheet-layer">
             <div class="adm-sheet-backdrop z-overlay" aria-hidden="true" @click="closeMenu" />
-            <section id="adm-menu" class="adm-sheet z-glass-strong" role="dialog" aria-modal="true" aria-label="Bo'limlar va qidiruv">
+            <section id="adm-menu" ref="menuPanel" class="adm-sheet z-glass-strong" role="dialog" aria-modal="true" aria-label="Bo'limlar va qidiruv">
                <div class="adm-sheet-grip" aria-hidden="true" />
                <label class="adm-sheet-search">
                   <Search class="size-4.5 shrink-0 opacity-60" aria-hidden="true" />
@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useSwipeToClose } from "@admin/modules/useSwipeToClose";
 import {
    Activity,
    ArrowLeft,
@@ -212,6 +213,10 @@ async function openMenu(focusSearch: boolean) {
 function closeMenu() {
    menuOpen.value = false;
 }
+
+// Telefonda menyuni pastga surib yopish
+const menuPanel = ref<HTMLElement | null>(null);
+useSwipeToClose(menuPanel, closeMenu);
 
 function go(name: string, queryParams: Record<string, string>) {
    router.push({ name, query: queryParams });
